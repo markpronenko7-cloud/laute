@@ -210,31 +210,6 @@ export const HomePage = () => {
                 </div>
               </div>
             </div>
-
-            <div className="hero-media-wrapper reveal-on-scroll reveal-delay-2">
-              <div className="hero-card-featured">
-                <img
-                  src={`${baseUrl}images/cat_kitchen.png`}
-                  alt="Инженерная сантехника LAUTE"
-                  className="hero-featured-img"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                />
-                <div className="hero-card-overlay">
-                  <span className="featured-tag">{h.featuredTag || 'Каталог продукции'}</span>
-                  <h3>{h.featuredTitle || 'Смесители и сантехнические системы'}</h3>
-                  <p>{h.featuredDesc || 'Продуманная эргономика, надежные узлы и широкий ассортимент для проектных и розничных поставок.'}</p>
-                  <button 
-                    type="button" 
-                    className="card-inline-btn" 
-                    onClick={() => navigateTo('catalog')}
-                  >
-                    {h.featuredBtn || 'Смотреть каталог →'}
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 

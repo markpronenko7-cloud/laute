@@ -1086,34 +1086,24 @@ img {
 }
 
 .hero-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 48px;
-  align-items: center;
+  display: block;
   position: relative;
   z-index: 2;
+  width: 100%;
 }
 
-@media (min-width: 1024px) {
-  .hero-grid {
-    grid-template-columns: 1.15fr 0.85fr;
-    gap: 56px;
-  }
-}
-
-@media (max-width: 768px) {
-  .hero-grid {
-    gap: 22px;
-  }
+.hero-content {
+  max-width: 960px;
 }
 
 .hero-title {
-  font-size: 3rem;
+  font-size: 3.125rem;
   color: #FFFFFF;
   line-height: 1.15;
   margin-bottom: 22px;
   letter-spacing: -0.03em;
   font-weight: 800;
+  max-width: 940px;
 }
 
 @media (max-width: 768px) {
@@ -1133,11 +1123,11 @@ img {
 }
 
 .hero-desc {
-  font-size: 1.125rem;
+  font-size: 1.15rem;
   color: #94A3B8;
   margin-bottom: 36px;
   line-height: 1.65;
-  max-width: 620px;
+  max-width: 780px;
 }
 
 @media (max-width: 768px) {
@@ -1256,108 +1246,6 @@ img {
   flex-shrink: 0;
 }
 
-/* Glassmorphic Featured Hero Card */
-.hero-card-featured {
-  background: rgba(16, 21, 34, 0.72);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5);
-  transition: transform var(--transition-normal);
-}
-
-@media (max-width: 768px) {
-  .hero-card-featured {
-    border-radius: var(--radius-md);
-  }
-}
-
-.hero-card-featured:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.hero-featured-img {
-  width: 100%;
-  height: 300px;
-  object-fit: contain;
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.06) 0%, rgba(11, 14, 22, 0.88) 75%);
-  padding: 28px;
-}
-
-@media (max-width: 768px) {
-  .hero-featured-img {
-    height: 180px;
-    padding: 16px;
-  }
-}
-
-.hero-card-overlay {
-  padding: 26px;
-  background: rgba(11, 14, 22, 0.92);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-@media (max-width: 768px) {
-  .hero-card-overlay {
-    padding: 16px;
-  }
-}
-
-.featured-tag {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--water-sky);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.hero-card-overlay h3 {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 6px 0;
-  color: #FFFFFF;
-}
-
-@media (max-width: 768px) {
-  .hero-card-overlay h3 {
-    font-size: 1.05rem;
-    margin: 4px 0;
-  }
-}
-
-.hero-card-overlay p {
-  font-size: 0.875rem;
-  color: #94A3B8;
-  margin-bottom: 14px;
-  line-height: 1.55;
-}
-
-@media (max-width: 768px) {
-  .hero-card-overlay p {
-    font-size: 0.8125rem;
-    margin-bottom: 10px;
-    line-height: 1.45;
-  }
-}
-
-.card-inline-btn {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--water-sky);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  transition: color var(--transition-fast);
-}
-
-.card-inline-btn:hover {
-  color: #BAE6FD;
-  text-decoration: underline;
-}
 
 /* ==========================================================================
    ORGANIC SECTION WAVE BRIDGES & SCROLL-TRIGGERED TRANSITIONS
