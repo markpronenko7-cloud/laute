@@ -18,9 +18,9 @@ export const Header = () => {
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          const top = window.scrollY;
-          setIsScrolled(top > 20);
-          const ratio = Math.min(Math.max(top / 180, 0), 1);
+          const top = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+          setIsScrolled(top > 15);
+          const ratio = Math.min(Math.max(top / 220, 0), 1);
           document.documentElement.style.setProperty('--header-scroll-ratio', ratio.toFixed(3));
           ticking = false;
         });
