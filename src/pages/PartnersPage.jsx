@@ -99,9 +99,9 @@ export const PartnersPage = () => {
               <div className="feature-icon-box">
                 <Truck size={24} />
               </div>
-              <h3 className="feature-title">Склады в ключевых регионах</h3>
+              <h3 className="feature-title">Региональная логистика</h3>
               <p className="feature-desc">
-                Наличие распределительных складов в Новосибирске (Сибирь), Москве и Алматы (Казахстан) обеспечивает быструю комплектацию и отгрузку заказов.
+                Отработанные логистические цепочки и организация поставок в регионы России, Казахстана и стран ЕАЭС обеспечивают своевременную комплектацию заказов.
               </p>
             </div>
 
@@ -202,12 +202,17 @@ export const PartnersPage = () => {
 
             <div className="form-body-col">
               {isSubmitted ? (
-                <div className="form-success-box">
-                  <CheckCircle2 size={48} color="#16A34A" />
-                  <h3>Заявка успешно отправлена!</h3>
-                  <p>Спасибо за интерес к продукции LAUTE. Региональный представитель свяжется с вами в ближайшее рабочее время.</p>
+                <div className="form-success-box" style={{ background: 'rgba(22,163,74,0.08)', border: '1px solid rgba(22,163,74,0.3)', padding: '24px', borderRadius: '8px', textAlign: 'center' }}>
+                  <CheckCircle2 size={44} color="#16A34A" style={{ margin: '0 auto 12px' }} />
+                  <h3 style={{ color: '#F8FAFC', marginBottom: '8px' }}>Данные заявки успешно сформированы</h3>
+                  <p style={{ color: '#94A3B8', fontSize: '0.9rem', marginBottom: '16px' }}>
+                    Заявка подготовлена для передачи региональному менеджеру LAUTE. (Интерфейс готов к интеграции с корпоративной CRM/ERP).
+                  </p>
+                  <div style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: '6px', fontSize: '0.8rem', color: '#CBD5E1', marginBottom: '16px' }}>
+                    Прямая оперативная связь: <a href="tel:+79833105626" style={{ color: '#D4A373', fontWeight: 600 }}>+7 (983) 310-56-26</a> • <a href="mailto:opt@laute.ltd" style={{ color: '#D4A373' }}>opt@laute.ltd</a>
+                  </div>
                   <button type="button" className="btn btn-outline btn-sm" onClick={() => setIsSubmitted(false)}>
-                    Отправить ещё одну заявку
+                    Заполнить новую заявку
                   </button>
                 </div>
               ) : (

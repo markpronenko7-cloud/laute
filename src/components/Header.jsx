@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Globe, MapPin, User, Menu, X, ChevronDown, ShieldCheck, ArrowRight } from 'lucide-react';
+import { REGIONS_CONFIG } from '../data/regionsData';
 
 export const Header = () => {
   const { lang, setLang, region, setRegion, currentRoute, navigateTo, t, openPartnerModal, openAuthModal } = useApp();
@@ -31,12 +32,10 @@ export const Header = () => {
     { code: 'en', label: 'EN', full: 'English' }
   ];
 
-  const regionOptions = [
-    { code: 'siberia', label: t.regions.siberia },
-    { code: 'kz', label: t.regions.kz },
-    { code: 'ru', label: t.regions.ru },
-    { code: 'intl', label: t.regions.intl }
-  ];
+  const regionOptions = REGIONS_CONFIG.map((reg) => ({
+    code: reg.id,
+    label: t.regions?.[reg.id] || reg.names[lang] || reg.names.ru
+  }));
 
   const handleNavClick = (route) => {
     setIsMobileMenuOpen(false);
@@ -176,17 +175,17 @@ export const Header = () => {
               type="button"
               className="select-trigger"
               onClick={() => setIsRegionOpen(!isRegionOpen)}
-              aria-label="Выбрать регион"
+              aria-label={t.regions?.selectRegion || 'Выберите регион'}
             >
               <MapPin size={15} className="select-icon" />
-              <span className="select-val">{t.regions[region] || region}</span>
+              <span className="select-val">{t.regions?.[region] || region}</span>
               <ChevronDown size={13} className={`arrow-icon ${isRegionOpen ? 'open' : ''}`} />
             </button>
 
             {isRegionOpen && (
               <div className="dropdown-panel region-panel">
                 <div className="dropdown-header">
-                  <p className="dropdown-desc">Региональные склады и условия:</p>
+                  <p className="dropdown-desc">{t.regions?.selectRegion || 'Выберите регион:'}</p>
                 </div>
                 {regionOptions.map((opt) => (
                   <button
@@ -202,6 +201,11 @@ export const Header = () => {
                     <span className="opt-label">{opt.label}</span>
                   </button>
                 ))}
+                {t.regions?.note && (
+                  <div className="dropdown-footer-note" style={{ padding: '8px 12px', fontSize: '0.72rem', color: '#64748B', borderTop: '1px solid rgba(255,255,255,0.06)', lineHeight: 1.3 }}>
+                    {t.regions.note}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -326,7 +330,7 @@ export const Header = () => {
               </div>
 
               <div className="mobile-select-group">
-                <span className="mobile-select-label">Регион:</span>
+                <span className="mobile-select-label">{t.regions?.currentRegion || 'Регион'}:</span>
                 <div className="region-chips">
                   {regionOptions.map((opt) => (
                     <button

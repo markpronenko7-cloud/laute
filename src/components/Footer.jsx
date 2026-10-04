@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { Globe, MapPin, Phone, Mail, ArrowUp, Building2, ShieldCheck, Clock } from 'lucide-react';
+import { REGIONS_CONFIG } from '../data/regionsData';
 
 export const Footer = () => {
   const { lang, setLang, region, setRegion, navigateTo, t, openPartnerModal, openAuthModal, openServiceModal } = useApp();
@@ -39,21 +40,69 @@ export const Footer = () => {
               Международная производственно-торговая платформа сантехнического оборудования. Прямые поставки смесителей, кухонных моек, душевых систем и комплектующих для оптовых компаний, дилеров и строительных объектов.
             </p>
 
-            <div className="footer-region-status">
-              <div className="status-item">
-                <MapPin size={15} className="status-icon" />
-                <span>Региональный склад / рынок: <strong>{t.regions[region] || region}</strong></span>
+            {/* Independent Language & Region Controls */}
+            <div className="footer-controls" style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Globe size={15} style={{ color: '#D4A373' }} />
+                <span style={{ fontSize: '0.82rem', color: '#94A3B8' }}>Язык:</span>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  {[
+                    { code: 'ru', label: 'RU' },
+                    { code: 'kz', label: 'KZ' },
+                    { code: 'en', label: 'EN' }
+                  ].map((item) => (
+                    <button
+                      key={item.code}
+                      type="button"
+                      onClick={() => setLang(item.code)}
+                      style={{
+                        padding: '3px 8px',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        borderRadius: '4px',
+                        border: '1px solid',
+                        borderColor: lang === item.code ? '#D4A373' : 'rgba(255,255,255,0.15)',
+                        background: lang === item.code ? 'rgba(212,163,115,0.15)' : 'transparent',
+                        color: lang === item.code ? '#D4A373' : '#94A3B8',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="status-item">
-                <Globe size={15} className="status-icon" />
-                <span>Язык интерфейса: <strong>{lang.toUpperCase()}</strong></span>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <MapPin size={15} style={{ color: '#D4A373' }} />
+                <span style={{ fontSize: '0.82rem', color: '#94A3B8' }}>{t.regions?.currentRegion || 'Регион'}:</span>
+                <select
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value)}
+                  style={{
+                    padding: '4px 8px',
+                    fontSize: '0.78rem',
+                    background: '#162032',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    borderRadius: '4px',
+                    color: '#F8FAFC',
+                    cursor: 'pointer'
+                  }}
+                  aria-label={t.regions?.selectRegion || 'Выберите регион'}
+                >
+                  {REGIONS_CONFIG.map((reg) => (
+                    <option key={reg.id} value={reg.id}>
+                      {t.regions?.[reg.id] || reg.names[lang] || reg.names.ru}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
 
           {/* Quick Links Column */}
           <div className="footer-col">
-            <h4 className="footer-col-title">Навигация по разделам</h4>
+            <h4 className="footer-col-title">Навигация</h4>
             <ul className="footer-links">
               <li>
                 <button type="button" className="footer-link-btn" onClick={() => navigateTo('home')}>
@@ -62,32 +111,32 @@ export const Footer = () => {
               </li>
               <li>
                 <button type="button" className="footer-link-btn" onClick={() => navigateTo('catalog')}>
-                  Каталог продукции (14 категорий)
+                  Каталог
                 </button>
               </li>
               <li>
                 <button type="button" className="footer-link-btn" onClick={() => navigateTo('company')}>
-                  О компании и Завод Laute
+                  Компания / Производство
                 </button>
               </li>
               <li>
                 <button type="button" className="footer-link-btn" onClick={() => navigateTo('partners')}>
-                  Оптовым партнёрам и условия
+                  Партнёрам
                 </button>
               </li>
               <li>
                 <button type="button" className="footer-link-btn" onClick={() => navigateTo('where-to-buy')}>
-                  Где купить (Опт и Розница)
+                  Где купить
                 </button>
               </li>
               <li>
                 <button type="button" className="footer-link-btn" onClick={() => navigateTo('service')}>
-                  Первый цифровой сервис-центр
+                  Цифровой сервис
                 </button>
               </li>
               <li>
                 <button type="button" className="footer-link-btn" onClick={() => navigateTo('contacts')}>
-                  Контакты представительств
+                  Контакты
                 </button>
               </li>
             </ul>
@@ -95,17 +144,17 @@ export const Footer = () => {
 
           {/* Verified Contacts Column */}
           <div className="footer-col">
-            <h4 className="footer-col-title">Подтверждённые контакты</h4>
+            <h4 className="footer-col-title">Официальные контакты</h4>
             
             <div className="footer-contact-block">
-              <span className="contact-role">Главный бэк-офис представительства:</span>
+              <span className="contact-role">Официальное представительство:</span>
               <p className="contact-address">
-                Россия, 630073, Новосибирская область, г. Новосибирск, ул. Блюхера 71
+                Россия, 630073, Новосибирская область, г. Новосибирск, ул. Блюхера, 71
               </p>
             </div>
 
             <div className="footer-contact-block">
-              <span className="contact-role">Телефоны отдела продаж:</span>
+              <span className="contact-role">Отдел оптовых продаж:</span>
               <ul className="contact-list">
                 <li>
                   <a href="tel:+79833105626" className="clickable-contact">
@@ -159,7 +208,7 @@ export const Footer = () => {
             <div className="footer-service-notice">
               <div className="notice-header">
                 <Clock size={16} className="notice-icon" />
-                <strong>Гарантийный сервис:</strong>
+                <strong>Первый цифровой сервисный центр</strong>
               </div>
               <p className="notice-text">
                 «Ответ будет дан в течение 36 часов в рабочие дни»
@@ -169,17 +218,17 @@ export const Footer = () => {
                 className="btn btn-outline btn-sm btn-full"
                 onClick={openServiceModal}
               >
-                Подать гарантийную заявку
+                Подать сервисную заявку
               </button>
             </div>
 
-            <div style={{ marginTop: '20px' }}>
+            <div style={{ marginTop: '16px' }}>
               <button 
                 type="button" 
                 className="btn btn-primary btn-sm btn-full"
                 onClick={openPartnerModal}
               >
-                Запросить оптовые условия
+                Стать партнёром
               </button>
             </div>
           </div>
@@ -192,7 +241,7 @@ export const Footer = () => {
               © 2026 LAUTE LTD. Международная производственно-торговая платформа сантехники. Все права защищены.
             </p>
             <div className="footer-legal-links">
-              <span>Склады: Новосибирск (Сибирь) • Алматы (Казахстан) • Москва</span>
+              <span>Политика конфиденциальности • Пользовательское соглашение • Поставки по РФ, Казахстану и СНГ</span>
             </div>
           </div>
 

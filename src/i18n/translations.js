@@ -16,10 +16,14 @@ export const translations = {
       aiHelp: 'Помочь подобрать'
     },
     regions: {
+      selectRegion: 'Выберите регион',
+      currentRegion: 'Регион',
       kz: 'Казахстан',
       siberia: 'Сибирь (РФ)',
-      ru: 'Россия (Центр)',
-      intl: 'Международный (Global)'
+      ru: 'Россия (Европейская часть)',
+      intl: 'Другие регионы и страны СНГ',
+      other: 'Другие регионы и страны СНГ',
+      note: 'Окончательная структура регионов и складов определяется протоколом развития сети LAUTE'
     },
     hero: {
       badge: 'Международная платформа LAUTE',
@@ -304,8 +308,8 @@ export const translations = {
         success: 'Спасибо! Ваша заявка передана региональному менеджеру LAUTE.'
       },
       serviceModal: {
-        title: 'Обращение в цифровой сервисный центр',
-        subtitle: 'Официальный регламент: ответ будет дан в течение 36 часов в рабочие дни.',
+        title: 'Первый цифровой сервисный центр',
+        subtitle: 'Ответ будет дан в течение 36 часов в рабочие дни',
         article: 'Артикул или модель изделия LAUTE',
         purchaseDate: 'Дата приобретения (если известна)',
         clientType: 'Тип обращения (оптовый партнёр / розничный покупатель)',
@@ -355,10 +359,14 @@ export const translations = {
       aiHelp: 'Таңдауға көмектесу'
     },
     regions: {
+      selectRegion: 'Өңірді таңдаңыз',
+      currentRegion: 'Өңір',
       kz: 'Қазақстан',
       siberia: 'Сібір (РФ)',
-      ru: 'Ресей (Орталық)',
-      intl: 'Халықаралық (Global)'
+      ru: 'Ресей (Еуропалық бөлігі)',
+      intl: 'Басқа өңірлер және ТМД',
+      other: 'Басқа өңірлер және ТМД',
+      note: 'Аймақтар мен қоймалар құрылымы LAUTE желісін дамыту хаттамасына сәйкес нақтылануда'
     },
     hero: {
       badge: 'LAUTE халықаралық платформасы',
@@ -518,8 +526,8 @@ export const translations = {
         success: 'Рахмет! Сіздің өтініміңіз LAUTE өңірлік менеджеріне берілді.'
       },
       serviceModal: {
-        title: 'Сандық сервистік орталыққа өтініш',
-        subtitle: 'Ресми регламент: жауап жұмыс күндері 36 сағат ішінде беріледі.',
+        title: 'Бірінші сандық сервистік орталық',
+        subtitle: 'Жауап жұмыс күндері 36 сағат ішінде беріледі',
         article: 'LAUTE бұйымының артикулы немесе моделі',
         purchaseDate: 'Сатып алынған күні (егер белгілі болса)',
         clientType: 'Өтініш беруші түрі (көтерме серіктес / сатып алушы)',
@@ -569,10 +577,14 @@ export const translations = {
       aiHelp: 'Product Matcher'
     },
     regions: {
+      selectRegion: 'Select Region',
+      currentRegion: 'Region',
       kz: 'Kazakhstan',
       siberia: 'Siberia (RF)',
-      ru: 'Russia (Central)',
-      intl: 'International (Global)'
+      ru: 'Russia (European Part)',
+      intl: 'Other Regions & CIS',
+      other: 'Other Regions & CIS',
+      note: 'Regional structure and logistics network are configured according to the LAUTE platform protocol'
     },
     hero: {
       badge: 'LAUTE International Platform',
@@ -732,8 +744,8 @@ export const translations = {
         success: 'Thank you! Your partnership inquiry has been forwarded to the LAUTE regional manager.'
       },
       serviceModal: {
-        title: 'Digital Service Center Ticket',
-        subtitle: 'Official protocol: response guaranteed within 36 hours on business days.',
+        title: 'First Digital Service Center',
+        subtitle: 'Response will be provided within 36 hours on business days',
         article: 'LAUTE Product Article / Model Number',
         purchaseDate: 'Date of Purchase (if known)',
         clientType: 'Requester Type (Wholesale partner / End customer)',

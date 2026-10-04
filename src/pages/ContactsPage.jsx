@@ -142,12 +142,17 @@ export const ContactsPage = () => {
               <p className="form-card-desc">Задайте вопрос по наличию, оптовым ценам или дилерству.</p>
 
               {formSent ? (
-                <div className="form-success-box">
-                  <CheckCircle2 size={40} color="#16A34A" />
-                  <h4>Сообщение отправлено!</h4>
-                  <p>Ответственный менеджер свяжется с вами по указанному телефону или почте.</p>
+                <div className="form-success-box" style={{ background: 'rgba(22,163,74,0.08)', border: '1px solid rgba(22,163,74,0.3)', padding: '24px', borderRadius: '8px', textAlign: 'center' }}>
+                  <CheckCircle2 size={40} color="#16A34A" style={{ margin: '0 auto 12px' }} />
+                  <h4 style={{ color: '#F8FAFC', marginBottom: '8px' }}>Обращение сформировано</h4>
+                  <p style={{ color: '#94A3B8', fontSize: '0.88rem', marginBottom: '16px' }}>
+                    Запрос подготовлен для направления ответственному специалисту LAUTE. (Архитектурный интерфейс готов к интеграции с CRM).
+                  </p>
+                  <div style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: '6px', fontSize: '0.8rem', color: '#CBD5E1', marginBottom: '16px' }}>
+                    Прямая оперативная связь: <a href="tel:+79833105626" style={{ color: '#D4A373', fontWeight: 600 }}>+7 (983) 310-56-26</a> • <a href="mailto:opt@laute.ltd" style={{ color: '#D4A373' }}>opt@laute.ltd</a>
+                  </div>
                   <button type="button" className="btn btn-outline btn-sm" onClick={() => setFormSent(false)}>
-                    Отправить ещё одно сообщение
+                    Отправить ещё одно обращение
                   </button>
                 </div>
               ) : (
@@ -194,9 +199,9 @@ export const ContactsPage = () => {
                       className="form-select"
                     >
                       <option value="siberia">Сибирь (Новосибирск, Томск, Кузбасс и др.)</option>
-                      <option value="kz">Казахстан (Алматы, Астана и др.)</option>
-                      <option value="ru">Россия (Центральный регион, Москва)</option>
-                      <option value="intl">Международный отдел</option>
+                      <option value="kz">Казахстан</option>
+                      <option value="ru">Россия (Европейская часть)</option>
+                      <option value="other">Другие регионы и страны СНГ</option>
                     </select>
                   </div>
 

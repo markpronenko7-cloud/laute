@@ -127,11 +127,11 @@ export const ServicePage = () => {
 
             <div className="form-body-col">
               {isSubmitted ? (
-                <div className="form-success-box">
-                  <CheckCircle2 size={48} color="#16A34A" />
-                  <h3>Обращение успешно зарегистрировано!</h3>
-                  <p>
-                    Ваша заявка направлена сервисному инженеру. <strong>Ответ будет дан в течение 36 часов в рабочие дни</strong> на указанный e-mail или номер WhatsApp.
+                <div className="form-success-box" style={{ background: 'rgba(22,163,74,0.08)', border: '1px solid rgba(22,163,74,0.3)', padding: '24px', borderRadius: '8px', textAlign: 'center' }}>
+                  <CheckCircle2 size={44} color="#16A34A" style={{ margin: '0 auto 12px' }} />
+                  <h3 style={{ color: '#F8FAFC', marginBottom: '8px' }}>Обращение сформировано</h3>
+                  <p style={{ color: '#94A3B8', fontSize: '0.9rem', marginBottom: '16px' }}>
+                    Заявка подготовлена в Первый цифровой сервисный центр LAUTE. <strong>«Ответ будет дан в течение 36 часов в рабочие дни»</strong>. (Интерфейс готов к интеграции с сервисной системой).
                   </p>
                   <button type="button" className="btn btn-outline btn-sm" onClick={() => setIsSubmitted(false)}>
                     Подать новое обращение
@@ -146,10 +146,10 @@ export const ServicePage = () => {
                       onChange={(e) => setFormData({ ...formData, regionInquiry: e.target.value })}
                       className="form-select"
                     >
-                      <option value="siberia">Сибирь / Новосибирск / ДВ</option>
+                      <option value="siberia">Сибирь (Новосибирск, Томск, Кузбасс и др.)</option>
                       <option value="kz">Казахстан</option>
-                      <option value="ru">Россия (Центральный регион)</option>
-                      <option value="intl">Другой международный регион</option>
+                      <option value="ru">Россия (Европейская часть)</option>
+                      <option value="other">Другие регионы и страны СНГ</option>
                     </select>
                   </div>
 

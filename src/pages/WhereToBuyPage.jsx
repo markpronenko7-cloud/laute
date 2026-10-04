@@ -53,22 +53,25 @@ export const WhereToBuyPage = () => {
           {activeTab === 'wholesale' ? (
             <div className="wholesale-routing-block">
               <div className="section-title-wrap">
-                <span className="section-badge">Прямые поставки</span>
-                <h2 className="section-title">Оптовые склады и представительства</h2>
+                <span className="section-badge">Оптовые поставки</span>
+                <h2 className="section-title">Представительства и региональная логистика</h2>
                 <p className="section-desc">
-                  Для юридических лиц, строительных объектов и розничных сетей отгрузки производятся напрямую с региональных распределительных хабов.
+                  Для юридических лиц, строительных объектов и розничных сетей отгрузки координируются через официальные представительства.
                 </p>
+                <div style={{ margin: '12px auto 0', maxWidth: '720px', padding: '10px 16px', background: 'rgba(212,163,115,0.08)', border: '1px solid rgba(212,163,115,0.2)', borderRadius: '6px', fontSize: '0.85rem', color: '#CBD5E1' }}>
+                  <strong>Протокол развития:</strong> Окончательная география распределительных складов формируется и согласовывается. Актуальные маршруты отгрузки уточняйте у регионального менеджера.
+                </div>
               </div>
 
               <div className="hubs-grid">
                 <div className="hub-card">
                   <div className="hub-header">
-                    <span className="hub-tag">Главный хаб Сибири и ДВ</span>
+                    <span className="hub-tag">Официальное представительство</span>
                     <h3 className="hub-city">Новосибирск</h3>
                   </div>
                   <p className="hub-address">Россия, 630073, г. Новосибирск, ул. Блюхера 71</p>
                   <p className="hub-desc">
-                    Оперативная отгрузка сборных грузов по всей территории Сибири, Дальнего Востока, Кузбасса, Томской и Иркутской областей.
+                    Главный бэк-офис компании, координация оптовых отгрузок и региональных дилерских поставок по Сибири и Дальнему Востоку.
                   </p>
                   <div className="hub-contacts">
                     <a href="tel:+79833105626" className="clickable-contact">
@@ -82,38 +85,18 @@ export const WhereToBuyPage = () => {
                     </a>
                   </div>
                   <button type="button" className="btn btn-outline btn-sm btn-full" onClick={openPartnerModal}>
-                    Запросить наличие в Новосибирске
+                    Связаться с представительством
                   </button>
                 </div>
 
                 <div className="hub-card">
                   <div className="hub-header">
-                    <span className="hub-tag">Республика Казахстан</span>
-                    <h3 className="hub-city">Алматы / Казахстан</h3>
+                    <span className="hub-tag">Региональное направление</span>
+                    <h3 className="hub-city">Казахстан и Центральная Азия</h3>
                   </div>
-                  <p className="hub-address">Представительство Завода в Республике Казахстан</p>
+                  <p className="hub-address">Экспортное направление поставок LAUTE</p>
                   <p className="hub-desc">
-                    Локальное обеспечение оптовых партнеров и торговых сетей на территории Казахстана с удобными расчётами и быстрой логистикой.
-                  </p>
-                  <div className="hub-contacts">
-                    <a href="mailto:opt@laute.ltd" className="clickable-contact">
-                      <Mail size={14} /> opt@laute.ltd
-                    </a>
-                    <span className="contact-note">Прямая связь через регионального представителя</span>
-                  </div>
-                  <button type="button" className="btn btn-outline btn-sm btn-full" onClick={openPartnerModal}>
-                    Условия для Казахстана
-                  </button>
-                </div>
-
-                <div className="hub-card">
-                  <div className="hub-header">
-                    <span className="hub-tag">Центральный регион</span>
-                    <h3 className="hub-city">Москва</h3>
-                  </div>
-                  <p className="hub-address">Распределительный склад Центрального региона</p>
-                  <p className="hub-desc">
-                    Складские запасы базовых коллекций смесителей и комплектующих для партнеров европейской части РФ.
+                    Прямая координация поставок сантехники для дилеров, комплектовщиков и торговых сетей в Республике Казахстан.
                   </p>
                   <div className="hub-contacts">
                     <a href="mailto:opt@laute.ltd" className="clickable-contact">
@@ -122,9 +105,32 @@ export const WhereToBuyPage = () => {
                     <a href="tel:+79833105626" className="clickable-contact">
                       <Phone size={14} /> +7 (983) 310-56-26
                     </a>
+                    <span className="contact-note">Прямая связь через экспортный отдел</span>
                   </div>
                   <button type="button" className="btn btn-outline btn-sm btn-full" onClick={openPartnerModal}>
-                    Запросить наличие в Москве
+                    Условия для Казахстана
+                  </button>
+                </div>
+
+                <div className="hub-card">
+                  <div className="hub-header">
+                    <span className="hub-tag">Региональное направление</span>
+                    <h3 className="hub-city">Европейская часть РФ и СНГ</h3>
+                  </div>
+                  <p className="hub-address">Централизованная логистическая координация</p>
+                  <p className="hub-desc">
+                    Формирование поставок сантехники и комплектующих для региональных оптовых партнёров и строительных объектов.
+                  </p>
+                  <div className="hub-contacts">
+                    <a href="mailto:opt@laute.ltd" className="clickable-contact">
+                      <Mail size={14} /> opt@laute.ltd
+                    </a>
+                    <a href="tel:+79132030737" className="clickable-contact">
+                      <Phone size={14} /> +7 (913) 203-07-37
+                    </a>
+                  </div>
+                  <button type="button" className="btn btn-outline btn-sm btn-full" onClick={openPartnerModal}>
+                    Запросить коммерческие условия
                   </button>
                 </div>
               </div>
