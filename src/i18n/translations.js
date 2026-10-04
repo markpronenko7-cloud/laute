@@ -5,15 +5,16 @@ export const translations = {
       description: 'Официальная международная платформа LAUTE: смесители, душевые системы, кухонные мойки, комплектующие и душевые кабины для оптовых партнёров, застройщиков и дилеров.'
     },
     nav: {
+      home: 'Главная',
       catalog: 'Каталог',
-      production: 'О компании / Производство',
+      production: 'О компании',
       partners: 'Партнёрам',
       whereToBuy: 'Где купить',
-      service: 'Цифровой сервис',
+      service: 'Сервис',
       contacts: 'Контакты',
-      clientCabinet: 'Личный кабинет',
-      requestQuote: 'Стать партнёром',
-      aiHelp: 'Помочь подобрать'
+      clientCabinet: 'Кабинет',
+      requestQuote: 'Стать оптовым партнёром',
+      aiHelp: 'Подобрать'
     },
     regions: {
       selectRegion: 'Выберите регион',
@@ -348,15 +349,16 @@ export const translations = {
       description: 'LAUTE ресми халықаралық платформасы: дилерлер мен құрылыс нысандарына арналған араластырғыштар, душ жүйелері, ас үй раковиналары және бөлшектер.'
     },
     nav: {
+      home: 'Басты бет',
       catalog: 'Каталог',
-      production: 'Компания / Өндіріс',
+      production: 'Компания туралы',
       partners: 'Серіктестерге',
       whereToBuy: 'Қайдан сатып алуға болады',
-      service: 'Сандық сервис',
+      service: 'Сервис',
       contacts: 'Байланыс',
-      clientCabinet: 'Жеке кабинет',
-      requestQuote: 'Серіктес болу',
-      aiHelp: 'Таңдауға көмектесу'
+      clientCabinet: 'Кабинет',
+      requestQuote: 'Көтерме серіктес болу',
+      aiHelp: 'Таңдау'
     },
     regions: {
       selectRegion: 'Өңірді таңдаңыз',
@@ -566,15 +568,16 @@ export const translations = {
       description: 'Official LAUTE international platform: mixers, shower systems, kitchen sinks, fittings and shower enclosures for wholesale distributors and construction projects.'
     },
     nav: {
+      home: 'Home',
       catalog: 'Catalog',
-      production: 'About / Manufacturing',
+      production: 'About',
       partners: 'Partners',
       whereToBuy: 'Where to Buy',
-      service: 'Digital Service',
+      service: 'Service',
       contacts: 'Contacts',
-      clientCabinet: 'Partner Portal',
-      requestQuote: 'Become a Partner',
-      aiHelp: 'Product Matcher'
+      clientCabinet: 'Portal',
+      requestQuote: 'Become a Wholesale Partner',
+      aiHelp: 'Match'
     },
     regions: {
       selectRegion: 'Select Region',

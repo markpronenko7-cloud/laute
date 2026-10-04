@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { Globe, MapPin, User, Menu, X, ChevronDown, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Globe, MapPin, User, Menu, X, ChevronDown } from 'lucide-react';
 import { REGIONS_CONFIG } from '../data/regionsData';
 
 export const Header = () => {
@@ -8,11 +8,19 @@ export const Header = () => {
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isRegionOpen, setIsRegionOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const langRef = useRef(null);
   const regionRef = useRef(null);
 
-  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 15);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (langRef.current && !langRef.current.contains(e.target)) {
@@ -45,14 +53,14 @@ export const Header = () => {
   const logoSrc = `${import.meta.env.BASE_URL}laute-logo.png`;
 
   return (
-    <header className="header">
+    <header className={`header ${isScrolled ? 'header-scrolled' : ''}`}>
       <div className="container header-container">
         <div className="header-left">
           <a 
             href={`${import.meta.env.BASE_URL}`} 
             className="brand-logo" 
             onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}
-            title="LAUTE International"
+            title="LAUTE"
           >
             <img 
               src={logoSrc} 
@@ -63,7 +71,7 @@ export const Header = () => {
                 e.target.nextSibling.style.display = 'inline-block';
               }}
             />
-            <span className="brand-name-fallback" style={{ display: 'none', fontWeight: 800, fontSize: '1.5rem', letterSpacing: '0.05em', color: '#FFFFFF' }}>LAUTE</span>
+            <span className="brand-name-fallback" style={{ display: 'none', fontWeight: 800, fontSize: '1.4rem', letterSpacing: '0.04em', color: '#0F172A' }}>LAUTE</span>
           </a>
 
           <nav className="nav-desktop">
@@ -202,7 +210,7 @@ export const Header = () => {
                   </button>
                 ))}
                 {t.regions?.note && (
-                  <div className="dropdown-footer-note" style={{ padding: '8px 12px', fontSize: '0.72rem', color: '#64748B', borderTop: '1px solid rgba(255,255,255,0.06)', lineHeight: 1.3 }}>
+                  <div className="dropdown-footer-note">
                     {t.regions.note}
                   </div>
                 )}
@@ -210,24 +218,24 @@ export const Header = () => {
             )}
           </div>
 
-          {/* B2B Client Cabinet CTA */}
+          {/* B2B Client Cabinet */}
           <button
             type="button"
             className="btn btn-outline btn-sm cabinet-btn"
             onClick={openAuthModal}
             title={t.nav.clientCabinet}
           >
-            <User size={14} />
+            <User size={15} />
             <span>{t.nav.clientCabinet}</span>
           </button>
 
-          {/* Partner CTA */}
+          {/* Main Wholesale Partner CTA */}
           <button
             type="button"
-            className="btn btn-primary btn-sm partner-btn"
+            className="btn btn-primary btn-partner-cta"
             onClick={openPartnerModal}
           >
-            <span>{t.nav.requestQuote}</span>
+            <span>{t.nav.requestQuote || 'Стать оптовым партнёром'}</span>
           </button>
 
           {/* Mobile Menu Toggle */}
@@ -235,7 +243,7 @@ export const Header = () => {
             type="button"
             className="mobile-toggle"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="Открыть меню"
+            aria-label="Меню"
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -367,7 +375,7 @@ export const Header = () => {
                   openPartnerModal();
                 }}
               >
-                <span>{t.nav.requestQuote}</span>
+                <span>{t.nav.requestQuote || 'Стать оптовым партнёром'}</span>
               </button>
             </div>
           </div>
