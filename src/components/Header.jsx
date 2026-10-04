@@ -111,7 +111,7 @@ export const Header = () => {
 
         <div className="header-right">
           {/* Language Selector */}
-          <div className="select-dropdown" ref={langRef}>
+          <div className="select-dropdown header-lang-dropdown" ref={langRef}>
             <button
               type="button"
               className="select-trigger"
@@ -144,7 +144,7 @@ export const Header = () => {
           </div>
 
           {/* Region Selector */}
-          <div className="select-dropdown" ref={regionRef}>
+          <div className="select-dropdown header-region-dropdown" ref={regionRef}>
             <button
               type="button"
               className="select-trigger"
@@ -231,6 +231,42 @@ export const Header = () => {
                 onClick={() => handleNavClick('service')}
               >
                 {t.nav.service || 'Сервис'}
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className={`mobile-nav-link ${currentRoute === 'company' ? 'active' : ''}`}
+                onClick={() => handleNavClick('company')}
+              >
+                {t.nav.production || 'О компании'}
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className={`mobile-nav-link ${currentRoute === 'partners' ? 'active' : ''}`}
+                onClick={() => handleNavClick('partners')}
+              >
+                {t.nav.partners || 'Партнёрам'}
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className={`mobile-nav-link ${currentRoute === 'where-to-buy' ? 'active' : ''}`}
+                onClick={() => handleNavClick('where-to-buy')}
+              >
+                {t.nav.whereToBuy || 'Где купить'}
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className={`mobile-nav-link ${currentRoute === 'contacts' ? 'active' : ''}`}
+                onClick={() => handleNavClick('contacts')}
+              >
+                {t.nav.contacts || 'Контакты'}
               </button>
             </li>
           </ul>
