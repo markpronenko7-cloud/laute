@@ -36,11 +36,28 @@ export const HomePage = () => {
           }
         });
       },
-      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
     );
     const elements = document.querySelectorAll('.reveal-on-scroll');
     elements.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+
+    const waveObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-in-view');
+          }
+        });
+      },
+      { threshold: 0.05, rootMargin: '0px 0px -20px 0px' }
+    );
+    const waveBridges = document.querySelectorAll('.section-wave-bridge');
+    waveBridges.forEach((el) => waveObserver.observe(el));
+
+    return () => {
+      observer.disconnect();
+      waveObserver.disconnect();
+    };
   }, []);
 
   const handleLeadSubmit = (e) => {

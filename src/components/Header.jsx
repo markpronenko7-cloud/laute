@@ -14,11 +14,18 @@ export const Header = () => {
   const regionRef = useRef(null);
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      const top = window.scrollY;
-      setIsScrolled(top > 15);
-      const ratio = Math.min(Math.max(top / 90, 0), 1);
-      document.documentElement.style.setProperty('--header-scroll-ratio', ratio);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const top = window.scrollY;
+          setIsScrolled(top > 20);
+          const ratio = Math.min(Math.max(top / 180, 0), 1);
+          document.documentElement.style.setProperty('--header-scroll-ratio', ratio.toFixed(3));
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
