@@ -206,7 +206,7 @@ export const HomePage = () => {
                 </div>
                 <div className="hero-pill-item">
                   <Truck size={16} className="pill-icon" />
-                  <span>{h.pillLogistics || 'Региональная логистика (РФ и ЕАЭС)'}</span>
+                  <span>{h.pillLogistics || 'Складская логистика и поставки'}</span>
                 </div>
               </div>
             </div>
@@ -218,7 +218,7 @@ export const HomePage = () => {
           <svg viewBox="0 0 1440 80" fill="none" preserveAspectRatio="none">
             <path
               d="M0,25 C360,75 720,10 1120,55 C1280,75 1380,45 1440,30 L1440,80 L0,80 Z"
-              fill="var(--neutral-50)"
+              fill="#0B0E17"
             />
             <path
               d="M0,20 C360,70 720,5 1120,50 C1280,70 1380,40 1440,25"
@@ -331,9 +331,9 @@ export const HomePage = () => {
 
             <div className="advantage-card reveal-on-scroll reveal-delay-2">
               <div className="advantage-num">02</div>
-              <h3 className="advantage-title">{h.adv2Title || 'Складская логистика ЕАЭС'}</h3>
+              <h3 className="advantage-title">{h.adv2Title || 'Складская логистика'}</h3>
               <p className="advantage-desc">
-                {h.adv2Desc || 'Четко выстроенные транспортные коридоры и развивающаяся сеть распределительных складов обеспечивают быструю комплектацию и отправку партий.'}
+                {h.adv2Desc || 'Наличие запаса продукции на распределительном складе обеспечивает оперативную комплектацию и регулярную отгрузку партий.'}
               </p>
             </div>
 
@@ -488,11 +488,11 @@ export const HomePage = () => {
             <div className="service-banner-stats">
               <div className="service-stat-card reveal-on-scroll reveal-delay-1">
                 <span className="stat-number">{h.stat1Num || '36 ч'}</span>
-                <span className="stat-label">{h.stat1Label || 'Максимальный срок ответа по заявке'}</span>
+                <span className="stat-label">{h.stat1Label || 'Срок ответа в рабочие дни по регламенту'}</span>
               </div>
               <div className="service-stat-card reveal-on-scroll reveal-delay-2">
-                <span className="stat-number">{h.stat2Num || '100%'}</span>
-                <span className="stat-label">{h.stat2Label || 'Онлайн-сопровождение рекламаций'}</span>
+                <span className="stat-number">{h.stat2Num || 'Онлайн'}</span>
+                <span className="stat-label">{h.stat2Label || 'Приём сервисных обращений'}</span>
               </div>
             </div>
           </div>
