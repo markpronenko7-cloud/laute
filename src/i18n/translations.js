@@ -7,6 +7,7 @@ export const translations = {
     "nav": {
       "home": "Главная",
       "catalog": "Главный каталог",
+      "company": "О компании",
       "production": "О компании",
       "partners": "Партнёрам",
       "whereToBuy": "Где купить",
@@ -255,6 +256,7 @@ export const translations = {
     "nav": {
       "home": "Басты бет",
       "catalog": "Басты каталог",
+      "company": "Компания туралы",
       "production": "Компания туралы",
       "partners": "Серіктестерге",
       "whereToBuy": "Қайдан сатып алуға болады",
@@ -503,6 +505,7 @@ export const translations = {
     "nav": {
       "home": "Home",
       "catalog": "Main Catalog",
+      "company": "About Us",
       "production": "About",
       "partners": "Partners",
       "whereToBuy": "Where to Buy",

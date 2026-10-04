@@ -99,6 +99,33 @@ export const Header = () => {
               <li>
                 <button 
                   type="button" 
+                  className={`nav-link ${currentRoute === 'company' ? 'active' : ''}`} 
+                  onClick={() => handleNavClick('company')}
+                >
+                  {t.nav.company || t.nav.production || 'О компании'}
+                </button>
+              </li>
+              <li>
+                <button 
+                  type="button" 
+                  className={`nav-link ${currentRoute === 'partners' ? 'active' : ''}`} 
+                  onClick={() => handleNavClick('partners')}
+                >
+                  {t.nav.partners || 'Партнёрам'}
+                </button>
+              </li>
+              <li>
+                <button 
+                  type="button" 
+                  className={`nav-link ${currentRoute === 'contacts' ? 'active' : ''}`} 
+                  onClick={() => handleNavClick('contacts')}
+                >
+                  {t.nav.contacts || 'Контакты'}
+                </button>
+              </li>
+              <li>
+                <button 
+                  type="button" 
                   className={`nav-link ${currentRoute === 'service' ? 'active' : ''}`} 
                   onClick={() => handleNavClick('service')}
                 >
@@ -227,19 +254,10 @@ export const Header = () => {
             <li>
               <button
                 type="button"
-                className={`mobile-nav-link ${currentRoute === 'service' ? 'active' : ''}`}
-                onClick={() => handleNavClick('service')}
-              >
-                {t.nav.service || 'Сервис'}
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
                 className={`mobile-nav-link ${currentRoute === 'company' ? 'active' : ''}`}
                 onClick={() => handleNavClick('company')}
               >
-                {t.nav.production || 'О компании'}
+                {t.nav.company || t.nav.production || 'О компании'}
               </button>
             </li>
             <li>
@@ -254,19 +272,28 @@ export const Header = () => {
             <li>
               <button
                 type="button"
-                className={`mobile-nav-link ${currentRoute === 'where-to-buy' ? 'active' : ''}`}
-                onClick={() => handleNavClick('where-to-buy')}
+                className={`mobile-nav-link ${currentRoute === 'contacts' ? 'active' : ''}`}
+                onClick={() => handleNavClick('contacts')}
               >
-                {t.nav.whereToBuy || 'Где купить'}
+                {t.nav.contacts || 'Контакты'}
               </button>
             </li>
             <li>
               <button
                 type="button"
-                className={`mobile-nav-link ${currentRoute === 'contacts' ? 'active' : ''}`}
-                onClick={() => handleNavClick('contacts')}
+                className={`mobile-nav-link ${currentRoute === 'service' ? 'active' : ''}`}
+                onClick={() => handleNavClick('service')}
               >
-                {t.nav.contacts || 'Контакты'}
+                {t.nav.service || 'Сервис'}
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className={`mobile-nav-link ${currentRoute === 'where-to-buy' ? 'active' : ''}`}
+                onClick={() => handleNavClick('where-to-buy')}
+              >
+                {t.nav.whereToBuy || 'Где купить'}
               </button>
             </li>
           </ul>
