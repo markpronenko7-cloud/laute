@@ -44,8 +44,8 @@ export const PartnerModal = () => {
         </div>
 
         {submitted ? (
-          <div className="modal-alert" style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '20px', textAlign: 'center', background: 'rgba(22,163,74,0.1)', border: '1px solid rgba(22,163,74,0.3)', borderRadius: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#16A34A', fontWeight: 600 }}>
+          <div className="modal-alert" style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '20px', textAlign: 'center', background: 'rgba(14,165,233,0.08)', border: '1px solid rgba(56,189,248,0.3)', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#0EA5E9', fontWeight: 600 }}>
               <CheckCircle2 size={22} />
               <span>{modalT.success}</span>
             </div>
@@ -53,7 +53,7 @@ export const PartnerModal = () => {
               Заявка сформирована (Интерфейс подготовлен для интеграции с CRM).
             </p>
             <div style={{ fontSize: '0.78rem', color: '#CBD5E1', marginTop: '4px' }}>
-              Прямой контакт: <a href="tel:+79833105626" style={{ color: '#D4A373', fontWeight: 600 }}>+7 (983) 310-56-26</a> • <a href="mailto:opt@laute.ltd" style={{ color: '#D4A373' }}>opt@laute.ltd</a>
+              Прямой контакт: <a href="tel:+79833105626" style={{ color: '#F97316', fontWeight: 600 }}>+7 (983) 310-56-26</a> • <a href="mailto:opt@laute.ltd" style={{ color: '#38BDF8' }}>opt@laute.ltd</a>
             </div>
           </div>
         ) : (

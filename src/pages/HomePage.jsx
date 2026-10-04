@@ -36,8 +36,93 @@ export const HomePage = () => {
 
   return (
     <div className="page-wrapper home-page">
-      {/* 1. HERO — Краткое позиционирование LAUTE */}
+      {/* 1. HERO — Краткое позиционирование LAUTE с фирменными волнами и градиентами (референс коробки LAUTE) */}
       <section className="hero-section">
+        {/* Фирменные волнообразные графические ленты LAUTE (референс упаковки: потоки горячей и холодной воды) */}
+        <div className="hero-wave-canvas" aria-hidden="true">
+          <svg className="hero-wave-svg" viewBox="0 0 1440 760" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              {/* Flame Stream Gradients (Hot Dynamic) */}
+              <linearGradient id="lauteFlame1" x1="0%" y1="0%" x2="100%" y2="80%">
+                <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.85" />
+                <stop offset="35%" stopColor="#F97316" stopOpacity="0.75" />
+                <stop offset="70%" stopColor="#EA580C" stopOpacity="0.65" />
+                <stop offset="100%" stopColor="#DC2626" stopOpacity="0.3" />
+              </linearGradient>
+              <linearGradient id="lauteFlame2" x1="20%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#FBBF24" stopOpacity="0.6" />
+                <stop offset="50%" stopColor="#F97316" stopOpacity="0.5" />
+                <stop offset="100%" stopColor="#B91C1C" stopOpacity="0.1" />
+              </linearGradient>
+
+              {/* Water Stream Gradients (Cold Dynamic) */}
+              <linearGradient id="lauteWater1" x1="0%" y1="20%" x2="100%" y2="80%">
+                <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.8" />
+                <stop offset="40%" stopColor="#0EA5E9" stopOpacity="0.65" />
+                <stop offset="75%" stopColor="#0284C7" stopOpacity="0.5" />
+                <stop offset="100%" stopColor="#2563EB" stopOpacity="0.25" />
+              </linearGradient>
+              <linearGradient id="lauteWater2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#7DD3FC" stopOpacity="0.5" />
+                <stop offset="60%" stopColor="#0284C7" stopOpacity="0.35" />
+                <stop offset="100%" stopColor="#1E3A8A" stopOpacity="0.1" />
+              </linearGradient>
+
+              {/* Glowing Edge Accent Gradients */}
+              <linearGradient id="flameEdge" x1="0%" y1="0%" x2="100%" y2="50%">
+                <stop offset="0%" stopColor="#FDE68A" stopOpacity="0.9" />
+                <stop offset="50%" stopColor="#F97316" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="#EA580C" stopOpacity="0" />
+              </linearGradient>
+              <linearGradient id="waterEdge" x1="0%" y1="0%" x2="100%" y2="80%">
+                <stop offset="0%" stopColor="#BAE6FD" stopOpacity="0.9" />
+                <stop offset="50%" stopColor="#38BDF8" stopOpacity="0.7" />
+                <stop offset="100%" stopColor="#0284C7" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+
+            {/* Cool Water Wave Ribbons (From lower-left sweeping diagonally across) */}
+            <path
+              d="M-80,640 C220,690 480,510 820,570 C1100,620 1320,460 1520,400 L1520,760 L-80,760 Z"
+              fill="url(#lauteWater2)"
+              opacity="0.45"
+            />
+            <path
+              d="M-100,550 C180,540 420,360 760,440 C1060,510 1280,380 1500,340 L1500,620 C1280,660 1060,720 760,650 C420,570 180,710 -100,710 Z"
+              fill="url(#lauteWater1)"
+              opacity="0.75"
+            />
+            <path
+              d="M-60,530 C200,520 440,345 780,425 C1080,495 1300,365 1520,325"
+              stroke="url(#waterEdge)"
+              strokeWidth="2.5"
+              fill="none"
+              opacity="0.85"
+            />
+
+            {/* Warm Flame Wave Ribbons (From upper-right cascading across) */}
+            <path
+              d="M1520,-40 C1240,60 980,240 680,210 C420,180 200,320 -60,420 L-60,500 C200,400 420,260 680,290 C980,320 1240,160 1520,60 Z"
+              fill="url(#lauteFlame2)"
+              opacity="0.45"
+            />
+            <path
+              d="M1520,20 C1280,110 1040,290 740,270 C480,250 260,390 0,510 L0,590 C260,470 480,330 740,350 C1040,370 1280,190 1520,100 Z"
+              fill="url(#lauteFlame1)"
+              opacity="0.8"
+            />
+            <path
+              d="M1520,15 C1278,105 1038,285 738,265 C478,245 258,385 0,505"
+              stroke="url(#flameEdge)"
+              strokeWidth="3"
+              fill="none"
+              opacity="0.9"
+            />
+          </svg>
+          <div className="hero-glow-warm"></div>
+          <div className="hero-glow-cool"></div>
+        </div>
+
         <div className="container">
           <div className="hero-grid">
             <div className="hero-content">
@@ -277,10 +362,11 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* 6. ПОДДЕРЖКА ПАРТНЁРОВ И СЕРВИС 36 ЧАСОВ */}
-      <section className="section bg-light-section service-preview-section">
+      {/* 6. ПОДДЕРЖКА ПАРТНЁРОВ И СЕРВИС 36 ЧАСОВ — АКЦЕНТНЫЙ БЛОК С ВОЛНАМИ */}
+      <section className="section service-preview-section">
         <div className="container">
           <div className="service-banner-box">
+            <div className="service-wave-accent" aria-hidden="true"></div>
             <div className="service-banner-content">
               <div className="service-sla-badge">
                 <Clock size={16} />
@@ -366,7 +452,7 @@ export const HomePage = () => {
             <div className="cta-right-form-wrap">
               {leadSubmitted ? (
                 <div className="form-success-card">
-                  <CheckCircle2 size={48} color="#16A34A" />
+                  <CheckCircle2 size={48} color="#0EA5E9" />
                   <h3>{h.formSuccessTitle || 'Запрос успешно отправлен!'}</h3>
                   <p>{h.formSuccessDesc || 'Менеджер оптового отдела свяжется с вами в течение рабочего дня для отправки коммерческого предложения.'}</p>
                   <button 

@@ -71,7 +71,7 @@ export const Header = () => {
                 e.target.nextSibling.style.display = 'inline-block';
               }}
             />
-            <span className="brand-name-fallback" style={{ display: 'none', fontWeight: 800, fontSize: '1.4rem', letterSpacing: '0.04em', color: '#0F172A' }}>LAUTE</span>
+            <span className="brand-name-fallback" style={{ display: 'none', fontWeight: 800, fontSize: '1.4rem', letterSpacing: '0.04em', color: '#FFFFFF' }}>LAUTE</span>
           </a>
 
           <nav className="nav-desktop">

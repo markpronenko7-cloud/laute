@@ -135,7 +135,7 @@ export const ContactsPage = () => {
             <div className="contact-form-container">
               {formSent ? (
                 <div className="contact-form-success">
-                  <CheckCircle2 size={44} color="#16A34A" />
+                  <CheckCircle2 size={44} color="#0EA5E9" />
                   <h3>{cp.successTitle || 'Сообщение успешно отправлено!'}</h3>
                   <p>{lang === 'kz' ? 'Өңірлік маман 1 жұмыс күні ішінде сізбен хабарласады.' : lang === 'en' ? 'Regional coordinator will reply within 1 business day.' : 'Ответственный специалист региона свяжется с вами в течение 1 рабочего дня.'}</p>
                   <button type="button" className="btn btn-outline btn-sm" onClick={() => setFormSent(false)}>

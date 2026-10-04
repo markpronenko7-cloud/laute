@@ -155,7 +155,7 @@ export const WhereToBuyPage = () => {
 
                   {inquirySent ? (
                     <div className="retail-success">
-                      <CheckCircle2 size={24} color="#16A34A" />
+                      <CheckCircle2 size={24} color="#0EA5E9" />
                       <span>{lang === 'kz' ? 'Сұраныс қабылданды! Біз дүкендердің мекенжайларын көрсетеміз.' : lang === 'en' ? 'Inquiry received! We will send store locations to your contact.' : 'Запрос принят! Мы пришлем адреса магазинов на указанный контакт.'}</span>
                     </div>
                   ) : (

@@ -127,8 +127,8 @@ export const ServicePage = () => {
 
             <div className="form-body-col">
               {isSubmitted ? (
-                <div className="form-success-box" style={{ background: 'rgba(22,163,74,0.08)', border: '1px solid rgba(22,163,74,0.3)', padding: '24px', borderRadius: '8px', textAlign: 'center' }}>
-                  <CheckCircle2 size={44} color="#16A34A" style={{ margin: '0 auto 12px' }} />
+                <div className="form-success-box" style={{ background: 'rgba(14,165,233,0.08)', border: '1px solid rgba(56,189,248,0.3)', padding: '24px', borderRadius: '8px', textAlign: 'center' }}>
+                  <CheckCircle2 size={44} color="#0EA5E9" style={{ margin: '0 auto 12px' }} />
                   <h3 style={{ color: '#F8FAFC', marginBottom: '8px' }}>{sp.successTitle || 'Обращение зарегистрировано!'}</h3>
                   <p style={{ color: '#94A3B8', fontSize: '0.9rem', marginBottom: '16px' }}>
                     {sp.successDesc || 'Номер вашей заявки сформирован. Сервисный инженер свяжется с вами в течение 36 рабочих часов.'}
