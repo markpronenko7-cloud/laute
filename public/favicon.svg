@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="lauteGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="10" fill="#0B0F15" />
+  <path d="M12 14 H18 V30 H36 V34 H12 Z" fill="url(#lauteGrad)" />
+  <circle cx="34" cy="16" r="3" fill="#38BDF8" />
+</svg>

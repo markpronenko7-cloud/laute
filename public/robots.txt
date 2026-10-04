@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /b2b-cabinet/
+
+Sitemap: https://laute.ltd/sitemap.xml
