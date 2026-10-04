@@ -15,8 +15,12 @@ export const Header = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 15);
+      const top = window.scrollY;
+      setIsScrolled(top > 15);
+      const ratio = Math.min(Math.max(top / 90, 0), 1);
+      document.documentElement.style.setProperty('--header-scroll-ratio', ratio);
     };
+    handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);

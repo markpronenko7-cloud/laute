@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   ArrowRight, 
@@ -26,6 +26,22 @@ export const HomePage = () => {
     city: ''
   });
   const [leadSubmitted, setLeadSubmitted] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+    );
+    const elements = document.querySelectorAll('.reveal-on-scroll');
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
 
   const handleLeadSubmit = (e) => {
     e.preventDefault();
@@ -83,16 +99,19 @@ export const HomePage = () => {
 
             {/* Cool Water Wave Ribbons (From lower-left sweeping diagonally across) */}
             <path
+              className="hero-wave-water-bg"
               d="M-80,640 C220,690 480,510 820,570 C1100,620 1320,460 1520,400 L1520,760 L-80,760 Z"
               fill="url(#lauteWater2)"
               opacity="0.45"
             />
             <path
+              className="hero-wave-water-main"
               d="M-100,550 C180,540 420,360 760,440 C1060,510 1280,380 1500,340 L1500,620 C1280,660 1060,720 760,650 C420,570 180,710 -100,710 Z"
               fill="url(#lauteWater1)"
               opacity="0.75"
             />
             <path
+              className="hero-wave-water-edge"
               d="M-60,530 C200,520 440,345 780,425 C1080,495 1300,365 1520,325"
               stroke="url(#waterEdge)"
               strokeWidth="2.5"
@@ -102,16 +121,19 @@ export const HomePage = () => {
 
             {/* Warm Flame Wave Ribbons (From upper-right cascading across) */}
             <path
+              className="hero-wave-flame-bg"
               d="M1520,-40 C1240,60 980,240 680,210 C420,180 200,320 -60,420 L-60,500 C200,400 420,260 680,290 C980,320 1240,160 1520,60 Z"
               fill="url(#lauteFlame2)"
               opacity="0.45"
             />
             <path
+              className="hero-wave-flame-main"
               d="M1520,20 C1280,110 1040,290 740,270 C480,250 260,390 0,510 L0,590 C260,470 480,330 740,350 C1040,370 1280,190 1520,100 Z"
               fill="url(#lauteFlame1)"
               opacity="0.8"
             />
             <path
+              className="hero-wave-flame-edge"
               d="M1520,15 C1278,105 1038,285 738,265 C478,245 258,385 0,505"
               stroke="url(#flameEdge)"
               strokeWidth="3"
@@ -128,15 +150,15 @@ export const HomePage = () => {
             <div className="hero-content">
               {/* Маленький текст над заголовком полностью удалён согласно п.3 */}
 
-              <h1 className="hero-title">
+              <h1 className="hero-title reveal-on-scroll">
                 {h.heroTitle || 'Прямые B2B-поставки сантехники и оборудования LAUTE'}
               </h1>
 
-              <p className="hero-desc">
+              <p className="hero-desc reveal-on-scroll reveal-delay-1">
                 {h.heroDesc || 'Прямой контракт с заводом-изготовителем для дилеров, розничных сетей и комплектаторов строительных объектов. Официальная гарантия, цифровой сервис и персональные коммерческие условия.'}
               </p>
 
-              <div className="hero-actions">
+              <div className="hero-actions reveal-on-scroll reveal-delay-2">
                 <button 
                   type="button" 
                   className="btn btn-primary btn-hero-primary" 
@@ -156,7 +178,7 @@ export const HomePage = () => {
                 </button>
               </div>
 
-              <div className="hero-pills">
+              <div className="hero-pills reveal-on-scroll reveal-delay-3">
                 <div className="hero-pill-item">
                   <CheckCircle2 size={16} className="pill-icon" />
                   <span>{h.pillContract || 'Прямой контракт с производителем'}</span>
@@ -172,7 +194,7 @@ export const HomePage = () => {
               </div>
             </div>
 
-            <div className="hero-media-wrapper">
+            <div className="hero-media-wrapper reveal-on-scroll reveal-delay-2">
               <div className="hero-card-featured">
                 <img
                   src={`${baseUrl}images/cat_kitchen.png`}
@@ -198,12 +220,34 @@ export const HomePage = () => {
             </div>
           </div>
         </div>
+
+        {/* Плавный волновой мост перехода между Hero и Audience */}
+        <div className="section-wave-bridge wave-hero-to-audience" aria-hidden="true">
+          <svg viewBox="0 0 1440 80" fill="none" preserveAspectRatio="none">
+            <path
+              d="M0,25 C360,75 720,10 1120,55 C1280,75 1380,45 1440,30 L1440,80 L0,80 Z"
+              fill="var(--neutral-50)"
+            />
+            <path
+              d="M0,20 C360,70 720,5 1120,50 C1280,70 1380,40 1440,25"
+              stroke="url(#flameEdge)"
+              strokeWidth="2"
+              fill="none"
+              opacity="0.4"
+            />
+          </svg>
+        </div>
       </section>
 
-      {/* 2. ДЛЯ КОГО КОМПАНИЯ РАБОТАЕТ */}
-      <section className="section bg-light-section audience-section">
+      {/* 2. ДЛЯ КОГО КОМПАНИЯ РАБОТАЕТ — МЯГКАЯ АРХИТЕКТУРНАЯ СЕКЦИЯ С ПОЛУПРОЗРАЧНЫМИ СЛОЯМИ */}
+      <section className="section audience-section">
+        {/* Атмосферный легкий градиентный фон (вместо плоского белого квадрата) */}
+        <div className="audience-ambient-waves" aria-hidden="true">
+          <div className="audience-glow-ambient"></div>
+        </div>
+
         <div className="container">
-          <div className="section-title-wrap">
+          <div className="section-title-wrap reveal-on-scroll">
             <span className="section-badge">{h.audienceBadge || 'Целевая аудитория'}</span>
             <h2 className="section-title">{h.audienceTitle || 'Для кого работает LAUTE'}</h2>
             <p className="section-desc">
@@ -212,7 +256,7 @@ export const HomePage = () => {
           </div>
 
           <div className="audience-grid">
-            <div className="audience-card">
+            <div className="audience-card audience-accent-flame reveal-on-scroll reveal-delay-1">
               <div className="audience-icon-box">
                 <Users size={24} />
               </div>
@@ -222,7 +266,7 @@ export const HomePage = () => {
               </p>
             </div>
 
-            <div className="audience-card">
+            <div className="audience-card audience-accent-water reveal-on-scroll reveal-delay-2">
               <div className="audience-icon-box">
                 <Store size={24} />
               </div>
@@ -232,7 +276,7 @@ export const HomePage = () => {
               </p>
             </div>
 
-            <div className="audience-card">
+            <div className="audience-card audience-accent-flame reveal-on-scroll reveal-delay-3">
               <div className="audience-icon-box">
                 <HardHat size={24} />
               </div>
@@ -242,7 +286,7 @@ export const HomePage = () => {
               </p>
             </div>
 
-            <div className="audience-card">
+            <div className="audience-card audience-accent-water reveal-on-scroll reveal-delay-4">
               <div className="audience-icon-box">
                 <Wrench size={24} />
               </div>
@@ -253,12 +297,30 @@ export const HomePage = () => {
             </div>
           </div>
         </div>
+
+        {/* Волновой мост перехода между Audience и Advantages */}
+        <div className="section-wave-bridge wave-audience-to-advantages" aria-hidden="true">
+          <svg viewBox="0 0 1440 80" fill="none" preserveAspectRatio="none">
+            <path
+              d="M0,10 C320,65 680,15 1060,55 C1240,75 1360,50 1440,35 L1440,80 L0,80 Z"
+              fill="var(--graphite-850)"
+            />
+            <path
+              d="M0,5 C320,60 680,10 1060,50 C1240,70 1360,45 1440,30"
+              stroke="url(#waterEdge)"
+              strokeWidth="2"
+              fill="none"
+              opacity="0.45"
+            />
+          </svg>
+        </div>
       </section>
 
       {/* 3. ГЛАВНЫЕ ПРЕИМУЩЕСТВА СОТРУДНИЧЕСТВА */}
+      {/* 3. ГЛАВНЫЕ ПРЕИМУЩЕСТВА СОТРУДНИЧЕСТВА */}
       <section className="section advantages-section">
         <div className="container">
-          <div className="section-title-wrap">
+          <div className="section-title-wrap reveal-on-scroll">
             <span className="section-badge">{h.advantagesBadge || 'Преимущества'}</span>
             <h2 className="section-title">{h.advantagesTitle || 'Почему партнёры выбирают LAUTE'}</h2>
             <p className="section-desc">
@@ -267,7 +329,7 @@ export const HomePage = () => {
           </div>
 
           <div className="advantages-grid">
-            <div className="advantage-card">
+            <div className="advantage-card reveal-on-scroll reveal-delay-1">
               <div className="advantage-num">01</div>
               <h3 className="advantage-title">{h.adv1Title || 'Прямой заводской контракт'}</h3>
               <p className="advantage-desc">
@@ -275,7 +337,7 @@ export const HomePage = () => {
               </p>
             </div>
 
-            <div className="advantage-card">
+            <div className="advantage-card reveal-on-scroll reveal-delay-2">
               <div className="advantage-num">02</div>
               <h3 className="advantage-title">{h.adv2Title || 'Складская логистика ЕАЭС'}</h3>
               <p className="advantage-desc">
@@ -283,7 +345,7 @@ export const HomePage = () => {
               </p>
             </div>
 
-            <div className="advantage-card">
+            <div className="advantage-card reveal-on-scroll reveal-delay-3">
               <div className="advantage-num">03</div>
               <h3 className="advantage-title">{h.adv3Title || 'Первый цифровой сервис'}</h3>
               <p className="advantage-desc">
@@ -292,7 +354,7 @@ export const HomePage = () => {
             </div>
           </div>
 
-          <div className="section-cta-center">
+          <div className="section-cta-center reveal-on-scroll reveal-delay-2">
             <button 
               type="button" 
               className="btn btn-primary btn-lg" 
@@ -304,15 +366,32 @@ export const HomePage = () => {
             </button>
           </div>
         </div>
+
+        {/* Волновой мост между Advantages и Company */}
+        <div className="section-wave-bridge wave-advantages-to-company" aria-hidden="true">
+          <svg viewBox="0 0 1440 60" fill="none" preserveAspectRatio="none">
+            <path
+              d="M0,0 C380,45 740,10 1100,40 C1260,55 1380,30 1440,20 L1440,60 L0,60 Z"
+              fill="var(--graphite-900)"
+            />
+            <path
+              d="M0,0 C380,45 740,10 1100,40 C1260,55 1380,30 1440,20"
+              stroke="url(#flameEdge)"
+              strokeWidth="2"
+              fill="none"
+              opacity="0.35"
+            />
+          </svg>
+        </div>
       </section>
 
       {/* 4. Блок каталога продукции полностью удалён с главной страницы согласно п.5 */}
 
-      {/* 5. КРАТКИЙ БЛОК «О КОМПАНИИ» (Ведёт на отдельную страницу) */}
+      {/* 5. КРАТКИЙ БЛОК «О КОМПАНИИ» — АРХИТЕКТУРНЫЙ ИНЖЕНЕРНЫЙ МОДУЛЬ С ПРОЗРАЧНОСТЬЮ */}
       <section className="section company-preview-section">
         <div className="container">
           <div className="company-preview-grid">
-            <div className="company-preview-content">
+            <div className="company-preview-content reveal-on-scroll">
               <span className="section-badge">{h.companyBadge || 'О бренде'}</span>
               <h2 className="section-title">{h.companyTitle || 'Производственные стандарты и надежность'}</h2>
               <p className="section-desc">
@@ -336,21 +415,21 @@ export const HomePage = () => {
             </div>
 
             <div className="company-preview-highlights">
-              <div className="highlight-box">
+              <div className="highlight-box highlight-accent-flame reveal-on-scroll reveal-delay-1">
                 <Building2 size={24} className="highlight-icon" />
                 <div>
                   <h4>{h.companyHighlight1Title || 'Стандартизация и ОТК'}</h4>
                   <p>{h.companyHighlight1Desc || 'Многоступенчатая приёмка партий и соответствие техническим регламентам.'}</p>
                 </div>
               </div>
-              <div className="highlight-box">
+              <div className="highlight-box highlight-accent-water reveal-on-scroll reveal-delay-2">
                 <ShieldCheck size={24} className="highlight-icon" />
                 <div>
                   <h4>{h.companyHighlight2Title || 'Официальные гарантии'}</h4>
                   <p>{h.companyHighlight2Desc || 'Заводские паспорта изделий и защищённые гарантийные обязательства производителя.'}</p>
                 </div>
               </div>
-              <div className="highlight-box">
+              <div className="highlight-box highlight-accent-dual reveal-on-scroll reveal-delay-3">
                 <FileText size={24} className="highlight-icon" />
                 <div>
                   <h4>{h.companyHighlight3Title || 'Документация для проектов'}</h4>
@@ -360,12 +439,29 @@ export const HomePage = () => {
             </div>
           </div>
         </div>
+
+        {/* Волновой мост между Company и Service */}
+        <div className="section-wave-bridge wave-company-to-service" aria-hidden="true">
+          <svg viewBox="0 0 1440 60" fill="none" preserveAspectRatio="none">
+            <path
+              d="M0,20 C340,55 700,5 1080,45 C1240,60 1360,35 1440,15 L1440,60 L0,60 Z"
+              fill="var(--graphite-850)"
+            />
+            <path
+              d="M0,20 C340,55 700,5 1080,45 C1240,60 1360,35 1440,15"
+              stroke="url(#waterEdge)"
+              strokeWidth="2"
+              fill="none"
+              opacity="0.35"
+            />
+          </svg>
+        </div>
       </section>
 
       {/* 6. ПОДДЕРЖКА ПАРТНЁРОВ И СЕРВИС 36 ЧАСОВ — АКЦЕНТНЫЙ БЛОК С ВОЛНАМИ */}
       <section className="section service-preview-section">
         <div className="container">
-          <div className="service-banner-box">
+          <div className="service-banner-box reveal-on-scroll">
             <div className="service-wave-accent" aria-hidden="true"></div>
             <div className="service-banner-content">
               <div className="service-sla-badge">
@@ -398,23 +494,40 @@ export const HomePage = () => {
             </div>
 
             <div className="service-banner-stats">
-              <div className="service-stat-card">
+              <div className="service-stat-card reveal-on-scroll reveal-delay-1">
                 <span className="stat-number">{h.stat1Num || '36 ч'}</span>
                 <span className="stat-label">{h.stat1Label || 'Максимальный срок ответа по заявке'}</span>
               </div>
-              <div className="service-stat-card">
+              <div className="service-stat-card reveal-on-scroll reveal-delay-2">
                 <span className="stat-number">{h.stat2Num || '100%'}</span>
                 <span className="stat-label">{h.stat2Label || 'Онлайн-сопровождение рекламаций'}</span>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Волновой мост между Service и CTA */}
+        <div className="section-wave-bridge wave-service-to-cta" aria-hidden="true">
+          <svg viewBox="0 0 1440 60" fill="none" preserveAspectRatio="none">
+            <path
+              d="M0,15 C360,50 720,10 1120,40 C1280,55 1380,25 1440,10 L1440,60 L0,60 Z"
+              fill="var(--graphite-950)"
+            />
+            <path
+              d="M0,15 C360,50 720,10 1120,40 C1280,55 1380,25 1440,10"
+              stroke="url(#flameEdge)"
+              strokeWidth="2"
+              fill="none"
+              opacity="0.3"
+            />
+          </svg>
+        </div>
       </section>
 
       {/* 7. ФИНАЛЬНЫЙ CTA — ФОРМА С ПРОСТОРНЫМИ НЕ СЛИТЫМИ ПОЛЯМИ */}
       <section className="section home-cta-section" id="b2b-lead-form">
         <div className="container">
-          <div className="home-cta-card">
+          <div className="home-cta-card reveal-on-scroll">
             <div className="cta-left-content">
               <span className="section-badge">{h.formBadge || 'Начать работу'}</span>
               <h2 className="cta-heading">{h.formHeading || 'Запросить оптовый каталог и коммерческие условия'}</h2>
