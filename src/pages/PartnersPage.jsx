@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Handshake, TrendingUp, ShieldCheck, Truck, Headphones, FileText, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { TrendingUp, ShieldCheck, Truck, FileText, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 export const PartnersPage = () => {
-  const { openPartnerModal, region, t } = useApp();
+  const { lang, t } = useApp();
+  const pp = t.partnersPage || {};
 
   const [formData, setFormData] = useState({
     companyName: '',
@@ -24,47 +25,43 @@ export const PartnersPage = () => {
 
   const partnerTypes = [
     {
-      title: 'Оптовые компании и дистрибьюторы',
-      desc: 'Формирование региональных складских запасов, специальные оптовые цены, защита территории и маркетинговая поддержка.'
+      title: pp.type1Title || 'Оптовые компании и дистрибьюторы',
+      desc: pp.type1Desc || 'Формирование региональных складских запасов, специальные оптовые цены, защита территории и маркетинговая поддержка.'
     },
     {
-      title: 'Розничные магазины и сантехнические салоны',
-      desc: 'Популярный ассортимент с высокой оборачиваемостью, предоставление образцов, торгового оборудования и буклетов.'
+      title: pp.type2Title || 'Федеральные и региональные розничные сети',
+      desc: pp.type2Desc || 'Ритмичные графики поставок, штрихкодирование, качественная упаковка и промо-материалы для торговых залов.'
     },
     {
-      title: 'Строительные компании и комплектаторы',
-      desc: 'Комплектация жилых комплексов, гостиниц и общественных объектов надежной сантехникой с необходимым пакетом сертификатов.'
+      title: pp.type3Title || 'Комплектаторы объектов и девелоперы',
+      desc: pp.type3Desc || 'Поставка партий под график строительства, сертификаты соответствия, паспорта изделий и инженерный подбор под смету.'
     },
     {
-      title: 'Сети DIY и гипермаркеты',
-      desc: 'Стабильные объемы поставок, штрихкодирование, логистическая поддержка и бесперебойная отгрузка со складов.'
-    },
-    {
-      title: 'Интернет-магазины и E-commerce',
-      desc: 'Предоставление выгрузок, высококачественных фотоматериалов, технических спецификаций и оперативные отгрузки.'
+      title: pp.type4Title || 'Салоны сантехники и дизайн-студии',
+      desc: pp.type4Desc || 'Предоставление выставочных стендов, каталогов, 3D-моделей и персональные условия для архитекторов и дизайнеров.'
     }
   ];
 
-  const steps = [
+  const stepsData = [
     {
       num: '01',
-      title: 'Подача заявки',
-      desc: 'Заполните форму с указанием вашего города, формы бизнеса и планируемого объема закупок.'
+      title: lang === 'kz' ? 'Өтінім беру' : lang === 'en' ? 'Submit Inquiry' : 'Подача заявки',
+      desc: lang === 'kz' ? 'Қалаңызды, бизнес түрін және жоспарланған сатып алу көлемін көрсете отырып пішінді толтырыңыз.' : lang === 'en' ? 'Fill out the form specifying your city, business type, and anticipated order volumes.' : 'Заполните форму с указанием вашего города, формы бизнеса и планируемого объема закупок.'
     },
     {
       num: '02',
-      title: 'Анализ региона и предложение',
-      desc: 'Ответственный менеджер закрепленной территории связывается с вами и формирует коммерческое предложение.'
+      title: lang === 'kz' ? 'Өңірді талдау және ұсыныс' : lang === 'en' ? 'Territory Review & Offer' : 'Анализ региона и предложение',
+      desc: lang === 'kz' ? 'Бекітілген аумақтың жауапты менеджері сізбен хабарласып, коммерциялық ұсыныс жасайды.' : lang === 'en' ? 'Assigned territory manager contacts you with tailor-made commercial terms.' : 'Ответственный менеджер закрепленной территории связывается с вами и формирует коммерческое предложение.'
     },
     {
       num: '03',
-      title: 'Согласование условий и договор',
-      desc: 'Закрепление индивидуальной системы скидок, правил оплаты и условий отгрузки.'
+      title: lang === 'kz' ? 'Шарттарды келісу және шарт' : lang === 'en' ? 'Terms & Agreement' : 'Согласование условий и договор',
+      desc: lang === 'kz' ? 'Жеке жеңілдіктер жүйесін, төлем ережелерін және жөнелту шарттарын бекіту.' : lang === 'en' ? 'Finalizing individual tier discounts, payment conditions, and shipping schedules.' : 'Закрепление индивидуальной системы скидок, правил оплаты и условий отгрузки.'
     },
     {
       num: '04',
-      title: 'Отгрузка и сопровождение',
-      desc: 'Доступ в личный кабинет, оперативная комплектация заказа с ближайшего регионального склада.'
+      title: lang === 'kz' ? 'Жөнелту және сүйемелдеу' : lang === 'en' ? 'Fulfillment & Support' : 'Отгрузка и сопровождение',
+      desc: lang === 'kz' ? 'Жеке кабинетке қолжетімділік, жақын маңдағы өңірлік қоймадан тапсырысты жедел жинақтау.' : lang === 'en' ? 'B2B portal access, rapid order picking from the nearest regional distribution depot.' : 'Доступ в личный кабинет, оперативная комплектация заказа с ближайшего регионального склада.'
     }
   ];
 
@@ -74,10 +71,10 @@ export const PartnersPage = () => {
       <section className="page-header">
         <div className="container">
           <div className="page-header-content">
-            <span className="section-badge">B2B Сотрудничество</span>
-            <h1 className="page-title">Сотрудничество с производителем LAUTE</h1>
+            <span className="section-badge">{pp.badge || 'B2B Сотрудничество'}</span>
+            <h1 className="page-title">{pp.title || 'Сотрудничество с производителем LAUTE'}</h1>
             <p className="page-subtitle">
-              Прямые поставки сантехники от завода-изготовителя. Индивидуальные коммерческие условия, складская программа в регионах и сервисная поддержка.
+              {pp.subtitle || 'Прямые поставки сантехники от завода-изготовителя. Индивидуальные коммерческие условия, складская программа в регионах и сервисная поддержка.'}
             </p>
           </div>
         </div>
@@ -87,10 +84,10 @@ export const PartnersPage = () => {
       <section className="section bg-light-section">
         <div className="container">
           <div className="section-title-wrap">
-            <span className="section-badge">Преимущества для бизнеса</span>
-            <h2 className="section-title">Почему оптовые клиенты выбирают LAUTE</h2>
+            <span className="section-badge">{pp.advTitle || 'Преимущества для бизнеса'}</span>
+            <h2 className="section-title">{pp.advTitle || 'Почему оптовые клиенты выбирают LAUTE'}</h2>
             <p className="section-desc">
-              Мы создаем условия, при которых дилеры и комплектаторы получают предсказуемый заработок и надежного партнера в лице завода.
+              {pp.subtitle || 'Мы создаем условия, при которых дилеры и комплектаторы получают предсказуемый заработок и надежного партнера в лице завода.'}
             </p>
           </div>
 
@@ -99,9 +96,9 @@ export const PartnersPage = () => {
               <div className="feature-icon-box">
                 <Truck size={24} />
               </div>
-              <h3 className="feature-title">Региональная логистика</h3>
+              <h3 className="feature-title">{pp.adv2Title || 'Складская программа'}</h3>
               <p className="feature-desc">
-                Отработанные логистические цепочки и организация поставок в регионы России, Казахстана и стран ЕАЭС обеспечивают своевременную комплектацию заказов.
+                {pp.adv2Desc || 'Отработанные логистические цепочки и организация поставок в регионы обеспечивают своевременную комплектацию заказов.'}
               </p>
             </div>
 
@@ -109,9 +106,9 @@ export const PartnersPage = () => {
               <div className="feature-icon-box">
                 <TrendingUp size={24} />
               </div>
-              <h3 className="feature-title">Высокая торговая маржинальность</h3>
+              <h3 className="feature-title">{pp.adv1Title || 'Прямые контракты'}</h3>
               <p className="feature-desc">
-                Прямая работа без посредников позволяет партнерам формировать конкурентные розничные цены при сохранении высокой нормы прибыли.
+                {pp.adv1Desc || 'Прямая работа без посредников позволяет партнерам формировать конкурентные розничные цены при сохранении высокой нормы прибыли.'}
               </p>
             </div>
 
@@ -119,9 +116,9 @@ export const PartnersPage = () => {
               <div className="feature-icon-box">
                 <ShieldCheck size={24} />
               </div>
-              <h3 className="feature-title">Собственный цифровой сервис</h3>
+              <h3 className="feature-title">{pp.adv3Title || 'Цифровой сервис завода'}</h3>
               <p className="feature-desc">
-                Наличие Первого цифрового сервисного центра LAUTE снимает с розничных продавцов и дилеров бремя гарантийных разбирательств — клиент подает заявку онлайн.
+                {pp.adv3Desc || 'Наличие Первого цифрового сервисного центра LAUTE снимает с розничных продавцов и дилеров бремя гарантийных разбирательств — клиент подает заявку онлайн.'}
               </p>
             </div>
 
@@ -129,9 +126,9 @@ export const PartnersPage = () => {
               <div className="feature-icon-box">
                 <FileText size={24} />
               </div>
-              <h3 className="feature-title">Маркетинговая и техническая поддержка</h3>
+              <h3 className="feature-title">{pp.adv4Title || 'Рекламная и техническая поддержка'}</h3>
               <p className="feature-desc">
-                Предоставление печатных каталогов, образцов продукции, схем сборки, сертификатов соответствия и паспортов изделий.
+                {pp.adv4Desc || 'Предоставление печатных каталогов, образцов продукции, схем сборки, сертификатов соответствия и паспортов изделий.'}
               </p>
             </div>
           </div>
@@ -142,8 +139,11 @@ export const PartnersPage = () => {
       <section className="section">
         <div className="container">
           <div className="section-title-wrap">
-            <span className="section-badge">Форматы партнёрства</span>
-            <h2 className="section-title">С кем мы работаем</h2>
+            <span className="section-badge">{pp.coopTitle || 'Форматы партнёрства'}</span>
+            <h2 className="section-title">{pp.coopTitle || 'С кем мы работаем'}</h2>
+            <p className="section-desc">
+              {pp.coopDesc || 'Мы разрабатываем гибкие коммерческие программы под масштаб и специфику вашего бизнеса.'}
+            </p>
           </div>
 
           <div className="partner-types-grid">
@@ -166,13 +166,13 @@ export const PartnersPage = () => {
       <section className="section bg-light-section">
         <div className="container">
           <div className="section-title-wrap">
-            <span className="section-badge">Процесс подключения</span>
-            <h2 className="section-title">Как начать сотрудничество</h2>
-            <p className="section-desc">Четыре простых шага от первой заявки до регулярных поставок.</p>
+            <span className="section-badge">{lang === 'kz' ? 'Қосылу процесі' : lang === 'en' ? 'Onboarding Flow' : 'Процесс подключения'}</span>
+            <h2 className="section-title">{lang === 'kz' ? 'Ынтымақтастықты қалай бастау керек' : lang === 'en' ? 'How to Start Cooperation' : 'Как начать сотрудничество'}</h2>
+            <p className="section-desc">{lang === 'kz' ? 'Алғашқы өтінімнен тұрақты жеткізілімдерге дейінгі төрт қарапайым қадам.' : lang === 'en' ? 'Four simple steps from first inquiry to regular shipments.' : 'Четыре простых шага от первой заявки до регулярных поставок.'}</p>
           </div>
 
           <div className="steps-grid">
-            {steps.map((st) => (
+            {stepsData.map((st) => (
               <div key={st.num} className="step-flow-card">
                 <span className="step-flow-num">{st.num}</span>
                 <h3 className="step-flow-title">{st.title}</h3>
@@ -188,14 +188,14 @@ export const PartnersPage = () => {
         <div className="container">
           <div className="form-layout-box">
             <div className="form-info-col">
-              <span className="section-badge">Заявка на сотрудничество</span>
-              <h2>Получите оптовый каталог и расчёт условий</h2>
+              <span className="section-badge">{pp.badge || 'B2B Сотрудничество'}</span>
+              <h2>{pp.formTitle || 'Заявка на получение дилерских условий'}</h2>
               <p>
-                Заполните анкету, и ответственный региональный менеджер (по Сибири, Казахстану или центральным регионам) свяжется с вами в течение рабочего дня.
+                {pp.formDesc || 'Заполните форму, и региональный представитель LAUTE направит дилерский прайс-лист, типовой договор и согласует условия поставок.'}
               </p>
 
               <div className="form-contacts-hint">
-                <p>Также вы можете связаться напрямую с бэк-офисом:</p>
+                <p>{lang === 'kz' ? 'Тікелей бэк-офиске хабарласуға болады:' : lang === 'en' ? 'Direct contact with back office:' : 'Также вы можете связаться напрямую с бэк-офисом:'}</p>
                 <strong><a href="mailto:opt@laute.ltd">opt@laute.ltd</a></strong> • <strong><a href="tel:+79833105626">+7 (983) 310-56-26</a></strong>
               </div>
             </div>
@@ -204,25 +204,25 @@ export const PartnersPage = () => {
               {isSubmitted ? (
                 <div className="form-success-box" style={{ background: 'rgba(22,163,74,0.08)', border: '1px solid rgba(22,163,74,0.3)', padding: '24px', borderRadius: '8px', textAlign: 'center' }}>
                   <CheckCircle2 size={44} color="#16A34A" style={{ margin: '0 auto 12px' }} />
-                  <h3 style={{ color: '#F8FAFC', marginBottom: '8px' }}>Данные заявки успешно сформированы</h3>
+                  <h3 style={{ color: '#F8FAFC', marginBottom: '8px' }}>{pp.formSuccess || 'Заявка успешно отправлена!'}</h3>
                   <p style={{ color: '#94A3B8', fontSize: '0.9rem', marginBottom: '16px' }}>
-                    Заявка подготовлена для передачи региональному менеджеру LAUTE. (Интерфейс готов к интеграции с корпоративной CRM/ERP).
+                    {lang === 'kz' ? 'Көтерме бөлімнің менеджері коммерциялық ұсынысты жіберу үшін жұмыс күні ішінде сізбен хабарласады.' : lang === 'en' ? 'Wholesale department manager will contact you within one business day.' : 'Менеджер оптового отдела свяжется с вами в течение рабочего дня.'}
                   </p>
                   <div style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: '6px', fontSize: '0.8rem', color: '#CBD5E1', marginBottom: '16px' }}>
-                    Прямая оперативная связь: <a href="tel:+79833105626" style={{ color: '#D4A373', fontWeight: 600 }}>+7 (983) 310-56-26</a> • <a href="mailto:opt@laute.ltd" style={{ color: '#D4A373' }}>opt@laute.ltd</a>
+                    {lang === 'kz' ? 'Жедел байланыс:' : lang === 'en' ? 'Direct line:' : 'Прямая оперативная связь:'} <a href="tel:+79833105626" style={{ color: '#D4A373', fontWeight: 600 }}>+7 (983) 310-56-26</a> • <a href="mailto:opt@laute.ltd" style={{ color: '#D4A373' }}>opt@laute.ltd</a>
                   </div>
                   <button type="button" className="btn btn-outline btn-sm" onClick={() => setIsSubmitted(false)}>
-                    Заполнить новую заявку
+                    {lang === 'kz' ? 'Жаңа өтінім толтыру' : lang === 'en' ? 'Submit another inquiry' : 'Заполнить новую заявку'}
                   </button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="b2b-form">
                   <div className="form-group">
-                    <label>Название компании / ИП *</label>
+                    <label>{pp.formCompany || 'Название компании / ИП'} *</label>
                     <input
                       type="text"
                       required
-                      placeholder="ООО «СантехОпт» или ИП Иванов"
+                      placeholder="ООО / ИП / ТОО"
                       value={formData.companyName}
                       onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                     />
@@ -230,21 +230,21 @@ export const PartnersPage = () => {
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Контактное лицо *</label>
+                      <label>{pp.formPerson || 'Контактное лицо'} *</label>
                       <input
                         type="text"
                         required
-                        placeholder="Имя и должность"
+                        placeholder={lang === 'kz' ? 'Аты-жөні және лауазымы' : lang === 'en' ? 'Full name and position' : 'Имя и должность'}
                         value={formData.contactPerson}
                         onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
                       />
                     </div>
                     <div className="form-group">
-                      <label>Город / Регион *</label>
+                      <label>{pp.formCity || 'Город / Регион'} *</label>
                       <input
                         type="text"
                         required
-                        placeholder="Новосибирск, Алматы, Омск и т.д."
+                        placeholder="Алматы, Новосибирск..."
                         value={formData.city}
                         onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                       />
@@ -253,7 +253,7 @@ export const PartnersPage = () => {
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Телефон для связи *</label>
+                      <label>{pp.formPhone || 'Телефон для связи'} *</label>
                       <input
                         type="tel"
                         required
@@ -263,11 +263,11 @@ export const PartnersPage = () => {
                       />
                     </div>
                     <div className="form-group">
-                      <label>Электронная почта *</label>
+                      <label>{pp.formEmail || 'Электронная почта'} *</label>
                       <input
                         type="email"
                         required
-                        placeholder="opt@company.ru"
+                        placeholder="opt@company.com"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       />
@@ -275,38 +275,38 @@ export const PartnersPage = () => {
                   </div>
 
                   <div className="form-group">
-                    <label>Формат бизнеса:</label>
+                    <label>{pp.formType || 'Направление деятельности'}:</label>
                     <select
                       value={formData.businessType}
                       onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
                       className="form-select"
                     >
-                      <option value="wholesale">Оптовая компания / Дистрибьютор</option>
-                      <option value="retail">Розничный магазин сантехники</option>
-                      <option value="diy">Сеть магазинов / DIY</option>
-                      <option value="contractor">Строительная / Подрядная организация</option>
-                      <option value="ecommerce">Интернет-магазин / Маркетплейс</option>
-                      <option value="other">Другой формат</option>
+                      <option value="wholesale">{lang === 'kz' ? 'Көтерме компания / Дистрибьютор' : lang === 'en' ? 'Wholesale / Distributor' : 'Оптовая компания / Дистрибьютор'}</option>
+                      <option value="retail">{lang === 'kz' ? 'Бөлшек сауда дүкені' : lang === 'en' ? 'Retail Store' : 'Розничный магазин сантехники'}</option>
+                      <option value="diy">{lang === 'kz' ? 'Дүкендер желісі / DIY' : lang === 'en' ? 'Retail Chain / DIY' : 'Сеть магазинов / DIY'}</option>
+                      <option value="contractor">{lang === 'kz' ? 'Құрылыс / Мердігер ұйымы' : lang === 'en' ? 'Contractor / Developer' : 'Строительная / Подрядная организация'}</option>
+                      <option value="ecommerce">{lang === 'kz' ? 'Интернет-дүкен / Маркетплейс' : lang === 'en' ? 'E-commerce / Marketplace' : 'Интернет-магазин / Маркетплейс'}</option>
+                      <option value="other">{lang === 'kz' ? 'Басқа формат' : lang === 'en' ? 'Other format' : 'Другой формат'}</option>
                     </select>
                   </div>
 
                   <div className="form-group">
-                    <label>Комментарий или интересующие категории:</label>
+                    <label>{pp.formComment || 'Комментарий к запросу'}:</label>
                     <textarea
                       rows={3}
-                      placeholder="Укажите интересующие серии смесителей, примерный объем или вопросы..."
+                      placeholder={lang === 'kz' ? 'Қызықтыратын сериялар, көлем немесе сұрақтар...' : lang === 'en' ? 'Interested series, order volume, or questions...' : 'Укажите интересующие серии смесителей, примерный объем или вопросы...'}
                       value={formData.comments}
                       onChange={(e) => setFormData({ ...formData, comments: e.target.value })}
                     />
                   </div>
 
                   <button type="submit" className="btn btn-primary btn-full">
-                    <span>Отправить заявку менеджеру</span>
+                    <span>{pp.formSubmit || 'Отправить заявку партнёра'}</span>
                     <ArrowRight size={16} />
                   </button>
 
                   <p className="form-privacy-note">
-                    Нажимая кнопку, вы подтверждаете согласие на обработку контактных данных для связи по вопросам оптового сотрудничества.
+                    {lang === 'kz' ? 'Түймені басу арқылы сіз көтерме ынтымақтастық мәселелері бойынша байланысу үшін байланыс деректерін өңдеуге келісіміңізді растайсыз.' : lang === 'en' ? 'By submitting, you confirm consent to contact details processing for wholesale cooperation.' : 'Нажимая кнопку, вы подтверждаете согласие на обработку контактных данных для связи по вопросам оптового сотрудничества.'}
                   </p>
                 </form>
               )}

@@ -11,6 +11,7 @@ export const Footer = () => {
   };
 
   const logoSrc = `${import.meta.env.BASE_URL}laute-logo.png`;
+  const f = t.footer || {};
 
   return (
     <footer className="footer">
@@ -27,22 +28,22 @@ export const Footer = () => {
               <img 
                 src={logoSrc} 
                 alt="LAUTE" 
-                className="brand-logo-img" 
+                className="brand-logo-img footer-logo-img" 
                 onError={(e) => {
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'inline-block';
                 }}
               />
-              <span className="brand-name-fallback" style={{ display: 'none', fontWeight: 800, fontSize: '1.4rem', letterSpacing: '0.04em', color: '#0F172A' }}>LAUTE</span>
+              <span className="brand-name-fallback" style={{ display: 'none', fontWeight: 800, fontSize: '1.4rem', letterSpacing: '0.04em', color: '#FFFFFF' }}>LAUTE</span>
             </a>
 
             <p className="footer-desc">
-              Международная производственно-торговая платформа сантехнического оборудования. Прямые поставки смесителей, кухонных моек, душевых систем и комплектующих для оптовых компаний, дилеров и строительных объектов.
+              {f.brandDesc || 'Международная производственно-торговая платформа сантехнического оборудования. Прямые поставки смесителей, кухонных моек, душевых систем и комплектующих для оптовых компаний, дилеров и строительных объектов.'}
             </p>
 
             {/* Official Verified Social Networks */}
             <div className="footer-socials">
-              <span className="footer-socials-label">Официальные страницы:</span>
+              <span className="footer-socials-label">{f.socialsLabel || 'Официальные страницы:'}</span>
               <div className="social-links-row">
                 <a 
                   href="https://www.instagram.com/laute.official.russia/" 
@@ -95,7 +96,7 @@ export const Footer = () => {
             <div className="footer-controls">
               <div className="footer-control-item">
                 <Globe size={14} className="control-icon" />
-                <span className="control-text">Язык:</span>
+                <span className="control-text">{f.langLabel || 'Язык:'}</span>
                 <div className="footer-pill-row">
                   {[
                     { code: 'ru', label: 'RU' },
@@ -135,41 +136,41 @@ export const Footer = () => {
 
           {/* Quick Links */}
           <div className="footer-col">
-            <h4 className="footer-col-title">Навигация</h4>
+            <h4 className="footer-col-title">{f.navCol || 'Навигация'}</h4>
             <ul className="footer-links">
               <li>
                 <button type="button" className="footer-link-btn" onClick={() => navigateTo('home')}>
-                  Главная
+                  {t.nav.home || 'Главная'}
                 </button>
               </li>
               <li>
                 <button type="button" className="footer-link-btn" onClick={() => navigateTo('catalog')}>
-                  Каталог
+                  {t.nav.catalog || 'Главный каталог'}
                 </button>
               </li>
               <li>
                 <button type="button" className="footer-link-btn" onClick={() => navigateTo('company')}>
-                  О компании
+                  {t.nav.production || 'О компании'}
                 </button>
               </li>
               <li>
                 <button type="button" className="footer-link-btn" onClick={() => navigateTo('partners')}>
-                  Партнёрам
+                  {t.nav.partners || 'Партнёрам'}
                 </button>
               </li>
               <li>
                 <button type="button" className="footer-link-btn" onClick={() => navigateTo('where-to-buy')}>
-                  Где купить
+                  {t.nav.whereToBuy || 'Где купить'}
                 </button>
               </li>
               <li>
                 <button type="button" className="footer-link-btn" onClick={() => navigateTo('service')}>
-                  Сервис
+                  {t.nav.service || 'Сервис'}
                 </button>
               </li>
               <li>
                 <button type="button" className="footer-link-btn" onClick={() => navigateTo('contacts')}>
-                  Контакты
+                  {t.nav.contacts || 'Контакты'}
                 </button>
               </li>
             </ul>
@@ -177,17 +178,17 @@ export const Footer = () => {
 
           {/* Verified Contacts */}
           <div className="footer-col">
-            <h4 className="footer-col-title">Контакты</h4>
+            <h4 className="footer-col-title">{f.contactsCol || 'Контакты'}</h4>
             
             <div className="footer-contact-block">
-              <span className="contact-role">Представительство:</span>
+              <span className="contact-role">{f.representativeOffice || 'Представительство:'}</span>
               <p className="contact-address">
                 Россия, 630073, Новосибирская область, г. Новосибирск, ул. Блюхера, 71
               </p>
             </div>
 
             <div className="footer-contact-block">
-              <span className="contact-role">Отдел продаж:</span>
+              <span className="contact-role">{f.salesDept || 'Отдел продаж:'}</span>
               <ul className="contact-list">
                 <li>
                   <a href="tel:+79833105626" className="clickable-contact">
@@ -205,7 +206,7 @@ export const Footer = () => {
             </div>
 
             <div className="footer-contact-block">
-              <span className="contact-role">Электронная почта:</span>
+              <span className="contact-role">{f.emailLabel || 'Электронная почта:'}</span>
               <ul className="contact-list">
                 <li>
                   <a href="mailto:opt@laute.ltd" className="clickable-contact">
@@ -219,16 +220,16 @@ export const Footer = () => {
 
           {/* Wholesale Partner Action */}
           <div className="footer-col footer-action-col">
-            <h4 className="footer-col-title">Сотрудничество</h4>
+            <h4 className="footer-col-title">{f.collabCol || 'Сотрудничество'}</h4>
             <p className="footer-action-desc">
-              Прямые контракты с заводом LAUTE, индивидуальные коммерческие условия и техническая поддержка.
+              {f.collabDesc || 'Прямые контракты с заводом LAUTE, индивидуальные коммерческие условия и техническая поддержка.'}
             </p>
             <button 
               type="button" 
               className="btn btn-primary btn-full"
               onClick={openPartnerModal}
             >
-              Стать оптовым партнёром
+              {f.partnerBtn || 'Стать оптовым партнёром'}
             </button>
           </div>
         </div>
@@ -237,10 +238,10 @@ export const Footer = () => {
         <div className="footer-bottom">
           <div className="footer-bottom-left">
             <p className="copyright">
-              © {new Date().getFullYear()} LAUTE LTD. Все права защищены.
+              © {new Date().getFullYear()} LAUTE LTD. {f.rights || 'Все права защищены.'}
             </p>
             <div className="footer-legal-links">
-              <span>Политика конфиденциальности • Пользовательское соглашение</span>
+              <span>{f.legal || 'Политика конфиденциальности • Пользовательское соглашение'}</span>
             </div>
           </div>
 
@@ -251,7 +252,7 @@ export const Footer = () => {
               onClick={scrollToTop}
               title="Наверх"
             >
-              <span>Наверх</span>
+              <span>{f.scrollTop || 'Наверх'}</span>
               <ArrowUp size={14} />
             </button>
           </div>

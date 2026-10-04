@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Phone, Mail, MapPin, Building2, User, Clock, ArrowRight, CheckCircle2, Globe } from 'lucide-react';
+import { Phone, Mail, MapPin, Building2, Clock, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 export const ContactsPage = () => {
-  const { region, setRegion, t } = useApp();
+  const { region, setRegion, lang, t } = useApp();
+  const cp = t.contactsPage || {};
 
   const [contactForm, setContactForm] = useState({
     name: '',
@@ -22,40 +23,40 @@ export const ContactsPage = () => {
 
   const staffContacts = [
     {
-      role: 'Руководитель отдела продаж',
+      role: lang === 'kz' ? 'Сату бөлімінің басшысы' : lang === 'en' ? 'Head of Wholesale Sales' : 'Руководитель отдела продаж',
       name: 'Оксана',
       phone: '+7 (983) 310-56-26',
       phoneClean: '+79833105626',
       email: 'nsk@laute.ltd',
-      scope: 'Оптовые контракты, согласование коммерческих условий и поставок'
+      scope: lang === 'kz' ? 'Көтерме келісімшарттар, коммерциялық шарттарды және жеткізулерді келісу' : lang === 'en' ? 'Wholesale contracts, commercial agreements and supply schedules' : 'Оптовые контракты, согласование коммерческих условий и поставок'
     },
     {
-      role: 'Руководитель агентской структуры',
+      role: lang === 'kz' ? 'Агенттік құрылымның басшысы' : lang === 'en' ? 'Head of Agency Network' : 'Руководитель агентской структуры',
       name: 'Сергей',
       phone: '+7 (913) 203-07-37',
       phoneClean: '+79132030737',
       email: 'nsk2@laute.ltd',
-      scope: 'Представитель по Новосибирской области и развитие дилерской сети'
+      scope: lang === 'kz' ? 'Новосібір облысы бойынша өкіл және дилерлік желіні дамыту' : lang === 'en' ? 'Novosibirsk region representative and dealer network expansion' : 'Представитель по Новосибирской области и развитие дилерской сети'
     },
     {
-      role: 'Региональный представитель',
+      role: lang === 'kz' ? 'Өңірлік өкіл' : lang === 'en' ? 'Regional Sales Representative' : 'Региональный представитель',
       name: 'Евгений',
       phone: '+7 (952) 802-55-99',
       phoneClean: '+79528025599',
       email: 'tomsk@laute.ltd',
-      scope: 'Томская область, Кемеровская область (Кузбасс), Республика Бурятия'
+      scope: lang === 'kz' ? 'Томск облысы, Кемерово облысы (Кузбасс), Бурятия Республикасы' : lang === 'en' ? 'Tomsk, Kemerovo (Kuzbass), and Buryatia regions' : 'Томская область, Кемеровская область (Кузбасс), Республика Бурятия'
     },
     {
-      role: 'Администратор бэк-офиса',
+      role: lang === 'kz' ? 'Бэк-офис әкімшісі' : lang === 'en' ? 'Back Office Administrator' : 'Администратор бэк-офиса',
       name: 'Екатерина',
       email: 'opt@laute.ltd',
-      scope: 'Общие вопросы, первичный документооборот, сертификаты'
+      scope: lang === 'kz' ? 'Жалпы сұрақтар, құжат айналымы, өнім сертификаттары' : lang === 'en' ? 'General inquiries, initial paperwork, certificates' : 'Общие вопросы, первичный документооборот, сертификаты'
     },
     {
-      role: 'Руководитель представительства',
+      role: lang === 'kz' ? 'Өкілдік басшысы' : lang === 'en' ? 'Head of Representative Office' : 'Руководитель представительства',
       name: 'Дмитрий',
       email: 'pro_d@laute.ltd',
-      scope: 'Стратегические партнерства и межрегиональное развитие'
+      scope: lang === 'kz' ? 'Стратегиялық серіктестіктер және аймақаралық даму' : lang === 'en' ? 'Strategic partnerships and inter-regional development' : 'Стратегические партнерства и межрегиональное развитие'
     }
   ];
 
@@ -65,10 +66,10 @@ export const ContactsPage = () => {
       <section className="page-header">
         <div className="container">
           <div className="page-header-content">
-            <span className="section-badge">Контакты представительства</span>
-            <h1 className="page-title">Контакты завода LAUTE</h1>
+            <span className="section-badge">{cp.badge || 'Контакты представительства'}</span>
+            <h1 className="page-title">{cp.title || 'Контакты завода LAUTE'}</h1>
             <p className="page-subtitle">
-              Официальные телефоны, электронная почта и адреса ответственных сотрудников представительства в Сибири, России и странах СНГ.
+              {cp.subtitle || 'Официальные телефоны, электронная почта и адреса ответственных сотрудников представительства.'}
             </p>
           </div>
         </div>
@@ -82,8 +83,8 @@ export const ContactsPage = () => {
               <div className="office-header">
                 <Building2 size={24} className="office-icon" />
                 <div>
-                  <span className="office-tag">Главный бэк-офис представительства завода</span>
-                  <h2 className="office-title">Новосибирск, Россия</h2>
+                  <span className="office-tag">{lang === 'kz' ? 'Зауыт өкілдігінің басты бэк-офисі' : lang === 'en' ? 'Main Factory Office' : 'Главный бэк-офис представительства завода'}</span>
+                  <h2 className="office-title">{cp.mainOfficeTitle || 'Новосибирск, Россия'}</h2>
                 </div>
               </div>
 
@@ -91,7 +92,7 @@ export const ContactsPage = () => {
                 <div className="detail-item">
                   <MapPin size={18} className="detail-icon" />
                   <div>
-                    <strong>Фактический адрес:</strong>
+                    <strong>{lang === 'kz' ? 'Нақты мекенжайы:' : lang === 'en' ? 'Physical Address:' : 'Фактический адрес:'}</strong>
                     <p>Россия, 630073, Новосибирская область, г. Новосибирск, ул. Блюхера 71</p>
                   </div>
                 </div>
@@ -99,15 +100,15 @@ export const ContactsPage = () => {
                 <div className="detail-item">
                   <Clock size={18} className="detail-icon" />
                   <div>
-                    <strong>Режим работы:</strong>
-                    <p>Понедельник — Пятница: 09:00 – 18:00 (МСК+4)</p>
+                    <strong>{lang === 'kz' ? 'Жұмыс кестесі:' : lang === 'en' ? 'Working Hours:' : 'Режим работы:'}</strong>
+                    <p>{lang === 'kz' ? 'Дүйсенбі — Жұма: 09:00 – 18:00 (МСК+4)' : lang === 'en' ? 'Monday — Friday: 09:00 – 18:00 (UTC+7)' : 'Понедельник — Пятница: 09:00 – 18:00 (МСК+4)'}</p>
                   </div>
                 </div>
 
                 <div className="detail-item">
                   <Phone size={18} className="detail-icon" />
                   <div>
-                    <strong>Телефон приемной / бэк-офиса:</strong>
+                    <strong>{lang === 'kz' ? 'Қабылдау / бэк-офис телефоны:' : lang === 'en' ? 'Reception / Back Office Phone:' : 'Телефон приемной / бэк-офиса:'}</strong>
                     <p>
                       <a href="tel:+79833105626" className="clickable-contact">
                         +7 (983) 310-56-26
@@ -119,7 +120,7 @@ export const ContactsPage = () => {
                 <div className="detail-item">
                   <Mail size={18} className="detail-icon" />
                   <div>
-                    <strong>Общая электронная почта:</strong>
+                    <strong>{lang === 'kz' ? 'Жалпы электрондық пошта:' : lang === 'en' ? 'General Email:' : 'Общая электронная почта:'}</strong>
                     <p>
                       <a href="mailto:opt@laute.ltd" className="clickable-contact">
                         opt@laute.ltd
@@ -128,41 +129,31 @@ export const ContactsPage = () => {
                   </div>
                 </div>
               </div>
-
-              <div className="office-logistic-note">
-                <p>
-                  <strong>Почему Новосибирск:</strong> Географический центр России и СНГ, узловой логистический ХАБ, обеспечивающий эффективные поставки в Сибирь, на Дальний Восток, в Казахстан и центральные регионы.
-                </p>
-              </div>
             </div>
 
             {/* Fast Contact Form */}
             <div className="contact-form-container">
-              <h3 className="form-card-title">Написать в отдел продаж</h3>
-              <p className="form-card-desc">Задайте вопрос по наличию, оптовым ценам или дилерству.</p>
-
               {formSent ? (
-                <div className="form-success-box" style={{ background: 'rgba(22,163,74,0.08)', border: '1px solid rgba(22,163,74,0.3)', padding: '24px', borderRadius: '8px', textAlign: 'center' }}>
-                  <CheckCircle2 size={40} color="#16A34A" style={{ margin: '0 auto 12px' }} />
-                  <h4 style={{ color: '#F8FAFC', marginBottom: '8px' }}>Обращение сформировано</h4>
-                  <p style={{ color: '#94A3B8', fontSize: '0.88rem', marginBottom: '16px' }}>
-                    Запрос подготовлен для направления ответственному специалисту LAUTE. (Архитектурный интерфейс готов к интеграции с CRM).
-                  </p>
-                  <div style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: '6px', fontSize: '0.8rem', color: '#CBD5E1', marginBottom: '16px' }}>
-                    Прямая оперативная связь: <a href="tel:+79833105626" style={{ color: '#D4A373', fontWeight: 600 }}>+7 (983) 310-56-26</a> • <a href="mailto:opt@laute.ltd" style={{ color: '#D4A373' }}>opt@laute.ltd</a>
-                  </div>
+                <div className="contact-form-success">
+                  <CheckCircle2 size={44} color="#16A34A" />
+                  <h3>{cp.successTitle || 'Сообщение успешно отправлено!'}</h3>
+                  <p>{lang === 'kz' ? 'Өңірлік маман 1 жұмыс күні ішінде сізбен хабарласады.' : lang === 'en' ? 'Regional coordinator will reply within 1 business day.' : 'Ответственный специалист региона свяжется с вами в течение 1 рабочего дня.'}</p>
                   <button type="button" className="btn btn-outline btn-sm" onClick={() => setFormSent(false)}>
-                    Отправить ещё одно обращение
+                    {lang === 'kz' ? 'Тағы бір хабарлама жазу' : lang === 'en' ? 'Send another message' : 'Написать ещё одно сообщение'}
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleFormSubmit} className="b2b-form">
+                <form onSubmit={handleFormSubmit} className="contacts-form">
+                  <span className="section-badge">{lang === 'kz' ? 'Тікелей байланыс' : lang === 'en' ? 'Direct Line' : 'Прямая связь'}</span>
+                  <h3>{cp.formTitle || 'Написать напрямую в представительство'}</h3>
+                  <p>{cp.formDesc || 'Оставьте сообщение, и ответственный специалист региона свяжется с вами в течение 1 рабочего дня.'}</p>
+
                   <div className="form-group">
-                    <label>Ваше имя *</label>
+                    <label>{cp.nameLabel || 'Ваше имя'} *</label>
                     <input
                       type="text"
                       required
-                      placeholder="Имя или организация"
+                      placeholder={lang === 'kz' ? 'Аты-жөніңіз' : lang === 'en' ? 'Your name' : 'Иван Иванов'}
                       value={contactForm.name}
                       onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
                     />
@@ -170,7 +161,7 @@ export const ContactsPage = () => {
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Телефон *</label>
+                      <label>{cp.phoneLabel || 'Номер телефона'} *</label>
                       <input
                         type="tel"
                         required
@@ -180,11 +171,11 @@ export const ContactsPage = () => {
                       />
                     </div>
                     <div className="form-group">
-                      <label>E-mail *</label>
+                      <label>{cp.emailLabel || 'Email для связи'} *</label>
                       <input
                         type="email"
                         required
-                        placeholder="your@mail.ru"
+                        placeholder="client@domain.com"
                         value={contactForm.email}
                         onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
                       />
@@ -192,33 +183,19 @@ export const ContactsPage = () => {
                   </div>
 
                   <div className="form-group">
-                    <label>Ваш регион:</label>
-                    <select
-                      value={contactForm.targetRegion}
-                      onChange={(e) => setContactForm({ ...contactForm, targetRegion: e.target.value })}
-                      className="form-select"
-                    >
-                      <option value="siberia">Сибирь (Новосибирск, Томск, Кузбасс и др.)</option>
-                      <option value="kz">Казахстан</option>
-                      <option value="ru">Россия (Европейская часть)</option>
-                      <option value="other">Другие регионы и страны СНГ</option>
-                    </select>
-                  </div>
-
-                  <div className="form-group">
-                    <label>Сообщение / Запрос:</label>
+                    <label>{cp.messageLabel || 'Текст обращения'} *</label>
                     <textarea
                       rows={3}
                       required
-                      placeholder="Опишите ваш запрос или вопрос..."
+                      placeholder={lang === 'kz' ? 'Сұрағыңызды немесе ұсынысыңызды сипаттаңыз...' : lang === 'en' ? 'Describe your inquiry or proposal...' : 'Опишите ваш вопрос или предложение...'}
                       value={contactForm.message}
                       onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
                     />
                   </div>
 
                   <button type="submit" className="btn btn-primary btn-full">
-                    <span>Отправить обращение</span>
-                    <ArrowRight size={15} />
+                    <span>{cp.submitBtn || 'Отправить сообщение'}</span>
+                    <ArrowRight size={16} />
                   </button>
                 </form>
               )}
@@ -227,42 +204,33 @@ export const ContactsPage = () => {
         </div>
       </section>
 
-      {/* Responsible Managers List */}
+      {/* Staff Directory */}
       <section className="section">
         <div className="container">
           <div className="section-title-wrap">
-            <span className="section-badge">Персональные контакты</span>
-            <h2 className="section-title">Ответственные сотрудники представительства</h2>
+            <span className="section-badge">{lang === 'kz' ? 'Команда' : lang === 'en' ? 'Team' : 'Команда'}</span>
+            <h2 className="section-title">{cp.salesTitle || 'Ответственные менеджеры по регионам'}</h2>
             <p className="section-desc">
-              Прямая телефонная и почтовая связь со специалистами по региональным направлениям.
+              {lang === 'kz' ? 'Жеткізілімдер мен техникалық сұрақтар бойынша өкілдік мамандарымен тікелей байланыс.' : lang === 'en' ? 'Direct contact with factory representatives regarding orders and technical inquiries.' : 'Прямой контакт со специалистами представительства по поставкам и техническим вопросам.'}
             </p>
           </div>
 
           <div className="staff-grid">
-            {staffContacts.map((staff, i) => (
-              <div key={i} className="staff-card">
-                <div className="staff-avatar">
-                  <User size={24} />
-                </div>
-                <div className="staff-info">
-                  <span className="staff-role">{staff.role}</span>
-                  <h3 className="staff-name">{staff.name}</h3>
-                  <p className="staff-scope">{staff.scope}</p>
+            {staffContacts.map((staff, idx) => (
+              <div key={idx} className="staff-card">
+                <span className="staff-role">{staff.role}</span>
+                <h3 className="staff-name">{staff.name}</h3>
+                <p className="staff-scope">{staff.scope}</p>
 
-                  <div className="staff-links">
-                    {staff.phone && (
-                      <a href={`tel:${staff.phoneClean}`} className="clickable-contact">
-                        <Phone size={14} />
-                        <span>{staff.phone}</span>
-                      </a>
-                    )}
-                    {staff.email && (
-                      <a href={`mailto:${staff.email}`} className="clickable-contact">
-                        <Mail size={14} />
-                        <span>{staff.email}</span>
-                      </a>
-                    )}
-                  </div>
+                <div className="staff-links">
+                  {staff.phone && (
+                    <a href={`tel:${staff.phoneClean}`} className="staff-link">
+                      <Phone size={14} /> {staff.phone}
+                    </a>
+                  )}
+                  <a href={`mailto:${staff.email}`} className="staff-link">
+                    <Mail size={14} /> {staff.email}
+                  </a>
                 </div>
               </div>
             ))}

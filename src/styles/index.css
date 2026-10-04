@@ -2439,35 +2439,52 @@ img {
   color: #FFFFFF;
 }
 
+.footer .brand-logo-img,
+.footer-logo-img {
+  filter: brightness(0) invert(1) !important;
+  opacity: 1 !important;
+}
+
 .footer-contact-block {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .contact-role {
   display: block;
-  font-size: 0.75rem;
-  color: var(--accent-brass);
+  font-size: 0.8125rem;
+  color: #93C5FD;
   text-transform: uppercase;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  letter-spacing: 0.05em;
 }
 
 .contact-address {
-  font-size: 0.8125rem;
-  color: #CBD5E1;
-  line-height: 1.45;
+  font-size: 0.875rem;
+  color: #F8FAFC;
+  line-height: 1.5;
+}
+
+.footer .clickable-contact {
+  color: #FFFFFF !important;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.footer .clickable-contact:hover {
+  color: #60A5FA !important;
 }
 
 .contact-list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 0.8125rem;
+  gap: 8px;
+  font-size: 0.875rem;
 }
 
 .contact-name {
-  color: #64748B;
+  color: #94A3B8;
   font-size: 0.75rem;
 }
 

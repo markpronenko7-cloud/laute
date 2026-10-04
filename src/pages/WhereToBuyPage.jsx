@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Store, Building2, ShoppingBag, MapPin, Phone, Mail, ArrowRight, CheckCircle2, Info } from 'lucide-react';
+import { Store, Building2, ShoppingBag, Phone, Mail, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 export const WhereToBuyPage = () => {
-  const { openPartnerModal, region, t } = useApp();
+  const { openPartnerModal, lang, t } = useApp();
   const [activeTab, setActiveTab] = useState('wholesale');
   const [cityQuery, setCityQuery] = useState('');
   const [inquirySent, setInquirySent] = useState(false);
+
+  const wp = t.whereToBuyPage || {};
 
   const handleInquirySubmit = (e) => {
     e.preventDefault();
@@ -19,10 +21,10 @@ export const WhereToBuyPage = () => {
       <section className="page-header">
         <div className="container">
           <div className="page-header-content">
-            <span className="section-badge">География присутствия</span>
-            <h1 className="page-title">Где купить продукцию LAUTE</h1>
+            <span className="section-badge">{wp.badge || 'География присутствия'}</span>
+            <h1 className="page-title">{wp.title || 'Где купить продукцию LAUTE'}</h1>
             <p className="page-subtitle">
-              Прямые поставки для оптовых заказчиков со складов представительства и приобретение в розницу через официальную дилерскую сеть.
+              {wp.subtitle || 'Прямые поставки для оптовых заказчиков со складов представительства и приобретение в розницу через официальную дилерскую сеть.'}
             </p>
 
             <div className="tab-switcher">
@@ -32,7 +34,7 @@ export const WhereToBuyPage = () => {
                 onClick={() => setActiveTab('wholesale')}
               >
                 <Building2 size={16} />
-                <span>Оптовые закупки (B2B)</span>
+                <span>{wp.tabWholesale || 'Оптовые закупки (B2B)'}</span>
               </button>
               <button
                 type="button"
@@ -40,7 +42,7 @@ export const WhereToBuyPage = () => {
                 onClick={() => setActiveTab('retail')}
               >
                 <ShoppingBag size={16} />
-                <span>Розничным покупателям</span>
+                <span>{wp.tabRetail || 'Розничным покупателям'}</span>
               </button>
             </div>
           </div>
@@ -53,50 +55,47 @@ export const WhereToBuyPage = () => {
           {activeTab === 'wholesale' ? (
             <div className="wholesale-routing-block">
               <div className="section-title-wrap">
-                <span className="section-badge">Оптовые поставки</span>
-                <h2 className="section-title">Представительства и региональная логистика</h2>
+                <span className="section-badge">{lang === 'kz' ? 'Көтерме жеткізілімдер' : lang === 'en' ? 'Wholesale Supplies' : 'Оптовые поставки'}</span>
+                <h2 className="section-title">{lang === 'kz' ? 'Өкілдіктер және өңірлік логистика' : lang === 'en' ? 'Offices & Regional Logistics' : 'Представительства и региональная логистика'}</h2>
                 <p className="section-desc">
-                  Для юридических лиц, строительных объектов и розничных сетей отгрузки координируются через официальные представительства.
+                  {lang === 'kz' ? 'Заңды тұлғалар, құрылыс нысандары және бөлшек желілер үшін жөнелтулер ресми өкілдіктер арқылы үйлестіріледі.' : lang === 'en' ? 'For corporate clients, construction sites and retail chains, shipments are coordinated through official representative offices.' : 'Для юридических лиц, строительных объектов и розничных сетей отгрузки координируются через официальные представительства.'}
                 </p>
-                <div style={{ margin: '12px auto 0', maxWidth: '720px', padding: '10px 16px', background: 'rgba(212,163,115,0.08)', border: '1px solid rgba(212,163,115,0.2)', borderRadius: '6px', fontSize: '0.85rem', color: '#CBD5E1' }}>
-                  <strong>Протокол развития:</strong> Окончательная география распределительных складов формируется и согласовывается. Актуальные маршруты отгрузки уточняйте у регионального менеджера.
-                </div>
               </div>
 
               <div className="hubs-grid">
                 <div className="hub-card">
                   <div className="hub-header">
-                    <span className="hub-tag">Официальное представительство</span>
-                    <h3 className="hub-city">Новосибирск</h3>
+                    <span className="hub-tag">{lang === 'kz' ? 'Ресми өкілдік' : lang === 'en' ? 'Official Representative Office' : 'Официальное представительство'}</span>
+                    <h3 className="hub-city">{lang === 'kz' ? 'Новосібір (Сібір, РФ)' : lang === 'en' ? 'Novosibirsk (Siberia, RF)' : 'Новосибирск (Сибирь, РФ)'}</h3>
                   </div>
                   <p className="hub-address">Россия, 630073, г. Новосибирск, ул. Блюхера 71</p>
                   <p className="hub-desc">
-                    Главный бэк-офис компании, координация оптовых отгрузок и региональных дилерских поставок по Сибири и Дальнему Востоку.
+                    {lang === 'kz' ? 'Компанияның басты бэк-офисі, Сібір және Қиыр Шығыс бойынша көтерме жөнелтулер мен өңірлік дилерлік жеткізілімдерді үйлестіру.' : lang === 'en' ? 'Head back-office of the company, coordinating wholesale shipments and regional dealer supplies across Siberia and the Far East.' : 'Главный бэк-офис компании, координация оптовых отгрузок и региональных дилерских поставок по Сибири и Дальнему Востоку.'}
                   </p>
                   <div className="hub-contacts">
                     <a href="tel:+79833105626" className="clickable-contact">
-                      <Phone size={14} /> +7 (983) 310-56-26 (Оксана)
+                      <Phone size={14} /> +7 (983) 310-56-26
                     </a>
                     <a href="tel:+79132030737" className="clickable-contact">
-                      <Phone size={14} /> +7 (913) 203-07-37 (Сергей)
+                      <Phone size={14} /> +7 (913) 203-07-37
                     </a>
-                    <a href="mailto:opt@laute.ltd" className="clickable-contact">
-                      <Mail size={14} /> opt@laute.ltd
+                    <a href="mailto:nsk@laute.ltd" className="clickable-contact">
+                      <Mail size={14} /> nsk@laute.ltd
                     </a>
                   </div>
                   <button type="button" className="btn btn-outline btn-sm btn-full" onClick={openPartnerModal}>
-                    Связаться с представительством
+                    {lang === 'kz' ? 'Өкілдікпен байланысу' : lang === 'en' ? 'Contact Office' : 'Связаться с представительством'}
                   </button>
                 </div>
 
                 <div className="hub-card">
                   <div className="hub-header">
-                    <span className="hub-tag">Региональное направление</span>
-                    <h3 className="hub-city">Казахстан и Центральная Азия</h3>
+                    <span className="hub-tag">{lang === 'kz' ? 'Өңірлік бағыт' : lang === 'en' ? 'Regional Division' : 'Региональное направление'}</span>
+                    <h3 className="hub-city">{lang === 'kz' ? 'Қазақстан' : lang === 'en' ? 'Kazakhstan' : 'Казахстан'}</h3>
                   </div>
-                  <p className="hub-address">Экспортное направление поставок LAUTE</p>
+                  <p className="hub-address">{lang === 'kz' ? 'LAUTE экспорттық жеткізілімдер бағыты' : lang === 'en' ? 'LAUTE Export Supplies Division' : 'Экспортное направление поставок LAUTE'}</p>
                   <p className="hub-desc">
-                    Прямая координация поставок сантехники для дилеров, комплектовщиков и торговых сетей в Республике Казахстан.
+                    {lang === 'kz' ? 'Қазақстан Республикасындағы дилерлер, жинақтаушылар және сауда желілері үшін сантехника жеткізілімдерін тікелей үйлестіру.' : lang === 'en' ? 'Direct coordination of plumbing supplies for dealers, developers, and retail chains in Kazakhstan.' : 'Прямая координация поставок сантехники для дилеров, комплектовщиков и торговых сетей в Республике Казахстан.'}
                   </p>
                   <div className="hub-contacts">
                     <a href="mailto:opt@laute.ltd" className="clickable-contact">
@@ -105,32 +104,31 @@ export const WhereToBuyPage = () => {
                     <a href="tel:+79833105626" className="clickable-contact">
                       <Phone size={14} /> +7 (983) 310-56-26
                     </a>
-                    <span className="contact-note">Прямая связь через экспортный отдел</span>
                   </div>
                   <button type="button" className="btn btn-outline btn-sm btn-full" onClick={openPartnerModal}>
-                    Условия для Казахстана
+                    {lang === 'kz' ? 'Қазақстанға арналған шарттар' : lang === 'en' ? 'Terms for Kazakhstan' : 'Условия для Казахстана'}
                   </button>
                 </div>
 
                 <div className="hub-card">
                   <div className="hub-header">
-                    <span className="hub-tag">Региональное направление</span>
-                    <h3 className="hub-city">Европейская часть РФ и СНГ</h3>
+                    <span className="hub-tag">{lang === 'kz' ? 'Халықаралық үйлестіру' : lang === 'en' ? 'International Coordination' : 'Международная координация'}</span>
+                    <h3 className="hub-city">{lang === 'kz' ? 'ОАЭ / АҚШ / Қытай' : lang === 'en' ? 'UAE / USA / China' : 'ОАЭ / США / Китай'}</h3>
                   </div>
-                  <p className="hub-address">Централизованная логистическая координация</p>
+                  <p className="hub-address">{lang === 'kz' ? 'Орталықтандырылған экспорттық логистика' : lang === 'en' ? 'Centralized Export Logistics' : 'Централизованная экспортная логистика'}</p>
                   <p className="hub-desc">
-                    Формирование поставок сантехники и комплектующих для региональных оптовых партнёров и строительных объектов.
+                    {lang === 'kz' ? 'Халықаралық серіктестер және құрылыс жобалары үшін сантехника мен бөлшектерді жеткізу.' : lang === 'en' ? 'Coordination of plumbing fixtures and components for international partners and development projects.' : 'Формирование поставок сантехники и комплектующих для международных оптовых партнёров и строительных объектов.'}
                   </p>
                   <div className="hub-contacts">
                     <a href="mailto:opt@laute.ltd" className="clickable-contact">
                       <Mail size={14} /> opt@laute.ltd
                     </a>
-                    <a href="tel:+79132030737" className="clickable-contact">
-                      <Phone size={14} /> +7 (913) 203-07-37
+                    <a href="tel:+79833105626" className="clickable-contact">
+                      <Phone size={14} /> +7 (983) 310-56-26
                     </a>
                   </div>
                   <button type="button" className="btn btn-outline btn-sm btn-full" onClick={openPartnerModal}>
-                    Запросить коммерческие условия
+                    {lang === 'kz' ? 'Коммерциялық шарттарды сұрау' : lang === 'en' ? 'Request Commercial Terms' : 'Запросить коммерческие условия'}
                   </button>
                 </div>
               </div>
@@ -138,10 +136,10 @@ export const WhereToBuyPage = () => {
           ) : (
             <div className="retail-routing-block">
               <div className="section-title-wrap">
-                <span className="section-badge">Розничные продажи</span>
-                <h2 className="section-title">Приобретение для дома и ремонта</h2>
+                <span className="section-badge">{lang === 'kz' ? 'Бөлшек сауда' : lang === 'en' ? 'Retail Sales' : 'Розничные продажи'}</span>
+                <h2 className="section-title">{lang === 'kz' ? 'Үйге және жөндеуге арналған сатып алу' : lang === 'en' ? 'Purchases for Home & Renovation' : 'Приобретение для дома и ремонта'}</h2>
                 <p className="section-desc">
-                  Продукция брендов LAUTE, Oute и Rainsberg представлена в партнёрских специализированных магазинах сантехники, на строительных рынках и в онлайн-магазинах.
+                  {lang === 'kz' ? 'LAUTE, Oute және Rainsberg брендтерінің өнімдері серіктес мамандандырылған сантехника дүкендерінде және құрылыс нарықтарында ұсынылған.' : lang === 'en' ? 'Products of LAUTE, Oute and Rainsberg brands are represented in partner specialized plumbing stores and online.' : 'Продукция брендов LAUTE, Oute и Rainsberg представлена в партнёрских специализированных магазинах сантехники, на строительных рынках и в онлайн-магазинах.'}
                 </p>
               </div>
 
@@ -150,15 +148,15 @@ export const WhereToBuyPage = () => {
                   <Store size={32} color="#B45309" />
                 </div>
                 <div className="notice-body">
-                  <h3>Поиск официальной точки продаж в вашем городе</h3>
+                  <h3>{wp.inquiryTitle || 'Поиск официальной точки продаж в вашем городе'}</h3>
                   <p>
-                    В соответствии с регламентом компании, мы публикуем только актуальные и подтверждённые адреса партнёрских торговых точек. Если вы ищете конкретную модель в вашем населенном пункте, отправьте запрос — дежурный координатор подскажет ближайший магазин с наличием.
+                    {wp.inquiryDesc || 'В соответствии с регламентом компании, мы публикуем только актуальные и подтверждённые адреса партнёрских торговых точек. Если вы ищете конкретную модель в вашем населенном пункте, отправьте запрос — дежурный координатор подскажет ближайший магазин с наличием.'}
                   </p>
 
                   {inquirySent ? (
                     <div className="retail-success">
                       <CheckCircle2 size={24} color="#16A34A" />
-                      <span>Запрос принят! Мы пришлем адреса магазинов на указанный контакт.</span>
+                      <span>{lang === 'kz' ? 'Сұраныс қабылданды! Біз дүкендердің мекенжайларын көрсетеміз.' : lang === 'en' ? 'Inquiry received! We will send store locations to your contact.' : 'Запрос принят! Мы пришлем адреса магазинов на указанный контакт.'}</span>
                     </div>
                   ) : (
                     <form onSubmit={handleInquirySubmit} className="retail-inquiry-form">
@@ -166,13 +164,13 @@ export const WhereToBuyPage = () => {
                         <input
                           type="text"
                           required
-                          placeholder="Ваш город (напр., Томск, Караганда, Новосибирск)"
+                          placeholder={wp.searchPlaceholder || 'Поиск по городу (напр. Новосибирск, Алматы)...'}
                           value={cityQuery}
                           onChange={(e) => setCityQuery(e.target.value)}
                           className="search-input"
                         />
                         <button type="submit" className="btn btn-primary">
-                          <span>Найти магазины</span>
+                          <span>{wp.inquiryBtn || 'Найти магазины'}</span>
                           <ArrowRight size={15} />
                         </button>
                       </div>

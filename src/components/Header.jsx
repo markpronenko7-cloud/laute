@@ -79,46 +79,10 @@ export const Header = () => {
               <li>
                 <button 
                   type="button" 
-                  className={`nav-link ${currentRoute === 'home' ? 'active' : ''}`} 
-                  onClick={() => handleNavClick('home')}
-                >
-                  {t.nav.home || 'Главная'}
-                </button>
-              </li>
-              <li>
-                <button 
-                  type="button" 
                   className={`nav-link ${currentRoute === 'catalog' ? 'active' : ''}`} 
                   onClick={() => handleNavClick('catalog')}
                 >
-                  {t.nav.catalog}
-                </button>
-              </li>
-              <li>
-                <button 
-                  type="button" 
-                  className={`nav-link ${currentRoute === 'company' ? 'active' : ''}`} 
-                  onClick={() => handleNavClick('company')}
-                >
-                  {t.nav.production}
-                </button>
-              </li>
-              <li>
-                <button 
-                  type="button" 
-                  className={`nav-link ${currentRoute === 'partners' ? 'active' : ''}`} 
-                  onClick={() => handleNavClick('partners')}
-                >
-                  {t.nav.partners}
-                </button>
-              </li>
-              <li>
-                <button 
-                  type="button" 
-                  className={`nav-link ${currentRoute === 'where-to-buy' ? 'active' : ''}`} 
-                  onClick={() => handleNavClick('where-to-buy')}
-                >
-                  {t.nav.whereToBuy}
+                  {t.nav.catalog || 'Главный каталог'}
                 </button>
               </li>
               <li>
@@ -127,16 +91,7 @@ export const Header = () => {
                   className={`nav-link ${currentRoute === 'service' ? 'active' : ''}`} 
                   onClick={() => handleNavClick('service')}
                 >
-                  {t.nav.service}
-                </button>
-              </li>
-              <li>
-                <button 
-                  type="button" 
-                  className={`nav-link ${currentRoute === 'contacts' ? 'active' : ''}`} 
-                  onClick={() => handleNavClick('contacts')}
-                >
-                  {t.nav.contacts}
+                  {t.nav.service || 'Сервис'}
                 </button>
               </li>
             </ul>
@@ -209,11 +164,6 @@ export const Header = () => {
                     <span className="opt-label">{opt.label}</span>
                   </button>
                 ))}
-                {t.regions?.note && (
-                  <div className="dropdown-footer-note">
-                    {t.regions.note}
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -257,46 +207,10 @@ export const Header = () => {
             <li>
               <button
                 type="button"
-                className={`mobile-nav-link ${currentRoute === 'home' ? 'active' : ''}`}
-                onClick={() => handleNavClick('home')}
-              >
-                {t.nav.home || 'Главная'}
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
                 className={`mobile-nav-link ${currentRoute === 'catalog' ? 'active' : ''}`}
                 onClick={() => handleNavClick('catalog')}
               >
-                {t.nav.catalog}
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={`mobile-nav-link ${currentRoute === 'company' ? 'active' : ''}`}
-                onClick={() => handleNavClick('company')}
-              >
-                {t.nav.production}
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={`mobile-nav-link ${currentRoute === 'partners' ? 'active' : ''}`}
-                onClick={() => handleNavClick('partners')}
-              >
-                {t.nav.partners}
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={`mobile-nav-link ${currentRoute === 'where-to-buy' ? 'active' : ''}`}
-                onClick={() => handleNavClick('where-to-buy')}
-              >
-                {t.nav.whereToBuy}
+                {t.nav.catalog || 'Главный каталог'}
               </button>
             </li>
             <li>
@@ -305,16 +219,7 @@ export const Header = () => {
                 className={`mobile-nav-link ${currentRoute === 'service' ? 'active' : ''}`}
                 onClick={() => handleNavClick('service')}
               >
-                {t.nav.service}
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={`mobile-nav-link ${currentRoute === 'contacts' ? 'active' : ''}`}
-                onClick={() => handleNavClick('contacts')}
-              >
-                {t.nav.contacts}
+                {t.nav.service || 'Сервис'}
               </button>
             </li>
           </ul>
@@ -322,14 +227,17 @@ export const Header = () => {
           <div className="mobile-drawer-footer">
             <div className="mobile-selectors">
               <div className="mobile-select-group">
-                <span className="mobile-select-label">Язык:</span>
+                <span className="mobile-select-label">{t.footer?.langLabel || 'Язык:'}</span>
                 <div className="lang-buttons">
                   {languageOptions.map((opt) => (
                     <button
                       key={opt.code}
                       type="button"
                       className={`lang-btn ${lang === opt.code ? 'active' : ''}`}
-                      onClick={() => setLang(opt.code)}
+                      onClick={() => {
+                        setLang(opt.code);
+                        setIsMobileMenuOpen(false);
+                      }}
                     >
                       {opt.label}
                     </button>
@@ -338,14 +246,17 @@ export const Header = () => {
               </div>
 
               <div className="mobile-select-group">
-                <span className="mobile-select-label">{t.regions?.currentRegion || 'Регион'}:</span>
+                <span className="mobile-select-label">{t.regions?.currentRegion || 'Регион'}</span>
                 <div className="region-chips">
                   {regionOptions.map((opt) => (
                     <button
                       key={opt.code}
                       type="button"
                       className={`region-chip ${region === opt.code ? 'active' : ''}`}
-                      onClick={() => setRegion(opt.code)}
+                      onClick={() => {
+                        setRegion(opt.code);
+                        setIsMobileMenuOpen(false);
+                      }}
                     >
                       {opt.label}
                     </button>
@@ -366,7 +277,6 @@ export const Header = () => {
                 <User size={16} />
                 <span>{t.nav.clientCabinet}</span>
               </button>
-
               <button
                 type="button"
                 className="btn btn-primary btn-full"
