@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { Globe, MapPin, User, ArrowUpRight, Menu, X, ChevronDown } from 'lucide-react';
+import { Globe, MapPin, User, Menu, X, ChevronDown, ShieldCheck, ArrowRight } from 'lucide-react';
 
 export const Header = () => {
-  const { lang, setLang, region, setRegion, t, openPartnerModal, openAuthModal } = useApp();
+  const { lang, setLang, region, setRegion, currentRoute, navigateTo, t, openPartnerModal, openAuthModal } = useApp();
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isRegionOpen, setIsRegionOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -32,64 +32,105 @@ export const Header = () => {
   ];
 
   const regionOptions = [
-    { code: 'kz', label: t.regions.kz },
     { code: 'siberia', label: t.regions.siberia },
+    { code: 'kz', label: t.regions.kz },
     { code: 'ru', label: t.regions.ru },
     { code: 'intl', label: t.regions.intl }
   ];
 
-  const scrollTo = (id) => {
+  const handleNavClick = (route) => {
     setIsMobileMenuOpen(false);
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    navigateTo(route);
   };
+
+  const logoSrc = `${import.meta.env.BASE_URL}laute-logo.png`;
 
   return (
     <header className="header">
       <div className="container header-container">
         <div className="header-left">
-          <a href="#" className="brand-logo" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-            <div className="brand-mark">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M4 4H10V16H20V20H4V4Z" fill="#FFFFFF" />
-              </svg>
-            </div>
-            <span className="brand-name">LAUTE</span>
+          <a 
+            href={`${import.meta.env.BASE_URL}`} 
+            className="brand-logo" 
+            onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}
+            title="LAUTE International"
+          >
+            <img 
+              src={logoSrc} 
+              alt="LAUTE" 
+              className="brand-logo-img" 
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'inline-block';
+              }}
+            />
+            <span className="brand-name-fallback" style={{ display: 'none', fontWeight: 800, fontSize: '1.5rem', letterSpacing: '0.05em', color: '#FFFFFF' }}>LAUTE</span>
           </a>
 
           <nav className="nav-desktop">
             <ul className="nav-links">
               <li>
-                <a href="#catalog" className="nav-link" onClick={(e) => { e.preventDefault(); scrollTo('catalog'); }}>
+                <button 
+                  type="button" 
+                  className={`nav-link ${currentRoute === 'home' ? 'active' : ''}`} 
+                  onClick={() => handleNavClick('home')}
+                >
+                  {t.nav.home || 'Главная'}
+                </button>
+              </li>
+              <li>
+                <button 
+                  type="button" 
+                  className={`nav-link ${currentRoute === 'catalog' ? 'active' : ''}`} 
+                  onClick={() => handleNavClick('catalog')}
+                >
                   {t.nav.catalog}
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#production" className="nav-link" onClick={(e) => { e.preventDefault(); scrollTo('production'); }}>
+                <button 
+                  type="button" 
+                  className={`nav-link ${currentRoute === 'company' ? 'active' : ''}`} 
+                  onClick={() => handleNavClick('company')}
+                >
                   {t.nav.production}
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#partners" className="nav-link" onClick={(e) => { e.preventDefault(); scrollTo('partners'); }}>
+                <button 
+                  type="button" 
+                  className={`nav-link ${currentRoute === 'partners' ? 'active' : ''}`} 
+                  onClick={() => handleNavClick('partners')}
+                >
                   {t.nav.partners}
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#where-to-buy" className="nav-link" onClick={(e) => { e.preventDefault(); scrollTo('where-to-buy'); }}>
+                <button 
+                  type="button" 
+                  className={`nav-link ${currentRoute === 'where-to-buy' ? 'active' : ''}`} 
+                  onClick={() => handleNavClick('where-to-buy')}
+                >
                   {t.nav.whereToBuy}
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#service" className="nav-link" onClick={(e) => { e.preventDefault(); scrollTo('service'); }}>
+                <button 
+                  type="button" 
+                  className={`nav-link ${currentRoute === 'service' ? 'active' : ''}`} 
+                  onClick={() => handleNavClick('service')}
+                >
                   {t.nav.service}
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#contacts" className="nav-link" onClick={(e) => { e.preventDefault(); scrollTo('contacts'); }}>
+                <button 
+                  type="button" 
+                  className={`nav-link ${currentRoute === 'contacts' ? 'active' : ''}`} 
+                  onClick={() => handleNavClick('contacts')}
+                >
                   {t.nav.contacts}
-                </a>
+                </button>
               </li>
             </ul>
           </nav>
@@ -99,94 +140,100 @@ export const Header = () => {
           {/* Language Selector */}
           <div className="select-dropdown" ref={langRef}>
             <button
-              className="select-btn"
+              type="button"
+              className="select-trigger"
               onClick={() => setIsLangOpen(!isLangOpen)}
-              aria-label="Select Language"
-              aria-expanded={isLangOpen}
+              aria-label="Выбрать язык"
             >
-              <Globe size={15} />
-              <span>{lang.toUpperCase()}</span>
-              <ChevronDown size={14} />
+              <Globe size={15} className="select-icon" />
+              <span className="select-val">{lang.toUpperCase()}</span>
+              <ChevronDown size={13} className={`arrow-icon ${isLangOpen ? 'open' : ''}`} />
             </button>
+
             {isLangOpen && (
-              <ul className="select-menu">
-                {languageOptions.map((item) => (
-                  <li key={item.code}>
-                    <button
-                      className={`select-item ${lang === item.code ? 'active' : ''}`}
-                      onClick={() => {
-                        setLang(item.code);
-                        setIsLangOpen(false);
-                      }}
-                    >
-                      <span>{item.full}</span>
-                      <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>{item.label}</span>
-                    </button>
-                  </li>
+              <div className="dropdown-panel lang-panel">
+                {languageOptions.map((opt) => (
+                  <button
+                    key={opt.code}
+                    type="button"
+                    className={`dropdown-option ${lang === opt.code ? 'active' : ''}`}
+                    onClick={() => {
+                      setLang(opt.code);
+                      setIsLangOpen(false);
+                    }}
+                  >
+                    <span className="opt-code">{opt.label}</span>
+                    <span className="opt-label">{opt.full}</span>
+                  </button>
                 ))}
-              </ul>
+              </div>
             )}
           </div>
 
           {/* Region Selector */}
           <div className="select-dropdown" ref={regionRef}>
             <button
-              className="select-btn"
+              type="button"
+              className="select-trigger"
               onClick={() => setIsRegionOpen(!isRegionOpen)}
-              aria-label="Select Region"
-              aria-expanded={isRegionOpen}
+              aria-label="Выбрать регион"
             >
-              <MapPin size={15} />
-              <span style={{ maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {t.regions[region] || region}
-              </span>
-              <ChevronDown size={14} />
+              <MapPin size={15} className="select-icon" />
+              <span className="select-val">{t.regions[region] || region}</span>
+              <ChevronDown size={13} className={`arrow-icon ${isRegionOpen ? 'open' : ''}`} />
             </button>
+
             {isRegionOpen && (
-              <ul className="select-menu">
-                {regionOptions.map((item) => (
-                  <li key={item.code}>
-                    <button
-                      className={`select-item ${region === item.code ? 'active' : ''}`}
-                      onClick={() => {
-                        setRegion(item.code);
-                        setIsRegionOpen(false);
-                      }}
-                    >
-                      <span>{item.label}</span>
-                    </button>
-                  </li>
+              <div className="dropdown-panel region-panel">
+                <div className="dropdown-header">
+                  <p className="dropdown-desc">Региональные склады и условия:</p>
+                </div>
+                {regionOptions.map((opt) => (
+                  <button
+                    key={opt.code}
+                    type="button"
+                    className={`dropdown-option ${region === opt.code ? 'active' : ''}`}
+                    onClick={() => {
+                      setRegion(opt.code);
+                      setIsRegionOpen(false);
+                    }}
+                  >
+                    <MapPin size={13} style={{ opacity: 0.7 }} />
+                    <span className="opt-label">{opt.label}</span>
+                  </button>
                 ))}
-              </ul>
+              </div>
             )}
           </div>
 
-          {/* B2B Client Cabinet */}
+          {/* B2B Client Cabinet CTA */}
           <button
-            className="btn btn-secondary btn-sm"
+            type="button"
+            className="btn btn-outline btn-sm cabinet-btn"
             onClick={openAuthModal}
             title={t.nav.clientCabinet}
           >
-            <User size={15} />
+            <User size={14} />
             <span>{t.nav.clientCabinet}</span>
           </button>
 
           {/* Partner CTA */}
           <button
-            className="btn btn-primary btn-sm"
+            type="button"
+            className="btn btn-primary btn-sm partner-btn"
             onClick={openPartnerModal}
           >
             <span>{t.nav.requestQuote}</span>
-            <ArrowUpRight size={15} />
           </button>
 
           {/* Mobile Menu Toggle */}
           <button
+            type="button"
             className="mobile-toggle"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="Toggle Navigation"
+            aria-label="Открыть меню"
           >
-            {isMobileMenuOpen ? <X size={26} /> : <Menu size={26} />}
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
@@ -194,64 +241,131 @@ export const Header = () => {
       {/* Mobile Drawer */}
       {isMobileMenuOpen && (
         <div className="mobile-nav-drawer">
-          <a
-            href="#catalog"
-            className="mobile-nav-link"
-            onClick={(e) => { e.preventDefault(); scrollTo('catalog'); }}
-          >
-            {t.nav.catalog}
-          </a>
-          <a
-            href="#production"
-            className="mobile-nav-link"
-            onClick={(e) => { e.preventDefault(); scrollTo('production'); }}
-          >
-            {t.nav.production}
-          </a>
-          <a
-            href="#partners"
-            className="mobile-nav-link"
-            onClick={(e) => { e.preventDefault(); scrollTo('partners'); }}
-          >
-            {t.nav.partners}
-          </a>
-          <a
-            href="#where-to-buy"
-            className="mobile-nav-link"
-            onClick={(e) => { e.preventDefault(); scrollTo('where-to-buy'); }}
-          >
-            {t.nav.whereToBuy}
-          </a>
-          <a
-            href="#service"
-            className="mobile-nav-link"
-            onClick={(e) => { e.preventDefault(); scrollTo('service'); }}
-          >
-            {t.nav.service}
-          </a>
-          <a
-            href="#contacts"
-            className="mobile-nav-link"
-            onClick={(e) => { e.preventDefault(); scrollTo('contacts'); }}
-          >
-            {t.nav.contacts}
-          </a>
+          <ul className="mobile-nav-links">
+            <li>
+              <button
+                type="button"
+                className={`mobile-nav-link ${currentRoute === 'home' ? 'active' : ''}`}
+                onClick={() => handleNavClick('home')}
+              >
+                {t.nav.home || 'Главная'}
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className={`mobile-nav-link ${currentRoute === 'catalog' ? 'active' : ''}`}
+                onClick={() => handleNavClick('catalog')}
+              >
+                {t.nav.catalog}
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className={`mobile-nav-link ${currentRoute === 'company' ? 'active' : ''}`}
+                onClick={() => handleNavClick('company')}
+              >
+                {t.nav.production}
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className={`mobile-nav-link ${currentRoute === 'partners' ? 'active' : ''}`}
+                onClick={() => handleNavClick('partners')}
+              >
+                {t.nav.partners}
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className={`mobile-nav-link ${currentRoute === 'where-to-buy' ? 'active' : ''}`}
+                onClick={() => handleNavClick('where-to-buy')}
+              >
+                {t.nav.whereToBuy}
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className={`mobile-nav-link ${currentRoute === 'service' ? 'active' : ''}`}
+                onClick={() => handleNavClick('service')}
+              >
+                {t.nav.service}
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className={`mobile-nav-link ${currentRoute === 'contacts' ? 'active' : ''}`}
+                onClick={() => handleNavClick('contacts')}
+              >
+                {t.nav.contacts}
+              </button>
+            </li>
+          </ul>
 
-          <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <button
-              className="btn btn-secondary"
-              onClick={() => { setIsMobileMenuOpen(false); openAuthModal(); }}
-            >
-              <User size={16} />
-              <span>{t.nav.clientCabinet}</span>
-            </button>
-            <button
-              className="btn btn-primary"
-              onClick={() => { setIsMobileMenuOpen(false); openPartnerModal(); }}
-            >
-              <span>{t.nav.requestQuote}</span>
-              <ArrowUpRight size={16} />
-            </button>
+          <div className="mobile-drawer-footer">
+            <div className="mobile-selectors">
+              <div className="mobile-select-group">
+                <span className="mobile-select-label">Язык:</span>
+                <div className="lang-buttons">
+                  {languageOptions.map((opt) => (
+                    <button
+                      key={opt.code}
+                      type="button"
+                      className={`lang-btn ${lang === opt.code ? 'active' : ''}`}
+                      onClick={() => setLang(opt.code)}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mobile-select-group">
+                <span className="mobile-select-label">Регион:</span>
+                <div className="region-chips">
+                  {regionOptions.map((opt) => (
+                    <button
+                      key={opt.code}
+                      type="button"
+                      className={`region-chip ${region === opt.code ? 'active' : ''}`}
+                      onClick={() => setRegion(opt.code)}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mobile-actions">
+              <button
+                type="button"
+                className="btn btn-outline btn-full"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  openAuthModal();
+                }}
+              >
+                <User size={16} />
+                <span>{t.nav.clientCabinet}</span>
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-primary btn-full"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  openPartnerModal();
+                }}
+              >
+                <span>{t.nav.requestQuote}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

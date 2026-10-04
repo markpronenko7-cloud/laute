@@ -1,7 +1,30 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { translations } from '../i18n/translations';
 
 const AppContext = createContext();
+
+// Helper to extract route from current URL
+const getRouteFromUrl = () => {
+  const path = window.location.pathname.replace(/\/laute\/?/, '').replace(/^\//, '');
+  const hash = window.location.hash.replace(/^#\/?/, '');
+  const search = window.location.search;
+
+  // If redirected from 404 SPA handler
+  if (search.startsWith('?/')) {
+    const cleanSearch = search.slice(2).split('&')[0];
+    if (cleanSearch) return cleanSearch;
+  }
+
+  if (hash && ['catalog', 'company', 'partners', 'where-to-buy', 'service', 'contacts', 'materials', 'cabinet'].includes(hash)) {
+    return hash;
+  }
+
+  if (path && ['catalog', 'company', 'partners', 'where-to-buy', 'service', 'contacts', 'materials', 'cabinet'].includes(path)) {
+    return path;
+  }
+
+  return 'home';
+};
 
 export const AppProvider = ({ children }) => {
   const [lang, setLang] = useState(() => {
@@ -9,19 +32,55 @@ export const AppProvider = ({ children }) => {
   });
 
   const [region, setRegion] = useState(() => {
-    return localStorage.getItem('laute_region') || 'kz';
+    return localStorage.getItem('laute_region') || 'siberia';
   });
+
+  const [currentRoute, setCurrentRoute] = useState(getRouteFromUrl);
 
   const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
+  // Navigate to route
+  const navigateTo = useCallback((route, anchor) => {
+    setCurrentRoute(route);
+    const basePath = window.location.pathname.includes('/laute') ? '/laute/' : '/';
+    const targetUrl = route === 'home' ? `${basePath}${anchor ? '#' + anchor : ''}` : `${basePath}${route}${anchor ? '#' + anchor : ''}`;
+    
+    try {
+      window.history.pushState({ route }, '', targetUrl);
+    } catch {
+      // fallback
+    }
+
+    if (anchor) {
+      setTimeout(() => {
+        const el = document.getElementById(anchor);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 50);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, []);
+
+  // Listen to browser popstate (back/forward)
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentRoute(getRouteFromUrl());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('laute_lang', lang);
     document.documentElement.lang = lang === 'kz' ? 'kk' : lang;
     
-    // Update document title and description according to selected language
     if (translations[lang]?.meta) {
       document.title = translations[lang].meta.title;
       const metaDesc = document.querySelector('meta[name="description"]');
@@ -42,6 +101,8 @@ export const AppProvider = ({ children }) => {
     setLang,
     region,
     setRegion,
+    currentRoute,
+    navigateTo,
     t,
     isPartnerModalOpen,
     openPartnerModal: () => setIsPartnerModalOpen(true),

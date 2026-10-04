@@ -1,96 +1,113 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { X, Lock, User, ArrowRight, ShieldCheck } from 'lucide-react';
+import { X, Lock, User, ArrowRight, ShieldCheck, Info } from 'lucide-react';
 
 export const AuthModal = () => {
-  const { isAuthModalOpen, closeAuthModal, t, openPartnerModal } = useApp();
+  const { isAuthModalOpen, closeAuthModal, openPartnerModal } = useApp();
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
-  const [remember, setRemember] = useState(true);
+  const [notice, setNotice] = useState(false);
 
   if (!isAuthModalOpen) return null;
 
-  const modalT = t.modals.authModal;
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert('Демо-режим авторизации B2B: на текущем этапе личные кабинеты настраиваются менеджером LAUTE. Пожалуйста, отправьте заявку на регистрацию оптового кабинета.');
+    setNotice(true);
   };
 
   return (
     <div className="modal-overlay" onClick={closeAuthModal}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close-btn" onClick={closeAuthModal} aria-label={t.modals.close}>
+        <button className="modal-close-btn" onClick={closeAuthModal} aria-label="Закрыть">
           <X size={20} />
         </button>
 
         <div className="modal-header">
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#38BDF8', fontSize: '0.8125rem', fontWeight: '700', marginBottom: '8px' }}>
-            <Lock size={16} />
-            <span>B2B SECURE PORTAL</span>
+          <div className="modal-category-tag">
+            <Lock size={15} />
+            <span>Кабинет оптового клиента LAUTE</span>
           </div>
-          <h3 className="modal-title">{modalT.title}</h3>
-          <p className="modal-subtitle">{modalT.subtitle}</p>
+          <h3 className="modal-title">Вход для авторизованных партнёров</h3>
+          <p className="modal-subtitle">
+            Доступ к персональным скидкам от базового прайса, выгрузкам остатков по региональным складам и оформлению заказов.
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">{modalT.login} *</label>
-            <div style={{ position: 'relative' }}>
+        {notice ? (
+          <div className="auth-notice-box">
+            <Info size={24} color="#B45309" />
+            <div>
+              <h4>Порядок авторизации и выдачи доступов</h4>
+              <p>
+                В соответствии с регламентом LAUTE, учетные записи создаются ответственным региональным менеджером после подписания договора. Если вы еще не получили логин и временный пароль, пожалуйста, отправьте заявку на регистрацию партнёра.
+              </p>
+              <div style={{ marginTop: '16px', display: 'flex', gap: '10px' }}>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => {
+                    closeAuthModal();
+                    openPartnerModal();
+                  }}
+                >
+                  Оформить заявку на B2B-кабинет
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={() => setNotice(false)}
+                >
+                  Назад
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="b2b-form">
+            <div className="form-group">
+              <label>Логин или рабочий E-mail *</label>
               <input
                 type="text"
                 required
-                className="form-input"
-                placeholder="dealer@company.com"
+                placeholder="dealer@company.ru"
                 value={login}
                 onChange={(e) => setLogin(e.target.value)}
               />
             </div>
-          </div>
 
-          <div className="form-group">
-            <label className="form-label">{modalT.password} *</label>
-            <input
-              type="password"
-              required
-              className="form-input"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', fontSize: '0.8125rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94A3B8', cursor: 'pointer' }}>
+            <div className="form-group">
+              <label>Пароль *</label>
               <input
-                type="checkbox"
-                checked={remember}
-                onChange={(e) => setRemember(e.target.checked)}
+                type="password"
+                required
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
-              <span>{modalT.remember}</span>
-            </label>
-            <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Для сброса пароля обратитесь к вашему закреплённому менеджеру LAUTE.'); }} style={{ color: '#38BDF8' }}>
-              {modalT.forgot}
-            </a>
-          </div>
+            </div>
 
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', marginBottom: '16px' }}>
-            <span>{modalT.submit}</span>
-            <ArrowRight size={16} />
-          </button>
-        </form>
+            <button type="submit" className="btn btn-primary btn-full">
+              <span>Войти в личный кабинет</span>
+              <ArrowRight size={16} />
+            </button>
 
-        <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '16px', fontSize: '0.8125rem', color: '#94A3B8', lineHeight: '1.5' }}>
-          <p style={{ marginBottom: '8px' }}>{modalT.noAccount}</p>
-          <button
-            type="button"
-            className="btn btn-outline btn-sm"
-            onClick={() => { closeAuthModal(); openPartnerModal(); }}
-            style={{ width: '100%' }}
-          >
-            <span>{t.hero.ctaPartner}</span>
-          </button>
-        </div>
+            <div className="modal-honest-footer" style={{ marginTop: '16px' }}>
+              <p>
+                Ещё не являетесь оптовым партнёром LAUTE?{' '}
+                <button
+                  type="button"
+                  className="inline-link-btn"
+                  onClick={() => {
+                    closeAuthModal();
+                    openPartnerModal();
+                  }}
+                >
+                  Подать заявку на сотрудничество →
+                </button>
+              </p>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
