@@ -202,11 +202,7 @@ export const HomePage = () => {
                 </div>
                 <div className="hero-pill-item">
                   <Clock size={16} className="pill-icon" />
-                  <span>{h.pillSla || 'Сервисный ответ за 36 часов'}</span>
-                </div>
-                <div className="hero-pill-item">
-                  <Truck size={16} className="pill-icon" />
-                  <span>{h.pillLogistics || 'Складская логистика и поставки'}</span>
+                  <span>{h.pillSla || 'Сервисный ответ за 36 часов в рабочие дни'}</span>
                 </div>
               </div>
             </div>
@@ -254,7 +250,7 @@ export const HomePage = () => {
               </div>
               <h3 className="audience-card-title">{h.audienceGroup1Title || 'Дистрибьюторы и оптовики'}</h3>
               <p className="audience-card-desc">
-                {h.audienceGroup1Desc || 'Прямые контейнерные и сборные поставки, гибкая система скидок от объёма и защита коммерческих интересов в регионе.'}
+                {h.audienceGroup1Desc || 'Прямое сотрудничество с заводом-изготовителем, индивидуальные оптовые цены и гибкая система скидок по категориям.'}
               </p>
             </div>
 
@@ -264,7 +260,7 @@ export const HomePage = () => {
               </div>
               <h3 className="audience-card-title">{h.audienceGroup2Title || 'Розничные сети и салоны'}</h3>
               <p className="audience-card-desc">
-                {h.audienceGroup2Desc || 'Востребованная матрица моделей, качественная потребительская упаковка, рекламная поддержка и стабильный складской запас.'}
+                {h.audienceGroup2Desc || 'Востребованный ассортимент смесителей и сантехники, качественная потребительская упаковка и удобный подбор по характеристикам.'}
               </p>
             </div>
 
@@ -274,7 +270,7 @@ export const HomePage = () => {
               </div>
               <h3 className="audience-card-title">{h.audienceGroup3Title || 'Комплектаторы и девелоперы'}</h3>
               <p className="audience-card-desc">
-                {h.audienceGroup3Desc || 'Своевременное обеспечение жилых комплексов, гостиниц и коммерческих объектов. Полный пакет сертификатов и паспортов изделий.'}
+                {h.audienceGroup3Desc || 'Комплектация строительных объектов, полный комплект технической документации, паспортов изделий и сертификатов.'}
               </p>
             </div>
 
@@ -284,7 +280,7 @@ export const HomePage = () => {
               </div>
               <h3 className="audience-card-title">{h.audienceGroup4Title || 'Монтажные организации'}</h3>
               <p className="audience-card-desc">
-                {h.audienceGroup4Desc || 'Стандартизированные узлы подключения, долговечность картриджей и постоянное наличие оригинальных комплектующих на складах.'}
+                {h.audienceGroup4Desc || 'Стандартизированные узлы подключения, совместимость комплектующих и официальная сервисная поддержка завода.'}
               </p>
             </div>
           </div>
@@ -309,14 +305,13 @@ export const HomePage = () => {
       </section>
 
       {/* 3. ГЛАВНЫЕ ПРЕИМУЩЕСТВА СОТРУДНИЧЕСТВА */}
-      {/* 3. ГЛАВНЫЕ ПРЕИМУЩЕСТВА СОТРУДНИЧЕСТВА */}
       <section className="section advantages-section">
         <div className="container">
           <div className="section-title-wrap reveal-on-scroll">
             <span className="section-badge">{h.advantagesBadge || 'Преимущества'}</span>
             <h2 className="section-title">{h.advantagesTitle || 'Почему партнёры выбирают LAUTE'}</h2>
             <p className="section-desc">
-              {h.advantagesDesc || 'Стабильность поставок, честные заводские условия и сервис, снимающий рутинную нагрузку с партнёра.'}
+              {h.advantagesDesc || 'Прозрачные заводские условия, персональные цены и цифровой сервис, снимающий рутинную нагрузку с партнёра.'}
             </p>
           </div>
 
@@ -325,15 +320,15 @@ export const HomePage = () => {
               <div className="advantage-num">01</div>
               <h3 className="advantage-title">{h.adv1Title || 'Прямой заводской контракт'}</h3>
               <p className="advantage-desc">
-                {h.adv1Desc || 'Сотрудничество напрямую с производителем исключает лишние звенья наценки, гарантируя партнёрам высокую маржинальность и стабильность цен.'}
+                {h.adv1Desc || 'Сотрудничество напрямую с производителем исключает лишние звенья наценки, обеспечивая прозрачные условия и стабильные оптовые цены.'}
               </p>
             </div>
 
             <div className="advantage-card reveal-on-scroll reveal-delay-2">
               <div className="advantage-num">02</div>
-              <h3 className="advantage-title">{h.adv2Title || 'Складская логистика'}</h3>
+              <h3 className="advantage-title">{h.adv2Title || 'Индивидуальные условия и кабинет'}</h3>
               <p className="advantage-desc">
-                {h.adv2Desc || 'Наличие запаса продукции на распределительном складе обеспечивает оперативную комплектацию и регулярную отгрузку партий.'}
+                {h.adv2Desc || 'Персональные скидки по категориям и брендам, прозрачный расчёт стоимости заказов и удобная работа через кабинет партнёра.'}
               </p>
             </div>
 
@@ -341,7 +336,7 @@ export const HomePage = () => {
               <div className="advantage-num">03</div>
               <h3 className="advantage-title">{h.adv3Title || 'Первый цифровой сервис'}</h3>
               <p className="advantage-desc">
-                {h.adv3Desc || 'Завод принимает и обрабатывает гарантийные обращения покупателей онлайн за 36 часов в рабочие дни. Дилерам не нужно содержать сервисный отдел.'}
+                {h.adv3Desc || 'Приём сервисных обращений онлайн с фото и видео дефекта. Регламентный срок ответа завода — в течение 36 часов в рабочие дни.'}
               </p>
             </div>
           </div>
@@ -385,12 +380,12 @@ export const HomePage = () => {
           <div className="company-preview-grid">
             <div className="company-preview-content reveal-on-scroll">
               <span className="section-badge">{h.companyBadge || 'О бренде'}</span>
-              <h2 className="section-title">{h.companyTitle || 'Производственные стандарты и надежность'}</h2>
+              <h2 className="section-title">{h.companyTitle || 'Производство и стандарты LAUTE'}</h2>
               <p className="section-desc">
-                {h.companyDesc1 || 'LAUTE — международная торговая и производственная марка инженерной сантехники. Концепция бренда основана на строгом контроле на всех технологических переделах: от выбора сырья до финишных гидравлических испытаний готовых изделий.'}
+                {h.companyDesc1 || 'LAUTE — международная марка сантехнического оборудования. Линейка продукции включает кухонные смесители, смесители для раковины, ванны и душа, душевые системы, мойки и комплектующие.'}
               </p>
               <p className="section-text-secondary">
-                {h.companyDesc2 || 'Продукция создается с расчетом на длительную интенсивную эксплуатацию, обеспечивая плавность хода рукояток, точную регулировку температуры и защиту от протечек.'}
+                {h.companyDesc2 || 'Каждое изделие сопровождается заводским паспортом, точными размерными чертежами, инструкцией по установке и официальной гарантией производителя.'}
               </p>
               
               <div className="company-preview-btn-wrap">
@@ -410,8 +405,8 @@ export const HomePage = () => {
               <div className="highlight-box highlight-accent-flame reveal-on-scroll reveal-delay-1">
                 <Building2 size={24} className="highlight-icon" />
                 <div>
-                  <h4>{h.companyHighlight1Title || 'Стандартизация и ОТК'}</h4>
-                  <p>{h.companyHighlight1Desc || 'Многоступенчатая приёмка партий и соответствие техническим регламентам.'}</p>
+                  <h4>{h.companyHighlight1Title || 'Заводские стандарты'}</h4>
+                  <p>{h.companyHighlight1Desc || 'Контроль качества продукции на производстве и соответствие заявленным техническим характеристикам.'}</p>
                 </div>
               </div>
               <div className="highlight-box highlight-accent-water reveal-on-scroll reveal-delay-2">
@@ -424,8 +419,8 @@ export const HomePage = () => {
               <div className="highlight-box highlight-accent-dual reveal-on-scroll reveal-delay-3">
                 <FileText size={24} className="highlight-icon" />
                 <div>
-                  <h4>{h.companyHighlight3Title || 'Документация для проектов'}</h4>
-                  <p>{h.companyHighlight3Desc || 'Полный комплект сертификатов, 3D-моделей и спецификаций для проектировщиков.'}</p>
+                  <h4>{h.companyHighlight3Title || 'Техническая документация'}</h4>
+                  <p>{h.companyHighlight3Desc || 'Размерные чертежи, схемы подключения, инструкции по монтажу и сертификаты на продукцию.'}</p>
                 </div>
               </div>
             </div>
@@ -462,7 +457,7 @@ export const HomePage = () => {
               </div>
               <h2 className="service-banner-title">{h.serviceTitle || 'Первый цифровой сервисный центр LAUTE'}</h2>
               <p className="service-banner-desc">
-                {h.serviceDesc || 'Мы берем гарантийное обслуживание конечных покупателей на себя. Заявка с фото или видео дефекта подаётся онлайн за 2 минуты, а сервисные специалисты завода принимают решение в течение 36 часов.'}
+                {h.serviceDesc || 'Сервисный центр LAUTE принимает гарантийные обращения в цифровом формате. Регламентный ответ завода даётся в течение 36 часов в рабочие дни.'}
               </p>
               <div className="service-banner-actions">
                 <button 

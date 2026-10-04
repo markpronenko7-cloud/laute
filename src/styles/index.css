@@ -372,17 +372,16 @@ img {
   padding-top: var(--sat, 0px);
   background: linear-gradient(
     180deg, 
-    rgba(7, 9, 14, calc(var(--header-scroll-ratio, 0) * 0.90)) 0%, 
-    rgba(10, 15, 26, calc(var(--header-scroll-ratio, 0) * 0.94)) 100%
+    rgba(7, 9, 14, calc(var(--header-scroll-ratio, 0) * 0.88)) 0%, 
+    rgba(10, 15, 26, calc(var(--header-scroll-ratio, 0) * 0.92)) 100%
   );
   color: #FFFFFF;
   border-bottom: 1px solid rgba(255, 255, 255, calc(var(--header-scroll-ratio, 0) * 0.09));
-  backdrop-filter: blur(calc(var(--header-scroll-ratio, 0) * 14px));
-  -webkit-backdrop-filter: blur(calc(var(--header-scroll-ratio, 0) * 14px));
-  box-shadow: 0 4px calc(10px + var(--header-scroll-ratio, 0) * 18px) rgba(0, 0, 0, calc(var(--header-scroll-ratio, 0) * 0.45));
-  transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              background 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(calc(var(--header-scroll-ratio, 0) * 12px));
+  -webkit-backdrop-filter: blur(calc(var(--header-scroll-ratio, 0) * 12px));
+  box-shadow: 0 4px calc(8px + var(--header-scroll-ratio, 0) * 18px) rgba(0, 0, 0, calc(var(--header-scroll-ratio, 0) * 0.40));
+  transition: border-color 0.25s ease,
+              box-shadow 0.25s ease;
   will-change: background, backdrop-filter;
 }
 
@@ -393,15 +392,7 @@ img {
 }
 
 .header.header-scrolled {
-  background: linear-gradient(
-    180deg, 
-    rgba(7, 9, 14, 0.92) 0%, 
-    rgba(10, 15, 26, 0.96) 100%
-  );
-  border-bottom-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.50);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  border-bottom-color: rgba(255, 255, 255, calc(0.04 + var(--header-scroll-ratio, 0) * 0.07));
 }
 
 .header-container {
