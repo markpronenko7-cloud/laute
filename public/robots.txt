@@ -4,4 +4,5 @@ Disallow: /admin/
 Disallow: /api/
 Disallow: /b2b-cabinet/
 
-Sitemap: https://laute.ltd/sitemap.xml
+Sitemap: https://markpronenko7-cloud.github.io/laute/sitemap.xml
+
