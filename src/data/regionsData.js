@@ -7,9 +7,9 @@ export const REGIONS_CONFIG = [
   {
     id: 'siberia',
     names: {
-      ru: 'Сибирь, РФ',
-      kz: 'Сібір, РФ',
-      en: 'Siberia, RF'
+      ru: 'Сибирь, Россия',
+      kz: 'Сібір, Ресей',
+      en: 'Siberia, Russia'
     },
     office: 'Россия, 630073, г. Новосибирск, ул. Блюхера, 71',
     primaryPhone: '+7 (983) 310-56-26',

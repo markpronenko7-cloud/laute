@@ -38,7 +38,7 @@ export const Footer = () => {
             </a>
 
             <p className="footer-desc">
-              {f.brandDesc || 'Международная производственно-торговая платформа сантехнического оборудования. Прямые поставки смесителей, кухонных моек, душевых систем и комплектующих для оптовых компаний, дилеров и строительных объектов.'}
+              {f.brandDesc || 'LAUTE — завод смесителей, душевых систем, кухонных моек и комплектующих. Продукция для жилых пространств и профессиональных проектов.'}
             </p>
 
             {/* Official Verified Social Networks */}
@@ -96,12 +96,12 @@ export const Footer = () => {
             <div className="footer-controls">
               <div className="footer-control-item">
                 <Globe size={14} className="control-icon" />
-                <span className="control-text">{f.langLabel || 'Язык:'}</span>
+                <span className="control-text">{t.nav.language || f.langLabel || 'Язык сайта'}:</span>
                 <div className="footer-pill-row">
                   {[
-                    { code: 'ru', label: 'RU' },
-                    { code: 'kz', label: 'KZ' },
-                    { code: 'en', label: 'EN' }
+                    { code: 'ru', label: 'РУС' },
+                    { code: 'kz', label: 'КАЗ' },
+                    { code: 'en', label: 'ENG' }
                   ].map((item) => (
                     <button
                       key={item.code}
@@ -117,12 +117,12 @@ export const Footer = () => {
 
               <div className="footer-control-item">
                 <MapPin size={14} className="control-icon" />
-                <span className="control-text">{t.regions?.currentRegion || 'Регион'}:</span>
+                <span className="control-text">{t.nav.region || t.regions?.currentRegion || 'Ваш регион'}:</span>
                 <select
                   value={region}
                   onChange={(e) => setRegion(e.target.value)}
                   className="footer-region-select"
-                  aria-label={t.regions?.selectRegion || 'Выберите регион'}
+                  aria-label={t.regions?.selectRegion || t.nav.region || 'Ваш регион'}
                 >
                   {REGIONS_CONFIG.map((reg) => (
                     <option key={reg.id} value={reg.id}>
@@ -145,12 +145,12 @@ export const Footer = () => {
               </li>
               <li>
                 <button type="button" className="footer-link-btn" onClick={() => navigateTo('catalog')}>
-                  {t.nav.catalog || 'Главный каталог'}
+                  {t.nav.products || t.nav.catalog || 'Продукция'}
                 </button>
               </li>
               <li>
                 <button type="button" className="footer-link-btn" onClick={() => navigateTo('company')}>
-                  {t.nav.production || 'О компании'}
+                  {t.nav.about || t.nav.company || t.nav.production || 'О LAUTE'}
                 </button>
               </li>
               <li>
@@ -165,7 +165,7 @@ export const Footer = () => {
               </li>
               <li>
                 <button type="button" className="footer-link-btn" onClick={() => navigateTo('service')}>
-                  {t.nav.service || 'Сервис'}
+                  {t.nav.service || 'Сервис и гарантия'}
                 </button>
               </li>
               <li>
@@ -222,14 +222,14 @@ export const Footer = () => {
           <div className="footer-col footer-action-col">
             <h4 className="footer-col-title">{f.collabCol || 'Сотрудничество'}</h4>
             <p className="footer-action-desc">
-              {f.collabDesc || 'Прямые контракты с заводом LAUTE, индивидуальные коммерческие условия и техническая поддержка.'}
+              {f.collabDesc || 'Обсуждайте ассортимент, условия сотрудничества и сервис с командой LAUTE.'}
             </p>
             <button 
               type="button" 
               className="btn btn-primary btn-full"
               onClick={openPartnerModal}
             >
-              {f.partnerBtn || 'Стать оптовым партнёром'}
+              {f.partnerBtn || 'Стать партнёром'}
             </button>
           </div>
         </div>

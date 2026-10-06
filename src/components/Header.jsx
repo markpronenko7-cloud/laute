@@ -46,9 +46,9 @@ export const Header = () => {
   }, []);
 
   const languageOptions = [
-    { code: 'ru', label: 'RU', full: 'Русский' },
-    { code: 'kz', label: 'KZ', full: 'Қазақша' },
-    { code: 'en', label: 'EN', full: 'English' }
+    { code: 'ru', label: 'РУС', full: 'Русский' },
+    { code: 'kz', label: 'КАЗ', full: 'Қазақша' },
+    { code: 'en', label: 'ENG', full: 'English' }
   ];
 
   const regionOptions = REGIONS_CONFIG.map((reg) => ({
@@ -93,7 +93,7 @@ export const Header = () => {
                   className={`nav-link ${currentRoute === 'catalog' ? 'active' : ''}`} 
                   onClick={() => handleNavClick('catalog')}
                 >
-                  {t.nav.catalog || 'Главный каталог'}
+                  {t.nav.products || t.nav.catalog || 'Продукция'}
                 </button>
               </li>
               <li>
@@ -102,7 +102,7 @@ export const Header = () => {
                   className={`nav-link ${currentRoute === 'company' ? 'active' : ''}`} 
                   onClick={() => handleNavClick('company')}
                 >
-                  {t.nav.company || t.nav.production || 'О компании'}
+                  {t.nav.about || t.nav.company || 'О LAUTE'}
                 </button>
               </li>
               <li>
@@ -129,7 +129,7 @@ export const Header = () => {
                   className={`nav-link ${currentRoute === 'service' ? 'active' : ''}`} 
                   onClick={() => handleNavClick('service')}
                 >
-                  {t.nav.service || 'Сервис'}
+                  {t.nav.service || 'Сервис и гарантия'}
                 </button>
               </li>
             </ul>
@@ -143,10 +143,10 @@ export const Header = () => {
               type="button"
               className="select-trigger"
               onClick={() => setIsLangOpen(!isLangOpen)}
-              aria-label="Выбрать язык"
+              aria-label={t.nav.language || 'Язык сайта'}
             >
               <Globe size={15} className="select-icon" />
-              <span className="select-val">{lang.toUpperCase()}</span>
+              <span className="select-val">{lang === 'ru' ? 'РУС' : lang === 'kz' ? 'КАЗ' : 'ENG'}</span>
               <ChevronDown size={13} className={`arrow-icon ${isLangOpen ? 'open' : ''}`} />
             </button>
 
@@ -176,7 +176,7 @@ export const Header = () => {
               type="button"
               className="select-trigger"
               onClick={() => setIsRegionOpen(!isRegionOpen)}
-              aria-label={t.regions?.selectRegion || 'Выберите регион'}
+              aria-label={t.regions?.selectRegion || t.nav.region || 'Ваш регион'}
             >
               <MapPin size={15} className="select-icon" />
               <span className="select-val">{t.regions?.[region] || region}</span>
@@ -186,7 +186,7 @@ export const Header = () => {
             {isRegionOpen && (
               <div className="dropdown-panel region-panel">
                 <div className="dropdown-header">
-                  <p className="dropdown-desc">{t.regions?.selectRegion || 'Выберите регион:'}</p>
+                  <p className="dropdown-desc">{t.regions?.regionDesc || 'Выберите регион, чтобы увидеть контакты и условия обращения в LAUTE.'}</p>
                 </div>
                 {regionOptions.map((opt) => (
                   <button
@@ -211,10 +211,10 @@ export const Header = () => {
             type="button"
             className="btn btn-outline btn-sm cabinet-btn"
             onClick={openAuthModal}
-            title={t.nav.clientCabinet}
+            title={t.nav.clientCabinet || 'Кабинет партнера'}
           >
             <User size={15} />
-            <span>{t.nav.clientCabinet}</span>
+            <span>{t.nav.clientCabinet || 'Кабинет партнера'}</span>
           </button>
 
           {/* Main Wholesale Partner CTA */}
@@ -223,7 +223,7 @@ export const Header = () => {
             className="btn btn-primary btn-partner-cta"
             onClick={openPartnerModal}
           >
-            <span>{t.nav.requestQuote || 'Стать оптовым партнёром'}</span>
+            <span>{t.nav.requestQuote || 'Стать партнёром'}</span>
           </button>
 
           {/* Mobile Menu Toggle */}
@@ -248,7 +248,7 @@ export const Header = () => {
                 className={`mobile-nav-link ${currentRoute === 'catalog' ? 'active' : ''}`}
                 onClick={() => handleNavClick('catalog')}
               >
-                {t.nav.catalog || 'Главный каталог'}
+                {t.nav.products || t.nav.catalog || 'Продукция'}
               </button>
             </li>
             <li>
@@ -257,7 +257,7 @@ export const Header = () => {
                 className={`mobile-nav-link ${currentRoute === 'company' ? 'active' : ''}`}
                 onClick={() => handleNavClick('company')}
               >
-                {t.nav.company || t.nav.production || 'О компании'}
+                {t.nav.about || t.nav.company || 'О LAUTE'}
               </button>
             </li>
             <li>
@@ -284,7 +284,7 @@ export const Header = () => {
                 className={`mobile-nav-link ${currentRoute === 'service' ? 'active' : ''}`}
                 onClick={() => handleNavClick('service')}
               >
-                {t.nav.service || 'Сервис'}
+                {t.nav.service || 'Сервис и гарантия'}
               </button>
             </li>
             <li>
@@ -301,7 +301,7 @@ export const Header = () => {
           <div className="mobile-drawer-footer">
             <div className="mobile-selectors">
               <div className="mobile-select-group">
-                <span className="mobile-select-label">{t.footer?.langLabel || 'Язык:'}</span>
+                <span className="mobile-select-label">{t.nav.language || 'Язык сайта'}:</span>
                 <div className="lang-buttons">
                   {languageOptions.map((opt) => (
                     <button
@@ -320,7 +320,7 @@ export const Header = () => {
               </div>
 
               <div className="mobile-select-group">
-                <span className="mobile-select-label">{t.regions?.currentRegion || 'Регион'}</span>
+                <span className="mobile-select-label">{t.nav.region || 'Ваш регион'}</span>
                 <div className="region-chips">
                   {regionOptions.map((opt) => (
                     <button
@@ -349,7 +349,7 @@ export const Header = () => {
                 }}
               >
                 <User size={16} />
-                <span>{t.nav.clientCabinet}</span>
+                <span>{t.nav.clientCabinet || 'Кабинет партнера'}</span>
               </button>
               <button
                 type="button"
@@ -359,7 +359,7 @@ export const Header = () => {
                   openPartnerModal();
                 }}
               >
-                <span>{t.nav.requestQuote || 'Стать оптовым партнёром'}</span>
+                <span>{t.nav.requestQuote || 'Стать партнёром'}</span>
               </button>
             </div>
           </div>

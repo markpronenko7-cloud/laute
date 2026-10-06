@@ -1251,6 +1251,35 @@ img {
   color: #FFFFFF;
 }
 
+.hero-eyebrow {
+  margin-bottom: 20px;
+  background: rgba(249, 115, 22, 0.12);
+  border: 1px solid rgba(249, 115, 22, 0.28);
+  color: var(--flame-solar);
+  letter-spacing: 0.08em;
+}
+
+.hero-supporting-line {
+  font-size: 0.95rem;
+  color: #94A3B8;
+  letter-spacing: 0.02em;
+  margin-top: -16px;
+  line-height: 1.5;
+  padding-top: 12px;
+}
+
+@media (max-width: 768px) {
+  .hero-eyebrow {
+    margin-bottom: 12px;
+    font-size: 0.6875rem;
+  }
+  .hero-supporting-line {
+    font-size: 0.8125rem;
+    margin-top: -8px;
+    padding-top: 6px;
+  }
+}
+
 .hero-pills {
   display: flex;
   flex-wrap: wrap;
@@ -1697,6 +1726,42 @@ img {
   grid-template-columns: 1fr;
   gap: 48px;
   align-items: center;
+}
+
+.company-preview-single {
+  max-width: 900px;
+}
+
+.company-preview-single .section-badge {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #E2E8F0;
+  margin-bottom: 16px;
+}
+
+.company-preview-single .section-title {
+  color: #FFFFFF;
+  margin-bottom: 20px;
+}
+
+.company-preview-single .section-desc {
+  color: var(--neutral-400);
+  font-size: 1.15rem;
+  line-height: 1.7;
+}
+
+@media (max-width: 768px) {
+  .company-preview-single .section-desc {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+}
+
+.service-overline {
+  margin-bottom: 16px;
+  background: rgba(14, 165, 233, 0.12);
+  border: 1px solid rgba(14, 165, 233, 0.28);
+  color: var(--water-sky);
 }
 
 @media (min-width: 992px) {

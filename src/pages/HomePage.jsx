@@ -165,24 +165,26 @@ export const HomePage = () => {
         <div className="container">
           <div className="hero-grid">
             <div className="hero-content">
-              {/* Маленький текст над заголовком полностью удалён согласно п.3 */}
+              <span className="section-badge hero-eyebrow reveal-on-scroll">
+                {h.heroEyebrow || 'ЗАВОД СМЕСИТЕЛЕЙ'}
+              </span>
 
-              <h1 className="hero-title reveal-on-scroll">
-                {h.heroTitle || 'Прямые B2B-поставки сантехники и оборудования LAUTE'}
+              <h1 className="hero-title reveal-on-scroll reveal-delay-1">
+                {h.heroTitle || 'Смесители, душевые системы, мойки и сантехническое оборудование для современных пространств.'}
               </h1>
 
-              <p className="hero-desc reveal-on-scroll reveal-delay-1">
-                {h.heroDesc || 'Прямой контракт с заводом-изготовителем для дилеров, розничных сетей и комплектаторов строительных объектов. Официальная гарантия, цифровой сервис и персональные коммерческие условия.'}
+              <p className="hero-desc reveal-on-scroll reveal-delay-2">
+                {h.heroDesc || 'Объединяем дизайн, функциональность и производственный опыт в продукции для дома, бизнеса и строительных проектов.'}
               </p>
 
-              <div className="hero-actions reveal-on-scroll reveal-delay-2">
+              <div className="hero-actions reveal-on-scroll reveal-delay-3">
                 <button 
                   type="button" 
                   className="btn btn-primary btn-hero-primary" 
                   onClick={() => navigateTo('catalog')}
                   id="hero-btn-catalog"
                 >
-                  <span>{h.btnCatalog || 'Перейти в каталог'}</span>
+                  <span>{h.btnCatalog || 'Смотреть продукцию'}</span>
                   <ArrowRight size={18} />
                 </button>
                 <button 
@@ -191,20 +193,13 @@ export const HomePage = () => {
                   onClick={openPartnerModal}
                   id="hero-btn-partner"
                 >
-                  <span>{h.btnPartner || 'Стать оптовым партнёром'}</span>
+                  <span>{h.btnPartner || 'Стать партнёром'}</span>
                 </button>
               </div>
 
-              <div className="hero-pills reveal-on-scroll reveal-delay-3">
-                <div className="hero-pill-item">
-                  <CheckCircle2 size={16} className="pill-icon" />
-                  <span>{h.pillContract || 'Прямой контракт с производителем'}</span>
-                </div>
-                <div className="hero-pill-item">
-                  <Clock size={16} className="pill-icon" />
-                  <span>{h.pillSla || 'Сервисный ответ за 36 часов в рабочие дни'}</span>
-                </div>
-              </div>
+              <p className="hero-supporting-line reveal-on-scroll reveal-delay-3">
+                {h.heroSupportingLine || 'Продукция LAUTE · Международное партнёрство · Сервис производителя'}
+              </p>
             </div>
           </div>
         </div>
@@ -227,19 +222,19 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* 2. ДЛЯ КОГО КОМПАНИЯ РАБОТАЕТ — МЯГКАЯ АРХИТЕКТУРНАЯ СЕКЦИЯ С ПОЛУПРОЗРАЧНЫМИ СЛОЯМИ */}
+      {/* 2. ДЛЯ КОГО КОМПАНИЯ РАБОТАЕТ */}
       <section className="section audience-section">
-        {/* Атмосферный легкий градиентный фон (вместо плоского белого квадрата) */}
+        {/* Атмосферный легкий градиентный фон */}
         <div className="audience-ambient-waves" aria-hidden="true">
           <div className="audience-glow-ambient"></div>
         </div>
 
         <div className="container">
           <div className="section-title-wrap reveal-on-scroll">
-            <span className="section-badge">{h.audienceBadge || 'Целевая аудитория'}</span>
-            <h2 className="section-title">{h.audienceTitle || 'Для кого работает LAUTE'}</h2>
+            <span className="section-badge">{h.audienceBadge || 'ПАРТНЁРСТВО'}</span>
+            <h2 className="section-title">{h.audienceTitle || 'Развиваем рынок вместе с партнерами'}</h2>
             <p className="section-desc">
-              {h.audienceDesc || 'Мы выстраиваем долгосрочные и предсказуемые отношения с профессиональными участниками рынка сантехники.'}
+              {h.audienceDesc || 'Сотрудничаем с дистрибьюторами, торговыми сетями и профессионалами строительного рынка. Формируем предложение под ваш канал продаж, ассортимент и задачи проекта.'}
             </p>
           </div>
 
@@ -248,9 +243,9 @@ export const HomePage = () => {
               <div className="audience-icon-box">
                 <Users size={24} />
               </div>
-              <h3 className="audience-card-title">{h.audienceGroup1Title || 'Дистрибьюторы и оптовики'}</h3>
+              <h3 className="audience-card-title">{h.audienceGroup1Title || 'Дистрибьюторам и оптовым компаниям'}</h3>
               <p className="audience-card-desc">
-                {h.audienceGroup1Desc || 'Прямое сотрудничество с заводом-изготовителем, индивидуальные оптовые цены и гибкая система скидок по категориям.'}
+                {h.audienceGroup1Desc || 'Развивайте региональные продажи с продукцией LAUTE. Обсудим ассортимент, коммерческие условия и организацию поставок для вашего рынка.'}
               </p>
             </div>
 
@@ -258,9 +253,9 @@ export const HomePage = () => {
               <div className="audience-icon-box">
                 <Store size={24} />
               </div>
-              <h3 className="audience-card-title">{h.audienceGroup2Title || 'Розничные сети и салоны'}</h3>
+              <h3 className="audience-card-title">{h.audienceGroup2Title || 'Торговым сетям и салонам'}</h3>
               <p className="audience-card-desc">
-                {h.audienceGroup2Desc || 'Востребованный ассортимент смесителей и сантехники, качественная потребительская упаковка и удобный подбор по характеристикам.'}
+                {h.audienceGroup2Desc || 'Сформируйте предложение для кухни и ванной комнаты в едином каталоге. Подберём модели и коллекции под формат магазина и потребности покупателей.'}
               </p>
             </div>
 
@@ -268,9 +263,9 @@ export const HomePage = () => {
               <div className="audience-icon-box">
                 <HardHat size={24} />
               </div>
-              <h3 className="audience-card-title">{h.audienceGroup3Title || 'Комплектаторы и девелоперы'}</h3>
+              <h3 className="audience-card-title">{h.audienceGroup3Title || 'Девелоперам и комплектовщикам'}</h3>
               <p className="audience-card-desc">
-                {h.audienceGroup3Desc || 'Комплектация строительных объектов, полный комплект технической документации, паспортов изделий и сертификатов.'}
+                {h.audienceGroup3Desc || 'Подбирайте сантехническое оборудование под требования объекта. Поможем согласовать ассортимент, комплектацию и параметры поставки.'}
               </p>
             </div>
 
@@ -278,9 +273,9 @@ export const HomePage = () => {
               <div className="audience-icon-box">
                 <Wrench size={24} />
               </div>
-              <h3 className="audience-card-title">{h.audienceGroup4Title || 'Монтажные организации'}</h3>
+              <h3 className="audience-card-title">{h.audienceGroup4Title || 'Монтажным организациям'}</h3>
               <p className="audience-card-desc">
-                {h.audienceGroup4Desc || 'Стандартизированные узлы подключения, совместимость комплектующих и официальная сервисная поддержка завода.'}
+                {h.audienceGroup4Desc || 'Выбирайте оборудование по монтажным размерам, подключениям и комплектации. По вопросам установки и совместимости обращайтесь к специалистам LAUTE.'}
               </p>
             </div>
           </div>
@@ -308,35 +303,35 @@ export const HomePage = () => {
       <section className="section advantages-section">
         <div className="container">
           <div className="section-title-wrap reveal-on-scroll">
-            <span className="section-badge">{h.advantagesBadge || 'Преимущества'}</span>
-            <h2 className="section-title">{h.advantagesTitle || 'Почему партнёры выбирают LAUTE'}</h2>
+            <span className="section-badge">{h.advantagesBadge || 'СМЕСИТЕЛИ БЕЗ ПОСРЕДНИКОВ НАПРЯМУЮ ОТ ПРОИЗВОДИТЕЛЯ'}</span>
+            <h2 className="section-title">{h.advantagesTitle || 'Продукция. Партнёрство. Поддержка'}</h2>
             <p className="section-desc">
-              {h.advantagesDesc || 'Прозрачные заводские условия, персональные цены и цифровой сервис, снимающий рутинную нагрузку с партнёра.'}
+              {h.advantagesDesc || 'Обсуждайте ассортимент, условия сотрудничества и сервис с командой LAUTE. От выбора продукции до сопровождения поставленной продукции.'}
             </p>
           </div>
 
           <div className="advantages-grid">
             <div className="advantage-card reveal-on-scroll reveal-delay-1">
               <div className="advantage-num">01</div>
-              <h3 className="advantage-title">{h.adv1Title || 'Прямой заводской контракт'}</h3>
+              <h3 className="advantage-title">{h.adv1Title || 'Работа напрямую с заводом LAUTE'}</h3>
               <p className="advantage-desc">
-                {h.adv1Desc || 'Сотрудничество напрямую с производителем исключает лишние звенья наценки, обеспечивая прозрачные условия и стабильные оптовые цены.'}
+                {h.adv1Desc || 'Согласуем ассортимент и условия поставок с учетом вашего региона и формата бизнеса'}
               </p>
             </div>
 
             <div className="advantage-card reveal-on-scroll reveal-delay-2">
               <div className="advantage-num">02</div>
-              <h3 className="advantage-title">{h.adv2Title || 'Индивидуальные условия и кабинет'}</h3>
+              <h3 className="advantage-title">{h.adv2Title || 'Персональные коммерческие условия'}</h3>
               <p className="advantage-desc">
-                {h.adv2Desc || 'Персональные скидки по категориям и брендам, прозрачный расчёт стоимости заказов и удобная работа через кабинет партнёра.'}
+                {h.adv2Desc || 'Ваши цены и условия работы — в кабинете партнера. Выбирайте продукцию, формируйте заказ и направляйте его своему менеджеру.'}
               </p>
             </div>
 
             <div className="advantage-card reveal-on-scroll reveal-delay-3">
               <div className="advantage-num">03</div>
-              <h3 className="advantage-title">{h.adv3Title || 'Первый цифровой сервис'}</h3>
+              <h3 className="advantage-title">{h.adv3Title || 'Сервис производителя'}</h3>
               <p className="advantage-desc">
-                {h.adv3Desc || 'Приём сервисных обращений онлайн с фото и видео дефекта. Регламентный срок ответа завода — в течение 36 часов в рабочие дни.'}
+                {h.adv3Desc || 'Обращайтесь в Первый цифровой сервисный центр LAUTE по вопросам гарантии. Ответ будет дан в течение 36 часов в рабочие дни.'}
               </p>
             </div>
           </div>
@@ -348,7 +343,7 @@ export const HomePage = () => {
               onClick={openPartnerModal}
               id="adv-btn-partner"
             >
-              <span>{h.advBtn || 'Запросить условия сотрудничества'}</span>
+              <span>{h.advBtn || 'Обсудить сотрудничество'}</span>
               <ArrowRight size={18} />
             </button>
           </div>
@@ -372,57 +367,26 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* 4. Блок каталога продукции полностью удалён с главной страницы согласно п.5 */}
-
-      {/* 5. КРАТКИЙ БЛОК «О КОМПАНИИ» — АРХИТЕКТУРНЫЙ ИНЖЕНЕРНЫЙ МОДУЛЬ С ПРОЗРАЧНОСТЬЮ */}
+      {/* 4. ПРОИЗВОДСТВО И СТАНДАРТЫ LAUTE */}
       <section className="section company-preview-section">
         <div className="container">
-          <div className="company-preview-grid">
-            <div className="company-preview-content reveal-on-scroll">
-              <span className="section-badge">{h.companyBadge || 'О бренде'}</span>
-              <h2 className="section-title">{h.companyTitle || 'Производство и стандарты LAUTE'}</h2>
-              <p className="section-desc">
-                {h.companyDesc1 || 'LAUTE — международная марка сантехнического оборудования. Линейка продукции включает кухонные смесители, смесители для раковины, ванны и душа, душевые системы, мойки и комплектующие.'}
-              </p>
-              <p className="section-text-secondary">
-                {h.companyDesc2 || 'Каждое изделие сопровождается заводским паспортом, точными размерными чертежами, инструкцией по установке и официальной гарантией производителя.'}
-              </p>
-              
-              <div className="company-preview-btn-wrap">
-                <button 
-                  type="button" 
-                  className="btn btn-outline btn-lg" 
-                  onClick={() => navigateTo('company')}
-                  id="btn-about-company"
-                >
-                  <span>{h.companyBtn || 'Подробнее о компании и производстве'}</span>
-                  <ArrowRight size={18} />
-                </button>
-              </div>
-            </div>
-
-            <div className="company-preview-highlights">
-              <div className="highlight-box highlight-accent-flame reveal-on-scroll reveal-delay-1">
-                <Building2 size={24} className="highlight-icon" />
-                <div>
-                  <h4>{h.companyHighlight1Title || 'Заводские стандарты'}</h4>
-                  <p>{h.companyHighlight1Desc || 'Контроль качества продукции на производстве и соответствие заявленным техническим характеристикам.'}</p>
-                </div>
-              </div>
-              <div className="highlight-box highlight-accent-water reveal-on-scroll reveal-delay-2">
-                <ShieldCheck size={24} className="highlight-icon" />
-                <div>
-                  <h4>{h.companyHighlight2Title || 'Официальные гарантии'}</h4>
-                  <p>{h.companyHighlight2Desc || 'Заводские паспорта изделий и защищённые гарантийные обязательства производителя.'}</p>
-                </div>
-              </div>
-              <div className="highlight-box highlight-accent-dual reveal-on-scroll reveal-delay-3">
-                <FileText size={24} className="highlight-icon" />
-                <div>
-                  <h4>{h.companyHighlight3Title || 'Техническая документация'}</h4>
-                  <p>{h.companyHighlight3Desc || 'Размерные чертежи, схемы подключения, инструкции по монтажу и сертификаты на продукцию.'}</p>
-                </div>
-              </div>
+          <div className="company-preview-single reveal-on-scroll">
+            <span className="section-badge">{h.companyBadge || 'ПРОИЗВОДСТВО LAUTE'}</span>
+            <h2 className="section-title">{h.companyTitle || 'Продуманная конструкция. Выразительный дизайн.'}</h2>
+            <p className="section-desc">
+              {h.companyDesc || 'Мы производим сантехническое оборудование для кухни и ванной комнаты: от смесителей и душевых систем до моек и комплектующих. В центре нашего подхода — назначение изделия, удобство использования и внимание к деталям конструкции'}
+            </p>
+            
+            <div className="company-preview-btn-wrap">
+              <button 
+                type="button" 
+                className="btn btn-outline btn-lg" 
+                onClick={() => navigateTo('company')}
+                id="btn-about-company"
+              >
+                <span>{h.companyBtn || 'Подробнее о производстве LAUTE'}</span>
+                <ArrowRight size={18} />
+              </button>
             </div>
           </div>
         </div>
@@ -445,19 +409,18 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* 6. ПОДДЕРЖКА ПАРТНЁРОВ И СЕРВИС 36 ЧАСОВ — АКЦЕНТНЫЙ БЛОК С ВОЛНАМИ */}
+      {/* 5. ЦИФРОВОЙ СЕРВИСНЫЙ ЦЕНТР */}
       <section className="section service-preview-section">
         <div className="container">
           <div className="service-banner-box reveal-on-scroll">
             <div className="service-wave-accent" aria-hidden="true"></div>
             <div className="service-banner-content">
-              <div className="service-sla-badge">
-                <Clock size={16} />
-                <span>{h.serviceBadge || 'Регламент 36 часов в рабочие дни'}</span>
-              </div>
+              <span className="section-badge service-overline">
+                {h.serviceOverline || 'СЕРВИС ОТ ПРОИЗВОДИТЕЛЯ'}
+              </span>
               <h2 className="service-banner-title">{h.serviceTitle || 'Первый цифровой сервисный центр LAUTE'}</h2>
               <p className="service-banner-desc">
-                {h.serviceDesc || 'Сервисный центр LAUTE принимает гарантийные обращения в цифровом формате. Регламентный ответ завода даётся в течение 36 часов в рабочие дни.'}
+                {h.serviceDesc || 'Поддержка LAUTE начинается с вашего обращения. Ознакомьтесь с гарантийными обязательствами и опишите вопрос в онлайн-форме. Специалист ответит в течение 36 часов в рабочие дни.'}
               </p>
               <div className="service-banner-actions">
                 <button 
@@ -466,7 +429,7 @@ export const HomePage = () => {
                   onClick={() => navigateTo('service')}
                   id="btn-service-center"
                 >
-                  <span>{h.serviceBtn || 'Перейти в сервисный центр'}</span>
+                  <span>{h.serviceBtn || 'Обратиться в сервис'}</span>
                   <ArrowRight size={16} />
                 </button>
                 <button 
@@ -475,19 +438,19 @@ export const HomePage = () => {
                   onClick={() => navigateTo('partners')}
                   id="btn-partner-support"
                 >
-                  <span>{h.servicePartnerBtn || 'Условия поддержки партнёров'}</span>
+                  <span>{h.servicePartnerBtn || 'Поддержка партнеров'}</span>
                 </button>
               </div>
             </div>
 
             <div className="service-banner-stats">
               <div className="service-stat-card reveal-on-scroll reveal-delay-1">
-                <span className="stat-number">{h.stat1Num || '36 ч'}</span>
-                <span className="stat-label">{h.stat1Label || 'Срок ответа в рабочие дни по регламенту'}</span>
+                <span className="stat-number">{h.stat1Num || '36 часов'}</span>
+                <span className="stat-label">{h.stat1Label || 'срок ответа в рабочие дни'}</span>
               </div>
               <div className="service-stat-card reveal-on-scroll reveal-delay-2">
                 <span className="stat-number">{h.stat2Num || 'Онлайн'}</span>
-                <span className="stat-label">{h.stat2Label || 'Приём сервисных обращений'}</span>
+                <span className="stat-label">{h.stat2Label || 'подача сервисного обращения'}</span>
               </div>
             </div>
           </div>
@@ -511,28 +474,28 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* 7. ФИНАЛЬНЫЙ CTA — ФОРМА С ПРОСТОРНЫМИ НЕ СЛИТЫМИ ПОЛЯМИ */}
+      {/* 6. СОТРУДНИЧЕСТВО С LAUTE — ФОРМА */}
       <section className="section home-cta-section" id="b2b-lead-form">
         <div className="container">
           <div className="home-cta-card reveal-on-scroll">
             <div className="cta-left-content">
-              <span className="section-badge">{h.formBadge || 'Начать работу'}</span>
-              <h2 className="cta-heading">{h.formHeading || 'Запросить оптовый каталог и коммерческие условия'}</h2>
+              <span className="section-badge">{h.formBadge || 'СОТРУДНИЧЕСТВО С LAUTE'}</span>
+              <h2 className="cta-heading">{h.formHeading || 'Ваш следующий шаг — партнёрство с LAUTE'}</h2>
               <p className="cta-subheading">
-                {h.formSubheading || 'Заполните форму, и региональный представитель LAUTE направит дилерский прайс-лист, типовой договор и согласует условия поставок.'}
+                {h.formSubheading || 'Расскажите о вашей компании и регионе работы. Представитель LAUTE свяжется с вами, поможет выбрать ассортимент и подготовит коммерческое предложение.'}
               </p>
 
               <div className="cta-contact-summary">
                 <div className="cta-contact-line">
                   <PhoneCall size={18} className="cta-contact-icon" />
                   <div>
-                    <span className="cta-contact-label">{h.formDept || 'Отдел оптовых продаж:'}</span>
+                    <span className="cta-contact-label">{h.formDept || 'Отдел продаж'}:</span>
                     <a href="tel:+79833105626" className="cta-contact-value">+7 (983) 310-56-26</a>
                   </div>
                 </div>
 
                 <div className="cta-contact-line">
-                  <span className="cta-contact-label">{h.formEmailLabel || 'Email для запросов:'}</span>
+                  <span className="cta-contact-label">{h.formEmailLabel || 'Электронная почта'}:</span>
                   <a href="mailto:opt@laute.ltd" className="cta-contact-value">opt@laute.ltd</a>
                 </div>
               </div>
@@ -544,7 +507,7 @@ export const HomePage = () => {
                   onClick={() => navigateTo('contacts')}
                   id="btn-all-contacts"
                 >
-                  <span>{h.formAllContacts || 'Все контакты представительств →'}</span>
+                  <span>{h.formAllContacts || 'Контакты в вашем регионе'}</span>
                 </button>
               </div>
             </div>
@@ -554,7 +517,7 @@ export const HomePage = () => {
                 <div className="form-success-card">
                   <CheckCircle2 size={48} color="#0EA5E9" />
                   <h3>{h.formSuccessTitle || 'Запрос успешно отправлен!'}</h3>
-                  <p>{h.formSuccessDesc || 'Менеджер оптового отдела свяжется с вами в течение рабочего дня для отправки коммерческого предложения.'}</p>
+                  <p>{h.formSuccessDesc || 'Представитель LAUTE свяжется с вами для отправки коммерческого предложения.'}</p>
                   <button 
                     type="button" 
                     className="btn btn-outline btn-sm" 
@@ -583,7 +546,7 @@ export const HomePage = () => {
 
                   <div className="form-field-group">
                     <label htmlFor="lead-company" className="field-label">
-                      {h.fieldCompany || 'Компания или сфера деятельности'} <span className="field-required">*</span>
+                      {h.fieldCompany || 'Компания или направление деятельности'} <span className="field-required">*</span>
                     </label>
                     <input
                       id="lead-company"
@@ -599,7 +562,7 @@ export const HomePage = () => {
                   <div className="form-fields-grid-2">
                     <div className="form-field-group">
                       <label htmlFor="lead-phone" className="field-label">
-                        {h.fieldPhone || 'Телефон для связи'} <span className="field-required">*</span>
+                        {h.fieldPhone || 'Телефон'} <span className="field-required">*</span>
                       </label>
                       <input
                         id="lead-phone"
@@ -614,7 +577,7 @@ export const HomePage = () => {
 
                     <div className="form-field-group">
                       <label htmlFor="lead-city" className="field-label">
-                        {h.fieldCity || 'Город / Регион'} <span className="field-required">*</span>
+                        {h.fieldCity || 'Город и страна'} <span className="field-required">*</span>
                       </label>
                       <input
                         id="lead-city"
@@ -630,11 +593,11 @@ export const HomePage = () => {
 
                   <div className="form-submit-wrap">
                     <button type="submit" className="btn btn-primary btn-lg btn-full" id="btn-submit-lead">
-                      <span>{h.formSubmit || 'Получить коммерческие условия и каталог'}</span>
+                      <span>{h.formSubmit || 'Получить предложение'}</span>
                       <ArrowRight size={18} />
                     </button>
                     <p className="form-disclaimer">
-                      {h.formDisclaimer || 'Нажимая кнопку, вы подтверждаете согласие на обработку данных для коммерческого взаимодействия.'}
+                      {h.formDisclaimer || 'Я согласен на обработку персональных данных на условиях Политики конфиденциальности'}
                     </p>
                   </div>
                 </form>
