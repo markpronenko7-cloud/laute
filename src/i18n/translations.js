@@ -33,6 +33,31 @@ export const translations = {
       "china": "Китай"
     },
     "home": {
+      "heroSlides": [
+        {
+          "title": "Смесители для современных пространств.",
+          "buttonText": "Смотреть продукцию"
+        },
+        {
+          "title": "Вода, продуманная иначе.",
+          "buttonText": "Открыть LAUTE"
+        },
+        {
+          "title": "Функциональность встречается с дизайном.",
+          "buttonText": "Смотреть коллекцию"
+        },
+        {
+          "title": "Развиваем рынок вместе.",
+          "buttonText": "Стать партнёром"
+        },
+        {
+          "title": "Продукция. Партнёрство. Поддержка.",
+          "buttonText": "Узнать больше"
+        }
+      ],
+      "collectionsBadge": "АРХИТЕКТУРНЫЕ ЛИНИИ",
+      "collectionsTitle": "Коллекции LAUTE",
+      "collectionsDesc": "Смесители, душевые решения и сантехническое оборудование, объединённые единой философией надежности и чистоты формы.",
       "heroEyebrow": "ЗАВОД СМЕСИТЕЛЕЙ",
       "heroTitle": "Смесители, душевые системы, мойки и сантехническое оборудование для современных пространств.",
       "heroDesc": "Объединяем дизайн, функциональность и производственный опыт в продукции для дома, бизнеса и строительных проектов.",
@@ -305,6 +330,31 @@ export const translations = {
       "china": "Қытай"
     },
     "home": {
+      "heroSlides": [
+        {
+          "title": "Заманауи кеңістіктерге арналған араластырғыштар.",
+          "buttonText": "Өнімдерді қарау"
+        },
+        {
+          "title": "Басқаша ойластырылған су.",
+          "buttonText": "LAUTE ашу"
+        },
+        {
+          "title": "Функционалдылық дизайнмен тоғысады.",
+          "buttonText": "Топтаманы қарау"
+        },
+        {
+          "title": "Нарықты бірге дамытамыз.",
+          "buttonText": "Серіктес болу"
+        },
+        {
+          "title": "Өнімдер. Серіктестік. Қолдау.",
+          "buttonText": "Толығырақ білу"
+        }
+      ],
+      "collectionsBadge": "СӘУЛЕТТІК ЖЕЛІЛЕР",
+      "collectionsTitle": "LAUTE топтамалары",
+      "collectionsDesc": "Сенімділік пен пішін тазалығының біртұтас философиясымен біріктірілген араластырғыштар, душ шешімдері және сантехникалық жабдықтар.",
       "heroEyebrow": "АРАЛАСТЫРҒЫШТАР ЗАУЫТЫ",
       "heroTitle": "Заманауи кеңістіктерге арналған араластырғыштар, душ жүйелері, жуғыштар және сантехникалық жабдықтар.",
       "heroDesc": "Үйге, бизнеске және құрылыс жобаларына арналған өнімдерде дизайнды, функционалдылықты және өндірістік тәжірибені біріктіреміз.",
@@ -577,6 +627,31 @@ export const translations = {
       "china": "China"
     },
     "home": {
+      "heroSlides": [
+        {
+          "title": "Faucets for modern architectural spaces.",
+          "buttonText": "View Products"
+        },
+        {
+          "title": "Water, engineered differently.",
+          "buttonText": "Discover LAUTE"
+        },
+        {
+          "title": "Functionality meets design.",
+          "buttonText": "View Collection"
+        },
+        {
+          "title": "Growing the market together.",
+          "buttonText": "Become a Partner"
+        },
+        {
+          "title": "Products. Partnership. Support.",
+          "buttonText": "Learn More"
+        }
+      ],
+      "collectionsBadge": "ARCHITECTURAL LINES",
+      "collectionsTitle": "LAUTE Collections",
+      "collectionsDesc": "Faucets, shower solutions and sanitaryware equipment united by a singular philosophy of durability and purity of form.",
       "heroEyebrow": "FAUCET FACTORY",
       "heroTitle": "Faucets, shower systems, sinks and plumbing equipment for modern spaces.",
       "heroDesc": "We combine design, functionality and manufacturing experience in products for home, business and construction projects.",

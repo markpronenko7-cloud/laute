@@ -19,8 +19,8 @@ export const Header = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
           const top = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
-          setIsScrolled(top > 15);
-          const ratio = Math.min(Math.max(top / 220, 0), 1);
+          setIsScrolled(top > 20);
+          const ratio = Math.min(Math.max(top / 160, 0), 1);
           document.documentElement.style.setProperty('--header-scroll-ratio', ratio.toFixed(3));
           ticking = false;
         });
@@ -45,6 +45,19 @@ export const Header = () => {
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
+  // Close mobile drawer on route change or escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsMobileMenuOpen(false);
+        setIsLangOpen(false);
+        setIsRegionOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const languageOptions = [
     { code: 'ru', label: 'РУС', full: 'Русский' },
     { code: 'kz', label: 'КАЗ', full: 'Қазақша' },
@@ -66,12 +79,13 @@ export const Header = () => {
   return (
     <header className={`header ${isScrolled ? 'header-scrolled' : ''}`}>
       <div className="container header-container">
+        {/* Left: Brand Logo & Main Nav */}
         <div className="header-left">
           <a 
             href={`${import.meta.env.BASE_URL}`} 
             className="brand-logo" 
             onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}
-            title="LAUTE"
+            title="LAUTE — Официальный сайт"
           >
             <img 
               src={logoSrc} 
@@ -79,14 +93,25 @@ export const Header = () => {
               className="brand-logo-img" 
               onError={(e) => {
                 e.target.style.display = 'none';
-                e.target.nextSibling.style.display = 'inline-block';
+                if (e.target.nextSibling) e.target.nextSibling.style.display = 'inline-block';
               }}
             />
-            <span className="brand-name-fallback" style={{ display: 'none', fontWeight: 800, fontSize: '1.4rem', letterSpacing: '0.04em', color: '#FFFFFF' }}>LAUTE</span>
+            <span className="brand-name-fallback" style={{ display: 'none', fontWeight: 800, fontSize: '1.6rem', letterSpacing: '0.05em', color: '#FFFFFF' }}>
+              LAUTE
+            </span>
           </a>
 
-          <nav className="nav-desktop">
+          <nav className="nav-desktop" aria-label="Основная навигация">
             <ul className="nav-links">
+              <li>
+                <button 
+                  type="button" 
+                  className={`nav-link ${currentRoute === 'home' ? 'active' : ''}`} 
+                  onClick={() => handleNavClick('home')}
+                >
+                  {t.nav.home || 'Главная'}
+                </button>
+              </li>
               <li>
                 <button 
                   type="button" 
@@ -117,10 +142,10 @@ export const Header = () => {
               <li>
                 <button 
                   type="button" 
-                  className={`nav-link ${currentRoute === 'contacts' ? 'active' : ''}`} 
-                  onClick={() => handleNavClick('contacts')}
+                  className={`nav-link ${currentRoute === 'where-to-buy' ? 'active' : ''}`} 
+                  onClick={() => handleNavClick('where-to-buy')}
                 >
-                  {t.nav.contacts || 'Контакты'}
+                  {t.nav.whereToBuy || 'Где купить'}
                 </button>
               </li>
               <li>
@@ -132,10 +157,20 @@ export const Header = () => {
                   {t.nav.service || 'Сервис и гарантия'}
                 </button>
               </li>
+              <li>
+                <button 
+                  type="button" 
+                  className={`nav-link ${currentRoute === 'contacts' ? 'active' : ''}`} 
+                  onClick={() => handleNavClick('contacts')}
+                >
+                  {t.nav.contacts || 'Контакты'}
+                </button>
+              </li>
             </ul>
           </nav>
         </div>
 
+        {/* Right: Selectors & Actions */}
         <div className="header-right">
           {/* Language Selector */}
           <div className="select-dropdown header-lang-dropdown" ref={langRef}>
@@ -240,8 +275,17 @@ export const Header = () => {
 
       {/* Mobile Drawer */}
       {isMobileMenuOpen && (
-        <div className="mobile-nav-drawer">
+        <div className="mobile-nav-drawer" role="dialog" aria-modal="true">
           <ul className="mobile-nav-links">
+            <li>
+              <button
+                type="button"
+                className={`mobile-nav-link ${currentRoute === 'home' ? 'active' : ''}`}
+                onClick={() => handleNavClick('home')}
+              >
+                {t.nav.home || 'Главная'}
+              </button>
+            </li>
             <li>
               <button
                 type="button"
@@ -272,10 +316,10 @@ export const Header = () => {
             <li>
               <button
                 type="button"
-                className={`mobile-nav-link ${currentRoute === 'contacts' ? 'active' : ''}`}
-                onClick={() => handleNavClick('contacts')}
+                className={`mobile-nav-link ${currentRoute === 'where-to-buy' ? 'active' : ''}`}
+                onClick={() => handleNavClick('where-to-buy')}
               >
-                {t.nav.contacts || 'Контакты'}
+                {t.nav.whereToBuy || 'Где купить'}
               </button>
             </li>
             <li>
@@ -290,10 +334,10 @@ export const Header = () => {
             <li>
               <button
                 type="button"
-                className={`mobile-nav-link ${currentRoute === 'where-to-buy' ? 'active' : ''}`}
-                onClick={() => handleNavClick('where-to-buy')}
+                className={`mobile-nav-link ${currentRoute === 'contacts' ? 'active' : ''}`}
+                onClick={() => handleNavClick('contacts')}
               >
-                {t.nav.whereToBuy || 'Где купить'}
+                {t.nav.contacts || 'Контакты'}
               </button>
             </li>
           </ul>
@@ -320,7 +364,7 @@ export const Header = () => {
               </div>
 
               <div className="mobile-select-group">
-                <span className="mobile-select-label">{t.nav.region || 'Ваш регион'}</span>
+                <span className="mobile-select-label">{t.nav.region || 'Ваш регион'}:</span>
                 <div className="region-chips">
                   {regionOptions.map((opt) => (
                     <button
