@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { Globe, MapPin, User, Menu, X, ChevronDown } from 'lucide-react';
+import { Globe, MapPin, User, Menu, X, ChevronDown, Sparkles } from 'lucide-react';
 import { REGIONS_CONFIG } from '../data/regionsData';
 
 export const Header = () => {
-  const { lang, setLang, region, setRegion, currentRoute, navigateTo, t, openPartnerModal, openAuthModal } = useApp();
+  const { lang, setLang, region, setRegion, currentRoute, navigateTo, t, openPartnerModal, openAuthModal, openAIModal } = useApp();
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isRegionOpen, setIsRegionOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -241,6 +241,18 @@ export const Header = () => {
             )}
           </div>
 
+          {/* AI Product Selection Button */}
+          <button
+            type="button"
+            className="btn btn-header-ai"
+            onClick={openAIModal}
+            title={t.home?.aiBannerTitle || 'Подобрать продукт с AI'}
+            id="header-ai-btn"
+          >
+            <Sparkles size={14} className="header-ai-icon" />
+            <span>{t.nav.aiPick || 'AI-подбор'}</span>
+          </button>
+
           {/* B2B Client Cabinet */}
           <button
             type="button"
@@ -384,6 +396,18 @@ export const Header = () => {
             </div>
 
             <div className="mobile-actions">
+              <button
+                type="button"
+                className="btn btn-header-ai btn-full"
+                style={{ marginBottom: '10px' }}
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  openAIModal();
+                }}
+              >
+                <Sparkles size={16} />
+                <span>{t.home?.aiBannerTitle || 'Подобрать продукт с AI'}</span>
+              </button>
               <button
                 type="button"
                 className="btn btn-outline btn-full"

@@ -20,7 +20,8 @@ export const translations = {
       "region": "Ваш регион",
       "requestQuote": "Стать партнёром",
       "viewProducts": "Смотреть продукцию",
-      "aiHelp": "Подобрать"
+      "aiHelp": "Подобрать",
+      "aiPick": "AI-подбор"
     },
     "regions": {
       "selectRegion": "Ваш регион",
@@ -58,6 +59,10 @@ export const translations = {
       "collectionsBadge": "АРХИТЕКТУРНЫЕ ЛИНИИ",
       "collectionsTitle": "Коллекции LAUTE",
       "collectionsDesc": "Смесители, душевые решения и сантехническое оборудование, объединённые единой философией надежности и чистоты формы.",
+      "aiBannerBadge": "ИНТЕЛЛЕКТУАЛЬНЫЙ ПОДБОР LAUTE",
+      "aiBannerTitle": "Подобрать продукт с AI",
+      "aiBannerDesc": "Ответьте на несколько вопросов — AI поможет подобрать подходящее решение LAUTE.",
+      "aiBannerBtn": "Начать подбор",
       "heroEyebrow": "ЗАВОД СМЕСИТЕЛЕЙ",
       "heroTitle": "Смесители, душевые системы, мойки и сантехническое оборудование для современных пространств.",
       "heroDesc": "Объединяем дизайн, функциональность и производственный опыт в продукции для дома, бизнеса и строительных проектов.",
@@ -317,7 +322,8 @@ export const translations = {
       "region": "Өңіріңіз",
       "requestQuote": "Серіктес болу",
       "viewProducts": "Өнімдерді көру",
-      "aiHelp": "Таңдау"
+      "aiHelp": "Таңдау",
+      "aiPick": "AI-іріктеу"
     },
     "regions": {
       "selectRegion": "Өңіріңіз",
@@ -355,6 +361,10 @@ export const translations = {
       "collectionsBadge": "СӘУЛЕТТІК ЖЕЛІЛЕР",
       "collectionsTitle": "LAUTE топтамалары",
       "collectionsDesc": "Сенімділік пен пішін тазалығының біртұтас философиясымен біріктірілген араластырғыштар, душ шешімдері және сантехникалық жабдықтар.",
+      "aiBannerBadge": "LAUTE ЗИЯТКЕРЛІК ІРІКТЕУ",
+      "aiBannerTitle": "AI арқылы өнімді таңдау",
+      "aiBannerDesc": "Бірнеше сұраққа жауап беріңіз — AI сіздің талаптарыңызға сай LAUTE өнімін таңдауға көмектеседі.",
+      "aiBannerBtn": "Таңдауды бастау",
       "heroEyebrow": "АРАЛАСТЫРҒЫШТАР ЗАУЫТЫ",
       "heroTitle": "Заманауи кеңістіктерге арналған араластырғыштар, душ жүйелері, жуғыштар және сантехникалық жабдықтар.",
       "heroDesc": "Үйге, бизнеске және құрылыс жобаларына арналған өнімдерде дизайнды, функционалдылықты және өндірістік тәжірибені біріктіреміз.",
@@ -614,7 +624,8 @@ export const translations = {
       "region": "Your Region",
       "requestQuote": "Become a Partner",
       "viewProducts": "View Products",
-      "aiHelp": "Match"
+      "aiHelp": "Match",
+      "aiPick": "AI Selection"
     },
     "regions": {
       "selectRegion": "Your Region",
@@ -652,6 +663,10 @@ export const translations = {
       "collectionsBadge": "ARCHITECTURAL LINES",
       "collectionsTitle": "LAUTE Collections",
       "collectionsDesc": "Faucets, shower solutions and sanitaryware equipment united by a singular philosophy of durability and purity of form.",
+      "aiBannerBadge": "LAUTE INTELLIGENT SELECTION",
+      "aiBannerTitle": "Select Product with AI",
+      "aiBannerDesc": "Answer a few questions — AI will find the optimal LAUTE fixtures for your project requirements.",
+      "aiBannerBtn": "Start Selection",
       "heroEyebrow": "FAUCET FACTORY",
       "heroTitle": "Faucets, shower systems, sinks and plumbing equipment for modern spaces.",
       "heroDesc": "We combine design, functionality and manufacturing experience in products for home, business and construction projects.",

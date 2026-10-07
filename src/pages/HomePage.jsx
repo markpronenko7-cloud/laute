@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { HeroCarousel } from '../components/HeroCarousel';
+import { AIProductMatchBanner } from '../components/AIProductMatchBanner';
 import { CollectionsSection } from '../components/CollectionsSection';
 import { 
   ArrowRight, 
@@ -13,11 +14,13 @@ import {
   ShieldCheck,
   PhoneCall,
   Mail,
-  Headphones
+  Headphones,
+  Check
 } from 'lucide-react';
 
 export const HomePage = () => {
   const { navigateTo, openPartnerModal, t } = useApp();
+  const baseUrl = import.meta.env.BASE_URL;
 
   const [leadForm, setLeadForm] = useState({
     name: '',
@@ -58,146 +61,204 @@ export const HomePage = () => {
       {/* 1. FULL-SCREEN HERO CAROUSEL — 5 СЛАЙДОВ */}
       <HeroCarousel />
 
-      {/* 2. ФОТОГРАФИЧЕСКИЙ БЛОК «КОЛЛЕКЦИИ» */}
+      {/* 2. AI-ПОДБОР ПРОДУКЦИИ LAUTE — КРИТИЧЕСКИ ВАЖНЫЙ ЭЛЕМЕНТ СРАЗУ ПОСЛЕ HERO */}
+      <AIProductMatchBanner />
+
+      {/* 3. ФОТОГРАФИЧЕСКАЯ ГАЛЕРЕЯ «КОЛЛЕКЦИИ» */}
       <CollectionsSection />
 
-      {/* 3. ПАРТНЁРСТВО С LAUTE — СВЕТЛЫЙ ПРЕМИАЛЬНЫЙ БЛОК */}
-      <section className="section light-audience-section" id="partners">
+      {/* 4. «РАЗВИВАЕМ РЫНОК ВМЕСТЕ С ПАРТНЁРАМИ» — ПРЕМИАЛЬНЫЙ ВИЗУАЛЬНЫЙ БЛОК */}
+      <section className="section visual-partnership-section" id="partners">
         <div className="container">
           <div className="section-title-wrap reveal-on-scroll">
             <span className="section-badge badge-refined">
               {h.audienceBadge || 'ПАРТНЁРСТВО'}
             </span>
-            <h2 className="section-title light-title">
-              {h.audienceTitle || 'Развиваем рынок вместе с партнерами'}
+            <h2 className="section-title visual-part-title">
+              {h.audienceTitle || 'Развиваем рынок вместе с партнёрами'}
             </h2>
-            <p className="section-desc light-desc">
+            <p className="section-desc visual-part-desc">
               {h.audienceDesc || 'Сотрудничаем с дистрибьюторами, торговыми сетями и профессионалами строительного рынка. Формируем предложение под ваш канал продаж, ассортимент и задачи проекта.'}
             </p>
           </div>
 
-          <div className="light-audience-grid">
-            <div className="light-audience-card reveal-on-scroll reveal-delay-1">
-              <div className="light-card-icon-wrap">
-                <Users size={24} className="light-card-icon" />
+          <div className="partnership-visual-showcase reveal-on-scroll">
+            {/* Visual Photographic Banner Area */}
+            <div className="partnership-photo-banner">
+              <img 
+                src={`${baseUrl}images/hero/hero-slide-4.jpg`} 
+                alt="Партнёрство с LAUTE" 
+                className="partnership-main-photo"
+                loading="lazy"
+              />
+              <div className="partnership-photo-vignette"></div>
+
+              <div className="partnership-floating-glass-bar">
+                <div className="glass-metric-pill">
+                  <span className="metric-dot"></span>
+                  <span>Прямой контракт с производителем</span>
+                </div>
+                <div className="glass-metric-pill">
+                  <span className="metric-dot"></span>
+                  <span>Персональные коммерческие условия</span>
+                </div>
+                <div className="glass-metric-pill">
+                  <span className="metric-dot"></span>
+                  <span>Техническая поддержка объектов</span>
+                </div>
               </div>
-              <h3 className="light-card-heading">
-                {h.audienceGroup1Title || 'Дистрибьюторам и оптовым компаниям'}
-              </h3>
-              <p className="light-card-body">
-                {h.audienceGroup1Desc || 'Развивайте региональные продажи с продукцией LAUTE. Обсудим ассортимент, коммерческие условия и организацию поставок для вашего рынка.'}
-              </p>
             </div>
 
-            <div className="light-audience-card reveal-on-scroll reveal-delay-2">
-              <div className="light-card-icon-wrap">
-                <Store size={24} className="light-card-icon" />
+            {/* 4 Clean Glass Audience Cards */}
+            <div className="partnership-audiences-grid">
+              <div className="part-audience-card reveal-on-scroll reveal-delay-1">
+                <div className="part-card-icon-bubble">
+                  <Users size={22} />
+                </div>
+                <h3 className="part-card-title">
+                  {h.audienceGroup1Title || 'Дистрибьюторам и оптовым компаниям'}
+                </h3>
+                <p className="part-card-text">
+                  {h.audienceGroup1Desc || 'Развивайте региональные продажи с продукцией LAUTE. Обсудим ассортимент, коммерческие условия и организацию поставок для вашего рынка.'}
+                </p>
               </div>
-              <h3 className="light-card-heading">
-                {h.audienceGroup2Title || 'Торговым сетям и салонам'}
-              </h3>
-              <p className="light-card-body">
-                {h.audienceGroup2Desc || 'Сформируйте предложение для кухни и ванной комнаты в едином каталоге. Подберём модели и коллекции под формат магазина и потребности покупателей.'}
-              </p>
+
+              <div className="part-audience-card reveal-on-scroll reveal-delay-2">
+                <div className="part-card-icon-bubble">
+                  <Store size={22} />
+                </div>
+                <h3 className="part-card-title">
+                  {h.audienceGroup2Title || 'Торговым сетям и салонам'}
+                </h3>
+                <p className="part-card-text">
+                  {h.audienceGroup2Desc || 'Сформируйте предложение для кухни и ванной комнаты в едином каталоге. Подберём модели и коллекции под формат магазина и потребности покупателей.'}
+                </p>
+              </div>
+
+              <div className="part-audience-card reveal-on-scroll reveal-delay-3">
+                <div className="part-card-icon-bubble">
+                  <HardHat size={22} />
+                </div>
+                <h3 className="part-card-title">
+                  {h.audienceGroup3Title || 'Девелоперам и комплектовщикам'}
+                </h3>
+                <p className="part-card-text">
+                  {h.audienceGroup3Desc || 'Подбирайте сантехническое оборудование под требования объекта. Поможем согласовать ассортимент, комплектацию и параметры поставки.'}
+                </p>
+              </div>
+
+              <div className="part-audience-card reveal-on-scroll reveal-delay-4">
+                <div className="part-card-icon-bubble">
+                  <Wrench size={22} />
+                </div>
+                <h3 className="part-card-title">
+                  {h.audienceGroup4Title || 'Монтажным организациям'}
+                </h3>
+                <p className="part-card-text">
+                  {h.audienceGroup4Desc || 'Выбирайте оборудование по монтажным размерам, подключениям и комплектации. По вопросам установки и совместимости обращайтесь к специалистам LAUTE.'}
+                </p>
+              </div>
             </div>
 
-            <div className="light-audience-card reveal-on-scroll reveal-delay-3">
-              <div className="light-card-icon-wrap">
-                <HardHat size={24} className="light-card-icon" />
-              </div>
-              <h3 className="light-card-heading">
-                {h.audienceGroup3Title || 'Девелоперам и комплектовщикам'}
-              </h3>
-              <p className="light-card-body">
-                {h.audienceGroup3Desc || 'Подбирайте сантехническое оборудование под требования объекта. Поможем согласовать ассортимент, комплектацию и параметры поставки.'}
-              </p>
+            {/* Center Single CTA */}
+            <div className="partnership-action-wrap reveal-on-scroll reveal-delay-2">
+              <button 
+                type="button" 
+                className="btn btn-primary btn-luxury" 
+                onClick={openPartnerModal}
+                id="adv-btn-partner"
+              >
+                <span>{h.btnPartner || 'Стать партнёром'}</span>
+                <ArrowRight size={18} />
+              </button>
             </div>
-
-            <div className="light-audience-card reveal-on-scroll reveal-delay-4">
-              <div className="light-card-icon-wrap">
-                <Wrench size={24} className="light-card-icon" />
-              </div>
-              <h3 className="light-card-heading">
-                {h.audienceGroup4Title || 'Монтажным организациям'}
-              </h3>
-              <p className="light-card-body">
-                {h.audienceGroup4Desc || 'Выбирайте оборудование по монтажным размерам, подключениям и комплектации. По вопросам установки и совместимости обращайтесь к специалистам LAUTE.'}
-              </p>
-            </div>
-          </div>
-
-          <div className="section-cta-center reveal-on-scroll reveal-delay-2" style={{ marginTop: '48px' }}>
-            <button 
-              type="button" 
-              className="btn btn-primary btn-luxury" 
-              onClick={openPartnerModal}
-              id="adv-btn-partner"
-            >
-              <span>{h.advBtn || 'Обсудить сотрудничество'}</span>
-              <ArrowRight size={18} />
-            </button>
           </div>
         </div>
       </section>
 
-      {/* 4. ПЕРВЫЙ ЦИФРОВОЙ СЕРВИСНЫЙ ЦЕНТР LAUTE */}
-      <section className="section light-service-section" id="service-preview">
+      {/* 5. «ПЕРВЫЙ ЦИФРОВОЙ СЕРВИСНЫЙ ЦЕНТР LAUTE» — ПРЕМИАЛЬНЫЙ СЕРВИСНЫЙ БЛОК */}
+      <section className="section visual-service-section" id="service-preview">
         <div className="container">
-          <div className="light-service-glass-box reveal-on-scroll">
-            <div className="light-service-content">
-              <span className="section-badge badge-refined">
-                {h.serviceOverline || 'СЕРВИС ОТ ПРОИЗВОДИТЕЛЯ'}
-              </span>
-              <h2 className="service-glass-title">
-                {h.serviceTitle || 'Первый цифровой сервисный центр LAUTE'}
-              </h2>
-              <p className="service-glass-desc">
-                {h.serviceDesc || 'Поддержка LAUTE начинается с вашего обращения. Ознакомьтесь с гарантийными обязательствами и опишите вопрос в онлайн-форме. Специалист ответит в течение 36 часов в рабочие дни.'}
-              </p>
-              
-              <div className="service-glass-actions">
-                <button 
-                  type="button" 
-                  className="btn btn-primary" 
-                  onClick={() => navigateTo('service')}
-                  id="btn-service-center"
-                >
-                  <span>{h.serviceBtn || 'Обратиться в сервис'}</span>
-                  <ArrowRight size={16} />
-                </button>
-                <button 
-                  type="button" 
-                  className="btn btn-outline light-btn-outline" 
-                  onClick={() => navigateTo('partners')}
-                  id="btn-partner-support"
-                >
-                  <span>{h.servicePartnerBtn || 'Поддержка партнеров'}</span>
-                </button>
-              </div>
-            </div>
+          <div className="service-editorial-card reveal-on-scroll">
+            <div className="service-editorial-grid">
+              {/* Left Column: Authentic Service Content */}
+              <div className="service-text-column">
+                <span className="section-badge badge-refined">
+                  {h.serviceOverline || 'СЕРВИС ОТ ПРОИЗВОДИТЕЛЯ'}
+                </span>
+                <h2 className="service-editorial-title">
+                  {h.serviceTitle || 'Первый цифровой сервисный центр LAUTE'}
+                </h2>
+                <p className="service-editorial-desc">
+                  {h.serviceDesc || 'Поддержка LAUTE начинается с вашего обращения. Ознакомьтесь с гарантийными обязательствами и опишите вопрос в онлайн-форме. Ответ будет дан в течение 36 часов в рабочие дни.'}
+                </p>
 
-            <div className="light-service-stats">
-              <div className="service-stat-glass-card reveal-on-scroll reveal-delay-1">
-                <div className="stat-glass-icon">
-                  <Clock size={22} />
+                {/* Service SLA & Online Support Badges */}
+                <div className="service-stats-editorial-row">
+                  <div className="service-stat-glass-pill">
+                    <div className="stat-glass-icon-wrap">
+                      <Clock size={20} />
+                    </div>
+                    <div>
+                      <div className="stat-pill-num">{h.stat1Num || '36 часов'}</div>
+                      <div className="stat-pill-label">{h.stat1Label || 'срок ответа в рабочие дни'}</div>
+                    </div>
+                  </div>
+
+                  <div className="service-stat-glass-pill">
+                    <div className="stat-glass-icon-wrap">
+                      <Headphones size={20} />
+                    </div>
+                    <div>
+                      <div className="stat-pill-num">{h.stat2Num || 'Онлайн'}</div>
+                      <div className="stat-pill-label">{h.stat2Label || 'подача сервисного обращения'}</div>
+                    </div>
+                  </div>
                 </div>
-                <div className="stat-glass-number">{h.stat1Num || '36 часов'}</div>
-                <div className="stat-glass-label">{h.stat1Label || 'срок ответа в рабочие дни'}</div>
+
+                <div className="service-editorial-actions">
+                  <button 
+                    type="button" 
+                    className="btn btn-primary" 
+                    onClick={() => navigateTo('service')}
+                    id="btn-service-center"
+                  >
+                    <span>{h.serviceBtn || 'Обратиться в сервис'}</span>
+                    <ArrowRight size={16} />
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn btn-outline light-btn-outline" 
+                    onClick={() => navigateTo('partners')}
+                    id="btn-partner-support"
+                  >
+                    <span>{h.servicePartnerBtn || 'Поддержка партнеров'}</span>
+                  </button>
+                </div>
               </div>
 
-              <div className="service-stat-glass-card reveal-on-scroll reveal-delay-2">
-                <div className="stat-glass-icon">
-                  <Headphones size={22} />
+              {/* Right Column: Visual Factory Quality Testing Photo */}
+              <div className="service-visual-column">
+                <div className="service-photo-frame">
+                  <img 
+                    src={`${baseUrl}images/prod_testing.png`} 
+                    alt="Контроль качества и сервис LAUTE" 
+                    className="service-photo-img"
+                    loading="lazy"
+                  />
+                  <div className="service-photo-overlay"></div>
+                  <div className="service-photo-caption-glass">
+                    <ShieldCheck size={18} className="shield-icon" />
+                    <span>Заводское гидро- и пневмотестирование 100% узлов</span>
+                  </div>
                 </div>
-                <div className="stat-glass-number">{h.stat2Num || 'Онлайн'}</div>
-                <div className="stat-glass-label">{h.stat2Label || 'подача сервисного обращения'}</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 5. СОТРУДНИЧЕСТВО С LAUTE — ФОРМА СВЯЗИ */}
+      {/* 6. СОТРУДНИЧЕСТВО С LAUTE — ФОРМА СВЯЗИ */}
       <section className="section light-cta-section" id="b2b-lead-form">
         <div className="container">
           <div className="light-cta-card reveal-on-scroll">

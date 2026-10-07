@@ -9,30 +9,34 @@ export const CollectionsSection = () => {
     {
       id: 'bathroom',
       title: 'Ванные пространства',
-      subtitle: 'Смесители для раковин, накладных чаш и ванн',
+      subtitle: 'Смесители для раковин, накладных чаш и ванн с чистой архитектурной геометрией',
       categoryBadge: 'ВАННАЯ КОМНАТА',
-      image: `${baseUrl}images/collections/coll-bathroom.jpg`
+      image: `${baseUrl}images/collections/coll-bathroom.jpg`,
+      layoutClass: 'collection-card-featured'
     },
     {
       id: 'kitchen',
       title: 'Кухонные системы',
-      subtitle: 'Функциональные смесители с выдвижным изливом и мойки',
+      subtitle: 'Функциональные смесители с поворотным и выдвижным изливом для современных моек',
       categoryBadge: 'КУХНЯ',
-      image: `${baseUrl}images/collections/coll-kitchen.jpg`
+      image: `${baseUrl}images/collections/coll-kitchen.jpg`,
+      layoutClass: 'collection-card-standard'
     },
     {
       id: 'shower',
       title: 'Душевые зоны',
-      subtitle: 'Встраиваемые системы, термостаты и тропический душ',
-      categoryBadge: 'ДУШ',
-      image: `${baseUrl}images/collections/coll-shower.jpg`
+      subtitle: 'Встраиваемые решения, термостатический контроль и тропический душ',
+      categoryBadge: 'ДУШЕВАЯ ЗОНА',
+      image: `${baseUrl}images/collections/coll-shower.jpg`,
+      layoutClass: 'collection-card-standard'
     },
     {
       id: 'engineering',
       title: 'Инженерная линия',
-      subtitle: 'Высокоточная латунь CW617N и керамические картриджи',
-      categoryBadge: 'ТЕХНОЛОГИИ',
-      image: `${baseUrl}images/collections/coll-engineering.jpg`
+      subtitle: 'Высокоточная латунь CW617N, ресурсные керамические картриджи и многослойные покрытия',
+      categoryBadge: 'ТЕХНОЛОГИИ & МАТЕРИАЛЫ',
+      image: `${baseUrl}images/collections/coll-engineering.jpg`,
+      layoutClass: 'collection-card-wide'
     }
   ];
 
@@ -51,28 +55,32 @@ export const CollectionsSection = () => {
           </p>
         </div>
 
-        <div className="collections-grid">
+        {/* Editorial Visual Gallery with Varied Scale */}
+        <div className="collections-gallery-editorial">
           {collectionsData.map((item, index) => (
             <div 
               key={item.id} 
-              className={`collection-card reveal-on-scroll reveal-delay-${(index % 4) + 1}`}
+              className={`collection-gallery-item ${item.layoutClass} reveal-on-scroll reveal-delay-${(index % 4) + 1}`}
               onClick={(e) => e.preventDefault()}
               role="presentation"
             >
-              <div className="collection-card-media">
+              <div className="collection-media-wrapper">
                 <img 
                   src={item.image} 
                   alt={item.title} 
-                  className="collection-card-img" 
+                  className="collection-media-img" 
                   loading="lazy"
                 />
-                <div className="collection-card-gradient"></div>
+                <div className="collection-media-vignette"></div>
               </div>
 
-              <div className="collection-card-glass-content">
-                <span className="collection-cat-badge">{item.categoryBadge}</span>
-                <h3 className="collection-card-heading">{item.title}</h3>
-                <p className="collection-card-text">{item.subtitle}</p>
+              {/* Floating Translucent Glass Caption */}
+              <div className="collection-glass-caption">
+                <div className="collection-caption-top">
+                  <span className="collection-pill-tag">{item.categoryBadge}</span>
+                </div>
+                <h3 className="collection-caption-heading">{item.title}</h3>
+                <p className="collection-caption-desc">{item.subtitle}</p>
               </div>
             </div>
           ))}

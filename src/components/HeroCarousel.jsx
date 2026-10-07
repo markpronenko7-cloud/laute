@@ -159,50 +159,52 @@ export const HeroCarousel = () => {
 
       {/* Floating Foreground Content Container */}
       <div className="container hero-content-container">
-        {slidesData.map((slide, index) => {
-          const isActive = index === activeSlide;
-          if (!isActive) return null;
+        <div className="hero-captions-deck">
+          {slidesData.map((slide, index) => {
+            const isActive = index === activeSlide;
 
-          return (
-            <div 
-              key={`content-${slide.id}`} 
-              className="hero-slide-caption animate-slide-entry"
-            >
-              {/* Slide 1 & 5 prominent authentic LAUTE branding */}
-              {slide.showLargeLogo ? (
-                <div className="hero-prominent-logo-wrap animate-caption-logo">
-                  <img 
-                    src={`${baseUrl}laute-logo.png`} 
-                    alt="LAUTE" 
-                    className="hero-prominent-logo-img" 
-                  />
+            return (
+              <div 
+                key={`content-${slide.id}`} 
+                className={`hero-slide-caption ${isActive ? 'is-active' : 'is-inactive'}`}
+                aria-hidden={!isActive}
+              >
+                {/* Slide 1 & 5 prominent authentic LAUTE branding */}
+                {slide.showLargeLogo ? (
+                  <div className="hero-prominent-logo-wrap">
+                    <img 
+                      src={`${baseUrl}laute-logo.png`} 
+                      alt="LAUTE" 
+                      className="hero-prominent-logo-img" 
+                    />
+                  </div>
+                ) : (
+                  <div className="hero-slide-badge">
+                    <span className="hero-badge-pill">{slide.tagline}</span>
+                  </div>
+                )}
+
+                {/* Main Headline */}
+                <h1 className="hero-slide-title">
+                  {slide.title}
+                </h1>
+
+                {/* Action Button */}
+                <div className="hero-slide-action-wrap">
+                  <button
+                    type="button"
+                    id={slide.buttonId}
+                    className="btn btn-hero-luxury"
+                    onClick={slide.action}
+                  >
+                    <span>{slide.buttonText}</span>
+                    <ArrowRight size={18} className="btn-icon-arrow" />
+                  </button>
                 </div>
-              ) : (
-                <div className="hero-slide-badge animate-caption-badge">
-                  <span className="hero-badge-pill">{slide.tagline}</span>
-                </div>
-              )}
-
-              {/* Main Headline */}
-              <h1 className="hero-slide-title animate-caption-title">
-                {slide.title}
-              </h1>
-
-              {/* Action Button */}
-              <div className="hero-slide-action-wrap animate-caption-cta">
-                <button
-                  type="button"
-                  id={slide.buttonId}
-                  className="btn btn-hero-luxury"
-                  onClick={slide.action}
-                >
-                  <span>{slide.buttonText}</span>
-                  <ArrowRight size={18} className="btn-icon-arrow" />
-                </button>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Slide Navigation Controls */}
