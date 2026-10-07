@@ -5,11 +5,9 @@ import {
   Send, 
   Minus, 
   ArrowUpRight, 
-  ArrowRight, 
   Eye, 
   Scale, 
   MapPin, 
-  Check, 
   RotateCcw 
 } from 'lucide-react';
 import { withBrandWord } from '../utils/brandFormatter';
@@ -20,7 +18,6 @@ export const AIConsultant = () => {
     isAIConsultantOpen, 
     openAIConsultant, 
     closeAIConsultant, 
-    navigateTo, 
     products, 
     openProductModal, 
     startComparison, 
@@ -29,38 +26,79 @@ export const AIConsultant = () => {
 
   const baseUrl = import.meta.env.BASE_URL;
 
-  const [messages, setMessages] = useState(() => [
-    {
-      id: 'welcome',
-      sender: 'ai',
-      text: lang === 'kz'
-        ? 'Сәлеметсіз бе! Мен LAUTE ресми цифрлық кеңесшісімін. Асүй, ванна араластырғыштарын және душ жүйелерін таңдауға көмектесемін. Қандай өнім іздеп жатырсыз?'
-        : lang === 'en'
-        ? 'Hello! I am the official LAUTE AI consultant. I can assist you with selecting kitchen faucets, bath mixers, or shower systems. What are you looking for today?'
-        : 'Здравствуйте! Я официальный AI-консультант LAUTE. Помогу подобрать смесители, душевые решения и сантехнику под ваш проект. Что именно вы ищете?',
-      quickChips: [
-        'Мне нужен смеситель для кухни',
-        'Смеситель для раковины',
-        'Душевая система',
-        'Что вы продаёте?'
-      ],
-      recommendedProducts: []
+  const createInitialMessage = (currentLang) => ({
+    id: 'welcome',
+    sender: 'ai',
+    text: currentLang === 'kz'
+      ? 'Сәлеметсіз бе! Мен LAUTE ресми цифрлық AI-кеңесшісімін. Асүй, ванна араластырғыштарын таңдауға, техникалық ерекшеліктерді түсіндіруге және сұрақтарыңызға жауап беруге дайынмын. Сізге қандай көмек қажет?'
+      : currentLang === 'en'
+      ? 'Hello! I am the official digital AI consultant for LAUTE. I am here to help you navigate sanitary engineering, explain technical features, and select the right fittings. How can I assist you today?'
+      : 'Здравствуйте! Я официальный цифровой AI-консультант LAUTE. Помогу разобраться в нюансах сантехники, просто объясню устройство оборудования и помогу подобрать надежные решения. О чём хотите поговорить?',
+    quickChips: [
+      'Мне нужен смеситель для кухни',
+      'Как выбрать смеситель?',
+      'Что такое картридж?',
+      'Расскажи о компании LAUTE'
+    ],
+    recommendedProducts: []
+  });
+
+  // Persistent messages across component life and route transitions
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('laute_ai_messages');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // ignore
     }
-  ]);
+    return [createInitialMessage(lang)];
+  });
 
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [dialogContext, setDialogContext] = useState({
-    step: 'idle',
-    category: null,
-    budget: null,
-    city: 'Алматы',
-    requirements: [],
-    lastProducts: []
+  const [dialogContext, setDialogContext] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('laute_ai_context');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // ignore
+    }
+    return {
+      step: 'idle',
+      lastTopic: null,
+      lastSubject: null,
+      lastAiQuestion: null,
+      category: null,
+      budget: null,
+      city: 'Алматы',
+      requirements: [],
+      lastProducts: []
+    };
   });
 
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
+  const isSubmittingRef = useRef(false);
+
+  // Sync messages & context to sessionStorage
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('laute_ai_messages', JSON.stringify(messages));
+    } catch {
+      // quota fallback
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('laute_ai_context', JSON.stringify(dialogContext));
+    } catch {
+      // quota fallback
+    }
+  }, [dialogContext]);
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -74,7 +112,7 @@ export const AIConsultant = () => {
     if (isAIConsultantOpen) {
       const timer = setTimeout(() => {
         inputRef.current?.focus();
-      }, 200);
+      }, 180);
       return () => clearTimeout(timer);
     }
   }, [isAIConsultantOpen]);
@@ -88,33 +126,40 @@ export const AIConsultant = () => {
 
   const handleSendMessage = (textToSend) => {
     const text = (textToSend !== undefined ? textToSend : inputValue).trim();
-    if (!text || isTyping) return;
+    if (!text || isTyping || isSubmittingRef.current) return;
+
+    // Concurrency lock to prevent double-submit
+    isSubmittingRef.current = true;
 
     // Immediately post user message & clear input
     const userMsg = {
-      id: `u-${Date.now()}`,
+      id: `u-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       sender: 'user',
       text
     };
 
-    setMessages((prev) => [...prev, userMsg]);
     setInputValue('');
+    setMessages((prev) => [...prev, userMsg]);
     setIsTyping(true);
 
-    // Call intelligence engine with brief natural delay
+    // Realistic typing delay for natural conversation
     setTimeout(() => {
       try {
+        const historySnapshot = [...messages, userMsg];
         const response = processConsultantMessage({
           rawQuery: text,
           currentContext: dialogContext,
           products,
+          history: historySnapshot,
           lang
         });
 
-        setDialogContext(response.newContext);
+        if (response.newContext) {
+          setDialogContext(response.newContext);
+        }
 
         const aiMsg = {
-          id: `ai-${Date.now()}`,
+          id: `ai-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           sender: 'ai',
           text: response.text,
           quickChips: response.quickChips || [],
@@ -128,57 +173,61 @@ export const AIConsultant = () => {
           startComparison(response.triggerComparison[0], response.triggerComparison[1]);
         }
       } catch (err) {
+        console.error('AI Consultant processing error:', err);
         setMessages((prev) => [
           ...prev,
           {
-            id: `ai-${Date.now()}`,
+            id: `ai-err-${Date.now()}`,
             sender: 'ai',
-            text: 'Произошла непредвиденная ошибка при обработке запроса. Пожалуйста, попробуйте переформулировать ваш вопрос.',
-            quickChips: ['Показать каталог', 'Мне нужен смеситель'],
+            text: 'Я готов помочь вам с любыми вопросами по продукции и сантехнике LAUTE. О чём хотите узнать?',
+            quickChips: ['Мне нужен смеситель для кухни', 'Как выбрать смеситель?', 'Что такое картридж?'],
             recommendedProducts: []
           }
         ]);
       } finally {
         setIsTyping(false);
+        isSubmittingRef.current = false;
       }
-    }, 280);
+    }, 240);
   };
 
   const handleFormSubmit = (e) => {
-    if (e && e.preventDefault) e.preventDefault();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     handleSendMessage();
   };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      e.stopPropagation();
       handleSendMessage();
     }
   };
 
   const handleClearChat = () => {
-    setMessages([
-      {
-        id: 'welcome-reset',
-        sender: 'ai',
-        text: 'Диалог начат заново. Я готов помочь вам с подбором продукции LAUTE. Что вас интересует?',
-        quickChips: [
-          'Мне нужен смеситель для кухни',
-          'Смесители для раковины',
-          'Душевая система',
-          'Что вы продаёте?'
-        ],
-        recommendedProducts: []
-      }
-    ]);
-    setDialogContext({
+    const freshInitial = createInitialMessage(lang);
+    setMessages([freshInitial]);
+    const emptyContext = {
       step: 'idle',
+      lastTopic: null,
+      lastSubject: null,
+      lastAiQuestion: null,
       category: null,
       budget: null,
       city: 'Алматы',
       requirements: [],
       lastProducts: []
-    });
+    };
+    setDialogContext(emptyContext);
+    try {
+      sessionStorage.removeItem('laute_ai_messages');
+      sessionStorage.removeItem('laute_ai_context');
+    } catch {
+      // ignore
+    }
   };
 
   // 1. Minimized State: Sleek permanent floating pill button [ ✦ AI LAUTE ↗ ]
@@ -221,7 +270,7 @@ export const AIConsultant = () => {
             <div className="ai-panel-status">
               <span className="ai-status-dot"></span>
               <span>
-                {lang === 'kz' ? 'Онлайн • Каталог активен' : lang === 'en' ? 'Online • Catalog synced' : 'Онлайн • Каталог активен'}
+                {lang === 'kz' ? 'Диалог белсенді' : lang === 'en' ? 'Online • Ready to assist' : 'Онлайн • Эксперт на связи'}
               </span>
             </div>
           </div>
@@ -233,8 +282,8 @@ export const AIConsultant = () => {
             type="button"
             className="btn-ai-header-icon"
             onClick={handleClearChat}
-            title="Очистить диалог"
-            aria-label="Очистить диалог"
+            title="Начать новый диалог"
+            aria-label="Начать новый диалог"
           >
             <RotateCcw size={13} />
           </button>
@@ -283,13 +332,13 @@ export const AIConsultant = () => {
                         </div>
                       </div>
 
-                      {/* City stock pill */}
+                      {/* City stock info */}
                       <div className="ai-prod-stock-info">
                         <MapPin size={11} color="#EA580C" />
                         <span>
                           {prod.cityStock?.['Алматы'] > 0 
                             ? `Алматы: ${prod.cityStock['Алматы']} шт. в наличии` 
-                            : 'Алматы: под заказ'}
+                            : 'Алматы: склад LAUTE'}
                         </span>
                       </div>
 
@@ -301,14 +350,13 @@ export const AIConsultant = () => {
                           onClick={() => openProductModal(prod)}
                         >
                           <Eye size={12} />
-                          <span>Посмотреть товар</span>
+                          <span>Подробнее</span>
                         </button>
 
                         <button
                           type="button"
                           className="btn-ai-action-outline"
                           onClick={() => {
-                            // Find comparison sibling
                             const other = msg.recommendedProducts.find(p => p.article !== prod.article) || products.find(p => p.category === prod.category && p.article !== prod.article);
                             if (other) startComparison(prod, other);
                           }}
@@ -367,10 +415,10 @@ export const AIConsultant = () => {
             onKeyDown={handleKeyDown}
             placeholder={
               lang === 'kz'
-                ? 'Хабарлама жазыңыз…'
+                ? 'Сұрағыңызды жазыңыз…'
                 : lang === 'en'
-                ? 'Type your question…'
-                : 'Напишите ваш вопрос (например: «Мне нужен смеситель для кухни»)...'
+                ? 'Ask a question…'
+                : 'Напишите сообщение (например: «Что такое картридж?»)...'
             }
             aria-label="Сообщение для AI-консультанта"
           />

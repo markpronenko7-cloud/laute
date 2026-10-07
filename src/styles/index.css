@@ -4706,7 +4706,7 @@ img {
 .msg-ai .ai-message-text {
   color: #F1F5F9;
   margin: 0;
-  white-space: pre-line;
+  white-space: pre-wrap;
 }
 
 /* Recommended Products Grid within AI Chat */
