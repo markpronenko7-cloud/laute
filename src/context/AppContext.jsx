@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { translations } from '../i18n/translations';
+import { DEFAULT_PRODUCTS } from '../data/catalogData';
 
 const AppContext = createContext();
 
@@ -37,10 +38,55 @@ export const AppProvider = ({ children }) => {
 
   const [currentRoute, setCurrentRoute] = useState(getRouteFromUrl);
 
+  // Live Products Catalog synced across Excel -> База -> Каталог -> AI
+  const [products, setProducts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('laute_products');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // fallback
+    }
+    return DEFAULT_PRODUCTS;
+  });
+
+  const updateProducts = useCallback((newProducts) => {
+    setProducts(newProducts);
+    try {
+      localStorage.setItem('laute_products', JSON.stringify(newProducts));
+    } catch {
+      // storage quota or fallback
+    }
+  }, []);
+
   const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
-  const [isAIModalOpen, setIsAIModalOpen] = useState(true);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(true); // Auto-open on initial load
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
+
+  // Product Detail & Comparison modals
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [comparisonItems, setComparisonItems] = useState(null);
+  const [selectedCity, setSelectedCity] = useState('Алматы');
+
+  const openProductModal = useCallback((prod) => {
+    setSelectedProduct(prod);
+  }, []);
+
+  const closeProductModal = useCallback(() => {
+    setSelectedProduct(null);
+  }, []);
+
+  const startComparison = useCallback((itemA, itemB) => {
+    setComparisonItems([itemA, itemB]);
+  }, []);
+
+  const closeComparisonModal = useCallback(() => {
+    setComparisonItems(null);
+  }, []);
 
   // Navigate to route
   const navigateTo = useCallback((route, anchor) => {
@@ -104,6 +150,16 @@ export const AppProvider = ({ children }) => {
     currentRoute,
     navigateTo,
     t,
+    products,
+    updateProducts,
+    selectedProduct,
+    openProductModal,
+    closeProductModal,
+    comparisonItems,
+    startComparison,
+    closeComparisonModal,
+    selectedCity,
+    setSelectedCity,
     isPartnerModalOpen,
     openPartnerModal: () => setIsPartnerModalOpen(true),
     closePartnerModal: () => setIsPartnerModalOpen(false),
@@ -119,7 +175,10 @@ export const AppProvider = ({ children }) => {
     toggleAIConsultant: () => setIsAIModalOpen(prev => !prev),
     isAuthModalOpen,
     openAuthModal: () => setIsAuthModalOpen(true),
-    closeAuthModal: () => setIsAuthModalOpen(false)
+    closeAuthModal: () => setIsAuthModalOpen(false),
+    isExcelModalOpen,
+    openExcelModal: () => setIsExcelModalOpen(true),
+    closeExcelModal: () => setIsExcelModalOpen(false)
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

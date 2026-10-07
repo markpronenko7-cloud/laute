@@ -13,6 +13,9 @@ import { PartnerModal } from './components/modals/PartnerModal';
 import { ServiceModal } from './components/modals/ServiceModal';
 import { AIConsultant } from './components/AIConsultant';
 import { AuthModal } from './components/modals/AuthModal';
+import { ProductDetailModal } from './components/modals/ProductDetailModal';
+import { ProductComparisonModal } from './components/modals/ProductComparisonModal';
+import { ExcelManagerModal } from './components/modals/ExcelManagerModal';
 
 export const AppContent = () => {
   const { currentRoute } = useApp();
@@ -50,6 +53,9 @@ export const AppContent = () => {
       <ServiceModal />
       <AIConsultant />
       <AuthModal />
+      <ProductDetailModal />
+      <ProductComparisonModal />
+      <ExcelManagerModal />
     </div>
   );
 };
