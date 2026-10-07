@@ -4,7 +4,7 @@ import { Globe, MapPin, User, Menu, X, ChevronDown, Sparkles } from 'lucide-reac
 import { REGIONS_CONFIG } from '../data/regionsData';
 
 export const Header = () => {
-  const { lang, setLang, region, setRegion, currentRoute, navigateTo, t, openPartnerModal, openAuthModal, openAIModal, toggleAIConsultant, isAIConsultantOpen } = useApp();
+  const { lang, setLang, region, setRegion, currentRoute, navigateTo, t, openPartnerModal, openAuthModal } = useApp();
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isRegionOpen, setIsRegionOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -241,19 +241,6 @@ export const Header = () => {
             )}
           </div>
 
-          {/* AI Consultant Button */}
-          <button
-            type="button"
-            className={`btn btn-header-ai ${isAIConsultantOpen ? 'is-active' : ''}`}
-            onClick={toggleAIConsultant || openAIModal}
-            title={t.nav.aiConsultant || 'AI-консультант LAUTE'}
-            id="header-ai-btn"
-            aria-expanded={isAIConsultantOpen}
-          >
-            <Sparkles size={14} className="header-ai-icon" />
-            <span>{t.nav.aiConsultant || 'AI-консультант'}</span>
-          </button>
-
           {/* B2B Client Cabinet */}
           <button
             type="button"
@@ -272,18 +259,6 @@ export const Header = () => {
             onClick={openPartnerModal}
           >
             <span>{t.nav.requestQuote || 'Стать партнёром'}</span>
-          </button>
-
-          {/* Quick Mobile AI Consultant Button */}
-          <button
-            type="button"
-            className={`mobile-ai-trigger-btn ${isAIConsultantOpen ? 'is-active' : ''}`}
-            onClick={toggleAIConsultant || openAIModal}
-            aria-label="AI-консультант"
-            title="AI-консультант"
-          >
-            <Sparkles size={15} />
-            <span>AI</span>
           </button>
 
           {/* Mobile Menu Toggle */}
@@ -409,18 +384,6 @@ export const Header = () => {
             </div>
 
             <div className="mobile-actions">
-              <button
-                type="button"
-                className="btn btn-header-ai btn-full"
-                style={{ marginBottom: '10px' }}
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  openAIModal();
-                }}
-              >
-                <Sparkles size={16} />
-                <span>{t.nav.aiConsultant || 'AI-консультант'}</span>
-              </button>
               <button
                 type="button"
                 className="btn btn-outline btn-full"

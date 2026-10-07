@@ -1,10 +1,10 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { ArrowRight, ShieldCheck, Layers, Sparkles } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Layers } from 'lucide-react';
 import { HeroShowcaseGraphic } from './ProductIllustrations';
 
 export const Hero = () => {
-  const { t, openPartnerModal, openAIModal } = useApp();
+  const { t, openPartnerModal } = useApp();
 
   const scrollToCatalog = () => {
     const el = document.getElementById('catalog');
@@ -44,15 +44,6 @@ export const Hero = () => {
                 onClick={openPartnerModal}
               >
                 <span>{t.hero.ctaPartner}</span>
-              </button>
-
-              <button
-                className="btn btn-outline"
-                onClick={openAIModal}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-              >
-                <Sparkles size={16} />
-                <span>{t.nav.aiHelp}</span>
               </button>
             </div>
 

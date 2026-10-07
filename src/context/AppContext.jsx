@@ -39,7 +39,7 @@ export const AppProvider = ({ children }) => {
 
   const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
-  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Navigate to route

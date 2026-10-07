@@ -5,16 +5,16 @@ import { withBrandWord } from '../utils/brandFormatter';
 
 export const AIConsultant = () => {
   const { isAIConsultantOpen, closeAIConsultant, navigateTo, openPartnerModal, lang } = useApp();
-  
+
   const [messages, setMessages] = useState(() => [
     {
       id: 'welcome',
       sender: 'ai',
-      text: lang === 'kz' 
-        ? 'Сәлеметсіз бе! Мен LAUTE ресми цифрлық AI-кеңесшісімін. Жобаңызға арналған асүй және ванна бөлмесі араластырғыштарын, душ жүйелерін немесе инженерлік шешімдерді таңдауға көмектесемін.' 
+      text: lang === 'kz'
+        ? 'Сәлеметсіз бе! Мен LAUTE ресми цифрлық AI-кеңесшісімін. Жобаңызға арналған асүй және ванна бөлмесі араластырғыштарын, душ жүйелерін немесе инженерлік шешімдерді таңдауға көмектесемін.'
         : lang === 'en'
-        ? 'Hello! I am the official LAUTE AI Consultant. I will help you select kitchen and bath mixers, shower systems, or engineering fixtures for your project.'
-        : 'Здравствуйте! Я официальный AI-консультант LAUTE. Помогу подобрать смесители для кухни, ванной, душевые комплекты или инженерное оборудование под ваш проект.',
+          ? 'Hello! I am the official LAUTE AI Consultant. I will help you select kitchen and bath mixers, shower systems, or engineering fixtures for your project.'
+          : 'Здравствуйте! Я официальный AI-консультант LAUTE. Помогу подобрать смесители для кухни, ванной, душевые комплекты или инженерное оборудование под ваш проект.',
       recommendation: null
     }
   ]);
@@ -65,8 +65,8 @@ export const AIConsultant = () => {
         text: lang === 'kz'
           ? 'Асүй үшін біз биік бұрылмалы шүмегі бар, ауыз су сүзгісін қосуға арналған қос арналы LAUTE модельдерін ұсынамыз. Корпусы — CW617N латунь, керамикалық картридж 35 мм.'
           : lang === 'en'
-          ? 'For the kitchen, we recommend LAUTE models with a high 360° swivel spout and dual-channel connection for filtered drinking water. Body: CW617N brass, 35mm ceramic cartridge.'
-          : 'Для кухни рекомендуются смесители LAUTE с высоким поворотным изливом и дополнительным каналом под питьевой фильтр. Корпус из первичной латуни марки CW617N, картридж 35 мм с керамическими дисками и аэратор Neoperl.',
+            ? 'For the kitchen, we recommend LAUTE models with a high 360° swivel spout and dual-channel connection for filtered drinking water. Body: CW617N brass, 35mm ceramic cartridge.'
+            : 'Для кухни рекомендуются смесители LAUTE с высоким поворотным изливом и дополнительным каналом под питьевой фильтр. Корпус из первичной латуни марки CW617N, картридж 35 мм с керамическими дисками и аэратор Neoperl.',
         recommendation: {
           title: lang === 'kz' ? 'LAUTE асүй топтамасы' : lang === 'en' ? 'LAUTE Kitchen Collection' : 'Кухонные смесители LAUTE',
           route: 'catalog',
@@ -81,8 +81,8 @@ export const AIConsultant = () => {
         text: lang === 'kz'
           ? 'Душ аймағы үшін биіктігі реттелетін (850–1250 мм) бағанасы бар LAUTE душ жүйелері оңтайлы. Үстіңгі тропикалық душ форсункалары қақтан оңай тазаланатын силиконнан жасалған.'
           : lang === 'en'
-          ? 'For the shower area, LAUTE shower systems featuring an adjustable column (850-1250 mm) and overhead rain shower with Easy-Clean silicone nozzles are optimal.'
-          : 'Для душевой зоны оптимальны душевые системы LAUTE с телескопической регулировкой штанги (850–1250 мм) и верхним тропическим душем с силиконовыми форсунками Easy Clean против известкового налета.',
+            ? 'For the shower area, LAUTE shower systems featuring an adjustable column (850-1250 mm) and overhead rain shower with Easy-Clean silicone nozzles are optimal.'
+            : 'Для душевой зоны оптимальны душевые системы LAUTE с телескопической регулировкой штанги (850–1250 мм) и верхним тропическим душем с силиконовыми форсунками Easy Clean против известкового налета.',
         recommendation: {
           title: lang === 'kz' ? 'LAUTE душ жүйелері' : lang === 'en' ? 'LAUTE Shower Systems' : 'Душевые системы LAUTE',
           route: 'catalog',
@@ -97,8 +97,8 @@ export const AIConsultant = () => {
         text: lang === 'kz'
           ? 'Ванна мен раковинаға арналған LAUTE желісі монолитті корпустар мен ресурс үнемдейтін аэраторларды қамтиды. Ықшам кеңістіктер үшін 300–400 мм ұзын шүмегі бар әмбебап шешімдер қарастырылған.'
           : lang === 'en'
-          ? 'The LAUTE bathroom lineup features monolithic solid brass mixer bodies with water-saving aerators, and universal 300-400 mm swivel spout configurations for compact spaces.'
-          : 'Линейка LAUTE для раковины и ванны включает монолитные латунные смесители с аэраторами Neoperl, а также универсальные модели с поворотным изливом 300–400 мм для совмещенных узлов.',
+            ? 'The LAUTE bathroom lineup features monolithic solid brass mixer bodies with water-saving aerators, and universal 300-400 mm swivel spout configurations for compact spaces.'
+            : 'Линейка LAUTE для раковины и ванны включает монолитные латунные смесители с аэраторами Neoperl, а также универсальные модели с поворотным изливом 300–400 мм для совмещенных узлов.',
         recommendation: {
           title: lang === 'kz' ? 'Ванна мен раковина шешімдері' : lang === 'en' ? 'Bath & Basin Solutions' : 'Смесители для ванны и раковины LAUTE',
           route: 'catalog',
@@ -113,8 +113,8 @@ export const AIConsultant = () => {
         text: lang === 'kz'
           ? 'LAUTE жасырын монтаждау жүйелері сенімді латунь монтаж блоктарымен және минималистік сыртқы басқару панельдерімен жасақталған. Зауыттық герметикалық сынақтан 100% өткен.'
           : lang === 'en'
-          ? 'LAUTE concealed installation systems feature solid brass core units and architectural slim trim plates, 100% factory pressure-tested to 16 bar.'
-          : 'Встраиваемые решения LAUTE комплектуются цельнолатунными скрытыми боксами и ультратонкими накладками. Все модули проходят 100% заводское гидротестирование давлением 16 бар.',
+            ? 'LAUTE concealed installation systems feature solid brass core units and architectural slim trim plates, 100% factory pressure-tested to 16 bar.'
+            : 'Встраиваемые решения LAUTE комплектуются цельнолатунными скрытыми боксами и ультратонкими накладками. Все модули проходят 100% заводское гидротестирование давлением 16 бар.',
         recommendation: {
           title: lang === 'kz' ? 'LAUTE инженерлік бағыты' : lang === 'en' ? 'LAUTE Concealed Engineering' : 'Инженерные и скрытые системы LAUTE',
           route: 'catalog',
@@ -129,8 +129,8 @@ export const AIConsultant = () => {
         text: lang === 'kz'
           ? 'LAUTE зауыты дистрибьюторлар мен құрылыс компанияларына тікелей өндіруші келісімшартын, техникалық төлқұжаттарды және дербес баға саясатын ұсынады.'
           : lang === 'en'
-          ? 'LAUTE manufacturer offers direct supply contracts, full project specifications, and individual wholesale terms for distributors and developers.'
-          : 'Для оптовых заказчиков и девелоперов LAUTE предоставляет прямой контракт с производителем, спецификации объектов, паспорта качества и персональные оптовые условия.',
+            ? 'LAUTE manufacturer offers direct supply contracts, full project specifications, and individual wholesale terms for distributors and developers.'
+            : 'Для оптовых заказчиков и девелоперов LAUTE предоставляет прямой контракт с производителем, спецификации объектов, паспорта качества и персональные оптовые условия.',
         recommendation: {
           title: lang === 'kz' ? 'LAUTE серіктестік бағдарламасы' : lang === 'en' ? 'LAUTE Partnership Program' : 'Партнёрская программа LAUTE',
           route: 'partners',
@@ -144,8 +144,8 @@ export const AIConsultant = () => {
       text: lang === 'kz'
         ? 'Сұранысыңыз қабылданды. LAUTE каталогында асүй, ванна, душ аймақтарына арналған және инженерлік шешімдер ұсынылған. Қай бағыт сіздің міндетіңізге сәйкес келеді?'
         : lang === 'en'
-        ? 'Your inquiry is received. The LAUTE catalog covers kitchen mixers, bath & basin taps, shower systems, and concealed engineering fixtures. Which application matches your project?'
-        : 'Запрос принят. В каталоге LAUTE представлены смесители для кухни, раковин и ванн, душевые системы и скрытые инженерные узлы из первичной латуни CW617N. Уточните зону применения для точной спецификации.',
+          ? 'Your inquiry is received. The LAUTE catalog covers kitchen mixers, bath & basin taps, shower systems, and concealed engineering fixtures. Which application matches your project?'
+          : 'Запрос принят. В каталоге LAUTE представлены смесители для кухни, раковин и ванн, душевые системы и скрытые инженерные узлы из первичной латуни CW617N. Уточните зону применения для точной спецификации.',
       recommendation: {
         title: lang === 'kz' ? 'LAUTE толық каталогы' : lang === 'en' ? 'LAUTE Full Catalog' : 'Каталог продукции LAUTE',
         route: 'catalog',
@@ -191,8 +191,8 @@ export const AIConsultant = () => {
   if (!isAIConsultantOpen) return null;
 
   return (
-    <aside 
-      className="ai-consultant-floating-panel" 
+    <aside
+      className="ai-consultant-floating-panel"
       aria-label="AI-консультант LAUTE"
       role="dialog"
     >
@@ -232,8 +232,8 @@ export const AIConsultant = () => {
       {/* Conversation Stream */}
       <div className="ai-panel-body">
         {messages.map((msg) => (
-          <div 
-            key={msg.id} 
+          <div
+            key={msg.id}
             className={`ai-message-row ${msg.sender === 'user' ? 'msg-user' : 'msg-ai'}`}
           >
             <div className="ai-message-bubble">
@@ -307,8 +307,8 @@ export const AIConsultant = () => {
 
       {/* Interactive Free-Text Input Bar */}
       <div className="ai-panel-footer">
-        <form 
-          className="ai-input-form" 
+        <form
+          className="ai-input-form"
           onSubmit={(e) => {
             e.preventDefault();
             handleSendMessage();
@@ -325,8 +325,8 @@ export const AIConsultant = () => {
               lang === 'kz'
                 ? 'Нені іздеп жатырсыз, сипаттаңыз…'
                 : lang === 'en'
-                ? 'Describe what you are looking for…'
-                : 'Опишите, что вы ищете…'
+                  ? 'Describe what you are looking for…'
+                  : 'Опишите, что вы ищете…'
             }
             aria-label="Запрос к AI-консультанту"
           />
@@ -347,8 +347,8 @@ export const AIConsultant = () => {
             {lang === 'kz'
               ? 'Ресми зауыттық техникалық деректер'
               : lang === 'en'
-              ? 'Official factory engineering specifications'
-              : 'Официальные заводские спецификации LAUTE · Без вымышленных данных'}
+                ? 'Official factory engineering specifications'
+                : 'Официальные заводские спецификации LAUTE · Без вымышленных данных'}
           </span>
         </div>
       </div>
