@@ -11,7 +11,7 @@ import { ServicePage } from './pages/ServicePage';
 import { ContactsPage } from './pages/ContactsPage';
 import { PartnerModal } from './components/modals/PartnerModal';
 import { ServiceModal } from './components/modals/ServiceModal';
-import { AIModal } from './components/modals/AIModal';
+import { AIConsultant } from './components/AIConsultant';
 import { AuthModal } from './components/modals/AuthModal';
 
 export const AppContent = () => {
@@ -48,7 +48,7 @@ export const AppContent = () => {
       {/* Global B2B Modals */}
       <PartnerModal />
       <ServiceModal />
-      <AIModal />
+      <AIConsultant />
       <AuthModal />
     </div>
   );

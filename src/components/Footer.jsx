@@ -2,6 +2,7 @@ import React from 'react';
 import { useApp } from '../context/AppContext';
 import { Globe, MapPin, Phone, Mail, ArrowUp } from 'lucide-react';
 import { REGIONS_CONFIG } from '../data/regionsData';
+import { withBrandWord } from '../utils/brandFormatter';
 
 export const Footer = () => {
   const { lang, setLang, region, setRegion, navigateTo, t, openPartnerModal } = useApp();
@@ -38,7 +39,7 @@ export const Footer = () => {
             </a>
 
             <p className="footer-desc">
-              {f.brandDesc || 'LAUTE — завод смесителей, душевых систем, кухонных моек и комплектующих. Продукция для жилых пространств и профессиональных проектов.'}
+              {withBrandWord(f.brandDesc || 'LAUTE — завод смесителей, душевых систем, кухонных моек и комплектующих. Продукция для жилых пространств и профессиональных проектов.')}
             </p>
 
             {/* Official Verified Social Networks */}
@@ -222,7 +223,7 @@ export const Footer = () => {
           <div className="footer-col footer-action-col">
             <h4 className="footer-col-title">{f.collabCol || 'Сотрудничество'}</h4>
             <p className="footer-action-desc">
-              {f.collabDesc || 'Обсуждайте ассортимент, условия сотрудничества и сервис с командой LAUTE.'}
+              {withBrandWord(f.collabDesc || 'Обсуждайте ассортимент, условия сотрудничества и сервис с командой LAUTE.')}
             </p>
             <button 
               type="button" 

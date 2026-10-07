@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { withBrandWord } from '../utils/brandFormatter';
 
 export const HeroCarousel = () => {
   const { navigateTo, openPartnerModal, t } = useApp();
@@ -11,7 +12,7 @@ export const HeroCarousel = () => {
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
 
-  const SLIDE_DURATION = 4000; // 4 seconds per requirement
+  const SLIDE_DURATION = 3000; // Exactly 3000ms per requirement
 
   const slidesData = [
     {
@@ -180,13 +181,13 @@ export const HeroCarousel = () => {
                   </div>
                 ) : (
                   <div className="hero-slide-badge">
-                    <span className="hero-badge-pill">{slide.tagline}</span>
+                    <span className="hero-badge-pill">{withBrandWord(slide.tagline)}</span>
                   </div>
                 )}
 
                 {/* Main Headline */}
                 <h1 className="hero-slide-title">
-                  {slide.title}
+                  {withBrandWord(slide.title)}
                 </h1>
 
                 {/* Action Button */}
@@ -197,7 +198,7 @@ export const HeroCarousel = () => {
                     className="btn btn-hero-luxury"
                     onClick={slide.action}
                   >
-                    <span>{slide.buttonText}</span>
+                    <span>{withBrandWord(slide.buttonText)}</span>
                     <ArrowRight size={18} className="btn-icon-arrow" />
                   </button>
                 </div>

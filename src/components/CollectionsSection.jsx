@@ -1,5 +1,6 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
+import { withBrandWord } from '../utils/brandFormatter';
 
 export const CollectionsSection = () => {
   const { t } = useApp();
@@ -48,10 +49,10 @@ export const CollectionsSection = () => {
             {t.home?.collectionsBadge || 'АРХИТЕКТУРНЫЕ ЛИНИИ'}
           </span>
           <h2 className="section-title collections-title">
-            {t.home?.collectionsTitle || 'Коллекции LAUTE'}
+            {withBrandWord(t.home?.collectionsTitle || 'Коллекции LAUTE')}
           </h2>
           <p className="section-desc collections-desc">
-            {t.home?.collectionsDesc || 'Смесители, душевые решения и сантехническое оборудование, объединённые единой философией надежности и чистоты формы.'}
+            {withBrandWord(t.home?.collectionsDesc || 'Смесители, душевые решения и сантехническое оборудование, объединённые единой философией надежности и чистоты формы.')}
           </p>
         </div>
 

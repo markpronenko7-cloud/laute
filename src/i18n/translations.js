@@ -21,7 +21,8 @@ export const translations = {
       "requestQuote": "Стать партнёром",
       "viewProducts": "Смотреть продукцию",
       "aiHelp": "Подобрать",
-      "aiPick": "AI-подбор"
+      "aiPick": "AI-консультант",
+      "aiConsultant": "AI-консультант"
     },
     "regions": {
       "selectRegion": "Ваш регион",
@@ -323,7 +324,8 @@ export const translations = {
       "requestQuote": "Серіктес болу",
       "viewProducts": "Өнімдерді көру",
       "aiHelp": "Таңдау",
-      "aiPick": "AI-іріктеу"
+      "aiPick": "AI кеңесшісі",
+      "aiConsultant": "AI кеңесшісі"
     },
     "regions": {
       "selectRegion": "Өңіріңіз",
@@ -625,7 +627,8 @@ export const translations = {
       "requestQuote": "Become a Partner",
       "viewProducts": "View Products",
       "aiHelp": "Match",
-      "aiPick": "AI Selection"
+      "aiPick": "AI Consultant",
+      "aiConsultant": "AI Consultant"
     },
     "regions": {
       "selectRegion": "Your Region",

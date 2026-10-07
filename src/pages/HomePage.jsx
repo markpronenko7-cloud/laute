@@ -1,25 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { HeroCarousel } from '../components/HeroCarousel';
-import { AIProductMatchBanner } from '../components/AIProductMatchBanner';
-import { CollectionsSection } from '../components/CollectionsSection';
 import { 
   ArrowRight, 
-  CheckCircle2, 
   Users, 
   Store, 
   HardHat, 
-  Wrench,
-  Clock,
-  ShieldCheck,
-  PhoneCall,
-  Mail,
-  Headphones,
-  Check
+  Wrench, 
+  PhoneCall, 
+  Mail, 
+  CheckCircle2, 
+  Clock, 
+  Headphones, 
+  ShieldCheck 
 } from 'lucide-react';
 
+import { HeroCarousel } from '../components/HeroCarousel';
+import { CollectionsSection } from '../components/CollectionsSection';
+import { withBrandWord } from '../utils/brandFormatter';
+
 export const HomePage = () => {
-  const { navigateTo, openPartnerModal, t } = useApp();
+  const { navigateTo, openPartnerModal, openServiceModal, t } = useApp();
   const baseUrl = import.meta.env.BASE_URL;
 
   const [leadForm, setLeadForm] = useState({
@@ -31,22 +31,24 @@ export const HomePage = () => {
   const [leadSubmitted, setLeadSubmitted] = useState(false);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-          }
-        });
-      },
-      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
-    );
-    const elements = document.querySelectorAll('.reveal-on-scroll');
-    elements.forEach((el) => observer.observe(el));
-
-    return () => {
-      observer.disconnect();
+    const observerCallback = (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+        }
+      });
     };
+
+    const observer = new IntersectionObserver(observerCallback, {
+      threshold: 0.1,
+      rootMargin: '0px 0px -40px 0px'
+    });
+
+    document.querySelectorAll('.reveal-on-scroll').forEach((el) => {
+      observer.observe(el);
+    });
+
+    return () => observer.disconnect();
   }, []);
 
   const handleLeadSubmit = (e) => {
@@ -58,16 +60,13 @@ export const HomePage = () => {
 
   return (
     <div className="page-wrapper home-page-transformed">
-      {/* 1. FULL-SCREEN HERO CAROUSEL — 5 СЛАЙДОВ */}
+      {/* 1. FULL-SCREEN HERO CAROUSEL — 5 СЛАЙДОВ (3 СЕКУНДЫ АВТОМАТИЧЕСКАЯ СМЕНА) */}
       <HeroCarousel />
 
-      {/* 2. AI-ПОДБОР ПРОДУКЦИИ LAUTE — КРИТИЧЕСКИ ВАЖНЫЙ ЭЛЕМЕНТ СРАЗУ ПОСЛЕ HERO */}
-      <AIProductMatchBanner />
-
-      {/* 3. ФОТОГРАФИЧЕСКАЯ ГАЛЕРЕЯ «КОЛЛЕКЦИИ» */}
+      {/* 2. ФОТОГРАФИЧЕСКАЯ ГАЛЕРЕЯ «КОЛЛЕКЦИИ LAUTE» */}
       <CollectionsSection />
 
-      {/* 4. «РАЗВИВАЕМ РЫНОК ВМЕСТЕ С ПАРТНЁРАМИ» — ПРЕМИАЛЬНЫЙ ВИЗУАЛЬНЫЙ БЛОК */}
+      {/* 3. «РАЗВИВАЕМ РЫНОК ВМЕСТЕ С ПАРТНЁРАМИ» — КРЕАТИВНЫЙ АСИММЕТРИЧНЫЙ АРХИТЕКТУРНЫЙ БЛОК */}
       <section className="section visual-partnership-section" id="partners">
         <div className="container">
           <div className="section-title-wrap reveal-on-scroll">
@@ -75,122 +74,144 @@ export const HomePage = () => {
               {h.audienceBadge || 'ПАРТНЁРСТВО'}
             </span>
             <h2 className="section-title visual-part-title">
-              {h.audienceTitle || 'Развиваем рынок вместе с партнёрами'}
+              {withBrandWord(h.audienceTitle || 'Развиваем рынок вместе с партнёрами')}
             </h2>
             <p className="section-desc visual-part-desc">
-              {h.audienceDesc || 'Сотрудничаем с дистрибьюторами, торговыми сетями и профессионалами строительного рынка. Формируем предложение под ваш канал продаж, ассортимент и задачи проекта.'}
+              {withBrandWord(h.audienceDesc || 'Сотрудничаем с дистрибьюторами, торговыми сетями и профессионалами строительного рынка. Формируем предложение под ваш канал продаж, ассортимент и задачи проекта.')}
             </p>
           </div>
 
-          <div className="partnership-visual-showcase reveal-on-scroll">
-            {/* Visual Photographic Banner Area */}
-            <div className="partnership-photo-banner">
-              <img 
-                src={`${baseUrl}images/hero/hero-slide-4.jpg`} 
-                alt="Партнёрство с LAUTE" 
-                className="partnership-main-photo"
-                loading="lazy"
-              />
-              <div className="partnership-photo-vignette"></div>
+          <div className="partnership-asymmetric-stage reveal-on-scroll">
+            {/* Left Column: Architectural Photo Canvas & Floating Overlay */}
+            <div className="partnership-heroic-visual">
+              <div className="partnership-media-frame">
+                <img 
+                  src={`${baseUrl}images/hero/hero-slide-4.jpg`} 
+                  alt="Партнёрство с LAUTE" 
+                  className="partnership-stage-img"
+                  loading="lazy"
+                />
+                <div className="partnership-stage-gradient"></div>
 
-              <div className="partnership-floating-glass-bar">
-                <div className="glass-metric-pill">
-                  <span className="metric-dot"></span>
-                  <span>Прямой контракт с производителем</span>
+                <div className="partnership-stage-badge">
+                  <span className="stage-badge-tag">B2B NETWORK</span>
+                  <span className="stage-badge-brand">
+                    <span className="brand-word">LAUTE</span> COMMERCIAL SPECIFICATION
+                  </span>
                 </div>
-                <div className="glass-metric-pill">
-                  <span className="metric-dot"></span>
-                  <span>Персональные коммерческие условия</span>
-                </div>
-                <div className="glass-metric-pill">
-                  <span className="metric-dot"></span>
-                  <span>Техническая поддержка объектов</span>
+
+                <div className="partnership-stage-overlay">
+                  <div className="partnership-metric-tags">
+                    <div className="glass-metric-pill">
+                      <span className="metric-index">01</span>
+                      <span>Прямой контракт с производителем</span>
+                    </div>
+                    <div className="glass-metric-pill">
+                      <span className="metric-index">02</span>
+                      <span>Персональные коммерческие условия</span>
+                    </div>
+                    <div className="glass-metric-pill">
+                      <span className="metric-index">03</span>
+                      <span>Техническая поддержка объектов</span>
+                    </div>
+                  </div>
+
+                  <div className="partnership-stage-cta">
+                    <button 
+                      type="button" 
+                      className="btn btn-primary btn-luxury" 
+                      onClick={openPartnerModal}
+                      id="adv-btn-partner"
+                    >
+                      <span>{h.btnPartner || 'Стать партнёром'}</span>
+                      <ArrowRight size={18} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* 4 Clean Glass Audience Cards */}
-            <div className="partnership-audiences-grid">
-              <div className="part-audience-card reveal-on-scroll reveal-delay-1">
-                <div className="part-card-icon-bubble">
-                  <Users size={22} />
+            {/* Right Column: 4 Tiered Architectural Glass Cards */}
+            <div className="partnership-cards-tier">
+              <div className="tier-audience-card reveal-on-scroll reveal-delay-1">
+                <div className="tier-card-top">
+                  <div className="tier-icon-box">
+                    <Users size={20} />
+                  </div>
+                  <span className="tier-index-num">01</span>
                 </div>
-                <h3 className="part-card-title">
-                  {h.audienceGroup1Title || 'Дистрибьюторам и оптовым компаниям'}
+                <h3 className="tier-card-title">
+                  {withBrandWord(h.audienceGroup1Title || 'Дистрибьюторам и оптовым компаниям')}
                 </h3>
-                <p className="part-card-text">
-                  {h.audienceGroup1Desc || 'Развивайте региональные продажи с продукцией LAUTE. Обсудим ассортимент, коммерческие условия и организацию поставок для вашего рынка.'}
+                <p className="tier-card-desc">
+                  {withBrandWord(h.audienceGroup1Desc || 'Развивайте региональные продажи с продукцией LAUTE. Обсудим ассортимент, коммерческие условия и организацию поставок для вашего рынка.')}
                 </p>
               </div>
 
-              <div className="part-audience-card reveal-on-scroll reveal-delay-2">
-                <div className="part-card-icon-bubble">
-                  <Store size={22} />
+              <div className="tier-audience-card reveal-on-scroll reveal-delay-2">
+                <div className="tier-card-top">
+                  <div className="tier-icon-box">
+                    <Store size={20} />
+                  </div>
+                  <span className="tier-index-num">02</span>
                 </div>
-                <h3 className="part-card-title">
-                  {h.audienceGroup2Title || 'Торговым сетям и салонам'}
+                <h3 className="tier-card-title">
+                  {withBrandWord(h.audienceGroup2Title || 'Торговым сетям и салонам')}
                 </h3>
-                <p className="part-card-text">
-                  {h.audienceGroup2Desc || 'Сформируйте предложение для кухни и ванной комнаты в едином каталоге. Подберём модели и коллекции под формат магазина и потребности покупателей.'}
+                <p className="tier-card-desc">
+                  {withBrandWord(h.audienceGroup2Desc || 'Сформируйте предложение для кухни и ванной комнаты в едином каталоге. Подберём модели и коллекции под формат магазина и потребности покупателей.')}
                 </p>
               </div>
 
-              <div className="part-audience-card reveal-on-scroll reveal-delay-3">
-                <div className="part-card-icon-bubble">
-                  <HardHat size={22} />
+              <div className="tier-audience-card reveal-on-scroll reveal-delay-3">
+                <div className="tier-card-top">
+                  <div className="tier-icon-box">
+                    <HardHat size={20} />
+                  </div>
+                  <span className="tier-index-num">03</span>
                 </div>
-                <h3 className="part-card-title">
-                  {h.audienceGroup3Title || 'Девелоперам и комплектовщикам'}
+                <h3 className="tier-card-title">
+                  {withBrandWord(h.audienceGroup3Title || 'Девелоперам и комплектовщикам')}
                 </h3>
-                <p className="part-card-text">
-                  {h.audienceGroup3Desc || 'Подбирайте сантехническое оборудование под требования объекта. Поможем согласовать ассортимент, комплектацию и параметры поставки.'}
+                <p className="tier-card-desc">
+                  {withBrandWord(h.audienceGroup3Desc || 'Подбирайте сантехническое оборудование под требования объекта. Поможем согласовать ассортимент, комплектацию и параметры поставки.')}
                 </p>
               </div>
 
-              <div className="part-audience-card reveal-on-scroll reveal-delay-4">
-                <div className="part-card-icon-bubble">
-                  <Wrench size={22} />
+              <div className="tier-audience-card reveal-on-scroll reveal-delay-4">
+                <div className="tier-card-top">
+                  <div className="tier-icon-box">
+                    <Wrench size={20} />
+                  </div>
+                  <span className="tier-index-num">04</span>
                 </div>
-                <h3 className="part-card-title">
-                  {h.audienceGroup4Title || 'Монтажным организациям'}
+                <h3 className="tier-card-title">
+                  {withBrandWord(h.audienceGroup4Title || 'Монтажным организациям')}
                 </h3>
-                <p className="part-card-text">
-                  {h.audienceGroup4Desc || 'Выбирайте оборудование по монтажным размерам, подключениям и комплектации. По вопросам установки и совместимости обращайтесь к специалистам LAUTE.'}
+                <p className="tier-card-desc">
+                  {withBrandWord(h.audienceGroup4Desc || 'Выбирайте оборудование по монтажным размерам, подключениям и комплектации. По вопросам установки и совместимости обращайтесь к специалистам LAUTE.')}
                 </p>
               </div>
-            </div>
-
-            {/* Center Single CTA */}
-            <div className="partnership-action-wrap reveal-on-scroll reveal-delay-2">
-              <button 
-                type="button" 
-                className="btn btn-primary btn-luxury" 
-                onClick={openPartnerModal}
-                id="adv-btn-partner"
-              >
-                <span>{h.btnPartner || 'Стать партнёром'}</span>
-                <ArrowRight size={18} />
-              </button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 5. «ПЕРВЫЙ ЦИФРОВОЙ СЕРВИСНЫЙ ЦЕНТР LAUTE» — ПРЕМИАЛЬНЫЙ СЕРВИСНЫЙ БЛОК */}
+      {/* 4. «ПЕРВЫЙ ЦИФРОВОЙ СЕРВИСНЫЙ ЦЕНТР LAUTE» — ПРЕМИАЛЬНЫЙ СЕРВИСНЫЙ БЛОК */}
       <section className="section visual-service-section" id="service-preview">
         <div className="container">
           <div className="service-editorial-card reveal-on-scroll">
             <div className="service-editorial-grid">
-              {/* Left Column: Authentic Service Content */}
+              {/* Left Column: Service Details & SLA */}
               <div className="service-text-column">
                 <span className="section-badge badge-refined">
                   {h.serviceOverline || 'СЕРВИС ОТ ПРОИЗВОДИТЕЛЯ'}
                 </span>
                 <h2 className="service-editorial-title">
-                  {h.serviceTitle || 'Первый цифровой сервисный центр LAUTE'}
+                  {withBrandWord(h.serviceTitle || 'Первый цифровой сервисный центр LAUTE')}
                 </h2>
                 <p className="service-editorial-desc">
-                  {h.serviceDesc || 'Поддержка LAUTE начинается с вашего обращения. Ознакомьтесь с гарантийными обязательствами и опишите вопрос в онлайн-форме. Ответ будет дан в течение 36 часов в рабочие дни.'}
+                  {withBrandWord(h.serviceDesc || 'Поддержка LAUTE начинается с вашего обращения. Ознакомьтесь с гарантийными обязательствами и опишите вопрос в онлайн-форме. Ответ будет дан в течение 36 часов в рабочие дни.')}
                 </p>
 
                 {/* Service SLA & Online Support Badges */}
@@ -237,7 +258,7 @@ export const HomePage = () => {
                 </div>
               </div>
 
-              {/* Right Column: Visual Factory Quality Testing Photo */}
+              {/* Right Column: Factory Quality Testing Photo */}
               <div className="service-visual-column">
                 <div className="service-photo-frame">
                   <img 
@@ -258,34 +279,39 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* 6. СОТРУДНИЧЕСТВО С LAUTE — ФОРМА СВЯЗИ */}
+      {/* 5. СОТРУДНИЧЕСТВО С LAUTE — ФОРМА СВЯЗИ С ВЫСОКИМ КОНТРАСТОМ И ЧИТАЕМОСТЬЮ */}
       <section className="section light-cta-section" id="b2b-lead-form">
         <div className="container">
           <div className="light-cta-card reveal-on-scroll">
             <div className="cta-left-content">
               <span className="section-badge badge-refined">
-                {h.formBadge || 'СОТРУДНИЧЕСТВО С LAUTE'}
+                {withBrandWord(h.formBadge || 'СОТРУДНИЧЕСТВО С LAUTE')}
               </span>
               <h2 className="cta-heading light-heading">
-                {h.formHeading || 'Ваш следующий шаг — партнёрство с LAUTE'}
+                {withBrandWord(h.formHeading || 'Ваш следующий шаг — партнёрство с LAUTE')}
               </h2>
               <p className="cta-subheading light-subheading">
-                {h.formSubheading || 'Расскажите о вашей компании и регионе работы. Представитель LAUTE свяжется с вами, поможет выбрать ассортимент и подготовит коммерческое предложение.'}
+                {withBrandWord(h.formSubheading || 'Расскажите о вашей компании и регионе работы. Представитель LAUTE свяжется с вами, поможет выбрать ассортимент и подготовит коммерческое предложение.')}
               </p>
 
-              <div className="cta-contact-summary">
+              {/* High-Contrast Architectural Contact Panel */}
+              <div className="cta-contact-summary-box">
                 <div className="cta-contact-line">
-                  <PhoneCall size={18} className="cta-contact-icon" />
+                  <div className="cta-contact-icon-bubble">
+                    <PhoneCall size={18} />
+                  </div>
                   <div>
-                    <span className="cta-contact-label">{h.formDept || 'Отдел продаж'}:</span>
+                    <span className="cta-contact-label">{h.formDept || 'Отдел продаж и дистрибуции'}</span>
                     <a href="tel:+79833105626" className="cta-contact-value">+7 (983) 310-56-26</a>
                   </div>
                 </div>
 
                 <div className="cta-contact-line">
-                  <Mail size={18} className="cta-contact-icon" />
+                  <div className="cta-contact-icon-bubble">
+                    <Mail size={18} />
+                  </div>
                   <div>
-                    <span className="cta-contact-label">{h.formEmailLabel || 'Электронная почта'}:</span>
+                    <span className="cta-contact-label">{h.formEmailLabel || 'Официальная электронная почта'}</span>
                     <a href="mailto:opt@laute.ltd" className="cta-contact-value">opt@laute.ltd</a>
                   </div>
                 </div>
@@ -308,7 +334,7 @@ export const HomePage = () => {
                 <div className="form-success-card light-form-success">
                   <CheckCircle2 size={48} color="#0EA5E9" />
                   <h3>{h.formSuccessTitle || 'Запрос успешно отправлен!'}</h3>
-                  <p>{h.formSuccessDesc || 'Представитель LAUTE свяжется с вами для отправки коммерческого предложения.'}</p>
+                  <p>{withBrandWord(h.formSuccessDesc || 'Представитель LAUTE свяжется с вами для отправки коммерческого предложения.')}</p>
                   <button 
                     type="button" 
                     className="btn btn-outline light-btn-outline btn-sm" 
@@ -400,3 +426,5 @@ export const HomePage = () => {
     </div>
   );
 };
+
+export default HomePage;

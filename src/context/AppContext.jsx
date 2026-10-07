@@ -113,6 +113,10 @@ export const AppProvider = ({ children }) => {
     isAIModalOpen,
     openAIModal: () => setIsAIModalOpen(true),
     closeAIModal: () => setIsAIModalOpen(false),
+    isAIConsultantOpen: isAIModalOpen,
+    openAIConsultant: () => setIsAIModalOpen(true),
+    closeAIConsultant: () => setIsAIModalOpen(false),
+    toggleAIConsultant: () => setIsAIModalOpen(prev => !prev),
     isAuthModalOpen,
     openAuthModal: () => setIsAuthModalOpen(true),
     closeAuthModal: () => setIsAuthModalOpen(false)
