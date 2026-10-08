@@ -1,0 +1,46 @@
+/**
+ * Спецификация намерений (Intents) собственной AI-системы LAUTE
+ * 25 ключевых классов намерений для классификации сообщений
+ */
+
+export const LAUTE_INTENTS = {
+  GREETING: 'GREETING',
+  SMALL_TALK: 'SMALL_TALK',
+  ABOUT_AI: 'ABOUT_AI',
+  ABOUT_LAUTE: 'ABOUT_LAUTE',
+  ABOUT_COMPANY: 'ABOUT_COMPANY',
+  ABOUT_PRODUCTS: 'ABOUT_PRODUCTS',
+  PRODUCT_SEARCH: 'PRODUCT_SEARCH',
+  PRODUCT_SELECTION: 'PRODUCT_SELECTION',
+  PRODUCT_COMPARISON: 'PRODUCT_COMPARISON',
+  PRODUCT_DETAILS: 'PRODUCT_DETAILS',
+  TECHNICAL_QUESTION: 'TECHNICAL_QUESTION',
+  PARTNERSHIP: 'PARTNERSHIP',
+  WHOLESALE: 'WHOLESALE',
+  SERVICE: 'SERVICE',
+  WARRANTY: 'WARRANTY',
+  CONTACTS: 'CONTACTS',
+  REGIONS: 'REGIONS',
+  DELIVERY: 'DELIVERY',
+  STOCK: 'STOCK',
+  PRICE: 'PRICE',
+  APPLICATION: 'APPLICATION',
+  HELP: 'HELP',
+  GOODBYE: 'GOODBYE',
+  OFF_TOPIC: 'OFF_TOPIC',
+  UNKNOWN: 'UNKNOWN',
+};
+
+export const INTENT_LIST = Object.values(LAUTE_INTENTS);
+
+export const INTENT_TO_INDEX = {};
+export const INDEX_TO_INTENT = {};
+
+INTENT_LIST.forEach((intent, idx) => {
+  INTENT_TO_INDEX[intent] = idx;
+  INDEX_TO_INTENT[idx] = intent;
+});
+
+export const NUM_INTENTS = INTENT_LIST.length;
+
+export default LAUTE_INTENTS;

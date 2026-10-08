@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { withBrandWord } from '../utils/brandFormatter';
 import { processConsultantMessage } from '../utils/aiConsultantEngine';
+import { getLauteAIEngine } from '../ai/index.js';
 
 export const AIConsultant = () => {
   const { 
@@ -146,13 +147,26 @@ export const AIConsultant = () => {
     setTimeout(() => {
       try {
         const historySnapshot = [...messages, userMsg];
-        const response = processConsultantMessage({
-          rawQuery: text,
-          currentContext: dialogContext,
-          products,
-          history: historySnapshot,
-          lang
-        });
+        let response;
+        try {
+          const engine = getLauteAIEngine();
+          response = engine.processMessage({
+            rawQuery: text,
+            currentContext: dialogContext,
+            products,
+            history: historySnapshot,
+            lang
+          });
+        } catch (engineErr) {
+          console.warn('Fallback to legacy consultant engine:', engineErr);
+          response = processConsultantMessage({
+            rawQuery: text,
+            currentContext: dialogContext,
+            products,
+            history: historySnapshot,
+            lang
+          });
+        }
 
         if (response.newContext) {
           setDialogContext(response.newContext);
@@ -208,6 +222,11 @@ export const AIConsultant = () => {
   };
 
   const handleClearChat = () => {
+    try {
+      getLauteAIEngine().resetSession();
+    } catch {
+      // ignore
+    }
     const freshInitial = createInitialMessage(lang);
     setMessages([freshInitial]);
     const emptyContext = {
@@ -270,7 +289,7 @@ export const AIConsultant = () => {
             <div className="ai-panel-status">
               <span className="ai-status-dot"></span>
               <span>
-                {lang === 'kz' ? 'Диалог белсенді' : lang === 'en' ? 'Online • Ready to assist' : 'Онлайн • Эксперт на связи'}
+                {lang === 'kz' ? 'LAUTE Ядросы • Автономды' : lang === 'en' ? 'LAUTE Neural Core • Independent' : 'Ядро LAUTE • Автономно'}
               </span>
             </div>
           </div>

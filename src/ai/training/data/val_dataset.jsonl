@@ -1,0 +1,5 @@
+{"prompt": "Какой смеситель выбрать для современной кухни?", "response": "Рекомендуем смеситель 2-в-1 с каналом под фильтр питьевой воды из латуни CW617N.", "domain": "recommendation", "language": "ru"}
+{"prompt": "А почему?", "response": "Потому что эргономика 2-в-1 не требует сверления мойки под второй кран и бережет рабочее пространство.", "domain": "anaphora", "language": "ru"}
+{"prompt": "А если кухня маленькая?", "response": "Для маленькой кухни подойдет компактный смеситель высотой 240-260 мм без разбрызгивания.", "domain": "anaphora", "language": "ru"}
+{"prompt": "Рахмет", "response": "Оқасы жоқ! Сізге көмектескеніме қуаныштымын.", "domain": "dialog", "language": "kz"}
+{"prompt": "Thank you", "response": "You are welcome! Always here to assist you with LAUTE solutions.", "domain": "dialog", "language": "en"}

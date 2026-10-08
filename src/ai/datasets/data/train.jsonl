@@ -1,0 +1,518 @@
+{"text":"до свидания","intent":"GOODBYE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Что делаешь?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Сәлеметсіз бе","intent":"GREETING","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"good morning","intent":"GREETING","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"hey there","intent":"GREETING","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Hey there","intent":"GREETING","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"What products does LAUTE make?","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"en"}
+{"text":"i need a mixer tap","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"en"}
+{"text":"Как успехи?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Сәлем қалайсың","intent":"GREETING","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"приветствую","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Show kitchen mixer taps","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"en"}
+{"text":"Show shower column systems","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"en"}
+{"text":"мне нужен хороший смеситель, но не знаю какой","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"добрый вечер","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"show product lines","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"en"}
+{"text":"қоймадағы қалдықтар қандай?","intent":"STOCK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"ассалаумағалейкум","intent":"GREETING","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"какая гарантия на смесители laute?","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"Приветствую","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Какая гарантия на смесители LAUTE","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"Что ты умеешь","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"душевая система со стойкой тропический душ","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"How does LAUTE service work","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"en"}
+{"text":"Hi how are you","intent":"GREETING","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Как осуществляется доставка?","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"How can you help me?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Привет, ты тут?","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Сегодня хороший день","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"What are you","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Can I pick up orders from the warehouse?","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Доброго времени суток","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Подбери что-нибудь надежное","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"Ты искусственный интеллект","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"серіктестік орнату туралы","intent":"PARTNERSHIP","action":"SHOW_PARTNERSHIP","lang":"kz"}
+{"text":"What products does LAUTE make","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"en"}
+{"text":"көтерме бағалар прайсы","intent":"WHOLESALE","action":"SHOW_PARTNERSHIP","lang":"kz"}
+{"text":"қайырлы таң","intent":"GREETING","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"почему вода течет из-под крана?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Что производит LAUTE","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"ru"}
+{"text":"Расскажи о LAUTE","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"өзің туралы айтып берші","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Тауарды қалай жеткізесіздер","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"хочу оставить заявку на покупку","intent":"APPLICATION","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"Жеткізу қалай жасалады?","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Какую сантехнику вы делаете?","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"ru"}
+{"text":"Есть ли товар в наличии на складе?","intent":"STOCK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"салам","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Что такое латунь CW617N?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"здравствуй","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"хочу купить смеситель","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"В чем разница между высоким и низким изливом?","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"ru"}
+{"text":"сервистік қызмет қалай жұмыс істейді?","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"kz"}
+{"text":"Как оформить заявку на заказ?","intent":"APPLICATION","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"What can you do?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"laute қай елдің бренді?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"compare high spout and low spout","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"en"}
+{"text":"LAUTE деген не?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"What can you do","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"бағалар тізімі қайда?","intent":"PRICE","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"What is LAUTE","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"как успехи?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"какие категории товаров есть?","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"ru"}
+{"text":"What are you?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"how much water pressure does it withstand?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"High body basin faucets for vessel sinks","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"en"}
+{"text":"how to become a laute dealer?","intent":"PARTNERSHIP","action":"SHOW_PARTNERSHIP","lang":"en"}
+{"text":"сравнить эти два варианта","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"ru"}
+{"text":"Өтінім қалай беремін?","intent":"APPLICATION","action":"SHOW_CONTACTS","lang":"kz"}
+{"text":"How much water pressure does it withstand","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Partnership opportunities for developers","intent":"PARTNERSHIP","action":"SHOW_PARTNERSHIP","lang":"en"}
+{"text":"жеткізу қалай жасалады?","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Из какой латуни сделан корпус?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Как настроение?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"сколько стоит этот смеситель?","intent":"PRICE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"доброе утро","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"ищу кран","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"Hi, how are you?","intent":"GREETING","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"здравствуйте","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Картридж деген не?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"сколько циклов выдерживает картридж sedal?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Мне нужен смеситель","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"какая цена у моделей laute?","intent":"PRICE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Как оформить заявку на заказ","intent":"APPLICATION","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"каковы твои возможности?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Is this item currently in stock?","intent":"STOCK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Қалайсыз?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"laute компаниясы туралы айтып бер","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Қоймадағы қалдықтар қандай?","intent":"STOCK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Can I pick up orders from the warehouse","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"is this item currently in stock?","intent":"STOCK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Где посмотреть розничные цены","intent":"PRICE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Сервистік қызмет қалай жұмыс істейді","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"kz"}
+{"text":"Сервистік қызмет көрсету","intent":"SERVICE","action":"SHOW_SERVICE","lang":"kz"}
+{"text":"Оптовые поставки сантехники","intent":"WHOLESALE","action":"SHOW_PARTNERSHIP","lang":"ru"}
+{"text":"How much water pressure does it withstand?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"как оформить заявку на заказ?","intent":"APPLICATION","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"Сәлем","intent":"GREETING","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"покажи смесители для кухни","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"show shower column systems","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"en"}
+{"text":"где посмотреть розничные цены?","intent":"PRICE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"расскажи о философии компании","intent":"ABOUT_COMPANY","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"в чем разница между высоким и низким изливом?","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"ru"}
+{"text":"Сен кімсің?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"как настроение?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Подробные характеристики Prime K-10","intent":"PRODUCT_DETAILS","action":"SHOW_PRODUCT","lang":"ru"}
+{"text":"what products does laute make?","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"en"}
+{"text":"why is the faucet leaking?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Контакты компании LAUTE","intent":"CONTACTS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"есть ли самовывоз со склада?","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Покажи смесители для кухни","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"Сколько циклов выдерживает картридж Sedal?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"What is the price of this faucet","intent":"PRICE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Where can I see retail prices","intent":"PRICE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"how are things?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"what do you produce?","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"en"}
+{"text":"Как дела?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"laute қандай өнімдер шығарады?","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"kz"}
+{"text":"hello","intent":"GREETING","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"у меня отличное настроение","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Как настроение","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"where is laute manufactured?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Где находится сервисный центр LAUTE","intent":"SERVICE","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"Бағалар тізімі қайда?","intent":"PRICE","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"компактный смеситель для маленькой кухни","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"оптовые цены на смесители","intent":"WHOLESALE","action":"SHOW_PARTNERSHIP","lang":"ru"}
+{"text":"что делать при гарантийном случае?","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"Серіктестік орнату туралы","intent":"PARTNERSHIP","action":"SHOW_PARTNERSHIP","lang":"kz"}
+{"text":"Что производит LAUTE?","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"ru"}
+{"text":"Что такое картридж в смесителе?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"өтінім қалай беремін?","intent":"APPLICATION","action":"SHOW_CONTACTS","lang":"kz"}
+{"text":"Здравствуй","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Здравствуйте","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"картридж деген не?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Краннан неге су ағады","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Есть ли самовывоз со склада","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"история компании laute","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Какой у вас ассортимент?","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"ru"}
+{"text":"LAUTE қандай өнімдер шығарады?","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"kz"}
+{"text":"какой остаток товара на складе?","intent":"STOCK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Условия оптовых закупок","intent":"WHOLESALE","action":"SHOW_PARTNERSHIP","lang":"ru"}
+{"text":"How does shipping and delivery work?","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Компактный смеситель для маленькой кухни","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"что такое laute?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Көтерме бағалар прайсы","intent":"WHOLESALE","action":"SHOW_PARTNERSHIP","lang":"kz"}
+{"text":"Смеситель керек","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"kz"}
+{"text":"кепілдік мерзімі қандай?","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"kz"}
+{"text":"good day","intent":"GREETING","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"where can i see retail prices?","intent":"PRICE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Where is the LAUTE service center","intent":"SERVICE","action":"SHOW_SERVICE","lang":"en"}
+{"text":"Чем занимается компания LAUTE?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Душевая система со стойкой тропический душ","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"Где найти сервисный центр?","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"How are things?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"қайырлы күн","intent":"GREETING","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Что такое LAUTE?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Что делаешь","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Where is LAUTE manufactured","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"краннан неге су ағады?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"что такое латунь cw617n?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Какая цена у моделей LAUTE?","intent":"PRICE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Есть ли самовывоз со склада?","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"How are you","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Сен не істей аласың","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Расскажи что-нибудь интересное","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"История компании LAUTE","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Что ты умеешь?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"CW617N латуні деген не?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Чем отличается модель Prime K-10 от Quadro Filter","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"ru"}
+{"text":"Why is the faucet leaking?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Чем ты можешь помочь","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"LAUTE компаниясы туралы айтып бер","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Хочу стать дилером LAUTE","intent":"PARTNERSHIP","action":"SHOW_PARTNERSHIP","lang":"ru"}
+{"text":"Какая цена у моделей LAUTE","intent":"PRICE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Бағасы қанша тұрады?","intent":"PRICE","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"кто ты такой?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"ты кто?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Где посмотреть розничные цены?","intent":"PRICE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Какую сантехнику вы делаете","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"ru"}
+{"text":"Where is the LAUTE service center?","intent":"SERVICE","action":"SHOW_SERVICE","lang":"en"}
+{"text":"покажи смесители с гибким изливом","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"How can you help me","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Где находится сервисный центр LAUTE?","intent":"SERVICE","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"Кто ты такой","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"из какой латуни сделан корпус?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"есть ли товар в наличии на складе?","intent":"STOCK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Қоймадағы қалдықтар қандай","intent":"STOCK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Жағдай қалай","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"B2B price list for distributors","intent":"WHOLESALE","action":"SHOW_PARTNERSHIP","lang":"en"}
+{"text":"How does LAUTE service work?","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"en"}
+{"text":"Хочу оставить заявку на покупку","intent":"APPLICATION","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"Что такое аэратор Neoperl Rub-Clean?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"сегодня хороший день","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"how is it going?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Check warehouse availability","intent":"STOCK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Кто ты такой?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Смеситель 2 в 1 с фильтром для питьевой воды","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"What is a ceramic cartridge?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"расскажи что-нибудь интересное","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Тауарды қалай жеткізесіздер?","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Что делать при гарантийном случае?","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"Сіздерде қандай тауарлар бар?","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"kz"}
+{"text":"hi","intent":"GREETING","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"where is the laute service center?","intent":"SERVICE","action":"SHOW_SERVICE","lang":"en"}
+{"text":"Бағалар тізімі қайда","intent":"PRICE","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"абракадабра лол","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"maintenance and spare parts service","intent":"SERVICE","action":"SHOW_SERVICE","lang":"en"}
+{"text":"көтерме сауда шарттары","intent":"WHOLESALE","action":"SHOW_PARTNERSHIP","lang":"kz"}
+{"text":"кто стоит за брендом laute?","intent":"ABOUT_COMPANY","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"show kitchen mixer taps","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"en"}
+{"text":"как твои дела?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"сервистік қызмет көрсету","intent":"SERVICE","action":"SHOW_SERVICE","lang":"kz"}
+{"text":"Сколько стоит этот смеситель?","intent":"PRICE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"LAUTE қандай өнімдер шығарады","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"kz"}
+{"text":"Is this item currently in stock","intent":"STOCK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Hi","intent":"GREETING","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"асүйге арналған араластырғыштарды көрсет","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"kz"}
+{"text":"Наполеон кім болған?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"I want to submit a purchase inquiry","intent":"APPLICATION","action":"SHOW_CONTACTS","lang":"en"}
+{"text":"hi, how are you?","intent":"GREETING","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Hello","intent":"GREETING","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Ваннаға арналған ұзын изливті кран","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"kz"}
+{"text":"кто производитель laute?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Қалайсыз","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"товар бар ма қоймада?","intent":"STOCK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Биткоин бағамы қанша","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"ты искусственный интеллект?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Compare high spout and low spout","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"en"}
+{"text":"Қосалқы бөлшектер мен жөндеу","intent":"SERVICE","action":"SHOW_SERVICE","lang":"kz"}
+{"text":"ваннаға арналған ұзын изливті кран","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"kz"}
+{"text":"Кто стоит за брендом LAUTE","intent":"ABOUT_COMPANY","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"миссия и стандарты компании","intent":"ABOUT_COMPANY","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"привет, как дела?","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"What is the warranty period","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"en"}
+{"text":"Кепілдік мерзімі қандай?","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"kz"}
+{"text":"Миссия и стандарты компании","intent":"ABOUT_COMPANY","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"расскажи анекдот","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"что делаешь?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Наполеон кім болған","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Сіздерде қандай тауарлар бар","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"kz"}
+{"text":"сәлеметсіз бе","intent":"GREETING","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"помоги выбрать кран","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"Как жизнь?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"какое давление выдерживает смеситель?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Привет ты тут","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Товар бар ма қоймада","intent":"STOCK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Maintenance and spare parts service","intent":"SERVICE","action":"SHOW_SERVICE","lang":"en"}
+{"text":"b2b price list for distributors","intent":"WHOLESALE","action":"SHOW_PARTNERSHIP","lang":"en"}
+{"text":"чем отличается смеситель для кухни от смесителя для ванной?","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"ru"}
+{"text":"How to become a LAUTE dealer","intent":"PARTNERSHIP","action":"SHOW_PARTNERSHIP","lang":"en"}
+{"text":"Как получить оптовый прайс-лист","intent":"WHOLESALE","action":"SHOW_PARTNERSHIP","lang":"ru"}
+{"text":"Товар бар ма қоймада?","intent":"STOCK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"what is cw617n brass?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Что такое аэратор Neoperl Rub-Clean","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"тапсырыс беру үшін өтінім қалдыру","intent":"APPLICATION","action":"SHOW_CONTACTS","lang":"kz"}
+{"text":"қосалқы бөлшектер мен жөндеу","intent":"SERVICE","action":"SHOW_SERVICE","lang":"kz"}
+{"text":"Какое давление выдерживает смеситель?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"compare these two models","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"en"}
+{"text":"Кто производитель LAUTE","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"сервисное обслуживание смесителей","intent":"SERVICE","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"Компанияның философиясы мен мақсаты","intent":"ABOUT_COMPANY","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"привет, ты тут?","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"жағдай қалай?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"LAUTE қай елдің бренді?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Как работает цифровой сервис LAUTE","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"посоветуй смеситель","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"Мне нужен черный смеситель для раковины","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"Привет как дела","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Сравнить эти два варианта","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"ru"}
+{"text":"Кто выиграл чемпионат мира по футболу?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Тапсырыс беру үшін өтінім қалдыру","intent":"APPLICATION","action":"SHOW_CONTACTS","lang":"kz"}
+{"text":"Жағдай қалай?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"условия оптовых закупок","intent":"WHOLESALE","action":"SHOW_PARTNERSHIP","lang":"ru"}
+{"text":"tell me about yourself","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Бағасы қанша тұрады","intent":"PRICE","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Из какой латуни сделан корпус","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Покажи высокие смесители для раковины-чаши","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"wholesale partnership terms","intent":"WHOLESALE","action":"SHOW_PARTNERSHIP","lang":"en"}
+{"text":"какая сегодня погода?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"help me choose a faucet","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"en"}
+{"text":"laute деген не?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"қалайсың?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Где найти сервисный центр","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"компанияның философиясы мен мақсаты","intent":"ABOUT_COMPANY","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Хай","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"how are you?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"В чем разница между высоким и низким изливом","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"ru"}
+{"text":"What is the difference between kitchen and bath faucets?","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"en"}
+{"text":"что приготовить на обед?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"сәлем, қалайсың?","intent":"GREETING","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Что приготовить на ужин?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"what is a ceramic cartridge?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Who is Napoleon?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Расскажи о философии компании","intent":"ABOUT_COMPANY","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"где находятся ваши склады?","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"What is the price of this faucet?","intent":"PRICE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Какой остаток товара на складе?","intent":"STOCK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Электронная почта и реквизиты","intent":"CONTACTS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"ауыз су сүзгісі бар 2-і-1 смеситель","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"kz"}
+{"text":"What do you produce?","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"en"}
+{"text":"tell me a random story about space","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Покажи паспорт модели Quadro Filter","intent":"PRODUCT_DETAILS","action":"SHOW_PRODUCT","lang":"ru"}
+{"text":"Who is Napoleon","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Как работает сервисный центр","intent":"SERVICE","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"Помоги выбрать кран","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"где находится сервисный центр laute?","intent":"SERVICE","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"How are you doing today?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"What do you produce","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"en"}
+{"text":"Ремонт и запчасти LAUTE","intent":"SERVICE","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"Сколько стоит биткоин?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"черный матовый смеситель на кухню","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"адрес склада в новосибирске","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"Что приготовить на обед","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"about laute company and standards","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Help me choose a faucet","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"en"}
+{"text":"Қайырлы таң","intent":"GREETING","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"асүй мен ванна смесительдерінің айырмашылығы қандай?","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"kz"}
+{"text":"Сколько стоит биткоин","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"бағасы қанша тұрады?","intent":"PRICE","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"how are you doing today?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Why is the faucet leaking","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Кепілдік мерзімі қандай","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"kz"}
+{"text":"кто выиграл чемпионат мира по футболу?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Как твои дела?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Какие категории товаров есть","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"ru"}
+{"text":"goodbye, have a nice day","intent":"GOODBYE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"мне нужен смеситель","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"Қайырлы күн","intent":"GREETING","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"фывапролдж","intent":"UNKNOWN","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Где находятся ваши склады","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"Где производят сантехнику LAUTE","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Кто стоит за брендом LAUTE?","intent":"ABOUT_COMPANY","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"who is napoleon?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"How are you?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Сау болыңыз","intent":"GOODBYE","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Что вы производите?","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"ru"}
+{"text":"покажи душевие стойки","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"Салам","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Расскажи о себе","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"осы екі араластырғышты салыстыр","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"kz"}
+{"text":"Қалайсың?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Что такое LAUTE","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Картридж деген не","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"чем ты можешь помочь?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Сколько циклов выдерживает картридж Sedal","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"каковы стандарты качества laute?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Какое давление выдерживает смеситель","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Сен не істей аласың?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"пока","intent":"GOODBYE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"покажи паспорт модели quadro filter","intent":"PRODUCT_DETAILS","action":"SHOW_PRODUCT","lang":"ru"}
+{"text":"Tell me a random story about space","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Асүй мен ванна смесительдерінің айырмашылығы қандай","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"kz"}
+{"text":"Thank you very much","intent":"HELP","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"How are you doing today","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"дилер болу шарттары қандай?","intent":"PARTNERSHIP","action":"SHOW_PARTNERSHIP","lang":"kz"}
+{"text":"Каковы твои возможности","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"What is CW617N brass?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"сәлем","intent":"GREETING","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"what is the price of this faucet?","intent":"PRICE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Как жизнь","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Расскажи анекдот","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Привет, как дела?","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"ремонт и запчасти laute","intent":"SERVICE","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"как жизнь?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Where are your regional warehouses","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"en"}
+{"text":"расскажи о laute","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"who are you?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"сіздерде қандай тауарлар бар?","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"kz"}
+{"text":"Goodbye, have a nice day","intent":"GOODBYE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"сау болыңыз","intent":"GOODBYE","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Что вы производите","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"ru"}
+{"text":"Good day","intent":"GREETING","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"2-in-1 drinking filter faucets","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"en"}
+{"text":"как дела?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Чем занимается компания LAUTE","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"blah blah haha","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Доброе утро","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"i want to submit a purchase inquiry","intent":"APPLICATION","action":"SHOW_CONTACTS","lang":"en"}
+{"text":"Спасибо за помощь","intent":"HELP","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"бла бла хз ахаха","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Почему вода течет из-под крана?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Добрый вечер","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"show black bathroom faucets","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"en"}
+{"text":"что такое картридж в смесителе?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"How do I place an order request?","intent":"APPLICATION","action":"SHOW_CONTACTS","lang":"en"}
+{"text":"Ассалаумағалейкум","intent":"GREETING","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"спасибо за помощь","intent":"HELP","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"биткоин бағамы қанша?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Условия гарантийного обслуживания","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"Как успехи","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Көтерме сауда шарттары","intent":"WHOLESALE","action":"SHOW_PARTNERSHIP","lang":"kz"}
+{"text":"Почему вода течет из-под крана","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Ауыз су сүзгісі бар 2-і-1 смеситель","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"kz"}
+{"text":"Көңіл-күй қалай","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"как работает цифровой сервис laute?","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"Каковы стандарты качества LAUTE","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Tell me a random story","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Добрый день","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"how to contact sales support?","intent":"CONTACTS","action":"SHOW_CONTACTS","lang":"en"}
+{"text":"what is the difference between kitchen and bath faucets?","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"en"}
+{"text":"Где производят сантехнику LAUTE?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Что за бренд LAUTE","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"what is the warranty period?","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"en"}
+{"text":"что производит laute?","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"ru"}
+{"text":"What is the difference between kitchen and bath faucets","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"en"}
+{"text":"Что такое картридж в смесителе","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"how can you help me?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Какая сегодня погода","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"что ты умеешь?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Ты кто","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Как твои дела","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Чем ты можешь помочь?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Tell me about yourself","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Сервистік қызмет қалай жұмыс істейді?","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"kz"}
+{"text":"What is the warranty period?","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"en"}
+{"text":"Сколько стоит этот смеситель","intent":"PRICE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"рахмет сізге","intent":"HELP","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"чем отличается модель prime k-10 от quadro filter?","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"ru"}
+{"text":"как работает сервисный центр?","intent":"SERVICE","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"Who are you?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Какая завтра погода","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"what is laute?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Сен кімсің","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Как работает сервисный центр?","intent":"SERVICE","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"how does shipping and delivery work?","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Как осуществляется доставка","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Чем отличается смеситель для кухни от смесителя для ванной?","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"ru"}
+{"text":"Араластырғыш сатып алғым келеді","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"kz"}
+{"text":"расскажи о себе","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"что приготовить на ужин?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"что вы производите?","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"ru"}
+{"text":"Good morning","intent":"GREETING","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Мне нужен хороший смеситель, но не знаю какой","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"Good evening","intent":"GREETING","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"көңіл-күй қалай?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"условия гарантийного обслуживания","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"покажи высокие смесители для раковины-чаши","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"маған кран таңдап берші","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"kz"}
+{"text":"хочу кран для дома","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"Оптовые цены на смесители","intent":"WHOLESALE","action":"SHOW_PARTNERSHIP","lang":"ru"}
+{"text":"company mission and manufacturing vision","intent":"ABOUT_COMPANY","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Что приготовить на ужин","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"cw617n латуні деген не?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"доброго времени суток","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"good evening","intent":"GREETING","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"кто такой наполеон бонапарт?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"сен кімсің?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"LAUTE деген не","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Как связаться с LAUTE?","intent":"CONTACTS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"сколько времени занимает доставка?","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"xyz123abc","intent":"UNKNOWN","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"tell me a random story","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Сколько времени занимает доставка?","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Сәлем, қалайсың?","intent":"GREETING","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"привет","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"не істеп жатырсың?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Что за бренд LAUTE?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Как дела","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"байланыс нөмірлері","intent":"CONTACTS","action":"SHOW_CONTACTS","lang":"kz"}
+{"text":"what can you do?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"хочу стать дилером laute","intent":"PARTNERSHIP","action":"SHOW_PARTNERSHIP","lang":"ru"}
+{"text":"Хочу купить смеситель","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"чем занимается компания laute?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Какая сегодня погода?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Сервисное обслуживание смесителей","intent":"SERVICE","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"добрый день","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"благодарю","intent":"HELP","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Жеткізу қалай жасалады","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"как получить оптовый прайс-лист?","intent":"WHOLESALE","action":"SHOW_PARTNERSHIP","lang":"ru"}
+{"text":"У меня отличное настроение","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"What is CW617N brass","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Как работает цифровой сервис LAUTE?","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"Привет","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"check warehouse availability","intent":"STOCK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"What is the price of Bitcoin?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"сен не істей аласың?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"What is the price of Bitcoin","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Что такое латунь CW617N","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Не істеп жатырсың","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Кто такой Наполеон Бонапарт","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"смеситель 2 в 1 с фильтром для питьевой воды","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"тауарды қалай жеткізесіздер?","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Goodbye have a nice day","intent":"GOODBYE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"смеситель керек","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"kz"}
+{"text":"Ищу кран","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"адрес склада в алматы","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"мне нужен черный смеситель для раковины","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"what are you?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Детальная информация о смесителе","intent":"PRODUCT_DETAILS","action":"SHOW_PRODUCT","lang":"ru"}
+{"text":"Кто ты","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Дилер болу шарттары қандай?","intent":"PARTNERSHIP","action":"SHOW_PARTNERSHIP","lang":"kz"}
+{"text":"LAUTE қай елдің бренді","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Дилер болу шарттары қандай","intent":"PARTNERSHIP","action":"SHOW_PARTNERSHIP","lang":"kz"}
+{"text":"nice weather today","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Какой сейчас курс доллара?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Адрес склада в Алматы","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"Сотрудничество для девелоперов и строителей","intent":"PARTNERSHIP","action":"SHOW_PARTNERSHIP","lang":"ru"}
+{"text":"Кто производитель LAUTE?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"посоветуй хороший фильм на вечер","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"кто ты?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Каковы твои возможности?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Расскажи о производстве","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"сколько стоит биткоин?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"tell me about laute","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"где найти сервисный центр?","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"Покажи смесители с гибким изливом","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"Пока","intent":"GOODBYE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Рахмет сізге","intent":"HELP","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"thank you very much","intent":"HELP","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"қалайсыз?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Wholesale partnership terms","intent":"WHOLESALE","action":"SHOW_PARTNERSHIP","lang":"en"}
+{"text":"смеситель для ванны с длинным изливом 350 мм","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"Who are you","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"посоветуйте надежный смеситель","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"Кто такой Наполеон Бонапарт?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"i want to buy a faucet","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"en"}
+{"text":"Краннан неге су ағады?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"how do i place an order request?","intent":"APPLICATION","action":"SHOW_CONTACTS","lang":"en"}

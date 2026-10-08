@@ -1,0 +1,64 @@
+{"text":"Қалайсың","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Не істеп жатырсың?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"телефон офиса и отдела продаж","intent":"CONTACTS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"араластырғыш сатып алғым келеді","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"kz"}
+{"text":"Nice weather today","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"what is the price of bitcoin?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Каковы стандарты качества LAUTE?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Ты кто?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Tell me about LAUTE","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"ты человек или бот?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"How is it going?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"partnership opportunities for developers","intent":"PARTNERSHIP","action":"SHOW_PARTNERSHIP","lang":"en"}
+{"text":"Кто выиграл чемпионат мира по футболу","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Астанадағы қойманың мекенжайы","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"kz"}
+{"text":"Биткоин бағамы қанша?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Как получить оптовый прайс-лист?","intent":"WHOLESALE","action":"SHOW_PARTNERSHIP","lang":"ru"}
+{"text":"что такое аэратор neoperl rub-clean?","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Смеситель для ванны с длинным изливом 350 мм","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"CW617N латуні деген не","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Адрес склада в Москве","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"Көңіл-күй қалай?","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Кто ты?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Хочу кран для дома","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"оптовые поставки сантехники","intent":"WHOLESALE","action":"SHOW_PARTNERSHIP","lang":"ru"}
+{"text":"How to become a LAUTE dealer?","intent":"PARTNERSHIP","action":"SHOW_PARTNERSHIP","lang":"en"}
+{"text":"how does laute service work?","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"en"}
+{"text":"Что делать при гарантийном случае","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"Какая гарантия на смесители LAUTE?","intent":"WARRANTY","action":"SHOW_SERVICE","lang":"ru"}
+{"text":"Өтінім қалай беремін","intent":"APPLICATION","action":"SHOW_CONTACTS","lang":"kz"}
+{"text":"сотрудничество для девелоперов и строителей","intent":"PARTNERSHIP","action":"SHOW_PARTNERSHIP","lang":"ru"}
+{"text":"About LAUTE company and standards","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"How are things","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Ты человек или бот?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Өзің туралы айтып берші","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"What is LAUTE?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Адрес склада в Новосибирске","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"where are your regional warehouses?","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"en"}
+{"text":"детальная информация о смесителе","intent":"PRODUCT_DETAILS","action":"SHOW_PRODUCT","lang":"ru"}
+{"text":"расскажи о производстве","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Посоветуй смеситель","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"Сколько времени занимает доставка","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Смеситель Prime K-10","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"Ты человек или бот","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Recommend a good mixer","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"en"}
+{"text":"Какие категории товаров есть?","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"ru"}
+{"text":"How does shipping and delivery work","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Какая завтра погода?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"алматыдағы қойманың мекенжайы","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"kz"}
+{"text":"смеситль для кухн","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"How is it going","intent":"SMALL_TALK","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"какую сантехнику вы делаете?","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"ru"}
+{"text":"хай","intent":"GREETING","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Мне нужен хороший смеситель но не знаю какой","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"Байланыс нөмірлері","intent":"CONTACTS","action":"SHOW_CONTACTS","lang":"kz"}
+{"text":"как связаться с laute?","intent":"CONTACTS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"How to contact sales support?","intent":"CONTACTS","action":"SHOW_CONTACTS","lang":"en"}
+{"text":"адрес склада в астане","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"адрес склада в москве","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"что за бренд laute?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Телефон офиса и отдела продаж","intent":"CONTACTS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"I want to buy a faucet","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"en"}
+{"text":"Какой у вас ассортимент","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"ru"}
+{"text":"электронная почта и реквизиты","intent":"CONTACTS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"Detailed specifications of this model","intent":"PRODUCT_DETAILS","action":"SHOW_PRODUCT","lang":"en"}

@@ -1,0 +1,66 @@
+{"text":"office contacts and phone numbers","intent":"CONTACTS","action":"SHOW_CONTACTS","lang":"en"}
+{"text":"warehouse addresses in almaty and moscow","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"en"}
+{"text":"смеситель prime k-10","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"Какой сейчас курс доллара","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Flexible spout kitchen faucets","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"en"}
+{"text":"какая завтра погода?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Благодарю","intent":"HELP","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Как связаться с LAUTE","intent":"CONTACTS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"Есть ли товар в наличии на складе","intent":"STOCK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"ээээээээ","intent":"UNKNOWN","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Where is LAUTE manufactured?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Company mission and manufacturing vision","intent":"ABOUT_COMPANY","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"хочу чорный кран на кухню","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"Какой остаток товара на складе","intent":"STOCK","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"подбери что-нибудь надежное","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"где производят сантехнику laute?","intent":"ABOUT_LAUTE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"How to contact sales support","intent":"CONTACTS","action":"SHOW_CONTACTS","lang":"en"}
+{"text":"Where can I see retail prices?","intent":"PRICE","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Кеңсе телефоны және байланыс","intent":"CONTACTS","action":"SHOW_CONTACTS","lang":"kz"}
+{"text":"сравни этот смеситель и тот","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"ru"}
+{"text":"quadro filter смеситель","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"Осы екі араластырғышты салыстыр","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"kz"}
+{"text":"До свидания","intent":"GOODBYE","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"наполеон кім болған?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"kz"}
+{"text":"Посоветуйте надежный смеситель","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"ru"}
+{"text":"Посоветуй хороший фильм на вечер","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Compare these two models","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"en"}
+{"text":"Show product lines","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"en"}
+{"text":"қара түсті қолжуғыш смесительдері","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"kz"}
+{"text":"Quadro Filter смеситель","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"Сравни этот смеситель и тот","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"ru"}
+{"text":"recommend a good mixer","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"en"}
+{"text":"Қара түсті қолжуғыш смесительдері","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"kz"}
+{"text":"какой сейчас курс доллара?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Алматыдағы қойманың мекенжайы","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"kz"}
+{"text":"Адрес склада в Астане","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"How do I place an order request","intent":"APPLICATION","action":"SHOW_CONTACTS","lang":"en"}
+{"text":"контакты компании laute","intent":"CONTACTS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"астанадағы қойманың мекенжайы","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"kz"}
+{"text":"подробные характеристики prime k-10","intent":"PRODUCT_DETAILS","action":"SHOW_PRODUCT","lang":"ru"}
+{"text":"Warehouse addresses in Almaty and Moscow","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"en"}
+{"text":"detailed specifications of this model","intent":"PRODUCT_DETAILS","action":"SHOW_PRODUCT","lang":"en"}
+{"text":"Office contacts and phone numbers","intent":"CONTACTS","action":"SHOW_CONTACTS","lang":"en"}
+{"text":"Маған кран таңдап берші","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"kz"}
+{"text":"Чем отличается смеситель для кухни от смесителя для ванной","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"ru"}
+{"text":"Асүй мен ванна смесительдерінің айырмашылығы қандай?","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"kz"}
+{"text":"Асүйге арналған араластырғыштарды көрсет","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"kz"}
+{"text":"Show black bathroom faucets","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"en"}
+{"text":"өнімнің толық сипаттамасы","intent":"PRODUCT_DETAILS","action":"SHOW_PRODUCT","lang":"kz"}
+{"text":"Өнімнің толық сипаттамасы","intent":"PRODUCT_DETAILS","action":"SHOW_PRODUCT","lang":"kz"}
+{"text":"как осуществляется доставка?","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"Что приготовить на обед?","intent":"OFF_TOPIC","action":"TEXT_RESPONSE","lang":"ru"}
+{"text":"can i pick up orders from the warehouse?","intent":"DELIVERY","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"Где находятся ваши склады?","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"ru"}
+{"text":"flexible spout kitchen faucets","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"en"}
+{"text":"Черный матовый смеситель на кухню","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"I need a mixer tap","intent":"PRODUCT_SELECTION","action":"ASK_CLARIFICATION","lang":"en"}
+{"text":"кеңсе телефоны және байланыс","intent":"CONTACTS","action":"SHOW_CONTACTS","lang":"kz"}
+{"text":"Покажи хромированные смесители для мойки","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"Where are your regional warehouses?","intent":"REGIONS","action":"SHOW_CONTACTS","lang":"en"}
+{"text":"high body basin faucets for vessel sinks","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"en"}
+{"text":"Чем отличается модель Prime K-10 от Quadro Filter?","intent":"PRODUCT_COMPARISON","action":"COMPARE_PRODUCTS","lang":"ru"}
+{"text":"What is a ceramic cartridge","intent":"TECHNICAL_QUESTION","action":"TEXT_RESPONSE","lang":"en"}
+{"text":"покажи хромированные смесители для мойки","intent":"PRODUCT_SEARCH","action":"SHOW_PRODUCTS","lang":"ru"}
+{"text":"какой у вас ассортимент?","intent":"ABOUT_PRODUCTS","action":"SHOW_CATEGORY","lang":"ru"}
+{"text":"Ты искусственный интеллект?","intent":"ABOUT_AI","action":"TEXT_RESPONSE","lang":"ru"}
