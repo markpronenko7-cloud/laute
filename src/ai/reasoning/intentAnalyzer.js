@@ -223,6 +223,20 @@ export class IntentAnalyzer {
       return { intent: INTENTS.CAPABILITIES, lang, entities: {} };
     }
 
+    if (
+      q.includes('возможност') ||
+      q.includes('партнер') ||
+      q.includes('сотрудничеств') ||
+      q.includes('дилер') ||
+      q.includes('опт') ||
+      q.includes('b2b') ||
+      q.includes('серіктес') ||
+      q.includes('ынтымақтастық') ||
+      q.includes('partnership')
+    ) {
+      return { intent: INTENTS.COMPANY_INFO, subType: 'partnership_analysis', lang, entities: {} };
+    }
+
     if (q.includes('о компании') || q.includes('про laute') || q.includes('о бренде') || q.includes('о laute') || q.includes('компания туралы')) {
       return { intent: INTENTS.COMPANY_INFO, lang, entities: {} };
     }

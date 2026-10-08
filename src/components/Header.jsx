@@ -118,7 +118,7 @@ export const Header = () => {
                   className={`nav-link ${currentRoute === 'catalog' ? 'active' : ''}`} 
                   onClick={() => handleNavClick('catalog')}
                 >
-                  {t.nav.products || t.nav.catalog || 'Продукция'}
+                  {t.nav.catalog || t.nav.products || 'Каталог'}
                 </button>
               </li>
               <li>
@@ -154,7 +154,7 @@ export const Header = () => {
                   className={`nav-link ${currentRoute === 'service' ? 'active' : ''}`} 
                   onClick={() => handleNavClick('service')}
                 >
-                  {t.nav.service || 'Сервис и гарантия'}
+                  {t.nav.service || 'Первый цифровой сервис'}
                 </button>
               </li>
               <li>
@@ -292,7 +292,7 @@ export const Header = () => {
                 className={`mobile-nav-link ${currentRoute === 'catalog' ? 'active' : ''}`}
                 onClick={() => handleNavClick('catalog')}
               >
-                {t.nav.products || t.nav.catalog || 'Продукция'}
+                {t.nav.catalog || t.nav.products || 'Каталог'}
               </button>
             </li>
             <li>
@@ -328,7 +328,7 @@ export const Header = () => {
                 className={`mobile-nav-link ${currentRoute === 'service' ? 'active' : ''}`}
                 onClick={() => handleNavClick('service')}
               >
-                {t.nav.service || 'Сервис и гарантия'}
+                {t.nav.service || 'Первый цифровой сервис'}
               </button>
             </li>
             <li>

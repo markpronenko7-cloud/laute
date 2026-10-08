@@ -118,6 +118,23 @@ export const AIConsultant = () => {
     }
   }, [isAIConsultantOpen]);
 
+  // Listen for partnership analysis CTA trigger
+  useEffect(() => {
+    const handlePartnerAnalysisEvent = () => {
+      const promptText = lang === 'kz'
+        ? 'LAUTE-мен серіктестік мүмкіндіктерін талдағым келеді'
+        : lang === 'en'
+        ? 'I would like to analyze partnership opportunities with LAUTE'
+        : 'Здравствуйте! Я хочу проанализировать возможности сотрудничества с LAUTE для моей компании';
+      setTimeout(() => {
+        handleSendMessage(promptText);
+      }, 150);
+    };
+
+    window.addEventListener('laute:ai:partner-analysis', handlePartnerAnalysisEvent);
+    return () => window.removeEventListener('laute:ai:partner-analysis', handlePartnerAnalysisEvent);
+  }, [lang]);
+
   const getImgUrl = (path) => {
     if (!path) return `${baseUrl}laute-logo.png`;
     if (path.startsWith('http://') || path.startsWith('https://')) return path;

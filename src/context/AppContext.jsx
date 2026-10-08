@@ -127,14 +127,59 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem('laute_lang', lang);
     document.documentElement.lang = lang === 'kz' ? 'kk' : lang;
     
-    if (translations[lang]?.meta) {
-      document.title = translations[lang].meta.title;
-      const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc) {
-        metaDesc.setAttribute('content', translations[lang].meta.description);
-      }
+    let pageTitle = translations[lang]?.meta?.title || 'LAUTE — Завод смесителей и инженерной сантехники | Официальный сайт';
+    let pageDesc = translations[lang]?.meta?.description || '';
+
+    if (currentRoute === 'catalog') {
+      const catTitles = {
+        ru: 'Каталог сантехники LAUTE — Кухонные смесители, пространства ванных комнат, душевые зоны',
+        kz: 'LAUTE сантехника каталогы — Асүй араластырғыштары, ванна бөлмелері, душ жүйелері',
+        en: 'LAUTE Sanitary Catalog — Kitchen Faucets, Bathroom Spaces, Shower Systems'
+      };
+      pageTitle = catTitles[lang] || catTitles.ru;
+    } else if (currentRoute === 'service') {
+      const srvTitles = {
+        ru: 'Первый цифровой сервис LAUTE — Сервисное обслуживание и гарантийная поддержка сантехники',
+        kz: 'LAUTE бірінші сандық сервисі — Қызмет көрсету және кепілдік қолдау',
+        en: 'LAUTE First Digital Service — Warranty Support & Technical Service'
+      };
+      pageTitle = srvTitles[lang] || srvTitles.ru;
+    } else if (currentRoute === 'partners') {
+      const partTitles = {
+        ru: 'Партнёрство B2B LAUTE — Развиваемся вместе | Оптовые поставки сантехники от завода',
+        kz: 'LAUTE B2B серіктестігі — Бірге дамимыз | Сантехниканы көтерме жеткізу',
+        en: 'LAUTE B2B Partnership — Growing Together | Wholesale Sanitary Solutions'
+      };
+      pageTitle = partTitles[lang] || partTitles.ru;
+    } else if (currentRoute === 'company') {
+      const compTitles = {
+        ru: 'О компании LAUTE — Немецкие инженерные технологии и культура сантехники',
+        kz: 'LAUTE компаниясы туралы — Неміс инженерлік технологиялары мен мәдениеті',
+        en: 'About LAUTE — German Engineering Standards & Sanitary Excellence'
+      };
+      pageTitle = compTitles[lang] || compTitles.ru;
+    } else if (currentRoute === 'where-to-buy') {
+      const buyTitles = {
+        ru: 'Где купить продукцию LAUTE — Дилерская сеть и официальные точки продаж',
+        kz: 'LAUTE өнімдерін қайдан сатып алуға болады — Дилерлік желі',
+        en: 'Where to Buy LAUTE — Official Dealers & Distribution Network'
+      };
+      pageTitle = buyTitles[lang] || buyTitles.ru;
+    } else if (currentRoute === 'contacts') {
+      const conTitles = {
+        ru: 'Контакты завода LAUTE — Отдел оптовых продаж и региональные офисы',
+        kz: 'LAUTE зауытының байланыстары — Көтерме сату бөлімі',
+        en: 'LAUTE Contacts — Wholesale Department & Global Offices'
+      };
+      pageTitle = conTitles[lang] || conTitles.ru;
     }
-  }, [lang]);
+
+    document.title = pageTitle;
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc && pageDesc) {
+      metaDesc.setAttribute('content', pageDesc);
+    }
+  }, [lang, currentRoute]);
 
   useEffect(() => {
     localStorage.setItem('laute_region', region);
@@ -173,6 +218,10 @@ export const AppProvider = ({ children }) => {
     openAIConsultant: () => setIsAIModalOpen(true),
     closeAIConsultant: () => setIsAIModalOpen(false),
     toggleAIConsultant: () => setIsAIModalOpen(prev => !prev),
+    startAIPartnerAnalysis: () => {
+      setIsAIModalOpen(true);
+      window.dispatchEvent(new CustomEvent('laute:ai:partner-analysis'));
+    },
     isAuthModalOpen,
     openAuthModal: () => setIsAuthModalOpen(true),
     closeAuthModal: () => setIsAuthModalOpen(false),

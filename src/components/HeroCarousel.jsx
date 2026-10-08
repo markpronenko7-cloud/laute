@@ -19,9 +19,9 @@ export const HeroCarousel = () => {
       id: 'brand',
       image: `${baseUrl}images/hero/hero-slide-1.jpg`,
       showLargeLogo: true,
-      tagline: 'LAUTE',
-      title: t.home?.heroSlides?.[0]?.title || 'Смесители для современных пространств.',
-      buttonText: t.home?.heroSlides?.[0]?.buttonText || 'Смотреть продукцию',
+      tagline: t.home?.heroSlides?.[0]?.tagline || 'LAUTE®',
+      title: t.home?.heroSlides?.[0]?.title || 'Управляй водой грамотно',
+      buttonText: t.home?.heroSlides?.[0]?.buttonText || 'Каталог',
       action: () => navigateTo('catalog'),
       buttonId: 'hero-slide1-btn'
     },
@@ -29,9 +29,9 @@ export const HeroCarousel = () => {
       id: 'shower',
       image: `${baseUrl}images/hero/hero-slide-2.jpg`,
       showLargeLogo: false,
-      tagline: 'ДУШЕВЫЕ СИСТЕМЫ LAUTE',
-      title: t.home?.heroSlides?.[1]?.title || 'Вода, продуманная иначе.',
-      buttonText: t.home?.heroSlides?.[1]?.buttonText || 'Открыть LAUTE',
+      tagline: t.home?.heroSlides?.[1]?.tagline || 'ДУШЕВЫЕ СИСТЕМЫ LAUTE',
+      title: t.home?.heroSlides?.[1]?.title || 'Вода, наполняющая жизнь',
+      buttonText: t.home?.heroSlides?.[1]?.buttonText || 'Смотреть каталог',
       action: () => navigateTo('catalog'),
       buttonId: 'hero-slide2-btn'
     },
@@ -39,7 +39,7 @@ export const HeroCarousel = () => {
       id: 'kitchen',
       image: `${baseUrl}images/hero/hero-slide-3.jpg`,
       showLargeLogo: false,
-      tagline: 'КУХОННЫЕ РЕШЕНИЯ',
+      tagline: t.home?.heroSlides?.[2]?.tagline || 'КУХОННЫЕ РЕШЕНИЯ',
       title: t.home?.heroSlides?.[2]?.title || 'Функциональность встречается с дизайном.',
       buttonText: t.home?.heroSlides?.[2]?.buttonText || 'Смотреть коллекцию',
       action: () => navigateTo('catalog'),
@@ -49,21 +49,40 @@ export const HeroCarousel = () => {
       id: 'partnership',
       image: `${baseUrl}images/hero/hero-slide-4.jpg`,
       showLargeLogo: false,
-      tagline: 'МЕЖДУНАРОДНОЕ СОТРУДНИЧЕСТВО',
-      title: t.home?.heroSlides?.[3]?.title || 'Развиваем рынок вместе.',
+      tagline: t.home?.heroSlides?.[3]?.tagline || 'ПАРТНЁРСТВО B2B',
+      title: t.home?.heroSlides?.[3]?.title || 'Развиваемся вместе',
+      subtitle: t.home?.heroSlides?.[3]?.subtitle || 'Наша работа — это забота о вашей прибыли.',
       buttonText: t.home?.heroSlides?.[3]?.buttonText || 'Стать партнёром',
       action: openPartnerModal,
       buttonId: 'hero-slide4-btn'
     },
     {
-      id: 'support',
+      id: 'business',
       image: `${baseUrl}images/hero/hero-slide-5.jpg`,
       showLargeLogo: true,
-      tagline: 'ПРОИЗВОДИТЕЛЬ LAUTE',
-      title: t.home?.heroSlides?.[4]?.title || 'Продукция. Партнёрство. Поддержка.',
-      buttonText: t.home?.heroSlides?.[4]?.buttonText || 'Узнать больше',
+      tagline: t.home?.heroSlides?.[4]?.tagline || 'ПРОИЗВОДИТЕЛЬ LAUTE',
+      title: t.home?.heroSlides?.[4]?.title || 'Смешивая воду. Бизнес и Технологии.',
+      buttonText: t.home?.heroSlides?.[4]?.buttonText || 'О компании',
       action: () => navigateTo('company'),
       buttonId: 'hero-slide5-btn'
+    },
+    {
+      id: 'materials',
+      image: `${baseUrl}images/hero/hero-slide-6.jpg`,
+      showLargeLogo: false,
+      tagline: t.home?.heroSlides?.[5]?.tagline || 'ИНЖЕНЕРНАЯ ФИЛОСОФИЯ LAUTE',
+      title: t.home?.heroSlides?.[5]?.title || 'Интеллект и экологичность в деталях.',
+      subtitle: t.home?.heroSlides?.[5]?.subtitle || 'SUS304 · ЭКО алюминий · Латунь А+ · PVD-покрытие',
+      buttonText: t.home?.heroSlides?.[5]?.buttonText || 'Смотреть технологии',
+      action: () => {
+        const el = document.getElementById('technologies');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          navigateTo('catalog');
+        }
+      },
+      buttonId: 'hero-slide6-btn'
     }
   ];
 
@@ -88,7 +107,7 @@ export const HeroCarousel = () => {
     return () => clearInterval(timer);
   }, [isPaused, nextSlide, activeSlide]);
 
-  // Preload slides 2-5 after component mounts for instant transitions without initial lag
+  // Preload slides after component mounts for instant transitions without initial lag
   useEffect(() => {
     const preloadImages = () => {
       slidesData.slice(1).forEach((slide) => {
@@ -97,7 +116,7 @@ export const HeroCarousel = () => {
       });
     };
     if (typeof window !== 'undefined') {
-      const id = setTimeout(preloadImages, 500);
+      const id = setTimeout(preloadImages, 400);
       return () => clearTimeout(id);
     }
   }, []);
@@ -185,10 +204,23 @@ export const HeroCarousel = () => {
                   </div>
                 )}
 
-                {/* Main Headline */}
-                <h1 className="hero-slide-title">
-                  {withBrandWord(slide.title)}
-                </h1>
+                {/* Main Headline: Single semantic H1 on page for slide 1 */}
+                {index === 0 ? (
+                  <h1 className="hero-slide-title">
+                    {withBrandWord(slide.title)}
+                  </h1>
+                ) : (
+                  <h2 className="hero-slide-title">
+                    {withBrandWord(slide.title)}
+                  </h2>
+                )}
+
+                {/* Subtitle / Strong explanation for slides 4 & 6 */}
+                {slide.subtitle && (
+                  <p className="hero-slide-subtitle">
+                    {withBrandWord(slide.subtitle)}
+                  </p>
+                )}
 
                 {/* Action Button */}
                 <div className="hero-slide-action-wrap">

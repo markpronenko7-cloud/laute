@@ -5,4 +5,4 @@ Disallow: /api/
 Disallow: /b2b-cabinet/
 
 Sitemap: https://markpronenko7-cloud.github.io/laute/sitemap.xml
-
+Host: https://markpronenko7-cloud.github.io

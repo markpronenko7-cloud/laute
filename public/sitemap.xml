@@ -2,46 +2,75 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://markpronenko7-cloud.github.io/laute/</loc>
-    <lastmod>2026-10-04</lastmod>
+    <lastmod>2026-10-08</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="ru" href="https://markpronenko7-cloud.github.io/laute/?lang=ru" />
     <xhtml:link rel="alternate" hreflang="kk" href="https://markpronenko7-cloud.github.io/laute/?lang=kz" />
     <xhtml:link rel="alternate" hreflang="en" href="https://markpronenko7-cloud.github.io/laute/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://markpronenko7-cloud.github.io/laute/" />
   </url>
   <url>
     <loc>https://markpronenko7-cloud.github.io/laute/catalog</loc>
-    <lastmod>2026-10-04</lastmod>
-    <changefreq>weekly</changefreq>
+    <lastmod>2026-10-08</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://markpronenko7-cloud.github.io/laute/catalog?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="kk" href="https://markpronenko7-cloud.github.io/laute/catalog?lang=kz" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://markpronenko7-cloud.github.io/laute/catalog?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://markpronenko7-cloud.github.io/laute/catalog" />
+  </url>
+  <url>
+    <loc>https://markpronenko7-cloud.github.io/laute/catalog?category=kitchen-mixers</loc>
+    <lastmod>2026-10-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://markpronenko7-cloud.github.io/laute/catalog?category=basin-mixers</loc>
+    <lastmod>2026-10-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://markpronenko7-cloud.github.io/laute/catalog?category=bath-mixers</loc>
+    <lastmod>2026-10-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://markpronenko7-cloud.github.io/laute/catalog?category=shower-systems</loc>
+    <lastmod>2026-10-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
   </url>
   <url>
     <loc>https://markpronenko7-cloud.github.io/laute/company</loc>
-    <lastmod>2026-10-04</lastmod>
+    <lastmod>2026-10-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://markpronenko7-cloud.github.io/laute/partners</loc>
-    <lastmod>2026-10-04</lastmod>
+    <lastmod>2026-10-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://markpronenko7-cloud.github.io/laute/where-to-buy</loc>
-    <lastmod>2026-10-04</lastmod>
+    <lastmod>2026-10-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://markpronenko7-cloud.github.io/laute/service</loc>
-    <lastmod>2026-10-04</lastmod>
+    <lastmod>2026-10-08</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.85</priority>
   </url>
   <url>
     <loc>https://markpronenko7-cloud.github.io/laute/contacts</loc>
-    <lastmod>2026-10-04</lastmod>
+    <lastmod>2026-10-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>

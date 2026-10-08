@@ -9,32 +9,33 @@ export const CollectionsSection = () => {
   const collectionsData = [
     {
       id: 'bathroom',
-      title: 'Ванные пространства',
+      title: t.home?.spacesBathroom || 'Пространства ванных комнат',
       subtitle: 'Смесители для раковин, накладных чаш и ванн с чистой архитектурной геометрией',
-      categoryBadge: 'ВАННАЯ КОМНАТА',
+      categoryBadge: (t.home?.spacesBathroom || 'ПРОСТРАНСТВА ВАННЫХ КОМНАТ').toUpperCase(),
       image: `${baseUrl}images/collections/coll-bathroom.jpg`,
       layoutClass: 'collection-card-featured'
     },
     {
       id: 'kitchen',
-      title: 'Кухонные системы',
-      subtitle: 'Функциональные смесители с поворотным и выдвижным изливом для современных моек',
-      categoryBadge: 'КУХНЯ',
+      title: t.home?.spacesKitchen || 'Кухонные смесители',
+      subtitle: 'Функциональные смесители с поворотным и гибким изливом. Модели со встроенным каналом для подключения к системе фильтрации питьевой воды.',
+      categoryBadge: (t.home?.spacesKitchen || 'КУХОННЫЕ СМЕСИТЕЛИ').toUpperCase(),
+      filterFeatureBadge: t.home?.spacesKitchenFilter || 'С подключением к системе фильтрации чистой воды',
       image: `${baseUrl}images/collections/coll-kitchen.jpg`,
       layoutClass: 'collection-card-standard'
     },
     {
       id: 'shower',
-      title: 'Душевые зоны',
-      subtitle: 'Встраиваемые решения, термостатический контроль и тропический душ',
-      categoryBadge: 'ДУШЕВАЯ ЗОНА',
+      title: t.home?.spacesShower || 'Душевые зоны и кабины',
+      subtitle: 'Встраиваемые решения, термостатический контроль, тропический душ и надежные душевые кабины',
+      categoryBadge: (t.home?.spacesShower || 'ДУШЕВЫЕ ЗОНЫ И КАБИНЫ').toUpperCase(),
       image: `${baseUrl}images/collections/coll-shower.jpg`,
       layoutClass: 'collection-card-standard'
     },
     {
       id: 'engineering',
-      title: 'Инженерная линия',
-      subtitle: 'Высокоточная латунь CW617N, ресурсные керамические картриджи и многослойные покрытия',
+      title: t.home?.techBadge || 'Технологии & Материалы',
+      subtitle: 'Нержавеющая сталь SUS304, ЭКО алюминий, испанские картриджи Sedal, латунь А+ и PVD-покрытие',
       categoryBadge: 'ТЕХНОЛОГИИ & МАТЕРИАЛЫ',
       image: `${baseUrl}images/collections/coll-engineering.jpg`,
       layoutClass: 'collection-card-wide'
@@ -52,7 +53,7 @@ export const CollectionsSection = () => {
             {withBrandWord(t.home?.collectionsTitle || 'Коллекции LAUTE')}
           </h2>
           <p className="section-desc collections-desc">
-            {withBrandWord(t.home?.collectionsDesc || 'Смесители, душевые решения и сантехническое оборудование, объединённые единой философией надежности и чистоты формы.')}
+            {withBrandWord(t.home?.collectionsDesc || 'Смесители, душевые зоны, кабины и сантехническое оборудование, объединённые единой философией надежности и чистоты формы.')}
           </p>
         </div>
 
@@ -79,6 +80,11 @@ export const CollectionsSection = () => {
               <div className="collection-glass-caption">
                 <div className="collection-caption-top">
                   <span className="collection-pill-tag">{item.categoryBadge}</span>
+                  {item.filterFeatureBadge && (
+                    <span className="collection-pill-tag collection-pill-filter">
+                      {item.filterFeatureBadge}
+                    </span>
+                  )}
                 </div>
                 <h3 className="collection-caption-heading">{item.title}</h3>
                 <p className="collection-caption-desc">{item.subtitle}</p>

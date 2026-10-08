@@ -125,6 +125,32 @@ export class ResponseSynthesizer {
       };
     }
 
+    // 4.5. Анализ возможностей партнерства (Partnership Opportunity Analysis)
+    if (intent === INTENTS.COMPANY_INFO && subType === 'partnership_analysis') {
+      if (lang === 'kz') {
+        return {
+          text: 'LAUTE-мен ынтымақтастық мүмкіндіктерін талдауға көмектесемін:\n\n1. Сіздің компанияңыздың бағыты қандай: өңірлік дистрибьюция, бөлшек сауда желісі, құрылыс нысандарын жинақтау немесе монтаждау ұйымы?\n2. Қай өңірде жұмыс істейсіз?\n3. Қандай өнім номенклатурасы қызықтырады?\n\nЖауабыңызды жазыңыз, мен мүмкіндіктерді анықтап, өңірлік менеджерге нақты сұраныс дайындауға көмектесемін.',
+          quickChips: ['Өңірлік дистрибьюция', 'Құрылыс нысанын жинақтау', 'Бөлшек сауда салоны', 'Монтаж ұйымы'],
+          recommendedProducts: [],
+          newContext: { ...wm, lastTopic: 'partnership_analysis', lastAiQuestion: 'ask_partner_type' }
+        };
+      }
+      if (lang === 'en') {
+        return {
+          text: 'I will gladly help analyze partnership opportunities with LAUTE for your business:\n\n1. What is your primary business profile: regional wholesale distribution, retail sanitary showrooms, construction developer supply, or plumbing contractor?\n2. What geographic region/market do you operate in?\n3. Do you require project specification or regular warehouse supplies?\n\nTell me about your business and I will outline available cooperation formats.',
+          quickChips: ['Wholesale distribution', 'Developer project spec', 'Retail showroom', 'Installation contractor'],
+          recommendedProducts: [],
+          newContext: { ...wm, lastTopic: 'partnership_analysis', lastAiQuestion: 'ask_partner_type' }
+        };
+      }
+      return {
+        text: 'Я помогу проанализировать варианты сотрудничества с LAUTE для вашей компании без лишней бюрократии:\n\n1. Какой формат ближе вашей деятельности: оптовая дистрибьюция, торговая сеть/салон сантехники, комплектация строительного объекта или монтажные работы?\n2. В каком городе и регионе вы работаете?\n3. Требуется ли подбор спецификации под конкретный проект или регулярные оптовые поставки складской номенклатуры?\n\nНапишите кратко о вашей компании — и я сориентирую по доступным возможностям сотрудничества.',
+        quickChips: ['Оптовая дистрибьюция', 'Комплектация объекта', 'Розничная сеть / салон', 'Монтажная организация'],
+        recommendedProducts: [],
+        newContext: { ...wm, lastTopic: 'partnership_analysis', lastAiQuestion: 'ask_partner_type' }
+      };
+    }
+
     // 5. Расскажи о компании LAUTE
     if (intent === INTENTS.COMPANY_INFO) {
       return {

@@ -1,25 +1,25 @@
 export const translations = {
   "ru": {
     "meta": {
-      "title": "LAUTE — завод смесителей | Смесители и комплектующие для кухни и ванной комнаты",
-      "description": "LAUTE — завод смесителей, душевых систем, кухонных моек и комплектующих. Продукция для жилых пространств и профессиональных проектов."
+      "title": "LAUTE — Завод смесителей и инженерной сантехники | Официальный сайт",
+      "description": "Официальный сайт завода сантехники LAUTE: кухонные смесители с подключением к фильтру, пространства ванных комнат, душевые зоны и кабины, испанские картриджи Sedal, латунь А+, PVD-покрытия и Первый цифровой сервис."
     },
     "nav": {
       "home": "Главная",
-      "products": "Продукция",
-      "catalog": "Продукция",
+      "products": "Каталог",
+      "catalog": "Каталог",
       "about": "О LAUTE",
       "company": "О LAUTE",
       "production": "О LAUTE",
       "partners": "Партнёрам",
       "whereToBuy": "Где купить",
-      "service": "Сервис и гарантия",
+      "service": "Первый цифровой сервис",
       "contacts": "Контакты",
       "clientCabinet": "Кабинет партнера",
       "language": "Язык сайта",
       "region": "Ваш регион",
       "requestQuote": "Стать партнёром",
-      "viewProducts": "Смотреть продукцию",
+      "viewProducts": "Смотреть каталог",
       "aiHelp": "Подобрать",
       "aiPick": "AI-консультант",
       "aiConsultant": "AI-консультант"
@@ -37,29 +37,61 @@ export const translations = {
     "home": {
       "heroSlides": [
         {
-          "title": "Смесители для современных пространств.",
-          "buttonText": "Смотреть продукцию"
+          "tagline": "LAUTE®",
+          "title": "Управляй водой грамотно",
+          "buttonText": "Каталог"
         },
         {
-          "title": "Вода, продуманная иначе.",
-          "buttonText": "Открыть LAUTE"
+          "tagline": "ДУШЕВЫЕ СИСТЕМЫ LAUTE",
+          "title": "Вода, наполняющая жизнь",
+          "buttonText": "Смотреть каталог"
         },
         {
+          "tagline": "КУХОННЫЕ РЕШЕНИЯ",
           "title": "Функциональность встречается с дизайном.",
           "buttonText": "Смотреть коллекцию"
         },
         {
-          "title": "Развиваем рынок вместе.",
+          "tagline": "ПАРТНЁРСТВО B2B",
+          "title": "Развиваемся вместе",
+          "subtitle": "Наша работа — это забота о вашей прибыли.",
           "buttonText": "Стать партнёром"
         },
         {
-          "title": "Продукция. Партнёрство. Поддержка.",
-          "buttonText": "Узнать больше"
+          "tagline": "ПРОИЗВОДИТЕЛЬ LAUTE",
+          "title": "Смешивая воду. Бизнес и Технологии.",
+          "buttonText": "О компании"
+        },
+        {
+          "tagline": "ИНЖЕНЕРНАЯ ФИЛОСОФИЯ LAUTE",
+          "title": "Интеллект и экологичность в деталях.",
+          "subtitle": "SUS304 · ЭКО алюминий · Латунь А+ · PVD-покрытие",
+          "buttonText": "Смотреть технологии"
         }
       ],
+      "aiPartnershipTitle": "Проанализируйте свои возможности с AI LAUTE",
+      "aiPartnershipDesc": "Цифровой интеллект LAUTE задаст несколько уточняющих вопросов, поможет сформулировать профиль потребностей вашего бизнеса и определит формат взаимодействия без лишней бюрократии.",
+      "aiPartnershipBtn": "Начать анализ",
+      "techBadge": "ТЕХНОЛОГИИ & МАТЕРИАЛЫ",
+      "techTitle": "Инженерная надежность в каждой детали",
+      "techDesc": "Никаких компромиссов: первичная конструкционная латунь, пищевая нержавеющая сталь SUS304, ЭКО алюминий, испанские картриджи Sedal и молекулярное вакуумное PVD-осаждение.",
+      "sus304Title": "Нержавеющая сталь SUS304",
+      "sus304Desc": "Пищевая аустенитная нержавеющая сталь с высоким содержанием хрома и никеля. Абсолютная устойчивость к коррозии и благородная матовая сатинированная фактура.",
+      "ecoAluTitle": "ЭКО алюминий",
+      "ecoAluDesc": "Конструкционный анодированный алюминиевый профиль. Экологичный и долговечный металл высокой жесткости для душевых перегородок и кабин.",
+      "sedalTitle": "Испанские картриджи Sedal",
+      "sedalDesc": "Керамические картриджи от европейского производителя Sedal (Испания, осн. 1974). Диски из спеченной керамики с микрозеркальной алмазной полировкой, тестирование до 500 000 рабочих циклов по европейскому стандарту EN 817. Плавный ход рычага и термостойкость до 90°C.",
+      "brassEccentricTitle": "Сверхпрочные эксцентрики из латуни А+",
+      "brassEccentricDesc": "Массивные монтажные S-образные переходники из первичной конструкционной латуни марки А+. Прецизионная резьба 1/2\" на 3/4\" и плотная металлическая структура для надежного настенного монтажа смесителей.",
+      "pvdTitle": "PVD-покрытие",
+      "pvdDesc": "PVD — технология нанесения прочного декоративно-защитного покрытия в вакууме на молекулярном уровне. Стойкость к истиранию и безупречная глубина цвета.",
+      "spacesBathroom": "Пространства ванных комнат",
+      "spacesKitchen": "Кухонные смесители",
+      "spacesKitchenFilter": "С подключением к системе фильтрации чистой воды (модели 2-в-1)",
+      "spacesShower": "Душевые зоны и кабины",
       "collectionsBadge": "АРХИТЕКТУРНЫЕ ЛИНИИ",
       "collectionsTitle": "Коллекции LAUTE",
-      "collectionsDesc": "Смесители, душевые решения и сантехническое оборудование, объединённые единой философией надежности и чистоты формы.",
+      "collectionsDesc": "Смесители, душевые зоны, кабины и сантехническое оборудование, объединённые единой философией надежности и чистоты формы.",
       "aiBannerBadge": "ИНТЕЛЛЕКТУАЛЬНЫЙ ПОДБОР LAUTE",
       "aiBannerTitle": "Подобрать продукт с AI",
       "aiBannerDesc": "Ответьте на несколько вопросов — AI поможет подобрать подходящее решение LAUTE.",
@@ -151,7 +183,7 @@ export const translations = {
       "step1Title": "Литьё корпусов смесителей",
       "step1Desc": "Изготовление прочных латунных и металлических отливок с контролем однородности стенок и отсутствия скрытых раковин.",
       "step2Title": "Роботизированная мехобработка",
-      "step2Desc": "Высокоточная фрезеровка и нарезка резьбовых соединений на автоматизированных центрах с ЧПУ.",
+      "step2Desc": "Прецизионная фрезеровка и нарезка резьбовых соединений на автоматизированных центрах с ЧПУ.",
       "step3Title": "Многоэтапная полировка",
       "step3Desc": "Шлифовка и финишная полировка поверхностей для идеального сцепления с гальваническим покрытием.",
       "step4Title": "Нанесение защитных покрытий",
@@ -304,25 +336,25 @@ export const translations = {
   },
   "kz": {
     "meta": {
-      "title": "LAUTE — араластырғыштар зауыты | Асүй мен жуынатын бөлмеге арналған араластырғыштар мен жиынтықтауыштар",
-      "description": "LAUTE — араластырғыштар, душ жүйелері, асүйлік жуғыштар және жиынтықтауыштар зауыты. Тұрғын кеңістіктер мен кәсіби жобаларға арналған өнімдер."
+      "title": "LAUTE — Араластырғыштар мен инженерлік сантехника зауыты | Ресми сайт",
+      "description": "LAUTE ресми сантехника зауыты: сүзгіге қосылатын асүй араластырғыштары, жуынатын бөлме кеңістіктері, душ аймақтары мен кабиналары, испандық Sedal картридждері, А+ жезі, PVD жабындары және Алғашқы цифрлық сервис."
     },
     "nav": {
       "home": "Басты бет",
-      "products": "Өнімдер",
-      "catalog": "Өнімдер",
+      "products": "Каталог",
+      "catalog": "Каталог",
       "about": "LAUTE туралы",
       "company": "LAUTE туралы",
       "production": "LAUTE туралы",
       "partners": "Серіктестерге",
       "whereToBuy": "Қайдан сатып алуға болады",
-      "service": "Сервис және кепілдік",
+      "service": "Алғашқы цифрлық сервис",
       "contacts": "Байланыс",
       "clientCabinet": "Серіктес кабинеті",
       "language": "Сайт тілі",
       "region": "Өңіріңіз",
       "requestQuote": "Серіктес болу",
-      "viewProducts": "Өнімдерді көру",
+      "viewProducts": "Каталогты қарау",
       "aiHelp": "Таңдау",
       "aiPick": "AI кеңесшісі",
       "aiConsultant": "AI кеңесшісі"
@@ -340,26 +372,58 @@ export const translations = {
     "home": {
       "heroSlides": [
         {
-          "title": "Заманауи кеңістіктерге арналған араластырғыштар.",
-          "buttonText": "Өнімдерді қарау"
+          "tagline": "LAUTE®",
+          "title": "Суды сауатты басқарыңыз",
+          "buttonText": "Каталог"
         },
         {
-          "title": "Басқаша ойластырылған су.",
-          "buttonText": "LAUTE ашу"
+          "tagline": "LAUTE ДУШ ЖҮЙЕЛЕРІ",
+          "title": "Өмірге нәр беретін су",
+          "buttonText": "Каталогты қарау"
         },
         {
+          "tagline": "АСҮЙ ШЕШІМДЕРІ",
           "title": "Функционалдылық дизайнмен тоғысады.",
           "buttonText": "Топтаманы қарау"
         },
         {
-          "title": "Нарықты бірге дамытамыз.",
+          "tagline": "B2B СЕРІКТЕСТІК",
+          "title": "Бірге дамимыз",
+          "subtitle": "Біздің жұмысымыз — сіздің пайдаңызды ойлау.",
           "buttonText": "Серіктес болу"
         },
         {
-          "title": "Өнімдер. Серіктестік. Қолдау.",
-          "buttonText": "Толығырақ білу"
+          "tagline": "LAUTE ӨНДІРУШІСІ",
+          "title": "Суды тоғыстыра отырып. Бизнес пен Технологиялар.",
+          "buttonText": "Компания туралы"
+        },
+        {
+          "tagline": "LAUTE ТЕХНОЛОГИЯЛАРЫ",
+          "title": "Бөлшектердегі интеллект пен экологиялылық.",
+          "subtitle": "SUS304 · ЭКО алюминий · А+ жезі · PVD жабыны",
+          "buttonText": "Технологияларды көру"
         }
       ],
+      "aiPartnershipTitle": "LAUTE AI арқылы өз мүмкіндіктеріңізді талдаңыз",
+      "aiPartnershipDesc": "LAUTE цифрлық ассистенті бірнеше сұрақ қойып, бизнесіңіздің қажеттіліктерін тұжырымдауға көмектеседі.",
+      "aiPartnershipBtn": "Талдауды бастау",
+      "techBadge": "ТЕХНОЛОГИЯЛАР МЕН МАТЕРИАЛДАР",
+      "techTitle": "Әрбір бөлшектегі инженерлік сенімділік",
+      "techDesc": "Ымырасыз сапа: бастапқы жез, тағамдық SUS304 баспайтын болат, испандық Sedal картридждері және вакуумдық PVD жабыны.",
+      "sus304Title": "SUS304 баспайтын болат",
+      "sus304Desc": "Хром мен никельдің жоғары мөлшері бар тағамдық баспайтын болат. Коррозияға абсолютті төзімділік.",
+      "ecoAluTitle": "ЭКО алюминий",
+      "ecoAluDesc": "Анодталған құрылымдық алюминий бейіні. Душ қоршаулары мен кабиналары үшін беріктігі жоғары экологиялық металл.",
+      "sedalTitle": "Испандық Sedal картридждері",
+      "sedalDesc": "Еуропалық өндіруші Sedal (Испания, 1974 ж.) керамикалық картридждері. Алмазбен жылтыратылған дискілер, EN 817 стандарты бойынша 500 000 циклге сыналған. Тұтқаның жұмсақ жүрісі және 90°C дейін жылуға төзімділік.",
+      "brassEccentricTitle": "А+ жезінен жасалған аса берік эксцентриктер",
+      "brassEccentricDesc": "Бастапқы А+ маркалы жезден жасалған ауыр монтаждық S-тәрізді өтпелер. Қабырғаға сенімді орнату үшін дәл бұранда.",
+      "pvdTitle": "PVD жабыны",
+      "pvdDesc": "PVD — вакуумде молекулалық деңгейде берік сәндік-қорғаныш жабынын жағу технологиясы. Үйкеліске жоғары төзімділік.",
+      "spacesBathroom": "Жуынатын бөлме кеңістіктері",
+      "spacesKitchen": "Асүй араластырғыштары",
+      "spacesKitchenFilter": "Таза су сүзгісі жүйесіне қосылу мүмкіндігімен",
+      "spacesShower": "Душ аймақтары мен кабиналары",
       "collectionsBadge": "СӘУЛЕТТІК ЖЕЛІЛЕР",
       "collectionsTitle": "LAUTE топтамалары",
       "collectionsDesc": "Сенімділік пен пішін тазалығының біртұтас философиясымен біріктірілген араластырғыштар, душ шешімдері және сантехникалық жабдықтар.",
@@ -607,25 +671,25 @@ export const translations = {
   },
   "en": {
     "meta": {
-      "title": "LAUTE — Faucet Factory | Faucets and Components for Kitchens and Bathrooms",
-      "description": "LAUTE — faucet factory, shower systems, kitchen sinks and components. Products for residential spaces and professional projects."
+      "title": "LAUTE — Sanitary Engineering & Faucet Factory | Official Website",
+      "description": "Official website of LAUTE sanitary factory: kitchen mixers with drinking water filter connection, bathroom spaces, shower zones and cabins, Spanish Sedal cartridges, Grade A+ brass, PVD coatings and First Digital Service."
     },
     "nav": {
       "home": "Home",
-      "products": "Products",
-      "catalog": "Products",
+      "products": "Catalog",
+      "catalog": "Catalog",
       "about": "About LAUTE",
       "company": "About LAUTE",
       "production": "About LAUTE",
       "partners": "Partners",
       "whereToBuy": "Where to Buy",
-      "service": "Service & Warranty",
+      "service": "First Digital Service",
       "contacts": "Contacts",
       "clientCabinet": "Partner Cabinet",
       "language": "Website Language",
       "region": "Your Region",
       "requestQuote": "Become a Partner",
-      "viewProducts": "View Products",
+      "viewProducts": "View Catalog",
       "aiHelp": "Match",
       "aiPick": "AI Consultant",
       "aiConsultant": "AI Consultant"
@@ -643,29 +707,61 @@ export const translations = {
     "home": {
       "heroSlides": [
         {
-          "title": "Faucets for modern architectural spaces.",
-          "buttonText": "View Products"
+          "tagline": "LAUTE®",
+          "title": "Real German technology",
+          "buttonText": "Catalog"
         },
         {
-          "title": "Water, engineered differently.",
-          "buttonText": "Discover LAUTE"
+          "tagline": "LAUTE SHOWER SYSTEMS",
+          "title": "Water that fills life",
+          "buttonText": "View Catalog"
         },
         {
+          "tagline": "KITCHEN SOLUTIONS",
           "title": "Functionality meets design.",
           "buttonText": "View Collection"
         },
         {
-          "title": "Growing the market together.",
+          "tagline": "B2B PARTNERSHIP",
+          "title": "Growing together",
+          "subtitle": "Our mission is taking care of your profit.",
           "buttonText": "Become a Partner"
         },
         {
-          "title": "Products. Partnership. Support.",
-          "buttonText": "Learn More"
+          "tagline": "LAUTE MANUFACTURER",
+          "title": "Mixing water. Business and Technology.",
+          "buttonText": "About Company"
+        },
+        {
+          "tagline": "LAUTE TECHNOLOGIES",
+          "title": "Intelligence and sustainability in details.",
+          "subtitle": "SUS304 · ECO Aluminum · Grade A+ Brass · PVD Coating",
+          "buttonText": "Explore Technologies"
         }
       ],
+      "aiPartnershipTitle": "Analyze your opportunities with LAUTE AI",
+      "aiPartnershipDesc": "LAUTE AI consultant will ask qualifying questions to help define your business requirements, project specifications, and optimal distribution model.",
+      "aiPartnershipBtn": "Start Analysis",
+      "techBadge": "TECHNOLOGIES & MATERIALS",
+      "techTitle": "Engineering Reliability in Every Detail",
+      "techDesc": "Zero compromises: primary sanitary brass, food-grade SUS304 stainless steel, ECO aluminum, genuine Spanish Sedal cartridges, and molecular PVD deposition.",
+      "sus304Title": "SUS304 Stainless Steel",
+      "sus304Desc": "Food-grade austenitic stainless steel with elevated chromium and nickel content. Ultimate corrosion resistance and satin brushed metallic texture.",
+      "ecoAluTitle": "ECO Aluminum",
+      "ecoAluDesc": "Architectural anodized aluminum profile. High rigidity eco-friendly metal for shower enclosures and partitions.",
+      "sedalTitle": "Spanish Sedal Cartridges",
+      "sedalDesc": "Ceramic disc cartridges manufactured by European leader Sedal (Spain, est. 1974). Sintered ceramic discs with diamond mirror polishing, endurance tested up to 500,000 cycles under EN 817. Smooth lever control and thermal resistance up to 90°C.",
+      "brassEccentricTitle": "Heavy-Duty Grade A+ Brass Eccentrics",
+      "brassEccentricDesc": "Solid S-connectors forged from primary Grade A+ brass. Precision 1/2\" to 3/4\" threads and dense metallic microstructure for dependable wall-mounted mixer installation.",
+      "pvdTitle": "PVD Coating",
+      "pvdDesc": "PVD — physical vapor deposition technology delivering ultra-durable decorative and protective finish in vacuum at the molecular level. Superior scratch resistance and timeless depth of color.",
+      "spacesBathroom": "Bathroom Spaces",
+      "spacesKitchen": "Kitchen Mixers",
+      "spacesKitchenFilter": "With clean water filtration system connection",
+      "spacesShower": "Shower Zones and Cabins",
       "collectionsBadge": "ARCHITECTURAL LINES",
       "collectionsTitle": "LAUTE Collections",
-      "collectionsDesc": "Faucets, shower solutions and sanitaryware equipment united by a singular philosophy of durability and purity of form.",
+      "collectionsDesc": "Faucets, shower solutions, cabins and sanitaryware equipment united by a singular philosophy of durability and purity of form.",
       "aiBannerBadge": "LAUTE INTELLIGENT SELECTION",
       "aiBannerTitle": "Select Product with AI",
       "aiBannerDesc": "Answer a few questions — AI will find the optimal LAUTE fixtures for your project requirements.",

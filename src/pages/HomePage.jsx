@@ -11,7 +11,8 @@ import {
   CheckCircle2, 
   Clock, 
   Headphones, 
-  ShieldCheck 
+  ShieldCheck,
+  Sparkles
 } from 'lucide-react';
 
 import { HeroCarousel } from '../components/HeroCarousel';
@@ -19,7 +20,7 @@ import { CollectionsSection } from '../components/CollectionsSection';
 import { withBrandWord } from '../utils/brandFormatter';
 
 export const HomePage = () => {
-  const { navigateTo, openPartnerModal, openServiceModal, t } = useApp();
+  const { navigateTo, openPartnerModal, openServiceModal, startAIPartnerAnalysis, t } = useApp();
   const baseUrl = import.meta.env.BASE_URL;
 
   const [leadForm, setLeadForm] = useState({
@@ -65,6 +66,169 @@ export const HomePage = () => {
 
       {/* 2. ФОТОГРАФИЧЕСКАЯ ГАЛЕРЕЯ «КОЛЛЕКЦИИ LAUTE» */}
       <CollectionsSection />
+
+      {/* 2.5. МАТЕРИАЛЫ И ТЕХНОЛОГИИ LAUTE — ИНЖЕНЕРНАЯ НАДЕЖНОСТЬ В КАЖДОЙ ДЕТАЛИ */}
+      <section className="section visual-technologies-section" id="technologies">
+        <div className="container">
+          <div className="section-title-wrap reveal-on-scroll">
+            <span className="section-badge badge-refined">
+              {h.techBadge || 'ТЕХНОЛОГИИ & МАТЕРИАЛЫ'}
+            </span>
+            <h2 className="section-title visual-tech-title">
+              {withBrandWord(h.techTitle || 'Инженерная надежность в каждой детали')}
+            </h2>
+            <p className="section-desc visual-tech-desc">
+              {withBrandWord(h.techDesc || 'Никаких компромиссов: первичная конструкционная латунь, пищевая нержавеющая сталь SUS304, ЭКО алюминий, испанские картриджи Sedal и молекулярное вакуумное PVD-осаждение.')}
+            </p>
+          </div>
+
+          <div className="technologies-editorial-grid">
+            {/* 1. Испанские картриджи Sedal — КРУПНЫЙ ВИЗУАЛЬНЫЙ ПЛАН (Featured Macro) */}
+            <div className="tech-card tech-card-featured reveal-on-scroll">
+              <div className="tech-media-frame">
+                <img 
+                  src={`${baseUrl}images/sedal_cartridge_macro.jpg`} 
+                  alt="Испанский керамический картридж Sedal для смесителей LAUTE" 
+                  className="tech-macro-img"
+                  loading="lazy"
+                />
+                <div className="tech-media-overlay"></div>
+                <div className="tech-floating-tag">
+                  <span className="tech-spec-pill">SEDAL GROUP · SPAIN · EST. 1974</span>
+                </div>
+              </div>
+              <div className="tech-card-body">
+                <div className="tech-card-header">
+                  <span className="tech-num">01</span>
+                  <span className="tech-kicker">ЕВРОПЕЙСКИЙ СТАНДАРТ EN 817</span>
+                </div>
+                <h3 className="tech-heading">{h.sedalTitle || 'Испанские картриджи Sedal'}</h3>
+                <p className="tech-text">
+                  {h.sedalDesc || 'Керамические картриджи от европейского производителя Sedal (Испания, осн. 1974). Диски из спеченной керамики с микрозеркальной алмазной полировкой, тестирование до 500 000 рабочих циклов по европейскому стандарту EN 817. Плавный ход рычага и термостойкость до 90°C.'}
+                </p>
+                <div className="tech-spec-bullets">
+                  <div className="tech-spec-item">
+                    <span className="spec-item-bullet">•</span>
+                    <span>Диски из оксида алюминия Al₂O₃ с алмазной притиркой</span>
+                  </div>
+                  <div className="tech-spec-item">
+                    <span className="spec-item-bullet">•</span>
+                    <span>Ресурс 500 000 циклов (EN 817) без капель и протечек</span>
+                  </div>
+                  <div className="tech-spec-item">
+                    <span className="spec-item-bullet">•</span>
+                    <span>Термостойкость до 90°C и гидротест 16 бар</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Сверхпрочные эксцентрики из латуни А+ */}
+            <div className="tech-card tech-card-standard reveal-on-scroll reveal-delay-1">
+              <div className="tech-media-frame">
+                <img 
+                  src={`${baseUrl}images/brass_eccentric_macro.jpg`} 
+                  alt="Сверхпрочные эксцентрики из первичной латуни А+" 
+                  className="tech-macro-img"
+                  loading="lazy"
+                />
+                <div className="tech-media-overlay"></div>
+                <div className="tech-floating-tag">
+                  <span className="tech-spec-pill">GRADE A+ CW617N BRASS</span>
+                </div>
+              </div>
+              <div className="tech-card-body">
+                <div className="tech-card-header">
+                  <span className="tech-num">02</span>
+                  <span className="tech-kicker">ПРЕЦИЗИОННАЯ РЕЗЬБА 1/2" × 3/4"</span>
+                </div>
+                <h3 className="tech-heading">{h.brassEccentricTitle || 'Сверхпрочные эксцентрики из латуни А+'}</h3>
+                <p className="tech-text">
+                  {h.brassEccentricDesc || 'Массивные монтажные S-образные переходники из первичной конструкционной латуни марки А+. Прецизионная резьба 1/2" на 3/4" и плотная металлическая структура для надежного настенного монтажа смесителей.'}
+                </p>
+              </div>
+            </div>
+
+            {/* 3. PVD-покрытие */}
+            <div className="tech-card tech-card-standard reveal-on-scroll reveal-delay-2">
+              <div className="tech-media-frame">
+                <img 
+                  src={`${baseUrl}images/pvd_finish_macro.jpg`} 
+                  alt="PVD-покрытие сантехники LAUTE" 
+                  className="tech-macro-img"
+                  loading="lazy"
+                />
+                <div className="tech-media-overlay"></div>
+                <div className="tech-floating-tag">
+                  <span className="tech-spec-pill">VACUUM DEPOSITION</span>
+                </div>
+              </div>
+              <div className="tech-card-body">
+                <div className="tech-card-header">
+                  <span className="tech-num">03</span>
+                  <span className="tech-kicker">МОЛЕКУЛЯРНАЯ СТОЙКОСТЬ</span>
+                </div>
+                <h3 className="tech-heading">{h.pvdTitle || 'PVD-покрытие'}</h3>
+                <p className="tech-text">
+                  {h.pvdDesc || 'PVD — технология нанесения прочного декоративно-защитного покрытия в вакууме на молекулярном уровне. Стойкость к истиранию и безупречная глубина цвета.'}
+                </p>
+              </div>
+            </div>
+
+            {/* 4. Нержавеющая сталь SUS304 */}
+            <div className="tech-card tech-card-standard reveal-on-scroll reveal-delay-3">
+              <div className="tech-media-frame">
+                <img 
+                  src={`${baseUrl}images/sus304_steel_macro.jpg`} 
+                  alt="Пищевая нержавеющая сталь SUS304 LAUTE" 
+                  className="tech-macro-img"
+                  loading="lazy"
+                />
+                <div className="tech-media-overlay"></div>
+                <div className="tech-floating-tag">
+                  <span className="tech-spec-pill">FOOD-GRADE SUS304</span>
+                </div>
+              </div>
+              <div className="tech-card-body">
+                <div className="tech-card-header">
+                  <span className="tech-num">04</span>
+                  <span className="tech-kicker">ПИЩЕВОЙ СТАНДАРТ</span>
+                </div>
+                <h3 className="tech-heading">{h.sus304Title || 'Нержавеющая сталь SUS304'}</h3>
+                <p className="tech-text">
+                  {h.sus304Desc || 'Пищевая аустенитная нержавеющая сталь с высоким содержанием хрома и никеля. Абсолютная устойчивость к коррозии и благородная матовая сатинированная фактура.'}
+                </p>
+              </div>
+            </div>
+
+            {/* 5. ЭКО алюминий */}
+            <div className="tech-card tech-card-standard reveal-on-scroll reveal-delay-4">
+              <div className="tech-media-frame">
+                <img 
+                  src={`${baseUrl}images/eco_aluminum_macro.jpg`} 
+                  alt="Конструкционный ЭКО алюминий для душевых зон и кабин" 
+                  className="tech-macro-img"
+                  loading="lazy"
+                />
+                <div className="tech-media-overlay"></div>
+                <div className="tech-floating-tag">
+                  <span className="tech-spec-pill">ECO ANODIZED ALLOY</span>
+                </div>
+              </div>
+              <div className="tech-card-body">
+                <div className="tech-card-header">
+                  <span className="tech-num">05</span>
+                  <span className="tech-kicker">РЕЦИКЛИНГ И ЖЕСТКОСТЬ</span>
+                </div>
+                <h3 className="tech-heading">{h.ecoAluTitle || 'ЭКО алюминий'}</h3>
+                <p className="tech-text">
+                  {h.ecoAluDesc || 'Конструкционный анодированный алюминиевый профиль. Экологичный и долговечный металл высокой жесткости для душевых перегородок и кабин.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* 3. «РАЗВИВАЕМ РЫНОК ВМЕСТЕ С ПАРТНЁРАМИ» — КРЕАТИВНЫЙ АСИММЕТРИЧНЫЙ АРХИТЕКТУРНЫЙ БЛОК */}
       <section className="section visual-partnership-section" id="partners">
@@ -192,6 +356,34 @@ export const HomePage = () => {
                   {withBrandWord(h.audienceGroup4Desc || 'Выбирайте оборудование по монтажным размерам, подключениям и комплектации. По вопросам установки и совместимости обращайтесь к специалистам LAUTE.')}
                 </p>
               </div>
+            </div>
+          </div>
+
+          {/* AI PARTNERSHIP CONSULTATION CTA BANNER */}
+          <div className="partnership-ai-cta-banner reveal-on-scroll">
+            <div className="ai-cta-banner-content">
+              <div className="ai-cta-badge">
+                <Sparkles size={16} className="ai-cta-icon-sparkle" />
+                <span>ИНТЕЛЛЕКТУАЛЬНЫЙ АНАЛИЗ ВОЗМОЖНОСТЕЙ</span>
+              </div>
+              <h3 className="ai-cta-title">
+                {withBrandWord(h.aiPartnershipTitle || 'Проанализируйте свои возможности с AI LAUTE')}
+              </h3>
+              <p className="ai-cta-desc">
+                {withBrandWord(h.aiPartnershipDesc || 'Цифровой интеллект LAUTE задаст несколько уточняющих вопросов, поможет сформулировать профиль потребностей вашего бизнеса и определит формат взаимодействия без лишней бюрократии.')}
+              </p>
+            </div>
+            <div className="ai-cta-banner-action">
+              <button 
+                type="button" 
+                className="btn btn-primary btn-luxury btn-ai-start" 
+                onClick={startAIPartnerAnalysis}
+                id="btn-partner-ai-analysis"
+              >
+                <Sparkles size={18} />
+                <span>{h.aiPartnershipBtn || 'Начать анализ'}</span>
+                <ArrowRight size={18} />
+              </button>
             </div>
           </div>
         </div>
