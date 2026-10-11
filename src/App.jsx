@@ -16,9 +16,14 @@ import { AuthModal } from './components/modals/AuthModal';
 import { ProductDetailModal } from './components/modals/ProductDetailModal';
 import { ProductComparisonModal } from './components/modals/ProductComparisonModal';
 import { ExcelManagerModal } from './components/modals/ExcelManagerModal';
+import { AdminPage } from './pages/AdminPage';
 
 export const AppContent = () => {
   const { currentRoute } = useApp();
+
+  if (currentRoute === 'admin') {
+    return <AdminPage />;
+  }
 
   const renderCurrentPage = () => {
     switch (currentRoute) {

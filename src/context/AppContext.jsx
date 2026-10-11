@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { translations } from '../i18n/translations';
 import { DEFAULT_PRODUCTS } from '../data/catalogData';
+import { fetchProducts, getCurrentUser, logoutEmployee } from '../services/catalogApi';
 
 const AppContext = createContext();
 
@@ -16,11 +17,13 @@ const getRouteFromUrl = () => {
     if (cleanSearch) return cleanSearch;
   }
 
-  if (hash && ['catalog', 'company', 'partners', 'where-to-buy', 'service', 'contacts', 'materials', 'cabinet'].includes(hash)) {
+  const validRoutes = ['catalog', 'company', 'partners', 'where-to-buy', 'service', 'contacts', 'materials', 'cabinet', 'admin'];
+
+  if (hash && validRoutes.includes(hash)) {
     return hash;
   }
 
-  if (path && ['catalog', 'company', 'partners', 'where-to-buy', 'service', 'contacts', 'materials', 'cabinet'].includes(path)) {
+  if (path && validRoutes.includes(path)) {
     return path;
   }
 
@@ -38,6 +41,9 @@ export const AppProvider = ({ children }) => {
 
   const [currentRoute, setCurrentRoute] = useState(getRouteFromUrl);
 
+  // Current logged in employee
+  const [currentUser, setCurrentUser] = useState(null);
+
   // Live Products Catalog synced across Excel -> База -> Каталог -> AI
   const [products, setProducts] = useState(() => {
     try {
@@ -51,6 +57,27 @@ export const AppProvider = ({ children }) => {
     }
     return DEFAULT_PRODUCTS;
   });
+
+  // Reload products from backend or sync
+  const reloadProducts = useCallback(async () => {
+    try {
+      const live = await fetchProducts(true);
+      if (Array.isArray(live) && live.length > 0) {
+        setProducts(live);
+        localStorage.setItem('laute_products', JSON.stringify(live));
+      }
+    } catch {
+      // fallback
+    }
+  }, []);
+
+  // Fetch current user and products on mount
+  useEffect(() => {
+    getCurrentUser().then(user => {
+      if (user) setCurrentUser(user);
+    });
+    reloadProducts();
+  }, [reloadProducts]);
 
   const updateProducts = useCallback((newProducts) => {
     setProducts(newProducts);
@@ -227,7 +254,14 @@ export const AppProvider = ({ children }) => {
     closeAuthModal: () => setIsAuthModalOpen(false),
     isExcelModalOpen,
     openExcelModal: () => setIsExcelModalOpen(true),
-    closeExcelModal: () => setIsExcelModalOpen(false)
+    closeExcelModal: () => setIsExcelModalOpen(false),
+    currentUser,
+    setCurrentUser,
+    reloadProducts,
+    logout: () => {
+      logoutEmployee();
+      setCurrentUser(null);
+    }
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

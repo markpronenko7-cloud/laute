@@ -1774,6 +1774,7 @@ img {
 .advantages-grid .advantage-card:nth-child(1) .advantage-num {
   background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -1781,6 +1782,7 @@ img {
 .advantages-grid .advantage-card:nth-child(2) .advantage-num {
   background: linear-gradient(135deg, #38BDF8 0%, #0284C7 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -1788,6 +1790,7 @@ img {
 .advantages-grid .advantage-card:nth-child(3) .advantage-num {
   background: linear-gradient(135deg, #F97316 0%, #38BDF8 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -5887,6 +5890,7 @@ img {
   margin-bottom: 14px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

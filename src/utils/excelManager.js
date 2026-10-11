@@ -21,72 +21,17 @@ export const EXCEL_COLUMNS = [
 ];
 
 /**
- * Генерирует и скачивает официальный Excel-шаблон (.xlsx)
+ * Скачивает официальный Excel-шаблон LAUTE_Catalog.xlsx со всеми справочниками и стилями
  */
 export const downloadExcelTemplate = () => {
-  const sampleData = [
-    {
-      'Артикул': 'LT-K105-NW',
-      'Название': 'Смеситель для кухни LAUTE Aurora A-1',
-      'Категория': 'Кухонные смесители',
-      'Цена': 31500,
-      'Валюта': '₸',
-      'Описание': 'Стильный смеситель с поворотным изливом 360 градусов и керамическим картриджем 35 мм.',
-      'Размер': 'Высота: 290 мм, вылет: 200 мм',
-      'Вес': '1.60 кг',
-      'Объём': '0.008 м³',
-      'Характеристики': 'Латунь CW617N, картридж 35 мм, аэратор Neoperl, подводка 45 см',
-      'Фотография 1': 'images/cat_kitchen.png',
-      'Фотография 2': 'images/collections/coll-kitchen.jpg',
-      'Фотография 3': 'images/cat_laute_brand.jpg',
-      'Город': 'Алматы',
-      'Наличие': '15',
-      'Статус действия': 'ДОБАВИТЬ'
-    },
-    {
-      'Артикул': 'LT-K101-CHR',
-      'Название': 'Смеситель для кухни LAUTE Prime K-10',
-      'Категория': 'Кухонные смесители',
-      'Цена': 29900,
-      'Валюта': '₸',
-      'Описание': 'Обновленная цена и скорректированный остаток по складу Алматы.',
-      'Размер': 'Высота: 260 мм, вылет излива: 185 мм',
-      'Вес': '1.45 кг',
-      'Объём': '0.007 м³',
-      'Характеристики': 'Латунь CW617N, картридж 35 мм, Neoperl',
-      'Фотография 1': 'images/cat_kitchen.png',
-      'Фотография 2': '',
-      'Фотография 3': '',
-      'Город': 'Алматы',
-      'Наличие': '20',
-      'Статус действия': 'ОБНОВИТЬ'
-    }
-  ];
-
-  const ws = XLSX.utils.json_to_sheet(sampleData, { header: EXCEL_COLUMNS });
-  // Устанавливаем ширину колонок для удобства сотрудников
-  ws['!cols'] = [
-    { wch: 16 }, // Артикул
-    { wch: 38 }, // Название
-    { wch: 24 }, // Категория
-    { wch: 12 }, // Цена
-    { wch: 8 },  // Валюта
-    { wch: 45 }, // Описание
-    { wch: 28 }, // Размер
-    { wch: 12 }, // Вес
-    { wch: 12 }, // Объём
-    { wch: 40 }, // Характеристики
-    { wch: 28 }, // Фотография 1
-    { wch: 28 }, // Фотография 2
-    { wch: 28 }, // Фотография 3
-    { wch: 16 }, // Город
-    { wch: 12 }, // Наличие
-    { wch: 18 }  // Статус действия
-  ];
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Шаблон LAUTE');
-  XLSX.writeFile(wb, 'LAUTE_Шаблон_Каталога.xlsx');
+  // Проверяем доступность через API или статический файл в public
+  const staticPath = window.location.pathname.includes('/laute') ? '/laute/LAUTE_Catalog.xlsx' : '/LAUTE_Catalog.xlsx';
+  const link = document.createElement('a');
+  link.href = staticPath;
+  link.download = 'LAUTE_Catalog.xlsx';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 
 /**

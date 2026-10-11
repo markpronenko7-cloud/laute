@@ -12,7 +12,8 @@ import {
   Trash2, 
   EyeOff, 
   PlusCircle, 
-  Check 
+  Check,
+  Shield 
 } from 'lucide-react';
 import { 
   downloadExcelTemplate, 
@@ -22,7 +23,7 @@ import {
 } from '../../utils/excelManager';
 
 export const ExcelManagerModal = () => {
-  const { isExcelModalOpen, closeExcelModal, products, updateProducts } = useApp();
+  const { isExcelModalOpen, closeExcelModal, products, updateProducts, navigateTo } = useApp();
 
   const [uploadedFile, setUploadedFile] = useState(null);
   const [isValidating, setIsValidating] = useState(false);
@@ -137,6 +138,26 @@ export const ExcelManagerModal = () => {
               <span>Экспорт каталога</span>
             </button>
           </div>
+        </div>
+
+        {/* Link to Full Admin Panel */}
+        <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '12px 18px', borderRadius: '10px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#1E293B' }}>
+            <Shield size={18} color="#2563EB" />
+            <span>Требуется добавить товар вручную, изменить цены или просмотреть аудит?</span>
+          </div>
+          <button 
+            type="button" 
+            className="btn btn-primary btn-sm"
+            onClick={() => {
+              closeExcelModal();
+              navigateTo('admin');
+            }}
+            style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Shield size={14} />
+            <span>Открыть панель сотрудников</span>
+          </button>
         </div>
 
         {/* Success State */}
