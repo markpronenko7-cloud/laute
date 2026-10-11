@@ -4,11 +4,27 @@
  * Безопасная авторизация по единому паролю, серверный контент и Excel
  */
 
-const getApiBase = () => {
-  if (typeof window !== 'undefined' && window.LAUTE_CONFIG?.apiUrl) {
-    return window.LAUTE_CONFIG.apiUrl.replace(/\/$/, '') + '/api';
+export const getApiBase = () => {
+  if (typeof window !== 'undefined') {
+    const storedApi = localStorage.getItem('laute_api_url');
+    if (storedApi) return storedApi.replace(/\/$/, '') + '/api';
+
+    if (window.LAUTE_CONFIG?.apiUrl) {
+      return window.LAUTE_CONFIG.apiUrl.replace(/\/$/, '') + '/api';
+    }
   }
   return '/api';
+};
+
+export const setCustomApiUrl = (url) => {
+  if (typeof window === 'undefined') return;
+  if (url) localStorage.setItem('laute_api_url', url.trim());
+  else localStorage.removeItem('laute_api_url');
+};
+
+export const getCustomApiUrl = () => {
+  if (typeof window === 'undefined') return '';
+  return localStorage.getItem('laute_api_url') || '';
 };
 
 // Сессионный токен администратора
@@ -46,13 +62,14 @@ function triggerBlobDownload(blob, filename) {
 export const checkAuthStatus = async () => {
   try {
     const res = await fetch(`${getApiBase()}/auth/status`);
-    if (res.ok) {
+    const contentType = res.headers.get('content-type') || '';
+    if (res.ok && contentType.includes('application/json')) {
       return await res.json();
     }
   } catch (err) {
     console.warn('Backend offline:', err);
   }
-  return { isInitialized: true };
+  return { isInitialized: true, isBackendOffline: true };
 };
 
 export const setupInitialPassword = async (password) => {
@@ -69,11 +86,24 @@ export const setupInitialPassword = async (password) => {
 };
 
 export const loginWithPassword = async (password) => {
-  const res = await fetch(`${getApiBase()}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password })
-  });
+  let res;
+  try {
+    res = await fetch(`${getApiBase()}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password })
+    });
+  } catch (netErr) {
+    throw new Error('Сервер бэкенда недоступен. Проверьте подключение к серверу LAUTE.');
+  }
+
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    if (typeof window !== 'undefined' && window.location.hostname.includes('github.io')) {
+      throw new Error('GitHub Pages является статическим хостингом и не выполняет серверный Node.js код. Для безопасной проверки пароля на живом сайте требуется запущенный backend-сервер.');
+    }
+    throw new Error('Сервер вернул ответ в формате HTML вместо JSON. Убедитесь, что сервер LAUTE запущен на порту 3001.');
+  }
 
   const data = await res.json();
   if (!res.ok) {
