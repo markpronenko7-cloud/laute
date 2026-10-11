@@ -465,12 +465,12 @@ export const AdminPage = () => {
               <span>Безопасный доступ</span>
             </div>
             <h1 className="admin-login-title">
-              {needsInitialSetup ? 'Первоначальная настройка' : 'Панель управления'}
+              {needsInitialSetup ? 'Первоначальная настройка' : 'Панель сотрудников'}
             </h1>
             <p className="admin-login-subtitle">
               {needsInitialSetup 
-                ? 'Задайте постоянный пароль администратора для управления сайтом LAUTE'
-                : 'Для входа в систему введите пароль администратора LAUTE'
+                ? 'Задайте постоянный пароль доступа для панели сотрудников LAUTE'
+                : 'Для входа в систему введите пароль доступа к панели сотрудников'
               }
             </p>
           </div>
@@ -566,7 +566,7 @@ export const AdminPage = () => {
         <div className="admin-navbar-left">
           <div className="admin-brand-cluster">
             <span className="admin-logo-text">LAUTE</span>
-            <span className="admin-cms-badge">CMS CONTROL</span>
+            <span className="admin-cms-badge">ПАНЕЛЬ СОТРУДНИКОВ</span>
           </div>
 
           {draftContent?.hasUnpublishedChanges && (

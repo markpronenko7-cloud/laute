@@ -66,6 +66,19 @@
   box-shadow: var(--adm-shadow-lg);
 }
 
+@media (max-width: 480px) {
+  .admin-login-screen {
+    padding: 16px;
+  }
+  .admin-login-card {
+    padding: 30px 18px;
+    border-radius: 12px;
+  }
+  .admin-brand-title {
+    font-size: 26px;
+  }
+}
+
 .admin-login-header {
   text-align: center;
   margin-bottom: 28px;
@@ -194,6 +207,14 @@
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+@media (max-width: 768px) {
+  .admin-navbar {
+    padding: 10px 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
 }
 
 .admin-navbar-left {

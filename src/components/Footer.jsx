@@ -259,7 +259,7 @@ export const Footer = () => {
           </div>
         </div>
 
-        {/* Subtle Admin Link */}
+        {/* Subtle Staff Panel Link */}
         <div className="footer-admin-link-row">
           <a 
             href={`${import.meta.env.BASE_URL}admin`} 
@@ -268,9 +268,9 @@ export const Footer = () => {
               e.preventDefault();
               navigateTo('admin');
             }}
-            title="Панель управления"
+            title="Панель сотрудников"
           >
-            Управление
+            Панель сотрудников
           </a>
         </div>
       </div>

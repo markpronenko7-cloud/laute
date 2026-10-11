@@ -1,7 +1,7 @@
 {
-  "version": "1.0.1",
-  "lastPublishedAt": "2026-10-11T15:55:36.869Z",
-  "publishedBy": "Сессия laute_sess_ba4c391e9c7",
+  "version": "1.0.2",
+  "lastPublishedAt": "2026-10-11T16:52:54.762Z",
+  "publishedBy": "Сессия laute_sess_2a187e367a1",
   "seo": {
     "global": {
       "siteName": "LAUTE",
@@ -148,7 +148,7 @@
       {
         "id": "slide-1",
         "tagline": "LAUTE®",
-        "title": "Управляй водой грамотно (Проверено CMS)",
+        "title": "Управляй водой грамотно",
         "subtitle": "",
         "buttonText": "Каталог",
         "buttonLink": "catalog",
@@ -1310,6 +1310,6 @@
     }
   },
   "hasUnpublishedChanges": false,
-  "lastDraftSavedAt": "2026-10-11T15:55:36.859Z",
-  "draftSessionId": "laute_sess_ba4c391e9c7"
+  "lastDraftSavedAt": "2026-10-11T16:52:54.750Z",
+  "draftSessionId": "laute_sess_2a187e367a1"
 }
