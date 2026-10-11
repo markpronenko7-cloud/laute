@@ -37,5 +37,7 @@ extract_protocol.js
 protocol_extracted.txt
 *.docx
 
-
-
+# Server sensitive runtime data
+server/data/sessions.json
+server/data/auth_config.json
+server/data/backups/

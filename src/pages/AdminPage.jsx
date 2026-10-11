@@ -1,1894 +1,2677 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { 
-  FileSpreadsheet, 
-  Upload, 
-  Download, 
-  Search, 
-  Filter, 
-  Plus, 
-  Edit3, 
-  Eye, 
-  EyeOff, 
-  Trash2, 
-  CheckCircle2, 
-  AlertTriangle, 
-  History, 
-  RotateCcw, 
-  Users, 
-  LogOut, 
-  Shield, 
-  Package, 
-  Image as ImageIcon, 
-  ArrowLeft,
-  X,
+import {
+  LayoutDashboard,
+  FileText,
+  Layers,
+  Package,
+  FolderTree,
+  FileSpreadsheet,
+  Image as ImageIcon,
+  Menu,
+  Languages,
+  Search,
+  Globe,
+  GitPullRequest,
+  History,
+  Settings,
+  Lock,
+  LogOut,
+  Eye,
+  EyeOff,
+  Save,
+  Upload,
+  Download,
+  Plus,
+  Trash2,
+  Edit3,
+  CheckCircle2,
+  AlertTriangle,
+  RotateCcw,
   RefreshCw,
-  Info
+  ExternalLink,
+  Shield,
+  Check,
+  X,
+  ChevronRight,
+  ChevronDown,
+  ArrowLeft,
+  Copy,
+  Sliders,
+  Info,
+  Sparkles,
+  Phone,
+  Mail,
+  MapPin
 } from 'lucide-react';
-import { 
-  loginEmployee, 
-  logoutEmployee, 
-  fetchProducts, 
-  addProduct, 
-  updateProduct, 
-  toggleProductStatus, 
-  deleteProduct, 
-  uploadImageFile, 
-  validateExcelFile, 
-  commitExcelImport, 
-  downloadExcelTemplate, 
-  exportCurrentCatalog, 
-  downloadErrorReport, 
-  fetchHistory, 
-  rollbackToBackup, 
-  fetchStaffUsers, 
-  createStaffUser 
-} from '../services/catalogApi';
-import { CATEGORY_NAMES } from '../data/catalogData';
+import {
+  checkAuthStatus,
+  setupInitialPassword,
+  loginWithPassword,
+  getCurrentAdminSession,
+  logoutAdmin,
+  changeAdminPassword,
+  fetchSiteContent,
+  saveSiteContentDraft,
+  publishSiteContent,
+  discardSiteContentDraft,
+  rollbackSiteContent,
+  fetchCustomPages,
+  createCustomPage,
+  updateCustomPage,
+  deleteCustomPage,
+  fetchCategories,
+  saveCategories,
+  fetchProducts,
+  addProduct,
+  updateProduct,
+  toggleProductStatus,
+  deleteProduct,
+  fetchMediaList,
+  uploadMediaFiles,
+  deleteMediaFile,
+  downloadExcelTemplate,
+  exportCurrentCatalog,
+  validateExcelFile,
+  commitExcelImport,
+  downloadErrorReport,
+  fetchHistory,
+  rollbackToBackup,
+  fetchSystemSettings,
+  downloadFullSystemBackup
+} from '../services/adminApi';
 import '../styles/admin.css';
 
 export const AdminPage = () => {
-  const { currentUser, setCurrentUser, navigateTo, products, updateProducts } = useApp();
+  const { 
+    navigateTo, 
+    products, 
+    updateProducts, 
+    siteContent, 
+    setSiteContent, 
+    reloadSiteContent,
+    adminSession,
+    setAdminSession 
+  } = useApp();
 
-  // Login form state
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  // Authentication State
+  const [isAuthenticated, setIsAuthenticated] = useState(Boolean(adminSession));
+  const [passwordInput, setPasswordInput] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [isSubmittingAuth, setIsSubmittingAuth] = useState(false);
+  const [needsInitialSetup, setNeedsInitialSetup] = useState(false);
+  const [initialPasswordInput, setInitialPasswordInput] = useState('');
+  const [initialPasswordConfirm, setInitialPasswordConfirm] = useState('');
 
-  // Active tab in dashboard
-  const [activeTab, setActiveTab] = useState('products'); // 'products' | 'add' | 'import' | 'export' | 'history' | 'errors' | 'users'
+  // Active Tab: 1 to 13
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [notice, setNotice] = useState(null);
 
-  // Products filtering & search
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Все');
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'active' | 'hidden'
+  // Content Draft State
+  const [draftContent, setDraftContent] = useState(null);
+  const [isLoadingContent, setIsLoadingContent] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+
+  // Products State
+  const [catalogList, setCatalogList] = useState(products || []);
+  const [productSearch, setProductSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('Все');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
-
-  // Edit product modal
   const [editingProduct, setEditingProduct] = useState(null);
+  const [isAddingNewProduct, setIsAddingNewProduct] = useState(false);
   const [isSavingProduct, setIsSavingProduct] = useState(false);
 
-  // Add product form
-  const [newProductData, setNewProductData] = useState({
-    article: '',
-    name: '',
-    category: 'Кухонные смесители',
-    subcategory: '',
-    collection: 'LAUTE Master Line',
-    brand: 'LAUTE',
-    description: '',
-    price: '',
-    currency: '₸',
-    material: 'Первичная латунь CW617N (евростандарт)',
-    color: 'Хром глянец',
-    finish: 'Гальванический хром',
-    installType: 'Врезной на мойку / умывальник',
-    purpose: 'Кухонные смесители',
-    dimensions: '',
-    weight: '',
-    volume: '',
-    specs: '',
-    photo1: 'images/cat_laute_brand.jpg',
-    photo2: '',
-    photo3: '',
-    status: 'АКТИВЕН'
-  });
-  const [isAddingProduct, setIsAddingProduct] = useState(false);
-  const [addSuccessMessage, setAddSuccessMessage] = useState('');
+  // Categories State
+  const [categoriesList, setCategoriesList] = useState([]);
+  const [editingCategory, setEditingCategory] = useState(null);
 
-  // Excel Import state
+  // Pages State
+  const [pagesList, setPagesList] = useState([]);
+  const [selectedPageForEditor, setSelectedPageForEditor] = useState('home');
+  const [editingCustomPage, setEditingCustomPage] = useState(null);
+
+  // Excel State
   const [excelFile, setExcelFile] = useState(null);
   const [isValidatingExcel, setIsValidatingExcel] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
-  const [isCommittingImport, setIsCommittingImport] = useState(false);
-  const [importSuccessData, setImportSuccessData] = useState(null);
+  const [isCommittingExcel, setIsCommittingExcel] = useState(false);
+  const [excelCommitStats, setExcelCommitStats] = useState(null);
   const fileInputRef = useRef(null);
 
-  // History & Rollback state
-  const [historyLogs, setHistoryLogs] = useState([]);
+  // Media State
+  const [mediaFiles, setMediaFiles] = useState([]);
+  const [isLoadingMedia, setIsLoadingMedia] = useState(false);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [mediaSearch, setMediaSearch] = useState('');
+  const [selectedMediaPreview, setSelectedMediaPreview] = useState(null);
+  const mediaInputRef = useRef(null);
+
+  // History & Backups State
+  const [auditLogs, setAuditLogs] = useState([]);
   const [backupsList, setBackupsList] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [rollbackSuccessMsg, setRollbackSuccessMsg] = useState('');
 
-  // Staff users state (admin only)
-  const [staffUsers, setStaffUsers] = useState([]);
-  const [newStaffEmail, setNewStaffEmail] = useState('');
-  const [newStaffPassword, setNewStaffPassword] = useState('');
-  const [newStaffName, setNewStaffName] = useState('');
-  const [newStaffRole, setNewStaffRole] = useState('editor');
-  const [newStaffTitle, setNewStaffTitle] = useState('');
+  // Settings State
+  const [systemStats, setSystemStats] = useState(null);
+  const [oldPasswordChange, setOldPasswordChange] = useState('');
+  const [newPasswordChange, setNewPasswordChange] = useState('');
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
+  const [passwordChangeMsg, setPasswordChangeMsg] = useState('');
 
-  // Local message notice
-  const [notice, setNotice] = useState('');
+  // Helper to show auto-dismiss notices
+  const showNotice = useCallback((message, type = 'success') => {
+    setNotice({ message, type });
+    setTimeout(() => setNotice(null), 4500);
+  }, []);
 
-  const isAdmin = currentUser?.role === 'admin';
+  // Check initial session & auth status on mount
+  useEffect(() => {
+    checkAuthStatus().then(status => {
+      if (status && !status.isInitialized) {
+        setNeedsInitialSetup(true);
+      }
+    });
 
-  // Load products & history when tab switches or on mount
-  const refreshCatalogData = async () => {
+    getCurrentAdminSession().then(sess => {
+      if (sess) {
+        setIsAuthenticated(true);
+        setAdminSession(sess);
+      } else {
+        setIsAuthenticated(false);
+        setAdminSession(null);
+      }
+    });
+  }, [setAdminSession]);
+
+  // Load active tab data
+  const loadContentData = useCallback(async () => {
+    setIsLoadingContent(true);
+    try {
+      const draft = await fetchSiteContent(true);
+      if (draft) setDraftContent(draft);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoadingContent(false);
+    }
+  }, []);
+
+  const loadCatalogData = useCallback(async () => {
     setIsLoadingProducts(true);
     try {
-      const data = await fetchProducts(true);
-      if (Array.isArray(data) && data.length > 0) {
-        updateProducts(data);
+      const prods = await fetchProducts(true);
+      if (Array.isArray(prods) && prods.length > 0) {
+        setCatalogList(prods);
+        updateProducts(prods);
       }
     } catch (err) {
       console.error(err);
     } finally {
       setIsLoadingProducts(false);
     }
-  };
+  }, [updateProducts]);
 
-  const loadHistoryData = async () => {
+  const loadCategoriesData = useCallback(async () => {
+    try {
+      const cats = await fetchCategories();
+      setCategoriesList(cats);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
+  const loadPagesData = useCallback(async () => {
+    try {
+      const pages = await fetchCustomPages();
+      setPagesList(pages);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
+  const loadMediaData = useCallback(async () => {
+    setIsLoadingMedia(true);
+    try {
+      const files = await fetchMediaList();
+      setMediaFiles(files);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoadingMedia(false);
+    }
+  }, []);
+
+  const loadHistoryData = useCallback(async () => {
     setIsLoadingHistory(true);
     try {
       const data = await fetchHistory();
-      setHistoryLogs(data.logs || []);
+      setAuditLogs(data.logs || []);
       setBackupsList(data.backups || []);
     } catch (err) {
       console.error(err);
     } finally {
       setIsLoadingHistory(false);
     }
-  };
+  }, []);
 
-  const loadStaffData = async () => {
-    if (!isAdmin) return;
+  const loadSettingsData = useCallback(async () => {
     try {
-      const users = await fetchStaffUsers();
-      setStaffUsers(users || []);
+      const stats = await fetchSystemSettings();
+      setSystemStats(stats);
     } catch (err) {
       console.error(err);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    if (currentUser) {
-      refreshCatalogData();
-      if (activeTab === 'history') loadHistoryData();
-      if (activeTab === 'users') loadStaffData();
-    }
-  }, [currentUser, activeTab]);
+    if (!isAuthenticated) return;
 
-  // Handle Login
-  const handleLoginSubmit = async (e) => {
+    if (activeTab === 'dashboard') {
+      loadSettingsData();
+      loadHistoryData();
+      loadContentData();
+    } else if (activeTab === 'editor' || activeTab === 'drafts' || activeTab === 'languages' || activeTab === 'menu' || activeTab === 'seo') {
+      loadContentData();
+    } else if (activeTab === 'catalog') {
+      loadCatalogData();
+      loadCategoriesData();
+    } else if (activeTab === 'categories') {
+      loadCategoriesData();
+    } else if (activeTab === 'pages') {
+      loadPagesData();
+    } else if (activeTab === 'media') {
+      loadMediaData();
+    } else if (activeTab === 'history') {
+      loadHistoryData();
+    } else if (activeTab === 'settings') {
+      loadSettingsData();
+    }
+  }, [
+    isAuthenticated, 
+    activeTab, 
+    loadContentData, 
+    loadCatalogData, 
+    loadCategoriesData, 
+    loadPagesData, 
+    loadMediaData, 
+    loadHistoryData, 
+    loadSettingsData
+  ]);
+
+  // Handle Login with Single Password
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setLoginError('');
-    setIsLoggingIn(true);
-    try {
-      const res = await loginEmployee(loginEmail, loginPassword);
-      setCurrentUser(res.user);
-    } catch (err) {
-      setLoginError(err.message || 'Ошибка авторизации');
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
-
-  const handleLogout = () => {
-    logoutEmployee();
-    setCurrentUser(null);
-  };
-
-  // Quick fill helper for testing
-  const handleQuickFill = (email, pass) => {
-    setLoginEmail(email);
-    setLoginPassword(pass);
-    setLoginError('');
-  };
-
-  // -------------------------------------------------------------
-  // PRODUCTS FILTERING
-  // -------------------------------------------------------------
-  const filteredProducts = products.filter(p => {
-    const q = searchQuery.toLowerCase().trim();
-    const matchSearch = !q || 
-      (p.article && p.article.toLowerCase().includes(q)) || 
-      (p.name && p.name.toLowerCase().includes(q)) ||
-      (p.category && p.category.toLowerCase().includes(q));
-
-    const matchCat = selectedCategory === 'Все' || p.category === selectedCategory;
-
-    const matchStatus = statusFilter === 'all' || 
-      (statusFilter === 'active' && p.status !== 'СКРЫТ') ||
-      (statusFilter === 'hidden' && p.status === 'СКРЫТ');
-
-    return matchSearch && matchCat && matchStatus;
-  });
-
-  const totalCount = products.length;
-  const activeCount = products.filter(p => p.status !== 'СКРЫТ').length;
-  const hiddenCount = products.filter(p => p.status === 'СКРЫТ').length;
-
-  // Toggle single product status
-  const handleToggleStatus = async (sku, currentStatus) => {
-    const nextStatus = currentStatus === 'СКРЫТ' ? 'АКТИВЕН' : 'СКРЫТ';
-    try {
-      await toggleProductStatus(sku, nextStatus);
-      const updated = products.map(p => p.article === sku ? { ...p, status: nextStatus } : p);
-      updateProducts(updated);
-      setNotice(`Статус товара ${sku} изменен на "${nextStatus}"`);
-      setTimeout(() => setNotice(''), 4000);
-    } catch (err) {
-      alert(`Ошибка: ${err.message}`);
-    }
-  };
-
-  // Delete product
-  const handleDeleteProduct = async (sku, name) => {
-    if (!window.confirm(`Вы уверены, что хотите удалить товар "${name}" (${sku}) из каталога? Будет создана автоматическая резервная копия.`)) {
+    if (!passwordInput.trim()) {
+      setAuthError('Введите пароль');
       return;
     }
-    try {
-      await deleteProduct(sku);
-      const updated = products.filter(p => p.article !== sku);
-      updateProducts(updated);
-      setNotice(`Товар ${sku} удален из каталога`);
-      setTimeout(() => setNotice(''), 4000);
-    } catch (err) {
-      alert(`Ошибка: ${err.message}`);
-    }
-  };
 
-  // Save edited product
-  const handleSaveProductEdit = async (e) => {
-    e.preventDefault();
-    if (!editingProduct) return;
-    setIsSavingProduct(true);
-    try {
-      await updateProduct(editingProduct.article, editingProduct);
-      const updated = products.map(p => p.article === editingProduct.article ? editingProduct : p);
-      updateProducts(updated);
-      setEditingProduct(null);
-      setNotice(`Товар ${editingProduct.article} успешно сохранён!`);
-      setTimeout(() => setNotice(''), 4000);
-    } catch (err) {
-      alert(`Ошибка: ${err.message}`);
-    } finally {
-      setIsSavingProduct(false);
-    }
-  };
-
-  // Image Upload handler for Edit modal or Add form
-  const handleImageUpload = async (e, target) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const res = await uploadImageFile(file);
-      if (target === 'edit') {
-        setEditingProduct(prev => ({ ...prev, photo1: res.url }));
-      } else if (target === 'add') {
-        setNewProductData(prev => ({ ...prev, photo1: res.url }));
-      }
-      setNotice('Изображение успешно загружено на сервер');
-      setTimeout(() => setNotice(''), 4000);
-    } catch (err) {
-      alert(`Ошибка загрузки изображения: ${err.message}`);
-    }
-  };
-
-  // Add Product Submit
-  const handleAddProductSubmit = async (e) => {
-    e.preventDefault();
-    if (!newProductData.article || !newProductData.name || !newProductData.price) {
-      alert('Заполните обязательные поля: Артикул, Название, Цена');
-      return;
-    }
-    setIsAddingProduct(true);
-    try {
-      const res = await addProduct(newProductData);
-      const updated = [res.product, ...products];
-      updateProducts(updated);
-      setAddSuccessMessage(`Товар ${res.product.article} («${res.product.name}») успешно добавлен в каталог!`);
-      // Reset form
-      setNewProductData({
-        article: '',
-        name: '',
-        category: 'Кухонные смесители',
-        subcategory: '',
-        collection: 'LAUTE Master Line',
-        brand: 'LAUTE',
-        description: '',
-        price: '',
-        currency: '₸',
-        material: 'Первичная латунь CW617N (евростандарт)',
-        color: 'Хром глянец',
-        finish: 'Гальванический хром',
-        installType: 'Врезной на мойку / умывальник',
-        purpose: 'Кухонные смесители',
-        dimensions: '',
-        weight: '',
-        volume: '',
-        specs: '',
-        photo1: 'images/cat_laute_brand.jpg',
-        photo2: '',
-        photo3: '',
-        status: 'АКТИВЕН'
-      });
-      setTimeout(() => setAddSuccessMessage(''), 5000);
-    } catch (err) {
-      alert(`Ошибка добавления товара: ${err.message}`);
-    } finally {
-      setIsAddingProduct(false);
-    }
-  };
-
-  // -------------------------------------------------------------
-  // EXCEL IMPORT WORKFLOW
-  // -------------------------------------------------------------
-  const handleExcelFileSelect = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setExcelFile(file);
-    setIsValidatingExcel(true);
-    setValidationResult(null);
-    setImportSuccessData(null);
+    setIsSubmittingAuth(true);
+    setAuthError('');
 
     try {
-      const result = await validateExcelFile(file);
-      setValidationResult(result);
-    } catch (err) {
-      setValidationResult({
-        success: false,
-        summary: { toAdd: 0, toUpdate: 0, unchanged: 0, toHide: 0, toDelete: 0, errorsCount: 1 },
-        errors: [{ row: '-', article: '-', message: `Ошибка парсинга: ${err.message}` }],
-        diffs: [],
-        validRows: []
-      });
-    } finally {
-      setIsValidatingExcel(false);
-    }
-  };
-
-  const handleCommitExcelImport = async () => {
-    if (!validationResult || !validationResult.validRows || validationResult.validRows.length === 0) return;
-
-    setIsCommittingImport(true);
-    try {
-      const res = await commitExcelImport(validationResult.validRows);
-      if (res.success && res.products) {
-        updateProducts(res.products);
-        setImportSuccessData(res);
-        setValidationResult(null);
-        setExcelFile(null);
-        if (fileInputRef.current) fileInputRef.current.value = '';
+      const res = await loginWithPassword(passwordInput);
+      if (res.success) {
+        setIsAuthenticated(true);
+        setAdminSession(res.session);
+        setPasswordInput('');
+        showNotice('Добро пожаловать в панель управления LAUTE');
       }
     } catch (err) {
-      alert(`Ошибка применения изменений: ${err.message}`);
-    } finally {
-      setIsCommittingImport(false);
-    }
-  };
-
-  // Handle Rollback
-  const handleRollback = async (backupId) => {
-    if (!isAdmin) {
-      alert('Действие доступно только Главному администратору.');
-      return;
-    }
-    if (!window.confirm(`Вы уверены, что хотите откатить весь каталог к резервной копии ${backupId}? Текущие данные будут заменены состоянием этого бэкапа.`)) {
-      return;
-    }
-
-    try {
-      const res = await rollbackToBackup(backupId);
-      if (res.success && res.products) {
-        updateProducts(res.products);
-        setRollbackSuccessMsg(`Каталог успешно восстановлен! Всего позиций: ${res.restoredCount}`);
-        loadHistoryData();
-        setTimeout(() => setRollbackSuccessMsg(''), 5000);
+      if (err.needsSetup) {
+        setNeedsInitialSetup(true);
       }
-    } catch (err) {
-      alert(`Ошибка отката: ${err.message}`);
+      setAuthError(err.message || 'Неверный пароль доступа');
+    } finally {
+      setIsSubmittingAuth(false);
     }
   };
 
-  // Add Staff User
-  const handleAddStaffSubmit = async (e) => {
+  // Handle Initial Password Setup
+  const handleInitialSetup = async (e) => {
     e.preventDefault();
-    if (!newStaffEmail || !newStaffPassword || !newStaffName) {
-      alert('Заполните все обязательные поля');
+    if (initialPasswordInput.length < 6) {
+      setAuthError('Пароль должен быть длиной не менее 6 символов');
       return;
     }
+    if (initialPasswordInput !== initialPasswordConfirm) {
+      setAuthError('Пароли не совпадают');
+      return;
+    }
+
+    setIsSubmittingAuth(true);
+    setAuthError('');
+
     try {
-      const newUser = await createStaffUser({
-        email: newStaffEmail,
-        password: newStaffPassword,
-        name: newStaffName,
-        role: newStaffRole,
-        title: newStaffTitle
-      });
-      setStaffUsers(prev => [...prev, newUser]);
-      setNewStaffEmail('');
-      setNewStaffPassword('');
-      setNewStaffName('');
-      setNewStaffTitle('');
-      alert('Сотрудник успешно добавлен!');
+      await setupInitialPassword(initialPasswordInput);
+      setNeedsInitialSetup(false);
+      showNotice('Пароль успешно задан! Теперь войдите с новым паролем.');
+      setPasswordInput(initialPasswordInput);
     } catch (err) {
-      alert(`Ошибка добавления сотрудника: ${err.message}`);
+      setAuthError(err.message || 'Ошибка установки пароля');
+    } finally {
+      setIsSubmittingAuth(false);
     }
   };
 
-  // =============================================================
-  // RENDER: LOGIN SCREEN (when not authenticated)
-  // =============================================================
-  if (!currentUser) {
+  // Handle Logout
+  const handleLogout = async () => {
+    await logoutAdmin();
+    setIsAuthenticated(false);
+    setAdminSession(null);
+    navigateTo('home');
+  };
+
+  // Save Draft Handler
+  const handleSaveDraft = async () => {
+    if (!draftContent) return;
+    setIsSavingDraft(true);
+    try {
+      const saved = await saveSiteContentDraft(draftContent);
+      setDraftContent(saved);
+      showNotice('Черновик успешно сохранён на сервере');
+    } catch (err) {
+      showNotice(err.message, 'error');
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
+  // Publish Draft Handler
+  const handlePublish = async () => {
+    setIsPublishing(true);
+    try {
+      const res = await publishSiteContent();
+      setDraftContent(res.content);
+      setSiteContent(res.content);
+      reloadSiteContent();
+      showNotice(`Успешно опубликовано! Новая версия сайта: ${res.version}`);
+    } catch (err) {
+      showNotice(err.message, 'error');
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  // Discard Draft Handler
+  const handleDiscardDraft = async () => {
+    if (!window.confirm('Вы уверены, что хотите отменить все несохранённые изменения черновика?')) return;
+    try {
+      const res = await discardSiteContentDraft();
+      setDraftContent(res);
+      showNotice('Изменения черновика отменены. Возврат к опубликованной версии.');
+    } catch (err) {
+      showNotice(err.message, 'error');
+    }
+  };
+
+  // Password Change Handler in Settings
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (newPasswordChange.length < 6) {
+      setPasswordChangeMsg('Новый пароль должен быть не менее 6 символов');
+      return;
+    }
+    if (newPasswordChange !== newPasswordConfirm) {
+      setPasswordChangeMsg('Новые пароли не совпадают');
+      return;
+    }
+
+    try {
+      await changeAdminPassword(oldPasswordChange, newPasswordChange);
+      setPasswordChangeMsg('✅ Пароль успешно изменён! Запомните новый пароль.');
+      setOldPasswordChange('');
+      setNewPasswordChange('');
+      setNewPasswordConfirm('');
+      showNotice('Пароль администратора успешно изменён');
+    } catch (err) {
+      setPasswordChangeMsg(`❌ ${err.message}`);
+    }
+  };
+
+  // Navigation Items (13 Sections)
+  const navItems = [
+    { id: 'dashboard', label: 'Главная панель', icon: LayoutDashboard },
+    { id: 'editor', label: 'Редактор сайта', icon: Edit3, badge: draftContent?.hasUnpublishedChanges ? 'Черновик' : null },
+    { id: 'pages', label: 'Страницы', icon: FileText },
+    { id: 'catalog', label: 'Каталог', icon: Package, count: catalogList.length },
+    { id: 'categories', label: 'Категории товаров', icon: FolderTree },
+    { id: 'excel', label: 'Импорт и экспорт Excel', icon: FileSpreadsheet },
+    { id: 'media', label: 'Фотографии и медиа', icon: ImageIcon },
+    { id: 'menu', label: 'Меню и футер', icon: Menu },
+    { id: 'languages', label: 'Языки и переводы', icon: Languages },
+    { id: 'seo', label: 'SEO', icon: Globe },
+    { id: 'drafts', label: 'Черновики и публикации', icon: GitPullRequest, badge: draftContent?.hasUnpublishedChanges ? '●' : null },
+    { id: 'history', label: 'История изменений', icon: History },
+    { id: 'settings', label: 'Настройки', icon: Settings }
+  ];
+
+  // -------------------------------------------------------------
+  // RENDER: 1. LOGIN SCREEN (Strictly Single Password Field)
+  // -------------------------------------------------------------
+  if (!isAuthenticated) {
     return (
       <div className="admin-login-screen">
         <div className="admin-login-card">
           <div className="admin-login-header">
-            <div className="admin-login-badge">
-              <Shield size={14} color="#2563EB" />
-              <span>ЗАКРЫТЫЙ СЛУЖЕБНЫЙ ДОСТУП</span>
+            <div className="admin-login-brand">
+              <span className="admin-brand-title">LAUTE</span>
             </div>
-            <div className="admin-login-logo">LAUTE</div>
-            <h1 className="admin-login-title">Управление каталогом товаров</h1>
+            <div className="admin-login-badge">
+              <Shield size={14} />
+              <span>Безопасный доступ</span>
+            </div>
+            <h1 className="admin-login-title">
+              {needsInitialSetup ? 'Первоначальная настройка' : 'Панель управления'}
+            </h1>
             <p className="admin-login-subtitle">
-              Единый центр управления номенклатурой, ценами и синхронизацией через Microsoft Excel.
+              {needsInitialSetup 
+                ? 'Задайте постоянный пароль администратора для управления сайтом LAUTE'
+                : 'Для входа в систему введите пароль администратора LAUTE'
+              }
             </p>
           </div>
 
-          {loginError && (
-            <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', padding: '12px 14px', borderRadius: '8px', fontSize: '13px', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <AlertTriangle size={18} />
-              <span>{loginError}</span>
+          {authError && (
+            <div className="admin-login-alert error">
+              <AlertTriangle size={16} />
+              <span>{authError}</span>
             </div>
           )}
 
-          <form onSubmit={handleLoginSubmit} className="admin-login-form">
-            <div className="form-group">
-              <label>Рабочий E-mail сотрудника *</label>
-              <input
-                type="email"
-                required
-                placeholder="employee@laute.com"
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Пароль доступа *</label>
-              <input
-                type="password"
-                required
-                placeholder="••••••••••••"
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-              />
-            </div>
-
-            <button 
-              type="submit" 
-              className="adm-btn adm-btn-accent" 
-              style={{ width: '100%', padding: '12px', marginTop: '10px' }}
-              disabled={isLoggingIn}
-            >
-              {isLoggingIn ? 'Проверка учётных данных...' : 'Войти в панель управления'}
-            </button>
-          </form>
-
-          {/* Quick Demo Helper */}
-          <div className="admin-quick-roles">
-            <div className="admin-quick-roles-title">Учётные записи для быстрого входа:</div>
-            
-            <button 
-              type="button" 
-              className="admin-quick-btn"
-              onClick={() => handleQuickFill('admin@laute.com', 'laute_admin_2026!')}
-            >
-              <div>
-                <strong>Иван Смирнов</strong> (Главный администратор)
-                <div style={{ fontSize: '11px', color: '#64748B' }}>admin@laute.com (полные права, бэкапы, сотрудники)</div>
+          {needsInitialSetup ? (
+            <form onSubmit={handleInitialSetup} className="admin-login-form">
+              <div className="form-group">
+                <label>Новый мастер-пароль администратора:</label>
+                <input
+                  type="password"
+                  value={initialPasswordInput}
+                  onChange={(e) => setInitialPasswordInput(e.target.value)}
+                  placeholder="Минимум 6 символов..."
+                  required
+                  autoFocus
+                />
               </div>
-              <Shield size={16} color="#2563EB" />
-            </button>
 
-            <button 
-              type="button" 
-              className="admin-quick-btn"
-              onClick={() => handleQuickFill('editor@laute.com', 'laute_editor_2026!')}
-            >
-              <div>
-                <strong>Елена Васильева</strong> (Редактор каталога)
-                <div style={{ fontSize: '11px', color: '#64748B' }}>editor@laute.com (товары, Excel импорт/экспорт)</div>
+              <div className="form-group">
+                <label>Повторите пароль:</label>
+                <input
+                  type="password"
+                  value={initialPasswordConfirm}
+                  onChange={(e) => setInitialPasswordConfirm(e.target.value)}
+                  placeholder="Повторите ввод пароля..."
+                  required
+                />
               </div>
-              <Edit3 size={16} color="#10B981" />
-            </button>
 
-            <div style={{ textAlign: 'center', marginTop: '16px' }}>
-              <button 
-                type="button" 
-                className="adm-btn adm-btn-outline adm-btn-sm" 
-                onClick={() => navigateTo('catalog')}
+              <button
+                type="submit"
+                className="admin-btn admin-btn-primary admin-btn-full"
+                disabled={isSubmittingAuth}
               >
-                <ArrowLeft size={14} />
-                <span>Вернуться на витрину LAUTE</span>
+                {isSubmittingAuth ? 'Сохранение...' : 'Задать пароль и войти'}
               </button>
-            </div>
+            </form>
+          ) : (
+            <form onSubmit={handleLogin} className="admin-login-form">
+              <div className="form-group">
+                <label htmlFor="admin-password-input">Пароль</label>
+                <input
+                  id="admin-password-input"
+                  type="password"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  placeholder="Введите пароль администратора..."
+                  required
+                  autoFocus
+                  autoComplete="current-password"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="admin-btn admin-btn-primary admin-btn-full"
+                disabled={isSubmittingAuth}
+              >
+                {isSubmittingAuth ? 'Проверка пароля...' : 'Войти'}
+              </button>
+            </form>
+          )}
+
+          <div className="admin-login-footer">
+            <button
+              type="button"
+              className="admin-back-link"
+              onClick={() => navigateTo('home')}
+            >
+              <ArrowLeft size={14} />
+              <span>Вернуться на сайт LAUTE</span>
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
-  // =============================================================
-  // RENDER: DASHBOARD (when authenticated)
-  // =============================================================
+  // -------------------------------------------------------------
+  // RENDER: 2. MAIN CMS DASHBOARD (13 SECTIONS)
+  // -------------------------------------------------------------
   return (
     <div className="admin-layout">
-      {/* 1. TOP NAVBAR */}
+      {/* Top Application Bar */}
       <header className="admin-navbar">
-        <div className="admin-navbar-brand">
-          <div className="admin-brand-logo">LAUTE</div>
-          <span className="admin-brand-badge">ПАНЕЛЬ УПРАВЛЕНИЯ КАТАЛОГОМ</span>
-          <div className="admin-navbar-status">
-            <div className="admin-status-dot" />
-            <span>Сервер синхронизирован</span>
+        <div className="admin-navbar-left">
+          <div className="admin-brand-cluster">
+            <span className="admin-logo-text">LAUTE</span>
+            <span className="admin-cms-badge">CMS CONTROL</span>
           </div>
+
+          {draftContent?.hasUnpublishedChanges && (
+            <div className="admin-draft-chip">
+              <span className="draft-dot"></span>
+              <span>Есть черновик ({draftContent.version || '1.0.0'})</span>
+            </div>
+          )}
         </div>
 
-        <div className="admin-navbar-user">
+        <div className="admin-navbar-actions">
+          {draftContent?.hasUnpublishedChanges && (
+            <>
+              <button 
+                type="button" 
+                className="admin-btn admin-btn-outline admin-btn-sm"
+                onClick={handleSaveDraft}
+                disabled={isSavingDraft}
+                title="Сохранить черновик"
+              >
+                <Save size={14} />
+                <span>{isSavingDraft ? 'Сохранение...' : 'Сохранить'}</span>
+              </button>
+
+              <button 
+                type="button" 
+                className="admin-btn admin-btn-success admin-btn-sm"
+                onClick={handlePublish}
+                disabled={isPublishing}
+                title="Опубликовать изменения на сайте"
+              >
+                <Check size={14} />
+                <span>{isPublishing ? 'Публикация...' : 'Опубликовать'}</span>
+              </button>
+            </>
+          )}
+
           <button 
             type="button" 
-            className="adm-btn adm-btn-outline adm-btn-sm" 
-            style={{ color: '#F8FAFC', borderColor: '#334155', background: '#1E293B' }}
-            onClick={() => navigateTo('catalog')}
-            title="Открыть публичный каталог товаров"
+            className="admin-btn admin-btn-ghost admin-btn-sm"
+            onClick={() => navigateTo('home')}
+            title="Открыть сайт"
           >
-            <ArrowLeft size={14} />
-            <span>Витрина сайта</span>
+            <ExternalLink size={14} />
+            <span>На сайт</span>
           </button>
 
-          <div className="admin-user-info">
-            <div className="admin-user-name">{currentUser.name}</div>
-            <div className="admin-user-role">
-              {currentUser.role === 'admin' ? 'Главный администратор' : 'Контент-редактор'}
-            </div>
-          </div>
-
           <button 
             type="button" 
-            className="adm-btn adm-btn-outline adm-btn-sm" 
-            style={{ color: '#EF4444', borderColor: '#334155', background: '#1E293B' }}
+            className="admin-btn admin-btn-danger admin-btn-sm"
             onClick={handleLogout}
-            title="Выйти из системы"
+            title="Завершить сессию"
           >
             <LogOut size={14} />
-            <span>Выход</span>
+            <span>Выйти</span>
           </button>
         </div>
       </header>
 
-      {/* Main Workspace */}
-      <main style={{ padding: '24px', maxWidth: '1440px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
-        
-        {/* Global Notice Toast */}
-        {notice && (
-          <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', color: '#065F46', padding: '12px 18px', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <CheckCircle2 size={18} color="#10B981" />
-            <span>{notice}</span>
-          </div>
-        )}
-
-        {/* 2. METRICS CARDS */}
-        <div className="admin-metrics-container">
-          <div className="admin-metric-card">
-            <div className="admin-metric-icon" style={{ background: '#EFF6FF', color: '#2563EB' }}>
-              <Package size={24} />
-            </div>
-            <div>
-              <div className="admin-metric-val">{totalCount}</div>
-              <div className="admin-metric-label">Всего товаров в базе</div>
-            </div>
-          </div>
-
-          <div className="admin-metric-card">
-            <div className="admin-metric-icon" style={{ background: '#ECFDF5', color: '#10B981' }}>
-              <Eye size={24} />
-            </div>
-            <div>
-              <div className="admin-metric-val">{activeCount}</div>
-              <div className="admin-metric-label">Опубликовано на сайте</div>
-            </div>
-          </div>
-
-          <div className="admin-metric-card">
-            <div className="admin-metric-icon" style={{ background: '#F1F5F9', color: '#64748B' }}>
-              <EyeOff size={24} />
-            </div>
-            <div>
-              <div className="admin-metric-val">{hiddenCount}</div>
-              <div className="admin-metric-label">Скрытых позиций</div>
-            </div>
-          </div>
-
-          <div className="admin-metric-card">
-            <div className="admin-metric-icon" style={{ background: '#FEF3C7', color: '#D97706' }}>
-              <FileSpreadsheet size={24} />
-            </div>
-            <div>
-              <div className="admin-metric-val">.XLSX</div>
-              <div className="admin-metric-label">Готов к импорту/экспорту</div>
-            </div>
-          </div>
-        </div>
-
-        {/* 3. NAVIGATION TABS */}
-        <nav className="admin-tabs-nav">
-          <button 
-            type="button" 
-            className={`admin-tab-btn ${activeTab === 'products' ? 'active' : ''}`}
-            onClick={() => setActiveTab('products')}
-          >
-            <Package size={16} />
-            <span>Все товары</span>
-            <span className="admin-tab-badge">{totalCount}</span>
-          </button>
-
-          <button 
-            type="button" 
-            className={`admin-tab-btn ${activeTab === 'add' ? 'active' : ''}`}
-            onClick={() => setActiveTab('add')}
-          >
-            <Plus size={16} />
-            <span>Добавить товар</span>
-          </button>
-
-          <button 
-            type="button" 
-            className={`admin-tab-btn ${activeTab === 'import' ? 'active' : ''}`}
-            onClick={() => setActiveTab('import')}
-          >
-            <Upload size={16} />
-            <span>Импорт Excel</span>
-          </button>
-
-          <button 
-            type="button" 
-            className={`admin-tab-btn ${activeTab === 'export' ? 'active' : ''}`}
-            onClick={() => setActiveTab('export')}
-          >
-            <Download size={16} />
-            <span>Экспорт Excel</span>
-          </button>
-
-          <button 
-            type="button" 
-            className={`admin-tab-btn ${activeTab === 'history' ? 'active' : ''}`}
-            onClick={() => setActiveTab('history')}
-          >
-            <History size={16} />
-            <span>История изменений</span>
-          </button>
-
-          <button 
-            type="button" 
-            className={`admin-tab-btn ${activeTab === 'errors' ? 'active' : ''}`}
-            onClick={() => setActiveTab('errors')}
-          >
-            <AlertTriangle size={16} />
-            <span>Ошибки импорта</span>
-          </button>
-
-          {isAdmin && (
-            <button 
-              type="button" 
-              className={`admin-tab-btn ${activeTab === 'users' ? 'active' : ''}`}
-              onClick={() => setActiveTab('users')}
-            >
-              <Users size={16} />
-              <span>Сотрудники</span>
-            </button>
-          )}
-        </nav>
-
-        {/* -------------------------------------------------------------
-            TAB 1: ВСЕ ТОВАРЫ
-            ------------------------------------------------------------- */}
-        {activeTab === 'products' && (
-          <div className="admin-panel-card">
-            <div className="admin-card-header">
-              <h2 className="admin-card-title">
-                <Package size={18} color="#2563EB" />
-                <span>Номенклатура каталога LAUTE</span>
-              </h2>
-
-              <div className="admin-filters-bar">
-                <div style={{ position: 'relative' }}>
-                  <Search size={15} style={{ position: 'absolute', left: '10px', top: '11px', color: '#94A3B8' }} />
-                  <input
-                    type="text"
-                    placeholder="Поиск по артикулу, названию..."
-                    className="admin-search-input"
-                    style={{ paddingLeft: '32px' }}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-
-                <select 
-                  className="admin-select"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+      {/* Main Body with Sidebar + Content Area */}
+      <div className="admin-container">
+        {/* Sidebar Navigation */}
+        <aside className="admin-sidebar">
+          <div className="admin-sidebar-menu">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActiveTab(item.id)}
+                  className={`admin-nav-item ${isActive ? 'active' : ''}`}
                 >
-                  <option value="Все">Все категории ({totalCount})</option>
-                  {CATEGORY_NAMES.map(c => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-
-                <div style={{ display: 'flex', gap: '4px', background: '#F1F5F9', padding: '3px', borderRadius: '8px' }}>
-                  <button 
-                    type="button"
-                    style={{ padding: '6px 12px', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', background: statusFilter === 'all' ? '#FFFFFF' : 'transparent', color: statusFilter === 'all' ? '#0F172A' : '#64748B' }}
-                    onClick={() => setStatusFilter('all')}
-                  >
-                    Все ({totalCount})
-                  </button>
-                  <button 
-                    type="button"
-                    style={{ padding: '6px 12px', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', background: statusFilter === 'active' ? '#FFFFFF' : 'transparent', color: statusFilter === 'active' ? '#059669' : '#64748B' }}
-                    onClick={() => setStatusFilter('active')}
-                  >
-                    Активные ({activeCount})
-                  </button>
-                  <button 
-                    type="button"
-                    style={{ padding: '6px 12px', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', background: statusFilter === 'hidden' ? '#FFFFFF' : 'transparent', color: statusFilter === 'hidden' ? '#DC2626' : '#64748B' }}
-                    onClick={() => setStatusFilter('hidden')}
-                  >
-                    Скрытые ({hiddenCount})
-                  </button>
-                </div>
-
-                <button 
-                  type="button" 
-                  className="adm-btn adm-btn-accent adm-btn-sm"
-                  onClick={() => setActiveTab('add')}
-                >
-                  <Plus size={14} />
-                  <span>Добавить товар</span>
+                  <div className="admin-nav-item-left">
+                    <Icon size={17} className="nav-icon" />
+                    <span>{item.label}</span>
+                  </div>
+                  {item.badge && <span className="admin-nav-badge warning">{item.badge}</span>}
+                  {item.count !== undefined && <span className="admin-nav-badge count">{item.count}</span>}
                 </button>
+              );
+            })}
+          </div>
+
+          <div className="admin-sidebar-footer">
+            <div className="admin-session-box">
+              <Shield size={14} className="session-shield" />
+              <div className="session-info">
+                <span className="session-title">Сессия активна</span>
+                <span className="session-id">{adminSession?.id || 'admin-session'}</span>
               </div>
-            </div>
-
-            <div className="admin-table-wrapper">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Фото</th>
-                    <th>Артикул (SKU)</th>
-                    <th>Наименование</th>
-                    <th>Категория</th>
-                    <th>Цена</th>
-                    <th>Статус</th>
-                    <th>Обновлено</th>
-                    <th style={{ textAlign: 'right' }}>Действия</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredProducts.length === 0 ? (
-                    <tr>
-                      <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: '#94A3B8' }}>
-                        Товары не найдены по заданным критериям поиска.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredProducts.map((p) => (
-                      <tr key={p.article}>
-                        <td>
-                          <img 
-                            src={p.photo1 || 'images/cat_laute_brand.jpg'} 
-                            alt={p.name} 
-                            className="admin-table-thumb"
-                            onError={(e) => { e.target.src = 'images/cat_laute_brand.jpg'; }}
-                          />
-                        </td>
-                        <td>
-                          <strong style={{ fontFamily: 'monospace', color: '#0F172A' }}>{p.article}</strong>
-                        </td>
-                        <td>
-                          <div style={{ fontWeight: '600', color: '#1E293B' }}>{p.name}</div>
-                          <div style={{ fontSize: '11px', color: '#64748B' }}>{p.collection || 'LAUTE Master Line'}</div>
-                        </td>
-                        <td>
-                          <span style={{ background: '#F1F5F9', padding: '3px 8px', borderRadius: '4px', fontSize: '12px' }}>
-                            {p.category}
-                          </span>
-                        </td>
-                        <td>
-                          <strong style={{ fontSize: '14px', color: '#0F172A' }}>
-                            {Number(p.price).toLocaleString('ru-RU')} {p.currency || '₸'}
-                          </strong>
-                        </td>
-                        <td>
-                          {p.status === 'СКРЫТ' ? (
-                            <span className="status-badge hidden">
-                              <EyeOff size={12} />
-                              <span>СКРЫТ</span>
-                            </span>
-                          ) : (
-                            <span className="status-badge active">
-                              <Eye size={12} />
-                              <span>АКТИВЕН</span>
-                            </span>
-                          )}
-                        </td>
-                        <td style={{ fontSize: '12px', color: '#64748B' }}>
-                          {p.updatedAt ? new Date(p.updatedAt).toLocaleDateString('ru-RU') : 'Эталон'}
-                        </td>
-                        <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                          <button 
-                            type="button" 
-                            className="adm-btn adm-btn-outline adm-btn-sm" 
-                            style={{ marginRight: '6px' }}
-                            onClick={() => setEditingProduct({ ...p })}
-                            title="Редактировать товар"
-                          >
-                            <Edit3 size={13} />
-                            <span>Править</span>
-                          </button>
-
-                          <button 
-                            type="button" 
-                            className="adm-btn adm-btn-outline adm-btn-sm" 
-                            style={{ marginRight: '6px' }}
-                            onClick={() => handleToggleStatus(p.article, p.status)}
-                            title={p.status === 'СКРЫТ' ? 'Вернуть на сайт' : 'Скрыть с сайта'}
-                          >
-                            {p.status === 'СКРЫТ' ? <Eye size={13} color="#059669" /> : <EyeOff size={13} color="#64748B" />}
-                            <span>{p.status === 'СКРЫТ' ? 'Показать' : 'Скрыть'}</span>
-                          </button>
-
-                          <button 
-                            type="button" 
-                            className="adm-btn adm-btn-outline adm-btn-sm" 
-                            style={{ color: '#EF4444' }}
-                            onClick={() => handleDeleteProduct(p.article, p.name)}
-                            title="Удалить товар"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
             </div>
           </div>
-        )}
+        </aside>
 
-        {/* -------------------------------------------------------------
-            TAB 2: ДОБАВИТЬ ТОВАР
-            ------------------------------------------------------------- */}
-        {activeTab === 'add' && (
-          <div className="admin-panel-card" style={{ maxWidth: '900px', margin: '0 auto' }}>
-            <div className="admin-card-header">
-              <h2 className="admin-card-title">
-                <Plus size={18} color="#2563EB" />
-                <span>Создание новой номенклатурной позиции LAUTE</span>
-              </h2>
+        {/* Content Viewport */}
+        <main className="admin-main-viewport">
+          {notice && (
+            <div className={`admin-floating-notice ${notice.type}`}>
+              {notice.type === 'error' ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />}
+              <span>{notice.message}</span>
             </div>
+          )}
 
-            {addSuccessMessage && (
-              <div style={{ margin: '20px 24px 0', background: '#ECFDF5', border: '1px solid #A7F3D0', color: '#065F46', padding: '14px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <CheckCircle2 size={20} color="#10B981" />
-                <span>{addSuccessMessage}</span>
+          {/* TAB 1: ГЛАВНАЯ ПАНЕЛЬ */}
+          {activeTab === 'dashboard' && (
+            <div className="admin-view dashboard-view">
+              <div className="view-header">
+                <div>
+                  <h2 className="view-title">Главная панель управления</h2>
+                  <p className="view-subtitle">Сводный статус контента, каталога товаров и публикации сайта LAUTE</p>
+                </div>
+                <div className="header-actions">
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-primary admin-btn-sm"
+                    onClick={() => setActiveTab('editor')}
+                  >
+                    <Edit3 size={14} />
+                    <span>Редактор сайта</span>
+                  </button>
+                </div>
               </div>
-            )}
 
-            <form onSubmit={handleAddProductSubmit} style={{ padding: '24px' }}>
-              <div className="admin-form-grid">
-                <div className="admin-form-group">
-                  <label>Артикул (SKU) * [Уникальный ключ]</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Например: LT-K105-NW"
-                    value={newProductData.article}
-                    onChange={(e) => setNewProductData({ ...newProductData, article: e.target.value })}
-                  />
+              {/* Status Banner if Drafts are Pending */}
+              {draftContent?.hasUnpublishedChanges && (
+                <div className="admin-alert-banner">
+                  <div className="banner-icon-col">
+                    <Sparkles size={22} />
+                  </div>
+                  <div className="banner-content-col">
+                    <h4>Есть неопубликованные изменения</h4>
+                    <p>В черновике сохранены правки контента сайта. Они видны в режиме предпросмотра, но еще не появились на действующем сайте.</p>
+                  </div>
+                  <div className="banner-action-col">
+                    <button 
+                      type="button" 
+                      className="admin-btn admin-btn-success"
+                      onClick={handlePublish}
+                      disabled={isPublishing}
+                    >
+                      <Check size={14} />
+                      <span>{isPublishing ? 'Публикация...' : 'Опубликовать сейчас'}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Stat Cards Grid */}
+              <div className="admin-stats-grid">
+                <div className="stat-card" onClick={() => setActiveTab('catalog')}>
+                  <div className="stat-card-top">
+                    <span className="stat-label">Товаров в каталоге</span>
+                    <Package size={20} className="stat-icon" />
+                  </div>
+                  <div className="stat-value">{catalogList.length}</div>
+                  <div className="stat-footer">
+                    <span className="stat-tag success">Активных: {catalogList.filter(p => p.status !== 'СКРЫТ').length}</span>
+                    <span className="stat-tag warning">Скрыто: {catalogList.filter(p => p.status === 'СКРЫТ').length}</span>
+                  </div>
                 </div>
 
-                <div className="admin-form-group">
-                  <label>Категория *</label>
-                  <select
-                    value={newProductData.category}
-                    onChange={(e) => setNewProductData({ ...newProductData, category: e.target.value })}
+                <div className="stat-card" onClick={() => setActiveTab('pages')}>
+                  <div className="stat-card-top">
+                    <span className="stat-label">Страниц сайта</span>
+                    <FileText size={20} className="stat-icon" />
+                  </div>
+                  <div className="stat-value">{pagesList.length + 7}</div>
+                  <div className="stat-footer">
+                    <span>7 основных разделов + {pagesList.length} инфо-страниц</span>
+                  </div>
+                </div>
+
+                <div className="stat-card" onClick={() => setActiveTab('drafts')}>
+                  <div className="stat-card-top">
+                    <span className="stat-label">Версия публикации</span>
+                    <GitPullRequest size={20} className="stat-icon" />
+                  </div>
+                  <div className="stat-value">{draftContent?.version || '1.0.0'}</div>
+                  <div className="stat-footer">
+                    <span>{draftContent?.hasUnpublishedChanges ? 'Черновик ожидает публикации' : 'Сайт синхронизирован'}</span>
+                  </div>
+                </div>
+
+                <div className="stat-card" onClick={() => setActiveTab('history')}>
+                  <div className="stat-card-top">
+                    <span className="stat-label">Точки отката</span>
+                    <History size={20} className="stat-icon" />
+                  </div>
+                  <div className="stat-value">{backupsList.length}</div>
+                  <div className="stat-footer">
+                    <span>Резервных снимков каталога</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions Panel */}
+              <div className="admin-section-card">
+                <h3 className="card-section-title">Быстрые действия</h3>
+                <div className="quick-actions-row">
+                  <button 
+                    type="button" 
+                    className="quick-tile-btn"
+                    onClick={() => setActiveTab('editor')}
                   >
-                    {CATEGORY_NAMES.map(c => (
-                      <option key={c} value={c}>{c}</option>
+                    <Edit3 size={18} />
+                    <span>Редактировать тексты</span>
+                  </button>
+
+                  <button 
+                    type="button" 
+                    className="quick-tile-btn"
+                    onClick={() => { setActiveTab('catalog'); setIsAddingNewProduct(true); }}
+                  >
+                    <Plus size={18} />
+                    <span>Добавить товар</span>
+                  </button>
+
+                  <button 
+                    type="button" 
+                    className="quick-tile-btn"
+                    onClick={downloadExcelTemplate}
+                  >
+                    <Download size={18} />
+                    <span>Шаблон Excel</span>
+                  </button>
+
+                  <button 
+                    type="button" 
+                    className="quick-tile-btn"
+                    onClick={exportCurrentCatalog}
+                  >
+                    <FileSpreadsheet size={18} />
+                    <span>Выгрузить каталог</span>
+                  </button>
+
+                  <button 
+                    type="button" 
+                    className="quick-tile-btn"
+                    onClick={() => setActiveTab('media')}
+                  >
+                    <ImageIcon size={18} />
+                    <span>Медиаменеджер</span>
+                  </button>
+
+                  <button 
+                    type="button" 
+                    className="quick-tile-btn"
+                    onClick={() => setActiveTab('menu')}
+                  >
+                    <Menu size={18} />
+                    <span>Контакты и футер</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Recent Activity Log Preview */}
+              <div className="admin-section-card">
+                <div className="card-header-row">
+                  <h3 className="card-section-title">Последние операции в системе</h3>
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-ghost admin-btn-sm"
+                    onClick={() => setActiveTab('history')}
+                  >
+                    <span>Вся история</span>
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+
+                <div className="admin-table-wrapper">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Время</th>
+                        <th>Действие</th>
+                        <th>Операция</th>
+                        <th>Сессия</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {auditLogs.slice(0, 6).map((log) => (
+                        <tr key={log.id}>
+                          <td className="cell-time">{new Date(log.timestamp).toLocaleString('ru-RU')}</td>
+                          <td><span className="log-action-tag">{log.actionTitle || log.action}</span></td>
+                          <td>{log.summary}</td>
+                          <td className="cell-muted">{log.sessionId || 'Система'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: РЕДАКТОР САЙТА (ВИЗУАЛЬНЫЙ РЕДАКТОР БЛОКОВ) */}
+          {activeTab === 'editor' && (
+            <div className="admin-view editor-view">
+              <div className="view-header">
+                <div>
+                  <h2 className="view-title">Редактор сайта LAUTE</h2>
+                  <p className="view-subtitle">Редактирование текстов, заголовков, слайдов, фотографий и блоков всех страниц сайта</p>
+                </div>
+                <div className="header-actions">
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-outline admin-btn-sm"
+                    onClick={handleSaveDraft}
+                    disabled={isSavingDraft}
+                  >
+                    <Save size={14} />
+                    <span>{isSavingDraft ? 'Сохранение...' : 'Сохранить черновик'}</span>
+                  </button>
+
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-outline admin-btn-sm"
+                    onClick={() => setPreviewModalOpen(true)}
+                  >
+                    <Eye size={14} />
+                    <span>Предпросмотр</span>
+                  </button>
+
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-success admin-btn-sm"
+                    onClick={handlePublish}
+                    disabled={isPublishing}
+                  >
+                    <Check size={14} />
+                    <span>{isPublishing ? 'Публикация...' : 'Опубликовать'}</span>
+                  </button>
+
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-ghost admin-btn-sm"
+                    onClick={handleDiscardDraft}
+                    title="Сбросить изменения к последней публикации"
+                  >
+                    <RotateCcw size={14} />
+                    <span>Отменить</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Page Selection Row */}
+              <div className="editor-page-selector">
+                <span className="selector-label">Выберите страницу для редактирования:</span>
+                <div className="selector-tabs">
+                  {[
+                    { id: 'home', title: 'Главная страница' },
+                    { id: 'catalog', title: 'Каталог' },
+                    { id: 'company', title: 'О компании' },
+                    { id: 'partners', title: 'Партнёрам' },
+                    { id: 'service', title: 'Сервис' },
+                    { id: 'contacts', title: 'Контакты' },
+                    { id: 'footer', title: 'Футер' }
+                  ].map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      className={`selector-tab-btn ${selectedPageForEditor === p.id ? 'active' : ''}`}
+                      onClick={() => setSelectedPageForEditor(p.id)}
+                    >
+                      {p.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* EDITOR FOR HOME PAGE */}
+              {selectedPageForEditor === 'home' && draftContent?.homeBlocks && (
+                <div className="editor-blocks-container">
+                  {/* 1. Hero Slider Editor */}
+                  <div className="editor-section-card">
+                    <div className="editor-card-header">
+                      <div className="badge-tag">СЕКЦИЯ 1</div>
+                      <h3>Главный экран: Полноэкранный слайдер (Hero Carousel)</h3>
+                      <p>Управление слайдами, заголовками, порядком и фоновыми изображениями</p>
+                    </div>
+
+                    <div className="slides-editor-list">
+                      {draftContent.homeBlocks.heroSlider?.map((slide, sIdx) => (
+                        <div key={slide.id || sIdx} className="slide-editor-item">
+                          <div className="slide-item-header">
+                            <span className="slide-num">Слайд #{sIdx + 1}</span>
+                            <div className="slide-toggles">
+                              <label className="checkbox-label">
+                                <input
+                                  type="checkbox"
+                                  checked={slide.isVisible !== false}
+                                  onChange={(e) => {
+                                    const updated = [...draftContent.homeBlocks.heroSlider];
+                                    updated[sIdx].isVisible = e.target.checked;
+                                    setDraftContent({
+                                      ...draftContent,
+                                      hasUnpublishedChanges: true,
+                                      homeBlocks: { ...draftContent.homeBlocks, heroSlider: updated }
+                                    });
+                                  }}
+                                />
+                                <span>Видимый на сайте</span>
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="slide-fields-grid">
+                            <div className="form-group">
+                              <label>Теглайн / Подпись:</label>
+                              <input
+                                type="text"
+                                value={slide.tagline || ''}
+                                onChange={(e) => {
+                                  const updated = [...draftContent.homeBlocks.heroSlider];
+                                  updated[sIdx].tagline = e.target.value;
+                                  setDraftContent({
+                                    ...draftContent,
+                                    hasUnpublishedChanges: true,
+                                    homeBlocks: { ...draftContent.homeBlocks, heroSlider: updated }
+                                  });
+                                }}
+                              />
+                            </div>
+
+                            <div className="form-group">
+                              <label>Главный заголовок слайда:</label>
+                              <input
+                                type="text"
+                                value={slide.title || ''}
+                                onChange={(e) => {
+                                  const updated = [...draftContent.homeBlocks.heroSlider];
+                                  updated[sIdx].title = e.target.value;
+                                  setDraftContent({
+                                    ...draftContent,
+                                    hasUnpublishedChanges: true,
+                                    homeBlocks: { ...draftContent.homeBlocks, heroSlider: updated }
+                                  });
+                                }}
+                              />
+                            </div>
+
+                            <div className="form-group">
+                              <label>Текст кнопки:</label>
+                              <input
+                                type="text"
+                                value={slide.buttonText || ''}
+                                onChange={(e) => {
+                                  const updated = [...draftContent.homeBlocks.heroSlider];
+                                  updated[sIdx].buttonText = e.target.value;
+                                  setDraftContent({
+                                    ...draftContent,
+                                    hasUnpublishedChanges: true,
+                                    homeBlocks: { ...draftContent.homeBlocks, heroSlider: updated }
+                                  });
+                                }}
+                              />
+                            </div>
+
+                            <div className="form-group">
+                              <label>Путь к фото (или URL):</label>
+                              <input
+                                type="text"
+                                value={slide.image || ''}
+                                onChange={(e) => {
+                                  const updated = [...draftContent.homeBlocks.heroSlider];
+                                  updated[sIdx].image = e.target.value;
+                                  setDraftContent({
+                                    ...draftContent,
+                                    hasUnpublishedChanges: true,
+                                    homeBlocks: { ...draftContent.homeBlocks, heroSlider: updated }
+                                  });
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 2. Materials & Technologies Editor */}
+                  <div className="editor-section-card">
+                    <div className="editor-card-header">
+                      <div className="badge-tag">СЕКЦИЯ 2</div>
+                      <h3>Технологии & Материалы LAUTE</h3>
+                      <p>Управление текстами об инженерных стандартах (Sedal, латунь, SUS304, PVD)</p>
+                    </div>
+
+                    <div className="editor-fields-row">
+                      <div className="form-group">
+                        <label>Бейдж секции:</label>
+                        <input
+                          type="text"
+                          value={draftContent.homeBlocks.materials?.badge || ''}
+                          onChange={(e) => {
+                            setDraftContent({
+                              ...draftContent,
+                              hasUnpublishedChanges: true,
+                              homeBlocks: {
+                                ...draftContent.homeBlocks,
+                                materials: { ...draftContent.homeBlocks.materials, badge: e.target.value }
+                              }
+                            });
+                          }}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Заголовок секции:</label>
+                        <input
+                          type="text"
+                          value={draftContent.homeBlocks.materials?.title || ''}
+                          onChange={(e) => {
+                            setDraftContent({
+                              ...draftContent,
+                              hasUnpublishedChanges: true,
+                              homeBlocks: {
+                                ...draftContent.homeBlocks,
+                                materials: { ...draftContent.homeBlocks.materials, title: e.target.value }
+                              }
+                            });
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Описание секции:</label>
+                      <textarea
+                        rows={2}
+                        value={draftContent.homeBlocks.materials?.desc || ''}
+                        onChange={(e) => {
+                          setDraftContent({
+                            ...draftContent,
+                            hasUnpublishedChanges: true,
+                            homeBlocks: {
+                              ...draftContent.homeBlocks,
+                              materials: { ...draftContent.homeBlocks.materials, desc: e.target.value }
+                            }
+                          });
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* 3. B2B Partnership Banner */}
+                  <div className="editor-section-card">
+                    <div className="editor-card-header">
+                      <div className="badge-tag">СЕКЦИЯ 3</div>
+                      <h3>Партнёрский блок (B2B)</h3>
+                      <p>Тексты блока прямого оптового сотрудничества с заводом LAUTE</p>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Заголовок:</label>
+                      <input
+                        type="text"
+                        value={draftContent.homeBlocks.partnershipBanner?.title || ''}
+                        onChange={(e) => {
+                          setDraftContent({
+                            ...draftContent,
+                            hasUnpublishedChanges: true,
+                            homeBlocks: {
+                              ...draftContent.homeBlocks,
+                              partnershipBanner: { ...draftContent.homeBlocks.partnershipBanner, title: e.target.value }
+                            }
+                          });
+                        }}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Описание:</label>
+                      <textarea
+                        rows={2}
+                        value={draftContent.homeBlocks.partnershipBanner?.desc || ''}
+                        onChange={(e) => {
+                          setDraftContent({
+                            ...draftContent,
+                            hasUnpublishedChanges: true,
+                            homeBlocks: {
+                              ...draftContent.homeBlocks,
+                              partnershipBanner: { ...draftContent.homeBlocks.partnershipBanner, desc: e.target.value }
+                            }
+                          });
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* EDITOR FOR CONTACTS & FOOTER */}
+              {(selectedPageForEditor === 'contacts' || selectedPageForEditor === 'footer') && draftContent?.footer && (
+                <div className="editor-blocks-container">
+                  <div className="editor-section-card">
+                    <div className="editor-card-header">
+                      <h3>Контакты и информация в футере</h3>
+                      <p>Редактирование адресов, номеров телефонов и электронной почты</p>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Описание бренда в футере:</label>
+                      <textarea
+                        rows={2}
+                        value={draftContent.footer.brandDescription || ''}
+                        onChange={(e) => {
+                          setDraftContent({
+                            ...draftContent,
+                            hasUnpublishedChanges: true,
+                            footer: { ...draftContent.footer, brandDescription: e.target.value }
+                          });
+                        }}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Адрес представительства:</label>
+                      <input
+                        type="text"
+                        value={draftContent.footer.officeAddress || ''}
+                        onChange={(e) => {
+                          setDraftContent({
+                            ...draftContent,
+                            hasUnpublishedChanges: true,
+                            footer: { ...draftContent.footer, officeAddress: e.target.value }
+                          });
+                        }}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Электронная почта отдела продаж:</label>
+                      <input
+                        type="text"
+                        value={draftContent.footer.emails?.[0]?.email || ''}
+                        onChange={(e) => {
+                          const emails = [...(draftContent.footer.emails || [{ label: 'Отдел продаж', email: '' }])];
+                          emails[0].email = e.target.value;
+                          setDraftContent({
+                            ...draftContent,
+                            hasUnpublishedChanges: true,
+                            footer: { ...draftContent.footer, emails }
+                          });
+                        }}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Телефон отдела продаж 1:</label>
+                      <input
+                        type="text"
+                        value={draftContent.footer.phones?.[0]?.number || ''}
+                        onChange={(e) => {
+                          const phones = [...(draftContent.footer.phones || [{ number: '', tel: '' }])];
+                          phones[0].number = e.target.value;
+                          setDraftContent({
+                            ...draftContent,
+                            hasUnpublishedChanges: true,
+                            footer: { ...draftContent.footer, phones }
+                          });
+                        }}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Телефон отдела продаж 2:</label>
+                      <input
+                        type="text"
+                        value={draftContent.footer.phones?.[1]?.number || ''}
+                        onChange={(e) => {
+                          const phones = [...(draftContent.footer.phones || [])];
+                          if (!phones[1]) phones.push({ number: '', tel: '' });
+                          phones[1].number = e.target.value;
+                          setDraftContent({
+                            ...draftContent,
+                            hasUnpublishedChanges: true,
+                            footer: { ...draftContent.footer, phones }
+                          });
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* EDITOR FOR OTHER PAGES */}
+              {selectedPageForEditor !== 'home' && selectedPageForEditor !== 'contacts' && selectedPageForEditor !== 'footer' && (
+                <div className="editor-blocks-container">
+                  <div className="editor-section-card">
+                    <div className="editor-card-header">
+                      <h3>Раздел «{selectedPageForEditor.toUpperCase()}»</h3>
+                      <p>Редактирование информационного содержимого и текстов раздела</p>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Заголовок раздела (H1):</label>
+                      <input
+                        type="text"
+                        value={draftContent?.seo?.pages?.[selectedPageForEditor]?.h1 || ''}
+                        onChange={(e) => {
+                          const pages = { ...(draftContent?.seo?.pages || {}) };
+                          if (!pages[selectedPageForEditor]) pages[selectedPageForEditor] = {};
+                          pages[selectedPageForEditor].h1 = e.target.value;
+                          setDraftContent({
+                            ...draftContent,
+                            hasUnpublishedChanges: true,
+                            seo: { ...draftContent.seo, pages }
+                          });
+                        }}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Краткое описание раздела:</label>
+                      <textarea
+                        rows={3}
+                        value={draftContent?.seo?.pages?.[selectedPageForEditor]?.description || ''}
+                        onChange={(e) => {
+                          const pages = { ...(draftContent?.seo?.pages || {}) };
+                          if (!pages[selectedPageForEditor]) pages[selectedPageForEditor] = {};
+                          pages[selectedPageForEditor].description = e.target.value;
+                          setDraftContent({
+                            ...draftContent,
+                            hasUnpublishedChanges: true,
+                            seo: { ...draftContent.seo, pages }
+                          });
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: СТРАНИЦЫ */}
+          {activeTab === 'pages' && (
+            <div className="admin-view pages-view">
+              <div className="view-header">
+                <div>
+                  <h2 className="view-title">Управление страницами</h2>
+                  <p className="view-subtitle">Все разделы сайта LAUTE и создание новых информационных страниц на основе шаблонов</p>
+                </div>
+                <div className="header-actions">
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-primary admin-btn-sm"
+                    onClick={() => {
+                      setEditingCustomPage({
+                        title: '',
+                        slug: '',
+                        description: '',
+                        template: 'info',
+                        blocks: [{ type: 'hero', title: '', subtitle: '' }, { type: 'text', content: '' }]
+                      });
+                    }}
+                  >
+                    <Plus size={14} />
+                    <span>Создать страницу</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Standard Pages Table */}
+              <div className="admin-section-card">
+                <h3 className="card-section-title">Основные разделы сайта</h3>
+                <div className="admin-table-wrapper">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Название раздела</th>
+                        <th>Маршрут (URL)</th>
+                        <th>Тип</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { title: 'Главная', route: '/', type: 'Главная страница' },
+                        { title: 'Каталог', route: '/catalog', type: 'Каталог товаров' },
+                        { title: 'О LAUTE', route: '/company', type: 'О компании' },
+                        { title: 'Партнёрам', route: '/partners', type: 'B2B раздел' },
+                        { title: 'Первый цифровой сервис', route: '/service', type: 'Сервис и гарантия' },
+                        { title: 'Где купить', route: '/where-to-buy', type: 'Дилерская сеть' },
+                        { title: 'Контакты', route: '/contacts', type: 'Контакты' }
+                      ].map((p, idx) => (
+                        <tr key={idx}>
+                          <td><strong>{p.title}</strong></td>
+                          <td><code>{p.route}</code></td>
+                          <td>{p.type}</td>
+                          <td><span className="stat-tag success">Активна</span></td>
+                          <td>
+                            <button
+                              type="button"
+                              className="admin-btn admin-btn-ghost admin-btn-xs"
+                              onClick={() => {
+                                setSelectedPageForEditor(p.route.replace('/', '') || 'home');
+                                setActiveTab('editor');
+                              }}
+                            >
+                              <Edit3 size={13} />
+                              <span>Редактировать</span>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Custom Info Pages */}
+              <div className="admin-section-card">
+                <h3 className="card-section-title">Дополнительные информационные страницы ({pagesList.length})</h3>
+                {pagesList.length === 0 ? (
+                  <p className="empty-text">Дополнительных информационных страниц пока нет.</p>
+                ) : (
+                  <div className="admin-table-wrapper">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Заголовок</th>
+                          <th>URL slug</th>
+                          <th>Шаблон</th>
+                          <th>Статус</th>
+                          <th>Действия</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pagesList.map((cp) => (
+                          <tr key={cp.id}>
+                            <td><strong>{cp.title}</strong></td>
+                            <td><code>/{cp.slug}</code></td>
+                            <td>{cp.template}</td>
+                            <td><span className="stat-tag success">{cp.status || 'ОПУБЛИКОВАН'}</span></td>
+                            <td className="cell-actions">
+                              <button
+                                type="button"
+                                className="admin-btn admin-btn-ghost admin-btn-xs"
+                                onClick={() => setEditingCustomPage(cp)}
+                              >
+                                <Edit3 size={13} />
+                              </button>
+                              <button
+                                type="button"
+                                className="admin-btn admin-btn-danger admin-btn-xs"
+                                onClick={async () => {
+                                  if (window.confirm(`Удалить страницу "${cp.title}"?`)) {
+                                    await deleteCustomPage(cp.id);
+                                    loadPagesData();
+                                    showNotice('Страница удалена');
+                                  }
+                                }}
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: КАТАЛОГ */}
+          {activeTab === 'catalog' && (
+            <div className="admin-view catalog-view">
+              <div className="view-header">
+                <div>
+                  <h2 className="view-title">Каталог продукции LAUTE</h2>
+                  <p className="view-subtitle">Управление позициями номенклатуры, ценами, описаниями, фотографиями и статусами</p>
+                </div>
+                <div className="header-actions">
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-primary admin-btn-sm"
+                    onClick={() => setIsAddingNewProduct(true)}
+                  >
+                    <Plus size={14} />
+                    <span>Добавить товар</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-outline admin-btn-sm"
+                    onClick={() => setActiveTab('excel')}
+                  >
+                    <FileSpreadsheet size={14} />
+                    <span>Excel синхронизация</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Filters Bar */}
+              <div className="admin-filters-bar">
+                <div className="search-box">
+                  <Search size={16} className="search-icon" />
+                  <input
+                    type="text"
+                    value={productSearch}
+                    onChange={(e) => setProductSearch(e.target.value)}
+                    placeholder="Поиск по названию или артикулу SKU..."
+                  />
+                  {productSearch && (
+                    <button type="button" onClick={() => setProductSearch('')} className="clear-btn">
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+
+                <div className="filter-select-group">
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    className="admin-select"
+                  >
+                    <option value="Все">Все категории ({catalogList.length})</option>
+                    {categoriesList.map((c) => (
+                      <option key={c.id || c.name} value={c.name}>{c.name}</option>
                     ))}
                   </select>
-                </div>
-              </div>
 
-              <div className="admin-form-group">
-                <label>Название товара *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Например: Смеситель для кухни LAUTE Aurora A-1"
-                  value={newProductData.name}
-                  onChange={(e) => setNewProductData({ ...newProductData, name: e.target.value })}
-                />
-              </div>
-
-              <div className="admin-form-grid">
-                <div className="admin-form-group">
-                  <label>Цена *</label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    placeholder="Например: 32000"
-                    value={newProductData.price}
-                    onChange={(e) => setNewProductData({ ...newProductData, price: e.target.value })}
-                  />
-                </div>
-
-                <div className="admin-form-group">
-                  <label>Валюта</label>
                   <select
-                    value={newProductData.currency}
-                    onChange={(e) => setNewProductData({ ...newProductData, currency: e.target.value })}
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="admin-select"
                   >
-                    <option value="₸">₸ (Казахстанский тенге)</option>
-                    <option value="₽">₽ (Российский рубль)</option>
-                    <option value="$">$ (Доллар США)</option>
-                    <option value="€">€ (Евро)</option>
+                    <option value="all">Все статусы</option>
+                    <option value="active">Только активные</option>
+                    <option value="hidden">Только скрытые</option>
                   </select>
                 </div>
               </div>
 
-              <div className="admin-form-grid">
-                <div className="admin-form-group">
-                  <label>Коллекция</label>
-                  <input
-                    type="text"
-                    placeholder="LAUTE Master Line"
-                    value={newProductData.collection}
-                    onChange={(e) => setNewProductData({ ...newProductData, collection: e.target.value })}
-                  />
-                </div>
+              {/* Products Table */}
+              <div className="admin-table-wrapper">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: 60 }}>Фото</th>
+                      <th>Артикул (SKU)</th>
+                      <th>Название товара</th>
+                      <th>Категория</th>
+                      <th>Цена</th>
+                      <th>Статус</th>
+                      <th style={{ width: 140 }}>Действия</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {catalogList
+                      .filter((p) => {
+                        const matchSearch = !productSearch || 
+                          p.article?.toLowerCase().includes(productSearch.toLowerCase()) ||
+                          p.name?.toLowerCase().includes(productSearch.toLowerCase());
+                        const matchCat = categoryFilter === 'Все' || p.category === categoryFilter;
+                        const matchStatus = statusFilter === 'all' || 
+                          (statusFilter === 'active' && p.status !== 'СКРЫТ') ||
+                          (statusFilter === 'hidden' && p.status === 'СКРЫТ');
+                        return matchSearch && matchCat && matchStatus;
+                      })
+                      .map((prod) => {
+                        const isHidden = prod.status === 'СКРЫТ';
+                        const thumbSrc = prod.photo1 ? `${import.meta.env.BASE_URL}${prod.photo1}` : '';
 
-                <div className="admin-form-group">
-                  <label>Материал</label>
-                  <input
-                    type="text"
-                    placeholder="Первичная латунь CW617N"
-                    value={newProductData.material}
-                    onChange={(e) => setNewProductData({ ...newProductData, material: e.target.value })}
-                  />
-                </div>
-              </div>
+                        return (
+                          <tr key={prod.article} className={isHidden ? 'row-muted' : ''}>
+                            <td>
+                              <div className="table-thumb-frame">
+                                {prod.photo1 ? (
+                                  <img 
+                                    src={thumbSrc} 
+                                    alt={prod.name} 
+                                    className="table-thumb" 
+                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                  />
+                                ) : (
+                                  <ImageIcon size={18} className="cell-muted" />
+                                )}
+                              </div>
+                            </td>
+                            <td><code>{prod.article}</code></td>
+                            <td>
+                              <div className="prod-title-wrap">
+                                <strong>{prod.name}</strong>
+                                <span className="prod-sub">{prod.collection || 'LAUTE Master'}</span>
+                              </div>
+                            </td>
+                            <td>{prod.category}</td>
+                            <td>
+                              <span className="price-tag">
+                                {Number(prod.price).toLocaleString('ru-RU')} {prod.currency || '₸'}
+                              </span>
+                            </td>
+                            <td>
+                              <span className={`stat-tag ${isHidden ? 'warning' : 'success'}`}>
+                                {isHidden ? 'Скрыт' : 'Активен'}
+                              </span>
+                            </td>
+                            <td>
+                              <div className="actions-cell">
+                                <button
+                                  type="button"
+                                  className="action-btn"
+                                  onClick={() => setEditingProduct(prod)}
+                                  title="Редактировать товар"
+                                >
+                                  <Edit3 size={15} />
+                                </button>
 
-              <div className="admin-form-grid">
-                <div className="admin-form-group">
-                  <label>Цвет</label>
-                  <input
-                    type="text"
-                    placeholder="Хром глянец / Матовый черный"
-                    value={newProductData.color}
-                    onChange={(e) => setNewProductData({ ...newProductData, color: e.target.value })}
-                  />
-                </div>
+                                <button
+                                  type="button"
+                                  className={`action-btn ${isHidden ? 'active-green' : ''}`}
+                                  onClick={async () => {
+                                    const newStatus = isHidden ? 'АКТИВЕН' : 'СКРЫТ';
+                                    await toggleProductStatus(prod.article, newStatus);
+                                    loadCatalogData();
+                                    showNotice(`Статус товара ${prod.article} изменён на "${newStatus}"`);
+                                  }}
+                                  title={isHidden ? 'Показать на сайте' : 'Скрыть с сайта'}
+                                >
+                                  {isHidden ? <Eye size={15} /> : <EyeOff size={15} />}
+                                </button>
 
-                <div className="admin-form-group">
-                  <label>Тип установки</label>
-                  <input
-                    type="text"
-                    placeholder="Врезной на мойку / Настенный"
-                    value={newProductData.installType}
-                    onChange={(e) => setNewProductData({ ...newProductData, installType: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="admin-form-group">
-                <label>Описание</label>
-                <textarea
-                  placeholder="Подробное описание товара для покупателей и партнёров..."
-                  value={newProductData.description}
-                  onChange={(e) => setNewProductData({ ...newProductData, description: e.target.value })}
-                />
-              </div>
-
-              <div className="admin-form-group">
-                <label>Технические характеристики</label>
-                <textarea
-                  placeholder="Картридж 35мм керамический; аэратор Neoperl; подводка 45см..."
-                  value={newProductData.specs}
-                  onChange={(e) => setNewProductData({ ...newProductData, specs: e.target.value })}
-                />
-              </div>
-
-              <div className="admin-form-grid">
-                <div className="admin-form-group">
-                  <label>Размеры</label>
-                  <input
-                    type="text"
-                    placeholder="Высота: 280 мм, вылет: 190 мм"
-                    value={newProductData.dimensions}
-                    onChange={(e) => setNewProductData({ ...newProductData, dimensions: e.target.value })}
-                  />
-                </div>
-
-                <div className="admin-form-group">
-                  <label>Вес</label>
-                  <input
-                    type="text"
-                    placeholder="1.6 кг"
-                    value={newProductData.weight}
-                    onChange={(e) => setNewProductData({ ...newProductData, weight: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              {/* Photo Upload */}
-              <div className="admin-form-group">
-                <label>Основная фотография (путь или загрузка файла)</label>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <input
-                    type="text"
-                    value={newProductData.photo1}
-                    onChange={(e) => setNewProductData({ ...newProductData, photo1: e.target.value })}
-                    style={{ flex: 1 }}
-                  />
-                  <label className="adm-btn adm-btn-outline" style={{ cursor: 'pointer', margin: 0 }}>
-                    <ImageIcon size={15} />
-                    <span>Загрузить фото</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      style={{ display: 'none' }}
-                      onChange={(e) => handleImageUpload(e, 'add')}
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-                <button 
-                  type="submit" 
-                  className="adm-btn adm-btn-accent" 
-                  style={{ padding: '12px 24px' }}
-                  disabled={isAddingProduct}
-                >
-                  <CheckCircle2 size={16} />
-                  <span>{isAddingProduct ? 'Сохранение...' : 'Добавить товар в каталог'}</span>
-                </button>
-
-                <button 
-                  type="button" 
-                  className="adm-btn adm-btn-outline"
-                  onClick={() => setActiveTab('products')}
-                >
-                  Отмена
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* -------------------------------------------------------------
-            TAB 3: ИМПОРТ EXCEL
-            ------------------------------------------------------------- */}
-        {activeTab === 'import' && (
-          <div className="admin-panel-card">
-            <div className="admin-card-header">
-              <h2 className="admin-card-title">
-                <FileSpreadsheet size={18} color="#10B981" />
-                <span>Массовое обновление каталога через Microsoft Excel</span>
-              </h2>
-
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button 
-                  type="button" 
-                  className="adm-btn adm-btn-outline adm-btn-sm" 
-                  onClick={downloadExcelTemplate}
-                  title="Скачать эталонный пустой шаблон"
-                >
-                  <Download size={14} />
-                  <span>Скачать шаблон Excel</span>
-                </button>
-
-                <button 
-                  type="button" 
-                  className="adm-btn adm-btn-outline adm-btn-sm" 
-                  onClick={exportCurrentCatalog}
-                  title="Скачать текущий каталог с данными"
-                >
-                  <Download size={14} />
-                  <span>Скачать текущий каталог</span>
-                </button>
+                                <button
+                                  type="button"
+                                  className="action-btn danger"
+                                  onClick={async () => {
+                                    if (window.confirm(`Вы уверены, что хотите удалить товар ${prod.article} (${prod.name}) из каталога?`)) {
+                                      await deleteProduct(prod.article);
+                                      loadCatalogData();
+                                      showNotice(`Товар ${prod.article} удалён`);
+                                    }
+                                  }}
+                                  title="Удалить товар"
+                                >
+                                  <Trash2 size={15} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
               </div>
             </div>
+          )}
 
-            <div style={{ padding: '24px' }}>
-              
-              {/* Instructions banner */}
-              <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '16px 20px', borderRadius: '10px', marginBottom: '24px', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                <Info size={22} color="#2563EB" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <div style={{ fontSize: '13px', color: '#1E3A8A', lineHeight: 1.6 }}>
-                  <strong>Регламент импорта LAUTE:</strong> Вы можете загрузить как заполненный шаблон, так и выгрузку текущего каталога с изменениями.
-                  Система автоматически проверит уникальность артикулов, цены и обязательные поля.
-                  <strong> Товары, отсутствующие в файле, НЕ удаляются из базы.</strong>
-                </div>
-              </div>
-
-              {/* Upload Drop Zone */}
-              <div 
-                className="excel-upload-zone"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  accept=".xlsx, .xls" 
-                  style={{ display: 'none' }}
-                  onChange={handleExcelFileSelect}
-                />
-                <FileSpreadsheet size={48} color="#10B981" style={{ margin: '0 auto 12px' }} />
-                <div style={{ fontSize: '16px', fontWeight: '700', color: '#0F172A', marginBottom: '4px' }}>
-                  {excelFile ? `Выбран файл: ${excelFile.name}` : 'Нажмите для выбора файла Excel (.xlsx)'}
-                </div>
-                <div style={{ fontSize: '13px', color: '#64748B' }}>
-                  {excelFile ? `Размер: ${(excelFile.size / 1024).toFixed(1)} КБ` : 'Перетащите файл сюда или нажмите для выбора на компьютере'}
-                </div>
-              </div>
-
-              {/* Loading Indicator */}
-              {isValidatingExcel && (
-                <div style={{ textAlign: 'center', padding: '30px', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                  <RefreshCw size={20} className="spin-animation" />
-                  <span>Выполняется автоматическая проверка строк файла...</span>
-                </div>
-              )}
-
-              {/* Import Success Message */}
-              {importSuccessData && (
-                <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '24px', borderRadius: '12px', marginBottom: '24px', textAlign: 'center' }}>
-                  <CheckCircle2 size={40} color="#10B981" style={{ margin: '0 auto 12px' }} />
-                  <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#065F46', margin: '0 0 8px' }}>
-                    Импорт успешно применён! Каталог на сайте обновлён.
-                  </h3>
-                  <p style={{ fontSize: '13px', color: '#047857', margin: '0 0 16px' }}>
-                    Добавлено: +{importSuccessData.stats?.added || 0}, Обновлено: {importSuccessData.stats?.updated || 0}, Скрыто: {importSuccessData.stats?.hidden || 0}, Удалено: {importSuccessData.stats?.deleted || 0}. 
-                    Создана точка отката: <code>{importSuccessData.backupId}</code>
-                  </p>
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-                    <button 
-                      type="button" 
-                      className="adm-btn adm-btn-primary adm-btn-sm" 
-                      onClick={() => setActiveTab('products')}
-                    >
-                      Посмотреть все товары
-                    </button>
-                    <button 
-                      type="button" 
-                      className="adm-btn adm-btn-outline adm-btn-sm" 
-                      onClick={() => navigateTo('catalog')}
-                    >
-                      Перейти на витрину сайта
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Validation Result Preview */}
-              {validationResult && (
+          {/* TAB 5: КАТЕГОРИИ */}
+          {activeTab === 'categories' && (
+            <div className="admin-view categories-view">
+              <div className="view-header">
                 <div>
-                  {/* Summary Cards */}
-                  <div className="excel-preview-summary-grid">
-                    <div className="excel-summary-stat-box" style={{ background: '#ECFDF5', borderColor: '#A7F3D0' }}>
-                      <div className="excel-summary-stat-val" style={{ color: '#059669' }}>
-                        +{validationResult.summary?.toAdd || 0}
-                      </div>
-                      <div className="excel-summary-stat-title" style={{ color: '#065F46' }}>Будет добавлено</div>
-                    </div>
+                  <h2 className="view-title">Категории каталога</h2>
+                  <p className="view-subtitle">Структура категорий, последовательность отображения и привязка номенклатуры</p>
+                </div>
+              </div>
 
-                    <div className="excel-summary-stat-box" style={{ background: '#EFF6FF', borderColor: '#BFDBFE' }}>
-                      <div className="excel-summary-stat-val" style={{ color: '#2563EB' }}>
-                        {validationResult.summary?.toUpdate || 0}
-                      </div>
-                      <div className="excel-summary-stat-title" style={{ color: '#1E40AF' }}>Будет обновлено</div>
-                    </div>
+              <div className="admin-section-card">
+                <div className="admin-table-wrapper">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Порядок</th>
+                        <th>Название категории</th>
+                        <th>Видимость</th>
+                        <th>Товаров</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {categoriesList.map((cat, idx) => (
+                        <tr key={cat.id || idx}>
+                          <td>#{cat.order || idx + 1}</td>
+                          <td><strong>{cat.name}</strong></td>
+                          <td>
+                            <span className="stat-tag success">Отображается</span>
+                          </td>
+                          <td>{catalogList.filter(p => p.category === cat.name).length} позиций</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
 
-                    <div className="excel-summary-stat-box" style={{ background: '#F8FAFC', borderColor: '#E2E8F0' }}>
-                      <div className="excel-summary-stat-val" style={{ color: '#64748B' }}>
-                        {validationResult.summary?.unchanged || 0}
-                      </div>
-                      <div className="excel-summary-stat-title" style={{ color: '#475569' }}>Без изменений</div>
-                    </div>
+          {/* TAB 6: ИМПОРТ И ЭКСПОРТ EXCEL */}
+          {activeTab === 'excel' && (
+            <div className="admin-view excel-view">
+              <div className="view-header">
+                <div>
+                  <h2 className="view-title">Синхронизация каталога через Excel</h2>
+                  <p className="view-subtitle">Экспорт, редактирование и безопасный импорт каталога в Microsoft Excel (.xlsx)</p>
+                </div>
+              </div>
 
-                    <div className="excel-summary-stat-box" style={{ background: validationResult.summary?.errorsCount > 0 ? '#FEF2F2' : '#F8FAFC', borderColor: validationResult.summary?.errorsCount > 0 ? '#FECACA' : '#E2E8F0' }}>
-                      <div className="excel-summary-stat-val" style={{ color: validationResult.summary?.errorsCount > 0 ? '#DC2626' : '#94A3B8' }}>
-                        {validationResult.summary?.errorsCount || 0}
+              {/* 3 Action Cards */}
+              <div className="excel-cards-row">
+                {/* 1. Template */}
+                <div className="excel-action-card">
+                  <div className="card-top-icon">
+                    <Download size={26} />
+                  </div>
+                  <h3>Скачать шаблон Excel</h3>
+                  <p>Оригинальный фирменный файл <strong>LAUTE_Catalog.xlsx</strong> со справочниками, выпадающими списками и инструкцией.</p>
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-outline admin-btn-full"
+                    onClick={downloadExcelTemplate}
+                  >
+                    <Download size={14} />
+                    <span>Скачать шаблон (.xlsx)</span>
+                  </button>
+                </div>
+
+                {/* 2. Current Export */}
+                <div className="excel-action-card">
+                  <div className="card-top-icon">
+                    <FileSpreadsheet size={26} />
+                  </div>
+                  <h3>Скачать текущий каталог</h3>
+                  <p>Полная выгрузка действующей базы каталога LAUTE ({catalogList.length} товаров) со всеми ценами, описаниями и фото.</p>
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-outline admin-btn-full"
+                    onClick={exportCurrentCatalog}
+                  >
+                    <FileSpreadsheet size={14} />
+                    <span>Выгрузить текущую базу</span>
+                  </button>
+                </div>
+
+                {/* 3. Upload */}
+                <div className="excel-action-card featured">
+                  <div className="card-top-icon accent">
+                    <Upload size={26} />
+                  </div>
+                  <h3>Загрузить Excel</h3>
+                  <p>Умный импорт: проверка артикулов, цен, предотвращение дублей и предварительный показ всех изменений перед применением.</p>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept=".xlsx,.xls"
+                    style={{ display: 'none' }}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setExcelFile(file);
+                      setIsValidatingExcel(true);
+                      setValidationResult(null);
+                      setExcelCommitStats(null);
+
+                      try {
+                        const result = await validateExcelFile(file);
+                        setValidationResult(result);
+                      } catch (err) {
+                        showNotice(err.message, 'error');
+                      } finally {
+                        setIsValidatingExcel(false);
+                      }
+                    }}
+                  />
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-primary admin-btn-full"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isValidatingExcel}
+                  >
+                    <Upload size={14} />
+                    <span>{isValidatingExcel ? 'Проверка файла...' : 'Выбрать файл XLSX'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Validation Results Preview */}
+              {validationResult && (
+                <div className="excel-results-section">
+                  <div className="summary-banner">
+                    <h3>Результат проверки файла: {excelFile?.name}</h3>
+                    <div className="summary-pills-row">
+                      <div className="pill-item added">
+                        <span className="pill-count">+{validationResult.summary?.toAdd || 0}</span>
+                        <span className="pill-name">Будет добавлено</span>
                       </div>
-                      <div className="excel-summary-stat-title" style={{ color: validationResult.summary?.errorsCount > 0 ? '#991B1B' : '#64748B' }}>Строк с ошибками</div>
+                      <div className="pill-item updated">
+                        <span className="pill-count">{validationResult.summary?.toUpdate || 0}</span>
+                        <span className="pill-name">Будет обновлено</span>
+                      </div>
+                      <div className="pill-item unchanged">
+                        <span className="pill-count">{validationResult.summary?.unchanged || 0}</span>
+                        <span className="pill-name">Без изменений</span>
+                      </div>
+                      <div className="pill-item hidden">
+                        <span className="pill-count">{validationResult.summary?.toHide || 0}</span>
+                        <span className="pill-name">Будет скрыто</span>
+                      </div>
+                      <div className="pill-item errors">
+                        <span className="pill-count">{validationResult.summary?.errorsCount || 0}</span>
+                        <span className="pill-name">Ошибок в строках</span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Errors Breakdown (if any) */}
+                  {/* Errors Notice if any */}
                   {validationResult.errors && validationResult.errors.length > 0 && (
-                    <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '10px', padding: '18px 20px', marginBottom: '24px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#DC2626', fontWeight: '700', fontSize: '14px' }}>
-                          <AlertTriangle size={18} />
-                          <span>Обнаружены ошибки в строках (строки с ошибками не будут импортированы):</span>
-                        </div>
+                    <div className="excel-errors-card">
+                      <div className="errors-header-row">
+                        <h4>Обнаружены ошибки в строках Excel:</h4>
                         <button 
                           type="button" 
-                          className="adm-btn adm-btn-outline adm-btn-sm" 
-                          style={{ borderColor: '#FECACA', color: '#DC2626' }}
+                          className="admin-btn admin-btn-outline admin-btn-sm"
                           onClick={downloadErrorReport}
                         >
                           <Download size={13} />
-                          <span>Скачать отчёт об ошибках (Excel)</span>
+                          <span>Скачать отчёт об ошибках</span>
                         </button>
                       </div>
 
-                      <div style={{ maxHeight: '180px', overflowY: 'auto' }}>
-                        {validationResult.errors.map((err, idx) => (
-                          <div key={idx} style={{ fontSize: '13px', color: '#991B1B', padding: '6px 0', borderBottom: '1px solid #FEE2E2' }}>
-                            <strong>Строка {err.row}:</strong> {err.message}
+                      <div className="errors-list">
+                        {validationResult.errors.map((err, eIdx) => (
+                          <div key={eIdx} className="error-row-item">
+                            <span className="row-num">Строка {err.row}:</span>
+                            <span className="row-sku">[{err.article}]</span>
+                            <span className="row-msg">{err.message}</span>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  {/* Changes Diff Table */}
-                  {validationResult.diffs && validationResult.diffs.length > 0 && (
-                    <div style={{ marginBottom: '24px' }}>
-                      <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#0F172A', marginBottom: '12px' }}>
-                        Детализация изменений по товарам:
-                      </h3>
-                      <div className="admin-table-wrapper" style={{ maxHeight: '350px', overflowY: 'auto' }}>
-                        <table className="admin-table">
-                          <thead>
-                            <tr>
-                              <th>Артикул</th>
-                              <th>Наименование</th>
-                              <th>Действие</th>
-                              <th>Что меняется</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {validationResult.diffs.map((diff, idx) => (
-                              <tr key={idx}>
-                                <td><strong style={{ fontFamily: 'monospace' }}>{diff.article}</strong></td>
-                                <td>{diff.name}</td>
-                                <td>
-                                  {diff.action === 'ДОБАВИТЬ' && <span className="diff-tag-add">ДОБАВЛЕНИЕ</span>}
-                                  {diff.action === 'ОБНОВИТЬ' && <span className="diff-tag-change">ОБНОВЛЕНИЕ</span>}
-                                  {diff.action === 'СКРЫТЬ' && <span className="diff-tag-hide">СКРЫТИЕ</span>}
-                                  {diff.action === 'УДАЛИТЬ' && <span style={{ background: '#FEE2E2', color: '#B91C1C', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600' }}>УДАЛЕНИЕ</span>}
-                                </td>
-                                <td>
-                                  {diff.changes.map((ch, cIdx) => (
-                                    <div key={cIdx} style={{ fontSize: '12px', marginBottom: '2px' }}>
-                                      <span style={{ fontWeight: '600', color: '#475569' }}>{ch.field}:</span>{' '}
-                                      <span style={{ textDecoration: 'line-through', color: '#94A3B8' }}>{ch.oldVal}</span>{' '}
-                                      ➔ <strong style={{ color: '#059669' }}>{ch.newVal}</strong>
-                                    </div>
-                                  ))}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
+                  {/* Commit Action */}
+                  <div className="excel-commit-bar">
+                    <p className="note">
+                      Товары, отсутствующие в Excel, <strong>НЕ будут удалены</strong> с сайта. Новые позиции добавятся, существующие обновятся по SKU.
+                    </p>
 
-                  {/* Apply Actions */}
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <button 
-                      type="button" 
-                      className="adm-btn adm-btn-accent" 
-                      style={{ padding: '12px 28px', fontSize: '14px' }}
-                      onClick={handleCommitExcelImport}
-                      disabled={isCommittingImport || !validationResult.validRows || validationResult.validRows.length === 0}
-                    >
-                      <CheckCircle2 size={16} />
-                      <span>{isCommittingImport ? 'Применение изменений...' : 'Подтвердить и обновить каталог сайта'}</span>
-                    </button>
-
-                    <button 
-                      type="button" 
-                      className="adm-btn adm-btn-outline" 
-                      onClick={() => {
-                        setValidationResult(null);
-                        setExcelFile(null);
-                        if (fileInputRef.current) fileInputRef.current.value = '';
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn-success admin-btn-lg"
+                      disabled={isCommittingExcel || !validationResult.validRows || validationResult.validRows.length === 0}
+                      onClick={async () => {
+                        setIsCommittingExcel(true);
+                        try {
+                          const res = await commitExcelImport(validationResult.validRows);
+                          setExcelCommitStats(res.stats);
+                          setValidationResult(null);
+                          loadCatalogData();
+                          showNotice(`Импорт успешно завершён! Добавлено: +${res.stats.added}, обновлено: ${res.stats.updated}`);
+                        } catch (err) {
+                          showNotice(err.message, 'error');
+                        } finally {
+                          setIsCommittingExcel(false);
+                        }
                       }}
                     >
-                      Сбросить
+                      <Check size={16} />
+                      <span>{isCommittingExcel ? 'Применение изменений...' : 'Подтвердить и обновить каталог на сайте'}</span>
                     </button>
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-        )}
 
-        {/* -------------------------------------------------------------
-            TAB 4: ЭКСПОРТ EXCEL
-            ------------------------------------------------------------- */}
-        {activeTab === 'export' && (
-          <div className="admin-panel-card" style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <div className="admin-card-header">
-              <h2 className="admin-card-title">
-                <Download size={18} color="#2563EB" />
-                <span>Выгрузка каталога LAUTE в Microsoft Excel</span>
-              </h2>
-            </div>
-
-            <div style={{ padding: '30px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
-                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '24px', borderRadius: '12px', textAlign: 'center' }}>
-                  <FileSpreadsheet size={40} color="#2563EB" style={{ margin: '0 auto 12px' }} />
-                  <h3 style={{ fontSize: '16px', fontWeight: '700', margin: '0 0 8px' }}>Актуальный каталог</h3>
-                  <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 18px', minHeight: '38px' }}>
-                    Выгрузка всех существующих товаров ({totalCount} шт.) со всеми характеристиками, ценами и статусами.
-                  </p>
-                  <button 
-                    type="button" 
-                    className="adm-btn adm-btn-accent" 
-                    style={{ width: '100%' }}
-                    onClick={exportCurrentCatalog}
-                  >
-                    <Download size={15} />
-                    <span>Скачать каталог (.xlsx)</span>
-                  </button>
+              {/* Success Commit Banner */}
+              {excelCommitStats && (
+                <div className="admin-alert-banner success">
+                  <div className="banner-icon-col">
+                    <CheckCircle2 size={24} />
+                  </div>
+                  <div className="banner-content-col">
+                    <h4>Каталог успешно обновлён из Excel!</h4>
+                    <p>
+                      Добавлено: +{excelCommitStats.added} товаров, обновлено: {excelCommitStats.updated}, скрыто: {excelCommitStats.hidden}.
+                      Всего позиций в действующем каталоге: {excelCommitStats.total}. Создана резервная копия для мгновенного отката при необходимости.
+                    </p>
+                  </div>
                 </div>
-
-                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '24px', borderRadius: '12px', textAlign: 'center' }}>
-                  <FileSpreadsheet size={40} color="#10B981" style={{ margin: '0 auto 12px' }} />
-                  <h3 style={{ fontSize: '16px', fontWeight: '700', margin: '0 0 8px' }}>Эталонный шаблон</h3>
-                  <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 18px', minHeight: '38px' }}>
-                    Чистый файл с закрепленными заголовками, выпадающими списками, инструкцией и примерами заполнения.
-                  </p>
-                  <button 
-                    type="button" 
-                    className="adm-btn adm-btn-primary" 
-                    style={{ width: '100%' }}
-                    onClick={downloadExcelTemplate}
-                  >
-                    <Download size={15} />
-                    <span>Скачать шаблон (.xlsx)</span>
-                  </button>
-                </div>
-              </div>
-
-              <div style={{ background: '#EFF6FF', padding: '16px', borderRadius: '8px', fontSize: '13px', color: '#1E40AF', display: 'flex', gap: '10px' }}>
-                <Info size={18} style={{ flexShrink: 0 }} />
-                <span>
-                  Файлы формируются в формате Microsoft Excel (.xlsx) с поддержкой автофильтров, стилей LAUTE и валидации списков.
-                </span>
-              </div>
+              )}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* -------------------------------------------------------------
-            TAB 5: ИСТОРИЯ ИЗМЕНЕНИЙ И ОТКАТ
-            ------------------------------------------------------------- */}
-        {activeTab === 'history' && (
-          <div className="admin-panel-card">
-            <div className="admin-card-header">
-              <h2 className="admin-card-title">
-                <History size={18} color="#2563EB" />
-                <span>Журнал аудита операций и резервные копии</span>
-              </h2>
-
-              <button 
-                type="button" 
-                className="adm-btn adm-btn-outline adm-btn-sm" 
-                onClick={loadHistoryData}
-              >
-                <RefreshCw size={13} />
-                <span>Обновить</span>
-              </button>
-            </div>
-
-            {rollbackSuccessMsg && (
-              <div style={{ margin: '20px 24px 0', background: '#ECFDF5', border: '1px solid #A7F3D0', color: '#065F46', padding: '12px 18px', borderRadius: '8px' }}>
-                <CheckCircle2 size={16} /> <strong>{rollbackSuccessMsg}</strong>
-              </div>
-            )}
-
-            <div style={{ padding: '24px' }}>
-              <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
-                Хронология действий сотрудников:
-              </h3>
-
-              <div className="admin-table-wrapper" style={{ marginBottom: '32px' }}>
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th>Время</th>
-                      <th>Сотрудник</th>
-                      <th>Операция</th>
-                      <th>Сводка</th>
-                      <th>Точка отката</th>
-                      {isAdmin && <th style={{ textAlign: 'right' }}>Действие</th>}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {historyLogs.length === 0 ? (
-                      <tr>
-                        <td colSpan="6" style={{ textAlign: 'center', padding: '30px', color: '#94A3B8' }}>
-                          Записей аудита пока нет.
-                        </td>
-                      </tr>
-                    ) : (
-                      historyLogs.map((log) => (
-                        <tr key={log.id}>
-                          <td style={{ whiteSpace: 'nowrap', fontSize: '12px', color: '#64748B' }}>
-                            {new Date(log.timestamp).toLocaleString('ru-RU')}
-                          </td>
-                          <td>
-                            <strong>{log.user}</strong>
-                            <div style={{ fontSize: '11px', color: '#64748B' }}>{log.userEmail}</div>
-                          </td>
-                          <td>
-                            <span style={{ background: '#F1F5F9', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600' }}>
-                              {log.actionTitle || log.action}
-                            </span>
-                          </td>
-                          <td style={{ maxWidth: '350px' }}>
-                            <div style={{ fontSize: '13px' }}>{log.summary}</div>
-                            {log.details && <div style={{ fontSize: '11px', color: '#64748B' }}>{log.details}</div>}
-                          </td>
-                          <td style={{ fontSize: '11px', fontFamily: 'monospace' }}>
-                            {log.backupId ? log.backupId : '—'}
-                          </td>
-                          {isAdmin && (
-                            <td style={{ textAlign: 'right' }}>
-                              {log.backupId && (
-                                <button 
-                                  type="button" 
-                                  className="adm-btn adm-btn-outline adm-btn-sm" 
-                                  style={{ color: '#D97706', borderColor: '#FDE68A' }}
-                                  onClick={() => handleRollback(log.backupId)}
-                                  title="Восстановить состояние до этой операции"
-                                >
-                                  <RotateCcw size={12} />
-                                  <span>Откатить</span>
-                                </button>
-                              )}
-                            </td>
-                          )}
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Backups List */}
-              {backupsList.length > 0 && (
+          {/* TAB 7: ФОТОГРАФИИ И МЕДИА */}
+          {activeTab === 'media' && (
+            <div className="admin-view media-view">
+              <div className="view-header">
                 <div>
-                  <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
-                    Доступные моментальные снимки (Резервные копии базы):
-                  </h3>
-                  <div className="admin-table-wrapper">
-                    <table className="admin-table">
-                      <thead>
-                        <tr>
-                          <th>Идентификатор снимка</th>
-                          <th>Дата создания</th>
-                          <th>Причина создания</th>
-                          <th>Автор</th>
-                          <th>Товаров</th>
-                          {isAdmin && <th style={{ textAlign: 'right' }}>Восстановление</th>}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {backupsList.map((b) => (
-                          <tr key={b.backupId}>
-                            <td><strong style={{ fontFamily: 'monospace' }}>{b.backupId}</strong></td>
-                            <td style={{ fontSize: '12px' }}>{new Date(b.timestamp).toLocaleString('ru-RU')}</td>
-                            <td>{b.description}</td>
-                            <td>{b.author}</td>
-                            <td><strong>{b.productsCount}</strong></td>
-                            {isAdmin && (
-                              <td style={{ textAlign: 'right' }}>
-                                <button 
-                                  type="button" 
-                                  className="adm-btn adm-btn-outline adm-btn-sm" 
-                                  style={{ color: '#2563EB' }}
-                                  onClick={() => handleRollback(b.backupId)}
-                                >
-                                  <RotateCcw size={12} />
-                                  <span>Восстановить базу</span>
-                                </button>
-                              </td>
-                            )}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <h2 className="view-title">Фотографии и медиафайлы</h2>
+                  <p className="view-subtitle">Медиаменеджер: загрузка фотографий товаров, интерьеров и баннеров</p>
                 </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* -------------------------------------------------------------
-            TAB 6: ОШИБКИ ИМПОРТА
-            ------------------------------------------------------------- */}
-        {activeTab === 'errors' && (
-          <div className="admin-panel-card">
-            <div className="admin-card-header">
-              <h2 className="admin-card-title">
-                <AlertTriangle size={18} color="#DC2626" />
-                <span>Журнал ошибок проверки Excel</span>
-              </h2>
-
-              <button 
-                type="button" 
-                className="adm-btn adm-btn-outline adm-btn-sm"
-                onClick={downloadErrorReport}
-              >
-                <Download size={14} />
-                <span>Скачать отчёт об ошибках (Excel)</span>
-              </button>
-            </div>
-
-            <div style={{ padding: '24px' }}>
-              <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '18px' }}>
-                Здесь отображаются ошибки, выявленные алгоритмом валидации при последней проверке Excel-файла.
-              </p>
-
-              {validationResult?.errors && validationResult.errors.length > 0 ? (
-                <div className="admin-table-wrapper">
-                  <table className="admin-table">
-                    <thead>
-                      <tr>
-                        <th>№ Строки</th>
-                        <th>Артикул</th>
-                        <th>Описание проблемы</th>
-                        <th>Рекомендация по исправлению</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {validationResult.errors.map((err, idx) => (
-                        <tr key={idx}>
-                          <td><strong>Строка {err.row}</strong></td>
-                          <td style={{ fontFamily: 'monospace' }}>{err.article}</td>
-                          <td style={{ color: '#DC2626' }}>{err.message}</td>
-                          <td>
-                            {err.message.includes('не указан артикул') && 'Укажите артикул по стандарту LT-XXXX-YYY'}
-                            {err.message.includes('повторяется артикул') && 'Удалите дубликат строки или измените артикул'}
-                            {err.message.includes('некорректная цена') && 'Укажите только цифры (например: 28900)'}
-                            {err.message.includes('не указано название') && 'Заполните наименование смесителя/товара'}
-                            {err.message.includes('не указана категория') && 'Выберите категорию из выпадающего списка'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div style={{ textAlign: 'center', padding: '40px', background: '#F8FAFC', borderRadius: '10px' }}>
-                  <CheckCircle2 size={36} color="#10B981" style={{ margin: '0 auto 8px' }} />
-                  <div style={{ fontSize: '15px', fontWeight: '600', color: '#0F172A' }}>Ошибок импорта нет</div>
-                  <div style={{ fontSize: '13px', color: '#64748B' }}>Все проверенные файлы соответствовали стандартам номенклатуры LAUTE.</div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* -------------------------------------------------------------
-            TAB 7: УПРАВЛЕНИЕ СОТРУДНИКАМИ (Admin only)
-            ------------------------------------------------------------- */}
-        {activeTab === 'users' && isAdmin && (
-          <div className="admin-panel-card">
-            <div className="admin-card-header">
-              <h2 className="admin-card-title">
-                <Users size={18} color="#2563EB" />
-                <span>Управление правами и учётными записями сотрудников</span>
-              </h2>
-            </div>
-
-            <div style={{ padding: '24px' }}>
-              <div style={{ marginBottom: '28px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '14px' }}>Действующие сотрудники:</h3>
-                <div className="admin-table-wrapper">
-                  <table className="admin-table">
-                    <thead>
-                      <tr>
-                        <th>Имя сотрудника</th>
-                        <th>E-mail (Логин)</th>
-                        <th>Должность</th>
-                        <th>Роль</th>
-                        <th>Последний вход</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {staffUsers.map((u) => (
-                        <tr key={u.id}>
-                          <td><strong>{u.name}</strong></td>
-                          <td>{u.email}</td>
-                          <td>{u.title}</td>
-                          <td>
-                            <span style={{ 
-                              background: u.role === 'admin' ? '#EFF6FF' : '#F1F5F9',
-                              color: u.role === 'admin' ? '#2563EB' : '#475569',
-                              padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700'
-                            }}>
-                              {u.role === 'admin' ? 'АДМИНИСТРАТОР' : 'РЕДАКТОР'}
-                            </span>
-                          </td>
-                          <td style={{ fontSize: '12px', color: '#64748B' }}>
-                            {u.lastLogin ? new Date(u.lastLogin).toLocaleString('ru-RU') : 'Не зафиксирован'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Add New Staff Form */}
-              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '24px', borderRadius: '12px', maxWidth: '640px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>Создать новую учётную запись сотрудника:</h3>
-                
-                <form onSubmit={handleAddStaffSubmit}>
-                  <div className="admin-form-group">
-                    <label>ФИО Сотрудника *</label>
-                    <input 
-                      type="text" 
-                      required 
-                      placeholder="Например: Алексей Кузнецов"
-                      value={newStaffName}
-                      onChange={(e) => setNewStaffName(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="admin-form-grid">
-                    <div className="admin-form-group">
-                      <label>Рабочий E-mail *</label>
-                      <input 
-                        type="email" 
-                        required 
-                        placeholder="a.kuznetsov@laute.com"
-                        value={newStaffEmail}
-                        onChange={(e) => setNewStaffEmail(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="admin-form-group">
-                      <label>Пароль доступа *</label>
-                      <input 
-                        type="password" 
-                        required 
-                        placeholder="Минимум 8 знаков"
-                        value={newStaffPassword}
-                        onChange={(e) => setNewStaffPassword(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="admin-form-grid">
-                    <div className="admin-form-group">
-                      <label>Роль в системе *</label>
-                      <select 
-                        value={newStaffRole}
-                        onChange={(e) => setNewStaffRole(e.target.value)}
-                      >
-                        <option value="editor">Редактор каталога (товары, Excel)</option>
-                        <option value="admin">Администратор (полный доступ, бэкапы, сотрудники)</option>
-                      </select>
-                    </div>
-
-                    <div className="admin-form-group">
-                      <label>Должность / Отдел</label>
-                      <input 
-                        type="text" 
-                        placeholder="Менеджер отдела номенклатуры"
-                        value={newStaffTitle}
-                        onChange={(e) => setNewStaffTitle(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <button type="submit" className="adm-btn adm-btn-accent" style={{ marginTop: '10px' }}>
-                    <Plus size={15} />
-                    <span>Создать аккаунт сотрудника</span>
-                  </button>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
-
-      </main>
-
-      {/* -------------------------------------------------------------
-          PRODUCT EDIT MODAL
-          ------------------------------------------------------------- */}
-      {editingProduct && (
-        <div className="admin-modal-overlay" onClick={() => setEditingProduct(null)}>
-          <div className="admin-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', borderBottom: '1px solid #E2E8F0', paddingBottom: '14px' }}>
-              <div>
-                <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0F172A', margin: 0 }}>
-                  Редактирование товара {editingProduct.article}
-                </h3>
-                <span style={{ fontSize: '12px', color: '#64748B' }}>Изменения сразу сохраняются в базу данных и на сайт</span>
-              </div>
-              <button 
-                type="button" 
-                onClick={() => setEditingProduct(null)}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748B' }}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveProductEdit}>
-              <div className="admin-form-grid">
-                <div className="admin-form-group">
-                  <label>Артикул (SKU) [Неизменяемый ключ]</label>
-                  <input type="text" disabled value={editingProduct.article} style={{ background: '#F1F5F9' }} />
-                </div>
-
-                <div className="admin-form-group">
-                  <label>Категория *</label>
-                  <select 
-                    value={editingProduct.category}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                <div className="header-actions">
+                  <input
+                    type="file"
+                    ref={mediaInputRef}
+                    multiple
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={async (e) => {
+                      const files = e.target.files;
+                      if (!files || files.length === 0) return;
+                      setIsUploadingMedia(true);
+                      try {
+                        await uploadMediaFiles(files);
+                        loadMediaData();
+                        showNotice(`Успешно загружено ${files.length} изображений`);
+                      } catch (err) {
+                        showNotice(err.message, 'error');
+                      } finally {
+                        setIsUploadingMedia(false);
+                      }
+                    }}
+                  />
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-primary admin-btn-sm"
+                    onClick={() => mediaInputRef.current?.click()}
+                    disabled={isUploadingMedia}
                   >
-                    {CATEGORY_NAMES.map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
+                    <Upload size={14} />
+                    <span>{isUploadingMedia ? 'Загрузка...' : 'Загрузить фотографии'}</span>
+                  </button>
                 </div>
               </div>
 
-              <div className="admin-form-group">
-                <label>Наименование товара *</label>
-                <input 
-                  type="text" 
-                  required 
-                  value={editingProduct.name}
-                  onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
-                />
+              {/* Media Search */}
+              <div className="admin-filters-bar">
+                <div className="search-box">
+                  <Search size={16} className="search-icon" />
+                  <input
+                    type="text"
+                    value={mediaSearch}
+                    onChange={(e) => setMediaSearch(e.target.value)}
+                    placeholder="Поиск по названию файла..."
+                  />
+                </div>
+                <span className="cell-muted">Всего файлов: {mediaFiles.length}</span>
               </div>
 
-              <div className="admin-form-grid">
-                <div className="admin-form-group">
-                  <label>Цена *</label>
-                  <input 
-                    type="number" 
-                    required 
-                    value={editingProduct.price}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value })}
+              {/* Media Grid */}
+              <div className="media-gallery-grid">
+                {mediaFiles
+                  .filter(f => !mediaSearch || f.name.toLowerCase().includes(mediaSearch.toLowerCase()))
+                  .map((file, fIdx) => {
+                    const fullSrc = `${import.meta.env.BASE_URL}${file.url}`;
+                    return (
+                      <div key={fIdx} className="media-card-item">
+                        <div 
+                          className="media-thumb-box"
+                          onClick={() => setSelectedMediaPreview(file)}
+                        >
+                          <img src={fullSrc} alt={file.name} loading="lazy" />
+                        </div>
+                        <div className="media-card-body">
+                          <span className="media-filename" title={file.name}>{file.name}</span>
+                          <span className="media-filesize">{(file.size / 1024).toFixed(1)} KB</span>
+                        </div>
+                        <div className="media-card-actions">
+                          <button
+                            type="button"
+                            className="media-mini-btn"
+                            title="Скопировать относительный путь"
+                            onClick={() => {
+                              navigator.clipboard.writeText(file.url);
+                              showNotice(`Путь скопирован: ${file.url}`);
+                            }}
+                          >
+                            <Copy size={13} />
+                            <span>Путь</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            className="media-mini-btn danger"
+                            title="Удалить файл"
+                            onClick={async () => {
+                              if (window.confirm(`Удалить файл "${file.name}"?`)) {
+                                await deleteMediaFile(file.name);
+                                loadMediaData();
+                                showNotice('Файл удален');
+                              }
+                            }}
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 8: МЕНЮ И ФУТЕР */}
+          {activeTab === 'menu' && (
+            <div className="admin-view menu-view">
+              <div className="view-header">
+                <div>
+                  <h2 className="view-title">Меню сайта и футер</h2>
+                  <p className="view-subtitle">Управление ссылками навигации, контактами представительств и юридической информацией</p>
+                </div>
+                <div className="header-actions">
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-outline admin-btn-sm"
+                    onClick={handleSaveDraft}
+                  >
+                    <Save size={14} />
+                    <span>Сохранить черновик</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-success admin-btn-sm"
+                    onClick={handlePublish}
+                  >
+                    <Check size={14} />
+                    <span>Опубликовать</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Navigation Items */}
+              <div className="admin-section-card">
+                <h3 className="card-section-title">Пункты главного меню навигации</h3>
+                <div className="admin-table-wrapper">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Порядок</th>
+                        <th>Название пункта</th>
+                        <th>Маршрут / Ссылка</th>
+                        <th>Видимость</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {draftContent?.navigation?.map((navItem, nIdx) => (
+                        <tr key={navItem.id || nIdx}>
+                          <td>#{navItem.order || nIdx + 1}</td>
+                          <td>
+                            <input
+                              type="text"
+                              className="admin-input-inline"
+                              value={navItem.label}
+                              onChange={(e) => {
+                                const updated = [...draftContent.navigation];
+                                updated[nIdx].label = e.target.value;
+                                setDraftContent({
+                                  ...draftContent,
+                                  hasUnpublishedChanges: true,
+                                  navigation: updated
+                                });
+                              }}
+                            />
+                          </td>
+                          <td><code>{navItem.route}</code></td>
+                          <td>
+                            <label className="checkbox-label">
+                              <input
+                                type="checkbox"
+                                checked={navItem.isVisible !== false}
+                                onChange={(e) => {
+                                  const updated = [...draftContent.navigation];
+                                  updated[nIdx].isVisible = e.target.checked;
+                                  setDraftContent({
+                                    ...draftContent,
+                                    hasUnpublishedChanges: true,
+                                    navigation: updated
+                                  });
+                                }}
+                              />
+                              <span>Отображать</span>
+                            </label>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Footer Information */}
+              <div className="admin-section-card">
+                <h3 className="card-section-title">Контактные данные и реквизиты в футере</h3>
+                <div className="form-group">
+                  <label>Адрес представительства:</label>
+                  <input
+                    type="text"
+                    value={draftContent?.footer?.officeAddress || ''}
+                    onChange={(e) => {
+                      setDraftContent({
+                        ...draftContent,
+                        hasUnpublishedChanges: true,
+                        footer: { ...draftContent.footer, officeAddress: e.target.value }
+                      });
+                    }}
                   />
                 </div>
 
-                <div className="admin-form-group">
-                  <label>Статус публикации</label>
-                  <select 
-                    value={editingProduct.status}
+                <div className="form-group">
+                  <label>Телефон отдела продаж:</label>
+                  <input
+                    type="text"
+                    value={draftContent?.footer?.phones?.[0]?.number || ''}
+                    onChange={(e) => {
+                      const phones = [...(draftContent?.footer?.phones || [])];
+                      if (!phones[0]) phones.push({ number: '', tel: '' });
+                      phones[0].number = e.target.value;
+                      setDraftContent({
+                        ...draftContent,
+                        hasUnpublishedChanges: true,
+                        footer: { ...draftContent.footer, phones }
+                      });
+                    }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Электронная почта:</label>
+                  <input
+                    type="text"
+                    value={draftContent?.footer?.emails?.[0]?.email || ''}
+                    onChange={(e) => {
+                      const emails = [...(draftContent?.footer?.emails || [])];
+                      if (!emails[0]) emails.push({ email: '' });
+                      emails[0].email = e.target.value;
+                      setDraftContent({
+                        ...draftContent,
+                        hasUnpublishedChanges: true,
+                        footer: { ...draftContent.footer, emails }
+                      });
+                    }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Юридические документы и копирайт:</label>
+                  <input
+                    type="text"
+                    value={draftContent?.footer?.legalText || ''}
+                    onChange={(e) => {
+                      setDraftContent({
+                        ...draftContent,
+                        hasUnpublishedChanges: true,
+                        footer: { ...draftContent.footer, legalText: e.target.value }
+                      });
+                    }}
+                  />
+                </div>
+
+                <p className="cell-muted" style={{ marginTop: 12 }}>
+                  * Ссылка «Управление» в самом низу футера зафиксирована в строгом соответствии с требованиями безопасности.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 9: ЯЗЫКИ И ПЕРЕВОДЫ */}
+          {activeTab === 'languages' && (
+            <div className="admin-view languages-view">
+              <div className="view-header">
+                <div>
+                  <h2 className="view-title">Языки и переводы (RU, KZ, EN)</h2>
+                  <p className="view-subtitle">Поддержка трёх языковых версий сайта LAUTE с контролем заполненности</p>
+                </div>
+                <div className="header-actions">
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-success admin-btn-sm"
+                    onClick={handlePublish}
+                  >
+                    <Check size={14} />
+                    <span>Опубликовать переводы</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="admin-section-card">
+                <div className="lang-status-grid">
+                  <div className="lang-status-card">
+                    <span className="lang-badge">RU</span>
+                    <h4>Русский язык (Основной)</h4>
+                    <span className="stat-tag success">100% Заполнено</span>
+                    <p>Используется как стандартный базовый язык завода и резервный fallback для остальных версий.</p>
+                  </div>
+
+                  <div className="lang-status-card">
+                    <span className="lang-badge">KZ</span>
+                    <h4>Қазақ тілі (Казахский)</h4>
+                    <span className="stat-tag success">Активен</span>
+                    <p>Полноценный перевод интерфейса, навигации, карточек номенклатуры и сервиса.</p>
+                  </div>
+
+                  <div className="lang-status-card">
+                    <span className="lang-badge">EN</span>
+                    <h4>English (Английский)</h4>
+                    <span className="stat-tag success">Активен</span>
+                    <p>Международная версия для экспортных контрактов, дистрибьюторов и глобального каталога.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 10: SEO */}
+          {activeTab === 'seo' && (
+            <div className="admin-view seo-view">
+              <div className="view-header">
+                <div>
+                  <h2 className="view-title">Поисковая оптимизация (SEO)</h2>
+                  <p className="view-subtitle">Метатеги, заголовки, индексирование и предварительный просмотр сниппетов Google</p>
+                </div>
+                <div className="header-actions">
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-success admin-btn-sm"
+                    onClick={handlePublish}
+                  >
+                    <Check size={14} />
+                    <span>Опубликовать SEO</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Global SEO */}
+              <div className="admin-section-card">
+                <h3 className="card-section-title">Глобальные метаданные сайта</h3>
+                <div className="form-group">
+                  <label>Базовый заголовок сайта (Title):</label>
+                  <input
+                    type="text"
+                    value={draftContent?.seo?.global?.defaultTitle || ''}
+                    onChange={(e) => {
+                      setDraftContent({
+                        ...draftContent,
+                        hasUnpublishedChanges: true,
+                        seo: {
+                          ...draftContent.seo,
+                          global: { ...draftContent.seo?.global, defaultTitle: e.target.value }
+                        }
+                      });
+                    }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Базовое описание (Meta Description):</label>
+                  <textarea
+                    rows={2}
+                    value={draftContent?.seo?.global?.defaultDescription || ''}
+                    onChange={(e) => {
+                      setDraftContent({
+                        ...draftContent,
+                        hasUnpublishedChanges: true,
+                        seo: {
+                          ...draftContent.seo,
+                          global: { ...draftContent.seo?.global, defaultDescription: e.target.value }
+                        }
+                      });
+                    }}
+                  />
+                </div>
+
+                {/* Google SERP Snippet Preview */}
+                <div className="serp-preview-box">
+                  <span className="serp-label">Предпросмотр сниппета в поиске Google:</span>
+                  <div className="serp-card">
+                    <span className="serp-url">https://laute.ltd</span>
+                    <h4 className="serp-title">{draftContent?.seo?.global?.defaultTitle}</h4>
+                    <p className="serp-desc">{draftContent?.seo?.global?.defaultDescription}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 11: ЧЕРНОВИКИ И ПУБЛИКАЦИИ */}
+          {activeTab === 'drafts' && (
+            <div className="admin-view drafts-view">
+              <div className="view-header">
+                <div>
+                  <h2 className="view-title">Черновики и публикации</h2>
+                  <p className="view-subtitle">Управление жизненным циклом контента: сохранение, предпросмотр и публикация на витрину</p>
+                </div>
+              </div>
+
+              <div className="admin-section-card">
+                <div className="draft-state-box">
+                  <div className="state-badge-row">
+                    <span className={`status-pill ${draftContent?.hasUnpublishedChanges ? 'pending' : 'synced'}`}>
+                      {draftContent?.hasUnpublishedChanges ? 'Есть черновик в работе' : 'Все изменения опубликованы'}
+                    </span>
+                    <span className="version-pill">Версия сайта: {draftContent?.version || '1.0.0'}</span>
+                  </div>
+
+                  <h3>
+                    {draftContent?.hasUnpublishedChanges 
+                      ? 'В системе есть правки, ожидающие публикации на сайте'
+                      : 'Текущий контент на сайте полностью актуален'
+                    }
+                  </h3>
+
+                  <p className="state-desc">
+                    При публикации создаётся неизменяемый архивный снимок предыдущей версии контента. 
+                    В случае ошибки можно мгновенно вернуться к любому предыдущему состоянию через раздел «История изменений».
+                  </p>
+
+                  <div className="draft-actions-row">
+                    <button 
+                      type="button" 
+                      className="admin-btn admin-btn-success admin-btn-lg"
+                      onClick={handlePublish}
+                      disabled={isPublishing || !draftContent?.hasUnpublishedChanges}
+                    >
+                      <Check size={16} />
+                      <span>{isPublishing ? 'Публикация...' : 'Опубликовать все изменения на сайте'}</span>
+                    </button>
+
+                    <button 
+                      type="button" 
+                      className="admin-btn admin-btn-outline admin-btn-lg"
+                      onClick={handleDiscardDraft}
+                      disabled={!draftContent?.hasUnpublishedChanges}
+                    >
+                      <RotateCcw size={16} />
+                      <span>Отменить правки черновика</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 12: ИСТОРИЯ И БЭКАПЫ */}
+          {activeTab === 'history' && (
+            <div className="admin-view history-view">
+              <div className="view-header">
+                <div>
+                  <h2 className="view-title">История изменений и резервные копии</h2>
+                  <p className="view-subtitle">Журнал всех операций и мгновенный откат каталога или контента к любому снимку</p>
+                </div>
+              </div>
+
+              {/* Backups List */}
+              <div className="admin-section-card">
+                <h3 className="card-section-title">Резервные копии каталога ({backupsList.length})</h3>
+                <div className="admin-table-wrapper">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Время создания</th>
+                        <th>Описание операции</th>
+                        <th>Позиций</th>
+                        <th>Сессия</th>
+                        <th>Действие</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {backupsList.map((b) => (
+                        <tr key={b.backupId}>
+                          <td className="cell-time">{new Date(b.timestamp).toLocaleString('ru-RU')}</td>
+                          <td><strong>{b.description}</strong></td>
+                          <td>{b.productsCount} товаров</td>
+                          <td className="cell-muted">{b.sessionId}</td>
+                          <td>
+                            <button
+                              type="button"
+                              className="admin-btn admin-btn-danger admin-btn-xs"
+                              onClick={async () => {
+                                if (window.confirm(`Откатить базу каталога к снимку от ${new Date(b.timestamp).toLocaleString('ru-RU')}?`)) {
+                                  try {
+                                    await rollbackToBackup(b.backupId);
+                                    loadCatalogData();
+                                    loadHistoryData();
+                                    showNotice(`Каталог успешно восстановлен к снимку ${b.backupId}`);
+                                  } catch (err) {
+                                    showNotice(err.message, 'error');
+                                  }
+                                }
+                              }}
+                            >
+                              <RotateCcw size={13} />
+                              <span>Откатить</span>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Full Audit Logs */}
+              <div className="admin-section-card">
+                <h3 className="card-section-title">Журнал безопасности и операций</h3>
+                <div className="admin-table-wrapper">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Время</th>
+                        <th>Тип</th>
+                        <th>Описание</th>
+                        <th>Сессия</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {auditLogs.map((log) => (
+                        <tr key={log.id}>
+                          <td className="cell-time">{new Date(log.timestamp).toLocaleString('ru-RU')}</td>
+                          <td><span className="log-action-tag">{log.actionTitle || log.action}</span></td>
+                          <td>{log.summary}</td>
+                          <td className="cell-muted">{log.sessionId || 'Система'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 13: НАСТРОЙКИ */}
+          {activeTab === 'settings' && (
+            <div className="admin-view settings-view">
+              <div className="view-header">
+                <div>
+                  <h2 className="view-title">Системные настройки</h2>
+                  <p className="view-subtitle">Смена мастер-пароля администратора, выгрузка полной базы данных и технические параметры</p>
+                </div>
+              </div>
+
+              {/* Change Password Card */}
+              <div className="admin-section-card">
+                <h3 className="card-section-title">Смена пароля доступа к панели управления</h3>
+                <p className="section-desc">
+                  Доступ ко всей административной панели осуществляется по единственному безопасному мастер-паролю.
+                  Пароль шифруется на сервере алгоритмом <strong>scrypt</strong> с уникальной криптографической солью.
+                </p>
+
+                {passwordChangeMsg && (
+                  <div className="admin-alert-box info" style={{ marginBottom: 16 }}>
+                    {passwordChangeMsg}
+                  </div>
+                )}
+
+                <form onSubmit={handleChangePassword} className="settings-form">
+                  <div className="form-group">
+                    <label>Текущий пароль администратора:</label>
+                    <input
+                      type="password"
+                      value={oldPasswordChange}
+                      onChange={(e) => setOldPasswordChange(e.target.value)}
+                      required
+                      placeholder="Введите текущий пароль..."
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Новый пароль (минимум 6 символов):</label>
+                    <input
+                      type="password"
+                      value={newPasswordChange}
+                      onChange={(e) => setNewPasswordChange(e.target.value)}
+                      required
+                      placeholder="Новый сложный пароль..."
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Повторите новый пароль:</label>
+                    <input
+                      type="password"
+                      value={newPasswordConfirm}
+                      onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                      required
+                      placeholder="Подтверждение нового пароля..."
+                    />
+                  </div>
+
+                  <button type="submit" className="admin-btn admin-btn-primary">
+                    <Lock size={14} />
+                    <span>Сохранить новый пароль</span>
+                  </button>
+                </form>
+              </div>
+
+              {/* Full System Backup Export */}
+              <div className="admin-section-card">
+                <h3 className="card-section-title">Полная резервная копия сайта</h3>
+                <p className="section-desc">
+                  Выгрузка полной базы сайта в один файл JSON: все товары каталога, контент страниц, меню, SEO-настройки и категории.
+                </p>
+
+                <button 
+                  type="button" 
+                  className="admin-btn admin-btn-outline"
+                  onClick={downloadFullSystemBackup}
+                >
+                  <Download size={14} />
+                  <span>Скачать полный бэкап системы (.json)</span>
+                </button>
+              </div>
+
+              {/* System Diagnostics */}
+              <div className="admin-section-card">
+                <h3 className="card-section-title">Технические параметры окружения</h3>
+                <div className="sys-params-grid">
+                  <div className="param-item">
+                    <span className="param-label">Серверный стек:</span>
+                    <span className="param-val">Node.js {systemStats?.nodeVersion || 'v24'} · Express · Crypto (scrypt)</span>
+                  </div>
+                  <div className="param-item">
+                    <span className="param-label">Хранилище данных:</span>
+                    <span className="param-val">Локальная постоянная файловая БД с транзакционной синхронизацией</span>
+                  </div>
+                  <div className="param-item">
+                    <span className="param-label">Аптайм сервера:</span>
+                    <span className="param-val">{Math.floor((systemStats?.serverUptime || 0) / 60)} мин.</span>
+                  </div>
+                  <div className="param-item">
+                    <span className="param-label">Защита от перебора:</span>
+                    <span className="param-val">Активна (максимум 5 попыток ввода пароля)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* MODAL: EDIT / ADD PRODUCT */}
+      {(editingProduct || isAddingNewProduct) && (
+        <div className="admin-modal-backdrop">
+          <div className="admin-modal-window large">
+            <div className="admin-modal-header">
+              <h3>{isAddingNewProduct ? 'Добавление нового товара в каталог' : `Редактирование товара ${editingProduct?.article}`}</h3>
+              <button 
+                type="button" 
+                className="close-btn"
+                onClick={() => { setEditingProduct(null); setIsAddingNewProduct(false); }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setIsSavingProduct(true);
+                try {
+                  if (isAddingNewProduct) {
+                    await addProduct(editingProduct);
+                    showNotice(`Товар ${editingProduct.article} добавлен в каталог`);
+                  } else {
+                    await updateProduct(editingProduct.article, editingProduct);
+                    showNotice(`Товар ${editingProduct.article} успешно обновлён`);
+                  }
+                  setEditingProduct(null);
+                  setIsAddingNewProduct(false);
+                  loadCatalogData();
+                } catch (err) {
+                  showNotice(err.message, 'error');
+                } finally {
+                  setIsSavingProduct(false);
+                }
+              }}
+              className="admin-modal-form"
+            >
+              <div className="modal-form-grid">
+                <div className="form-group">
+                  <label>Артикул (SKU) *:</label>
+                  <input
+                    type="text"
+                    required
+                    disabled={!isAddingNewProduct}
+                    value={editingProduct?.article || ''}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, article: e.target.value })}
+                    placeholder="Например, LT-K101-CHR"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Название товара *:</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingProduct?.name || ''}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                    placeholder="Полное наименование смесителя..."
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Категория *:</label>
+                  <select
+                    value={editingProduct?.category || 'Кухонные смесители'}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                  >
+                    {categoriesList.map((c) => (
+                      <option key={c.id || c.name} value={c.name}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Цена *:</label>
+                  <div className="input-with-currency">
+                    <input
+                      type="number"
+                      required
+                      value={editingProduct?.price || ''}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
+                      placeholder="28900"
+                    />
+                    <span className="currency-label">{editingProduct?.currency || '₸'}</span>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Коллекция:</label>
+                  <input
+                    type="text"
+                    value={editingProduct?.collection || 'LAUTE Master Line'}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, collection: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Материал корпуса:</label>
+                  <input
+                    type="text"
+                    value={editingProduct?.material || 'Первичная латунь CW617N (евростандарт)'}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, material: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Цвет и покрытие:</label>
+                  <input
+                    type="text"
+                    value={editingProduct?.color || 'Хром глянец'}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, color: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Статус публикации:</label>
+                  <select
+                    value={editingProduct?.status || 'АКТИВЕН'}
                     onChange={(e) => setEditingProduct({ ...editingProduct, status: e.target.value })}
                   >
-                    <option value="АКТИВЕН">АКТИВЕН (Опубликован на сайте)</option>
-                    <option value="СКРЫТ">СКРЫТ (Снят с витрины)</option>
+                    <option value="АКТИВЕН">АКТИВЕН (Виден на сайте)</option>
+                    <option value="СКРЫТ">СКРЫТ (Скрыт от покупателей)</option>
                   </select>
                 </div>
               </div>
 
-              <div className="admin-form-group">
-                <label>Описание</label>
-                <textarea 
-                  value={editingProduct.description || ''}
+              <div className="form-group">
+                <label>Описание товара:</label>
+                <textarea
+                  rows={3}
+                  value={editingProduct?.description || ''}
                   onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
                 />
               </div>
 
-              <div className="admin-form-group">
-                <label>Технические характеристики</label>
-                <textarea 
-                  value={editingProduct.specs || ''}
+              <div className="form-group">
+                <label>Технические характеристики:</label>
+                <textarea
+                  rows={2}
+                  value={editingProduct?.specs || ''}
                   onChange={(e) => setEditingProduct({ ...editingProduct, specs: e.target.value })}
+                  placeholder="Картридж Sedal 35 мм, аэратор Neoperl..."
                 />
               </div>
 
-              <div className="admin-form-grid">
-                <div className="admin-form-group">
-                  <label>Размеры</label>
-                  <input 
-                    type="text" 
-                    value={editingProduct.dimensions || ''}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, dimensions: e.target.value })}
-                  />
-                </div>
-
-                <div className="admin-form-group">
-                  <label>Вес</label>
-                  <input 
-                    type="text" 
-                    value={editingProduct.weight || ''}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, weight: e.target.value })}
-                  />
-                </div>
+              <div className="form-group">
+                <label>Основное фото (путь к изображению):</label>
+                <input
+                  type="text"
+                  value={editingProduct?.photo1 || ''}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, photo1: e.target.value })}
+                  placeholder="images/cat_kitchen.png"
+                />
               </div>
 
-              {/* Photos with upload button */}
-              <div className="admin-form-group">
-                <label>Основная фотография</label>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <img 
-                    src={editingProduct.photo1 || 'images/cat_laute_brand.jpg'} 
-                    alt="Превью" 
-                    style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #E2E8F0' }}
-                    onError={(e) => { e.target.src = 'images/cat_laute_brand.jpg'; }}
-                  />
-                  <input 
-                    type="text" 
-                    value={editingProduct.photo1 || ''}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, photo1: e.target.value })}
-                    style={{ flex: 1 }}
-                  />
-                  <label className="adm-btn adm-btn-outline" style={{ cursor: 'pointer', margin: 0 }}>
-                    <ImageIcon size={15} />
-                    <span>Загрузить</span>
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      style={{ display: 'none' }}
-                      onChange={(e) => handleImageUpload(e, 'edit')}
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-                <button 
-                  type="button" 
-                  className="adm-btn adm-btn-outline" 
-                  onClick={() => setEditingProduct(null)}
+              <div className="admin-modal-footer">
+                <button
+                  type="button"
+                  className="admin-btn admin-btn-outline"
+                  onClick={() => { setEditingProduct(null); setIsAddingNewProduct(false); }}
                 >
                   Отмена
                 </button>
-                <button 
-                  type="submit" 
-                  className="adm-btn adm-btn-accent"
+
+                <button
+                  type="submit"
+                  className="admin-btn admin-btn-primary"
                   disabled={isSavingProduct}
                 >
-                  <CheckCircle2 size={16} />
-                  <span>{isSavingProduct ? 'Сохранение...' : 'Сохранить изменения'}</span>
+                  <Save size={14} />
+                  <span>{isSavingProduct ? 'Сохранение...' : 'Сохранить товар'}</span>
                 </button>
               </div>
             </form>
@@ -1896,6 +2679,55 @@ export const AdminPage = () => {
         </div>
       )}
 
+      {/* MODAL: PREVIEW MODAL */}
+      {previewModalOpen && (
+        <div className="admin-modal-backdrop">
+          <div className="admin-modal-window large">
+            <div className="admin-modal-header">
+              <h3>Предварительный просмотр витрины сайта</h3>
+              <button 
+                type="button" 
+                className="close-btn"
+                onClick={() => setPreviewModalOpen(false)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="preview-content-box">
+              <p className="cell-muted" style={{ marginBottom: 16 }}>
+                Ниже отображаются внесённые вами изменения черновика перед публикацией:
+              </p>
+              <div className="preview-hero-sample">
+                <span className="badge-refined">{draftContent?.homeBlocks?.heroSlider?.[0]?.tagline}</span>
+                <h2>{draftContent?.homeBlocks?.heroSlider?.[0]?.title}</h2>
+                <button type="button" className="btn btn-primary">
+                  {draftContent?.homeBlocks?.heroSlider?.[0]?.buttonText}
+                </button>
+              </div>
+            </div>
+            <div className="admin-modal-footer">
+              <button
+                type="button"
+                className="admin-btn admin-btn-outline"
+                onClick={() => setPreviewModalOpen(false)}
+              >
+                Закрыть
+              </button>
+              <button
+                type="button"
+                className="admin-btn admin-btn-success"
+                onClick={() => {
+                  setPreviewModalOpen(false);
+                  handlePublish();
+                }}
+              >
+                <Check size={14} />
+                <span>Опубликовать эти изменения</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -258,6 +258,21 @@ export const Footer = () => {
             </button>
           </div>
         </div>
+
+        {/* Subtle Admin Link */}
+        <div className="footer-admin-link-row">
+          <a 
+            href={`${import.meta.env.BASE_URL}admin`} 
+            className="footer-admin-link"
+            onClick={(e) => {
+              e.preventDefault();
+              navigateTo('admin');
+            }}
+            title="Панель управления"
+          >
+            Управление
+          </a>
+        </div>
       </div>
     </footer>
   );

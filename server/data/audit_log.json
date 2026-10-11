@@ -1,5 +1,93 @@
 [
   {
+    "id": "log-1791734136915-ht94w",
+    "timestamp": "2026-10-11T15:55:36.915Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-TEST-6897",
+    "summary": "Товар \"Тестовый смеситель LAUTE Pro Suite\" удален из базы каталога",
+    "sessionId": "laute_sess_ba4c391e9c7",
+    "backupId": "catalog_2026-10-11T15-55-36-912Z"
+  },
+  {
+    "id": "log-1791734136909-4vz42",
+    "timestamp": "2026-10-11T15:55:36.909Z",
+    "action": "STATUS_CHANGE",
+    "actionTitle": "Скрыт товар LT-TEST-6897",
+    "summary": "Товар \"Тестовый смеситель LAUTE Pro Suite\" переведен в статус \"СКРЫТ\"",
+    "sessionId": "laute_sess_ba4c391e9c7",
+    "backupId": "catalog_2026-10-11T15-55-36-906Z"
+  },
+  {
+    "id": "log-1791734136902-kqekc",
+    "timestamp": "2026-10-11T15:55:36.902Z",
+    "action": "PRODUCT_UPDATE",
+    "actionTitle": "Обновлен товар LT-TEST-6897",
+    "summary": "Цена: 34500 -> 37900",
+    "details": "Товар: Тестовый смеситель LAUTE Pro Suite",
+    "sessionId": "laute_sess_ba4c391e9c7",
+    "backupId": "catalog_2026-10-11T15-55-36-894Z"
+  },
+  {
+    "id": "log-1791734136889-l77ko",
+    "timestamp": "2026-10-11T15:55:36.889Z",
+    "action": "PRODUCT_CREATE",
+    "actionTitle": "Добавлен товар LT-TEST-6897",
+    "summary": "Создана карточка товара \"Тестовый смеситель LAUTE Pro Suite\" (34500 ₸)",
+    "details": "Категория: Кухонные смесители",
+    "sessionId": "laute_sess_ba4c391e9c7",
+    "backupId": "catalog_2026-10-11T15-55-36-886Z"
+  },
+  {
+    "id": "log-1791734136874-jg21c",
+    "timestamp": "2026-10-11T15:55:36.874Z",
+    "action": "CONTENT_PUBLISH",
+    "actionTitle": "Публикация контента на сайт",
+    "summary": "Контент сайта обновлен до версии 1.0.1. Создан снимок отката: content_backup_2026-10-11T15-55-36-868Z",
+    "sessionId": "laute_sess_ba4c391e9c7",
+    "backupId": "content_backup_2026-10-11T15-55-36-868Z"
+  },
+  {
+    "id": "log-1791734136861-92xvq",
+    "timestamp": "2026-10-11T15:55:36.861Z",
+    "action": "CONTENT_DRAFT_SAVE",
+    "actionTitle": "Сохранён черновик контента сайта",
+    "summary": "Изменения сохранены в черновике (не опубликованы на витрине)",
+    "sessionId": "laute_sess_ba4c391e9c7"
+  },
+  {
+    "id": "log-1791734136843-y6y8v",
+    "timestamp": "2026-10-11T15:55:36.843Z",
+    "action": "LOGIN_SUCCESS",
+    "actionTitle": "Успешный вход в панель управления",
+    "summary": "Авторизована сессия laute_sess_ba4c391e9c7",
+    "sessionId": "laute_sess_ba4c391e9c7",
+    "details": "IP: ::1"
+  },
+  {
+    "id": "log-1791734136805-jwjdq",
+    "timestamp": "2026-10-11T15:55:36.805Z",
+    "action": "LOGIN_FAILED",
+    "actionTitle": "Неудачная попытка входа",
+    "summary": "Неверный ввод пароля с IP ::1",
+    "details": "Неверный пароль доступа к панели управления"
+  },
+  {
+    "id": "log-1791734098228-s09wt",
+    "timestamp": "2026-10-11T15:54:58.228Z",
+    "action": "LOGIN_FAILED",
+    "actionTitle": "Неудачная попытка входа",
+    "summary": "Неверный ввод пароля с IP ::1",
+    "details": "Неверный пароль доступа к панели управления"
+  },
+  {
+    "id": "log-1791734098190-xy6pb",
+    "timestamp": "2026-10-11T15:54:58.190Z",
+    "action": "LOGIN_FAILED",
+    "actionTitle": "Неудачная попытка входа",
+    "summary": "Неверный ввод пароля с IP ::1",
+    "details": "Неверный пароль доступа к панели управления"
+  },
+  {
     "id": "log-1791729098156-pbdb",
     "timestamp": "2026-10-11T14:31:38.156Z",
     "user": "Елена Васильева",

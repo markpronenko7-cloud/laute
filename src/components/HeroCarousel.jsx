@@ -4,7 +4,7 @@ import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { withBrandWord } from '../utils/brandFormatter';
 
 export const HeroCarousel = () => {
-  const { navigateTo, openPartnerModal, t } = useApp();
+  const { navigateTo, openPartnerModal, t, siteContent } = useApp();
   const baseUrl = import.meta.env.BASE_URL;
 
   const [activeSlide, setActiveSlide] = useState(0);
@@ -14,7 +14,9 @@ export const HeroCarousel = () => {
 
   const SLIDE_DURATION = 3000; // Exactly 3000ms per requirement
 
-  const slidesData = [
+  const configuredSlides = siteContent?.homeBlocks?.heroSlider?.filter(s => s.isVisible !== false);
+
+  const defaultSlides = [
     {
       id: 'brand',
       image: `${baseUrl}images/hero/hero-slide-1.jpg`,
@@ -85,6 +87,33 @@ export const HeroCarousel = () => {
       buttonId: 'hero-slide6-btn'
     }
   ];
+
+  const slidesData = (configuredSlides && configuredSlides.length > 0)
+    ? configuredSlides.map((s, idx) => {
+        let action = () => navigateTo('catalog');
+        if (s.buttonLink === 'modal:partner') action = openPartnerModal;
+        else if (s.buttonLink === 'anchor:technologies') {
+          action = () => {
+            const el = document.getElementById('technologies');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+            else navigateTo('catalog');
+          };
+        } else if (s.buttonLink) {
+          action = () => navigateTo(s.buttonLink);
+        }
+        return {
+          id: s.id || `slide-${idx}`,
+          image: s.image?.startsWith('http') ? s.image : `${baseUrl}${String(s.image || 'images/hero/hero-slide-1.jpg').replace(/^\//, '')}`,
+          showLargeLogo: idx === 0 || idx === 4,
+          tagline: s.tagline || t.home?.heroSlides?.[idx]?.tagline || 'LAUTE®',
+          title: s.title || t.home?.heroSlides?.[idx]?.title || 'Управляй водой грамотно',
+          subtitle: s.subtitle || t.home?.heroSlides?.[idx]?.subtitle,
+          buttonText: s.buttonText || t.home?.heroSlides?.[idx]?.buttonText || 'Каталог',
+          action,
+          buttonId: `hero-slide${idx + 1}-btn`
+        };
+      })
+    : defaultSlides;
 
   const totalSlides = slidesData.length;
 

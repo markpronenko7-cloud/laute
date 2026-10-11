@@ -3771,6 +3771,33 @@ img {
   color: #475569;
 }
 
+.footer-admin-link-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 18px;
+  margin-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.footer-admin-link {
+  font-size: 11px;
+  color: #64748B;
+  opacity: 0.55;
+  text-decoration: none;
+  letter-spacing: 0.03em;
+  transition: opacity 0.25s ease, color 0.25s ease;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.footer-admin-link:hover {
+  opacity: 0.95;
+  color: #94A3B8;
+  text-decoration: none;
+}
+
 .scroll-top-btn {
   display: inline-flex;
   align-items: center;

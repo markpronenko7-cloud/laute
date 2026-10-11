@@ -9,6 +9,27 @@ import {
   parseAndValidateExcelBuffer, 
   createErrorReportWorkbook 
 } from './excelService.js';
+import {
+  initAuthConfig,
+  getAuthStatus,
+  setInitialPassword,
+  changeAdminPassword,
+  authenticateWithPassword,
+  validateSessionToken,
+  destroySession
+} from './securityService.js';
+import {
+  getPublishedContent,
+  getDraftContent,
+  saveDraftContent,
+  publishDraftContent,
+  discardDraftContent,
+  rollbackContentToBackup,
+  getCategories,
+  saveCategories,
+  getCustomPages,
+  saveCustomPages
+} from './contentService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,15 +41,18 @@ const PORT = process.env.PORT || 3001;
 const DATA_DIR = path.resolve(__dirname, 'data');
 const BACKUPS_DIR = path.resolve(DATA_DIR, 'backups');
 const PRODUCTS_FILE = path.resolve(DATA_DIR, 'products.json');
-const USERS_FILE = path.resolve(DATA_DIR, 'users.json');
 const AUDIT_FILE = path.resolve(DATA_DIR, 'audit_log.json');
 const PUBLIC_CATALOG_FILE = path.resolve(__dirname, '..', 'public', 'data', 'catalog.json');
-const UPLOAD_DIR = path.resolve(__dirname, '..', 'public', 'images', 'catalog');
+const UPLOAD_CATALOG_DIR = path.resolve(__dirname, '..', 'public', 'images', 'catalog');
+const UPLOAD_MEDIA_DIR = path.resolve(__dirname, '..', 'public', 'images', 'uploads');
 
 // Ensure directories exist
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-if (!fs.existsSync(BACKUPS_DIR)) fs.mkdirSync(BACKUPS_DIR, { recursive: true });
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+[DATA_DIR, BACKUPS_DIR, UPLOAD_CATALOG_DIR, UPLOAD_MEDIA_DIR].forEach(dir => {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+});
+
+// Initialize security
+initAuthConfig();
 
 // Middlewares
 app.use(cors());
@@ -36,21 +60,33 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve uploaded images statically
-app.use('/images/catalog', express.static(UPLOAD_DIR));
+app.use('/images/catalog', express.static(UPLOAD_CATALOG_DIR));
+app.use('/images/uploads', express.static(UPLOAD_MEDIA_DIR));
 
 // Configure Multer for Excel in-memory and images on-disk
 const memStorage = multer.memoryStorage();
-const uploadExcel = multer({ storage: memStorage, limits: { fileSize: 25 * 1024 * 1024 } });
+const uploadExcel = multer({ storage: memStorage, limits: { fileSize: 30 * 1024 * 1024 } });
 
-const diskStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+const mediaDiskStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, UPLOAD_MEDIA_DIR),
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
+    const ext = path.extname(file.originalname).toLowerCase();
     const cleanName = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
-    cb(null, `prod_${Date.now()}_${cleanName}${ext}`);
+    cb(null, `media_${Date.now()}_${cleanName}${ext}`);
   }
 });
-const uploadImage = multer({ storage: diskStorage, limits: { fileSize: 10 * 1024 * 1024 } });
+const uploadMedia = multer({ 
+  storage: mediaDiskStorage, 
+  limits: { fileSize: 15 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = /\.(jpg|jpeg|png|webp|svg|gif|avif)$/i;
+    if (file.originalname.match(allowed)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Разрешены только файлы изображений (JPG, PNG, WEBP, SVG, GIF, AVIF)'));
+    }
+  }
+});
 
 // In-memory cache for last validation errors (for error report download)
 let lastValidationErrors = [];
@@ -85,16 +121,16 @@ function syncPublicCatalog(products) {
   }
 }
 
-function createBackupSnapshot(products, description, author) {
+function createBackupSnapshot(products, description, sessionId) {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const backupId = `backup_${timestamp}`;
+  const backupId = `catalog_${timestamp}`;
   const backupPath = path.resolve(BACKUPS_DIR, `${backupId}.json`);
 
   const snapshot = {
     backupId,
     timestamp: new Date().toISOString(),
     description,
-    author: author || 'Система',
+    sessionId: sessionId || 'Система',
     productsCount: products.length,
     products
   };
@@ -106,155 +142,380 @@ function createBackupSnapshot(products, description, author) {
 function addAuditLog(entry) {
   const logs = readJson(AUDIT_FILE, []);
   const newLog = {
-    id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+    id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
     timestamp: new Date().toISOString(),
     ...entry
   };
   logs.unshift(newLog);
-  // Keep last 300 entries
-  if (logs.length > 300) logs.length = 300;
+  // Keep last 400 entries
+  if (logs.length > 400) logs.length = 400;
   writeJson(AUDIT_FILE, logs);
   return newLog;
 }
 
-// In-memory sessions / token store
-const activeSessions = new Map();
+// Client IP extractor helper
+function getClientIp(req) {
+  return req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+}
 
+// Authentication verification middleware
 function verifyAuth(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Требуется авторизация сотрудника LAUTE' });
+    return res.status(401).json({ error: 'Требуется авторизация администратора LAUTE' });
   }
+
   const token = authHeader.split(' ')[1];
-  const session = activeSessions.get(token);
+  const session = validateSessionToken(token);
+
   if (!session) {
-    return res.status(401).json({ error: 'Сессия истекла или недействительна. Войдите снова.' });
+    return res.status(401).json({ error: 'Сессия истекла или недействительна. Введите пароль снова.' });
   }
-  req.user = session.user;
-  next();
-}
 
-function requireAdmin(req, res, next) {
-  if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Недостаточно прав. Действие доступно только Администратору.' });
-  }
+  req.session = session;
+  req.token = token;
   next();
 }
 
 // ==========================================
-// ROUTES
+// 1. HEALTH & AUTH ROUTES (SINGLE PASSWORD)
 // ==========================================
 
-// 1. Health & Info
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', serverTime: new Date().toISOString(), service: 'LAUTE Catalog Management API' });
+  res.json({ 
+    status: 'ok', 
+    serverTime: new Date().toISOString(), 
+    service: 'LAUTE Master CMS & Catalog Backend' 
+  });
 });
 
-// 2. Auth: Login
+// Check auth status (initialized or first-time setup needed)
+app.get('/api/auth/status', (req, res) => {
+  res.json(getAuthStatus());
+});
+
+// First-time setup (only if not yet initialized)
+app.post('/api/auth/setup', (req, res) => {
+  try {
+    const { password } = req.body;
+    setInitialPassword(password);
+    addAuditLog({
+      action: 'SECURITY_SETUP',
+      actionTitle: 'Первоначальная установка пароля администратора',
+      summary: 'Мастер-пароль успешно установлен и захеширован через scrypt',
+      details: 'Режим первоначальной настройки заблокирован'
+    });
+    res.json({ success: true, message: 'Пароль администратора успешно установлен!' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Single-password login
 app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Укажите рабочий e-mail и пароль' });
+  const { password } = req.body;
+  const ip = getClientIp(req);
+
+  if (!password || !password.trim()) {
+    return res.status(400).json({ error: 'Введите пароль' });
   }
 
-  const users = readJson(USERS_FILE, []);
-  const user = users.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
+  const result = authenticateWithPassword(password.trim(), ip);
 
-  if (!user || user.password !== password.trim()) {
-    return res.status(401).json({ error: 'Неверный логин или пароль сотрудника' });
+  if (!result.success) {
+    addAuditLog({
+      action: 'LOGIN_FAILED',
+      actionTitle: 'Неудачная попытка входа',
+      summary: `Неверный ввод пароля с IP ${ip}`,
+      details: result.error
+    });
+    return res.status(result.status || 401).json({ error: result.error, needsSetup: result.needsSetup });
   }
-
-  const token = `tok_${user.role}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  const userProfile = {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    title: user.title
-  };
-
-  activeSessions.set(token, { user: userProfile, createdAt: Date.now() });
-
-  // Update last login in users file
-  user.lastLogin = new Date().toISOString();
-  writeJson(USERS_FILE, users);
 
   addAuditLog({
-    user: user.name,
-    userEmail: user.email,
-    action: 'LOGIN',
-    actionTitle: 'Вход сотрудника в панель управления',
-    summary: `Сотрудник ${user.name} (${user.title}) авторизовался в системе`,
-    details: `Роль: ${user.role}`
+    action: 'LOGIN_SUCCESS',
+    actionTitle: 'Успешный вход в панель управления',
+    summary: `Авторизована сессия ${result.session.id}`,
+    sessionId: result.session.id,
+    details: `IP: ${ip}`
   });
 
   res.json({
     success: true,
-    token,
-    user: userProfile
+    token: result.token,
+    session: result.session
   });
 });
 
-// 3. Auth: Current User Profile
+// Check current session
 app.get('/api/auth/me', verifyAuth, (req, res) => {
-  res.json({ user: req.user });
+  res.json({
+    session: {
+      id: req.session.sessionId,
+      role: 'admin',
+      title: 'Администратор LAUTE',
+      createdAt: req.session.createdAt
+    }
+  });
 });
 
-// 4. Staff Management (Admin only)
-app.get('/api/users', verifyAuth, requireAdmin, (req, res) => {
-  const users = readJson(USERS_FILE, []);
-  const sanitized = users.map(u => ({
-    id: u.id,
-    email: u.email,
-    name: u.name,
-    role: u.role,
-    title: u.title,
-    createdAt: u.createdAt,
-    lastLogin: u.lastLogin
-  }));
-  res.json({ users: sanitized });
+// Logout
+app.post('/api/auth/logout', verifyAuth, (req, res) => {
+  destroySession(req.token);
+  addAuditLog({
+    action: 'LOGOUT',
+    actionTitle: 'Выход из панели управления',
+    summary: `Сессия ${req.session.sessionId} завершена`,
+    sessionId: req.session.sessionId
+  });
+  res.json({ success: true });
 });
 
-app.post('/api/users', verifyAuth, requireAdmin, (req, res) => {
-  const { email, password, name, role, title } = req.body;
-  if (!email || !password || !name) {
-    return res.status(400).json({ error: 'Все поля обязательны' });
+// Change admin password
+app.post('/api/auth/change-password', verifyAuth, (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    changeAdminPassword(oldPassword, newPassword);
+    addAuditLog({
+      action: 'PASSWORD_CHANGED',
+      actionTitle: 'Смена пароля администратора',
+      summary: 'Мастер-пароль успешно изменён. Старые сессии аннулированы.',
+      sessionId: req.session.sessionId
+    });
+    res.json({ success: true, message: 'Пароль администратора успешно изменён!' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
-  const users = readJson(USERS_FILE, []);
-  if (users.some(u => u.email.toLowerCase() === email.trim().toLowerCase())) {
-    return res.status(400).json({ error: 'Пользователь с таким email уже существует' });
+});
+
+// ==========================================
+// 2. CONTENT & CMS ROUTES (VISUAL EDITOR)
+// ==========================================
+
+// Get site content (public gets published; authenticated with ?draft=true gets draft)
+app.get('/api/content', (req, res) => {
+  const isDraftRequested = req.query.draft === 'true';
+
+  if (isDraftRequested) {
+    // Check if token valid
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      if (validateSessionToken(token)) {
+        return res.json(getDraftContent());
+      }
+    }
   }
 
-  const newUser = {
-    id: `usr-${Date.now()}`,
-    email: email.trim(),
-    password: password.trim(),
-    name: name.trim(),
-    role: role === 'admin' ? 'admin' : 'editor',
-    title: title || (role === 'admin' ? 'Администратор' : 'Редактор каталога'),
-    createdAt: new Date().toISOString(),
-    lastLogin: null
-  };
+  res.json(getPublishedContent());
+});
 
-  users.push(newUser);
-  writeJson(USERS_FILE, users);
+// Save draft content
+app.put('/api/content/draft', verifyAuth, (req, res) => {
+  const updates = req.body;
+  if (!updates || typeof updates !== 'object') {
+    return res.status(400).json({ error: 'Некорректные данные контента' });
+  }
+
+  const updatedDraft = saveDraftContent(updates, req.session.sessionId);
 
   addAuditLog({
-    user: req.user.name,
-    userEmail: req.user.email,
-    action: 'USER_ADD',
-    actionTitle: 'Создан новый аккаунт сотрудника',
-    summary: `Добавлен сотрудник: ${newUser.name} (${newUser.email}) с ролью ${newUser.role}`,
-    details: ''
+    action: 'CONTENT_DRAFT_SAVE',
+    actionTitle: 'Сохранён черновик контента сайта',
+    summary: 'Изменения сохранены в черновике (не опубликованы на витрине)',
+    sessionId: req.session.sessionId
   });
 
-  res.json({ success: true, user: { id: newUser.id, email: newUser.email, name: newUser.name, role: newUser.role, title: newUser.title } });
+  res.json({ success: true, draft: updatedDraft });
 });
 
-// 5. Products: List
+// Publish draft content to live site
+app.post('/api/content/publish', verifyAuth, (req, res) => {
+  try {
+    const result = publishDraftContent(req.session.sessionId);
+
+    addAuditLog({
+      action: 'CONTENT_PUBLISH',
+      actionTitle: 'Публикация контента на сайт',
+      summary: `Контент сайта обновлен до версии ${result.version}. Создан снимок отката: ${result.backupId}`,
+      sessionId: req.session.sessionId,
+      backupId: result.backupId
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error('Content publish error:', err);
+    res.status(500).json({ error: `Ошибка при публикации: ${err.message}` });
+  }
+});
+
+// Discard draft changes
+app.post('/api/content/discard', verifyAuth, (req, res) => {
+  const resetDraft = discardDraftContent();
+
+  addAuditLog({
+    action: 'CONTENT_DRAFT_DISCARD',
+    actionTitle: 'Отмена изменений черновика',
+    summary: 'Все неопубликованные изменения сброшены к опубликованной версии',
+    sessionId: req.session.sessionId
+  });
+
+  res.json({ success: true, draft: resetDraft });
+});
+
+// Rollback content to previous backup
+app.post('/api/content/rollback', verifyAuth, (req, res) => {
+  const { backupId } = req.body;
+  if (!backupId) {
+    return res.status(400).json({ error: 'Укажите ID резервной копии контента' });
+  }
+
+  try {
+    const result = rollbackContentToBackup(backupId, req.session.sessionId);
+
+    addAuditLog({
+      action: 'CONTENT_ROLLBACK',
+      actionTitle: `Откат контента к ${backupId}`,
+      summary: `Контент восстановлен к версии ${result.restoredVersion}`,
+      sessionId: req.session.sessionId,
+      backupId
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==========================================
+// 3. PAGES & CATEGORIES ROUTES
+// ==========================================
+
+// Custom Pages
+app.get('/api/pages', (req, res) => {
+  res.json({ pages: getCustomPages() });
+});
+
+app.post('/api/pages', verifyAuth, (req, res) => {
+  const { title, slug, description, blocks } = req.body;
+  if (!title || !slug) {
+    return res.status(400).json({ error: 'Укажите заголовок и URL slug страницы' });
+  }
+
+  const pages = getCustomPages();
+  const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+
+  if (pages.some(p => p.slug === cleanSlug)) {
+    return res.status(400).json({ error: `Страница с адресом "${cleanSlug}" уже существует` });
+  }
+
+  const newPage = {
+    id: `page-${Date.now()}`,
+    title,
+    slug: cleanSlug,
+    description: description || '',
+    status: 'ОПУБЛИКОВАН',
+    template: 'info',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    blocks: Array.isArray(blocks) ? blocks : [
+      { id: 'b1', type: 'hero', title: title, subtitle: description || '' },
+      { id: 'b2', type: 'text', content: 'Содержимое страницы...' }
+    ]
+  };
+
+  pages.push(newPage);
+  saveCustomPages(pages);
+
+  addAuditLog({
+    action: 'PAGE_CREATE',
+    actionTitle: `Создана страница "${title}"`,
+    summary: `URL: /${cleanSlug}`,
+    sessionId: req.session.sessionId
+  });
+
+  res.json({ success: true, page: newPage });
+});
+
+app.put('/api/pages/:id', verifyAuth, (req, res) => {
+  const { id } = req.params;
+  const updates = req.body;
+  const pages = getCustomPages();
+
+  const idx = pages.findIndex(p => p.id === id);
+  if (idx === -1) {
+    return res.status(404).json({ error: 'Страница не найдена' });
+  }
+
+  pages[idx] = {
+    ...pages[idx],
+    ...updates,
+    updatedAt: new Date().toISOString()
+  };
+
+  saveCustomPages(pages);
+
+  addAuditLog({
+    action: 'PAGE_UPDATE',
+    actionTitle: `Обновлена страница "${pages[idx].title}"`,
+    summary: `URL: /${pages[idx].slug}`,
+    sessionId: req.session.sessionId
+  });
+
+  res.json({ success: true, page: pages[idx] });
+});
+
+app.delete('/api/pages/:id', verifyAuth, (req, res) => {
+  const { id } = req.params;
+  const pages = getCustomPages();
+
+  const idx = pages.findIndex(p => p.id === id);
+  if (idx === -1) {
+    return res.status(404).json({ error: 'Страница не найдена' });
+  }
+
+  const removed = pages.splice(idx, 1)[0];
+  saveCustomPages(pages);
+
+  addAuditLog({
+    action: 'PAGE_DELETE',
+    actionTitle: `Удалена страница "${removed.title}"`,
+    summary: `URL: /${removed.slug}`,
+    sessionId: req.session.sessionId
+  });
+
+  res.json({ success: true });
+});
+
+// Categories
+app.get('/api/categories', (req, res) => {
+  res.json({ categories: getCategories() });
+});
+
+app.put('/api/categories', verifyAuth, (req, res) => {
+  const { categories } = req.body;
+  if (!Array.isArray(categories)) {
+    return res.status(400).json({ error: 'Ожидается массив категорий' });
+  }
+
+  saveCategories(categories);
+
+  addAuditLog({
+    action: 'CATEGORIES_UPDATE',
+    actionTitle: 'Обновлена структура категорий товаров',
+    summary: `Всего категорий: ${categories.length}`,
+    sessionId: req.session.sessionId
+  });
+
+  res.json({ success: true, categories });
+});
+
+// ==========================================
+// 4. PRODUCTS CATALOG ROUTES
+// ==========================================
+
 app.get('/api/products', (req, res) => {
   const products = readJson(PRODUCTS_FILE, []);
-  // Support query param ?includeHidden=false for public storefront
   const includeHidden = req.query.includeHidden !== 'false';
   if (!includeHidden) {
     const activeOnly = products.filter(p => p.status !== 'СКРЫТ');
@@ -263,7 +524,6 @@ app.get('/api/products', (req, res) => {
   res.json({ products });
 });
 
-// 6. Products: Add Single Product
 app.post('/api/products', verifyAuth, (req, res) => {
   const newProd = req.body;
   if (!newProd.article || !newProd.name || !newProd.category || !newProd.price) {
@@ -276,7 +536,7 @@ app.post('/api/products', verifyAuth, (req, res) => {
     return res.status(400).json({ error: `Товар с артикулом "${cleanArticle}" уже существует в каталоге!` });
   }
 
-  const backupId = createBackupSnapshot(products, `Создание товара ${cleanArticle}`, req.user.name);
+  const backupId = createBackupSnapshot(products, `Создание товара ${cleanArticle}`, req.session.sessionId);
 
   const productToSave = {
     ...newProd,
@@ -285,7 +545,7 @@ app.post('/api/products', verifyAuth, (req, res) => {
     currency: newProd.currency || '₸',
     status: newProd.status || 'АКТИВЕН',
     updatedAt: new Date().toISOString(),
-    updatedBy: req.user.name
+    updatedSessionId: req.session.sessionId
   };
 
   products.unshift(productToSave);
@@ -293,19 +553,17 @@ app.post('/api/products', verifyAuth, (req, res) => {
   syncPublicCatalog(products);
 
   addAuditLog({
-    user: req.user.name,
-    userEmail: req.user.email,
     action: 'PRODUCT_CREATE',
     actionTitle: `Добавлен товар ${cleanArticle}`,
     summary: `Создана карточка товара "${productToSave.name}" (${productToSave.price} ${productToSave.currency})`,
     details: `Категория: ${productToSave.category}`,
+    sessionId: req.session.sessionId,
     backupId
   });
 
   res.json({ success: true, product: productToSave, backupId });
 });
 
-// 7. Products: Update Single Product
 app.put('/api/products/:sku', verifyAuth, (req, res) => {
   const { sku } = req.params;
   const updates = req.body;
@@ -317,22 +575,21 @@ app.put('/api/products/:sku', verifyAuth, (req, res) => {
   }
 
   const oldProduct = products[idx];
-  const backupId = createBackupSnapshot(products, `Редактирование товара ${sku}`, req.user.name);
+  const backupId = createBackupSnapshot(products, `Редактирование товара ${sku}`, req.session.sessionId);
 
   const updatedProduct = {
     ...oldProduct,
     ...updates,
-    article: oldProduct.article, // SKU is immutable via update
+    article: oldProduct.article, // SKU is immutable
     price: updates.price !== undefined ? Number(updates.price) : oldProduct.price,
     updatedAt: new Date().toISOString(),
-    updatedBy: req.user.name
+    updatedSessionId: req.session.sessionId
   };
 
   products[idx] = updatedProduct;
   writeJson(PRODUCTS_FILE, products);
   syncPublicCatalog(products);
 
-  // Detect diff
   const diffs = [];
   if (oldProduct.price !== updatedProduct.price) {
     diffs.push(`Цена: ${oldProduct.price} -> ${updatedProduct.price}`);
@@ -345,22 +602,20 @@ app.put('/api/products/:sku', verifyAuth, (req, res) => {
   }
 
   addAuditLog({
-    user: req.user.name,
-    userEmail: req.user.email,
     action: 'PRODUCT_UPDATE',
     actionTitle: `Обновлен товар ${sku}`,
     summary: diffs.length > 0 ? diffs.join('; ') : 'Характеристики и описание обновлены',
     details: `Товар: ${updatedProduct.name}`,
+    sessionId: req.session.sessionId,
     backupId
   });
 
   res.json({ success: true, product: updatedProduct, backupId });
 });
 
-// 8. Products: Toggle Status (Hide / Show)
 app.patch('/api/products/:sku/status', verifyAuth, (req, res) => {
   const { sku } = req.params;
-  const { status } = req.body; // 'АКТИВЕН' or 'СКРЫТ'
+  const { status } = req.body;
   const products = readJson(PRODUCTS_FILE, []);
 
   const prod = products.find(p => p.article.trim().toUpperCase() === sku.trim().toUpperCase());
@@ -369,29 +624,26 @@ app.patch('/api/products/:sku/status', verifyAuth, (req, res) => {
   }
 
   const targetStatus = status || (prod.status === 'СКРЫТ' ? 'АКТИВЕН' : 'СКРЫТ');
-  const backupId = createBackupSnapshot(products, `Изменение статуса ${sku} -> ${targetStatus}`, req.user.name);
+  const backupId = createBackupSnapshot(products, `Изменение статуса ${sku} -> ${targetStatus}`, req.session.sessionId);
 
   prod.status = targetStatus;
   prod.updatedAt = new Date().toISOString();
-  prod.updatedBy = req.user.name;
+  prod.updatedSessionId = req.session.sessionId;
 
   writeJson(PRODUCTS_FILE, products);
   syncPublicCatalog(products);
 
   addAuditLog({
-    user: req.user.name,
-    userEmail: req.user.email,
     action: 'STATUS_CHANGE',
     actionTitle: targetStatus === 'СКРЫТ' ? `Скрыт товар ${sku}` : `Возвращен в каталог ${sku}`,
     summary: `Товар "${prod.name}" переведен в статус "${targetStatus}"`,
-    details: '',
+    sessionId: req.session.sessionId,
     backupId
   });
 
   res.json({ success: true, product: prod, backupId });
 });
 
-// 9. Products: Delete Single Product
 app.delete('/api/products/:sku', verifyAuth, (req, res) => {
   const { sku } = req.params;
   const products = readJson(PRODUCTS_FILE, []);
@@ -402,39 +654,28 @@ app.delete('/api/products/:sku', verifyAuth, (req, res) => {
   }
 
   const removed = products[idx];
-  const backupId = createBackupSnapshot(products, `Удаление товара ${sku}`, req.user.name);
+  const backupId = createBackupSnapshot(products, `Удаление товара ${sku}`, req.session.sessionId);
 
   products.splice(idx, 1);
   writeJson(PRODUCTS_FILE, products);
   syncPublicCatalog(products);
 
   addAuditLog({
-    user: req.user.name,
-    userEmail: req.user.email,
     action: 'PRODUCT_DELETE',
     actionTitle: `Удален товар ${sku}`,
     summary: `Товар "${removed.name}" удален из базы каталога`,
-    details: `Создана резервная копия: ${backupId}`,
+    sessionId: req.session.sessionId,
     backupId
   });
 
   res.json({ success: true, backupId });
 });
 
-// 10. Image Upload
-app.post('/api/upload', verifyAuth, uploadImage.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'Файл изображения не передан' });
-  }
-  const relativePath = `images/catalog/${req.file.filename}`;
-  res.json({
-    success: true,
-    url: relativePath,
-    filename: req.file.filename
-  });
-});
+// ==========================================
+// 5. EXCEL IMPORT & EXPORT
+// ==========================================
 
-// 11. Excel: Download Template
+// Download Template
 app.get('/api/excel/template', (req, res) => {
   const templatePath = path.resolve(__dirname, '..', 'LAUTE_Catalog.xlsx');
   if (fs.existsSync(templatePath)) {
@@ -445,7 +686,7 @@ app.get('/api/excel/template', (req, res) => {
   res.status(404).json({ error: 'Файл шаблона не найден на сервере' });
 });
 
-// 12. Excel: Export Current Live Catalog
+// Export Current Catalog
 app.get('/api/excel/export', async (req, res) => {
   try {
     const products = readJson(PRODUCTS_FILE, []);
@@ -463,7 +704,7 @@ app.get('/api/excel/export', async (req, res) => {
   }
 });
 
-// 13. Excel: Pre-validate Uploaded File
+// Validate Excel file
 app.post('/api/excel/validate', verifyAuth, uploadExcel.single('file'), async (req, res) => {
   try {
     if (!req.file || !req.file.buffer) {
@@ -473,9 +714,7 @@ app.post('/api/excel/validate', verifyAuth, uploadExcel.single('file'), async (r
     const currentProducts = readJson(PRODUCTS_FILE, []);
     const result = await parseAndValidateExcelBuffer(req.file.buffer, currentProducts);
 
-    // Save errors for report download
     lastValidationErrors = result.errors || [];
-
     res.json(result);
   } catch (err) {
     console.error('Validation error:', err);
@@ -489,7 +728,7 @@ app.post('/api/excel/validate', verifyAuth, uploadExcel.single('file'), async (r
   }
 });
 
-// 14. Excel: Commit Confirmed Import
+// Commit confirmed Excel import
 app.post('/api/excel/commit', verifyAuth, (req, res) => {
   const { validRows } = req.body;
   if (!validRows || !Array.isArray(validRows) || validRows.length === 0) {
@@ -500,7 +739,7 @@ app.post('/api/excel/commit', verifyAuth, (req, res) => {
   const backupId = createBackupSnapshot(
     products, 
     `Импорт Excel (${validRows.length} позиций)`, 
-    req.user.name
+    req.session.sessionId
   );
 
   const productMap = new Map();
@@ -523,7 +762,7 @@ app.post('/api/excel/commit', verifyAuth, (req, res) => {
     }
 
     if (productMap.has(upperSku)) {
-      // Обновление существующего товара
+      // Update existing product
       const existing = productMap.get(upperSku);
       const updated = {
         ...existing,
@@ -553,7 +792,7 @@ app.post('/api/excel/commit', verifyAuth, (req, res) => {
         url: row.url !== undefined ? row.url : existing.url,
         extraSpecs: row.extraSpecs !== undefined ? row.extraSpecs : existing.extraSpecs,
         updatedAt: new Date().toISOString(),
-        updatedBy: req.user.name
+        updatedSessionId: req.session.sessionId
       };
 
       if (updated.status === 'СКРЫТ' && existing.status !== 'СКРЫТ') {
@@ -563,7 +802,7 @@ app.post('/api/excel/commit', verifyAuth, (req, res) => {
       }
       productMap.set(upperSku, updated);
     } else {
-      // Добавление нового товара
+      // Add new product
       const newProduct = {
         article: row.article.trim(),
         name: row.name,
@@ -574,7 +813,7 @@ app.post('/api/excel/commit', verifyAuth, (req, res) => {
         description: row.description || '',
         price: Number(row.price),
         currency: row.currency || '₸',
-        material: row.material || 'Первичная латунь CW617N',
+        material: row.material || 'Первичная латунь CW617N (евростандарт)',
         color: row.color || 'Хром глянец',
         finish: row.finish || 'Гальванический хром',
         installType: row.installType || 'Врезной на мойку / умывальник',
@@ -593,26 +832,25 @@ app.post('/api/excel/commit', verifyAuth, (req, res) => {
         url: row.url || `/catalog#${row.article.trim()}`,
         extraSpecs: row.extraSpecs || '',
         updatedAt: new Date().toISOString(),
-        updatedBy: req.user.name
+        updatedSessionId: req.session.sessionId
       };
       productMap.set(upperSku, newProduct);
       addedCount++;
     }
   });
 
-  // ВАЖНО: товары, которых не было в Excel, НЕ удаляются!
+  // CRITICAL: Items NOT present in uploaded Excel are preserved!
   const finalProducts = Array.from(productMap.values());
 
   writeJson(PRODUCTS_FILE, finalProducts);
   syncPublicCatalog(finalProducts);
 
   addAuditLog({
-    user: req.user.name,
-    userEmail: req.user.email,
     action: 'EXCEL_IMPORT',
     actionTitle: 'Успешный импорт Excel-каталога',
-    summary: `Добавлено: +${addedCount}, Обновлено: ${updatedCount}, Скрыто: ${hiddenCount}, Удалено: ${deletedCount}. Всего в каталоге: ${finalProducts.length}`,
-    details: `Применено из файла. Создана точка отката: ${backupId}`,
+    summary: `Добавлено: +${addedCount}, Обновлено: ${updatedCount}, Скрыто: ${hiddenCount}, Удалено: ${deletedCount}. Всего: ${finalProducts.length}`,
+    details: `Создана точка отката: ${backupId}`,
+    sessionId: req.session.sessionId,
     backupId
   });
 
@@ -630,7 +868,7 @@ app.post('/api/excel/commit', verifyAuth, (req, res) => {
   });
 });
 
-// 15. Excel: Download Error Report
+// Download Error Report
 app.get('/api/excel/error-report', async (req, res) => {
   try {
     const workbook = await createErrorReportWorkbook(lastValidationErrors);
@@ -644,11 +882,102 @@ app.get('/api/excel/error-report', async (req, res) => {
   }
 });
 
-// 16. Audit Log & Backups History
+// ==========================================
+// 6. MEDIA MANAGER ROUTES
+// ==========================================
+
+app.get('/api/media', verifyAuth, (req, res) => {
+  try {
+    const files = [];
+
+    const scanDir = (dirPath, publicPrefix) => {
+      if (!fs.existsSync(dirPath)) return;
+      const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isFile()) {
+          const ext = path.extname(entry.name).toLowerCase();
+          if (['.jpg', '.jpeg', '.png', '.webp', '.svg', '.gif', '.avif'].includes(ext)) {
+            const fullPath = path.join(dirPath, entry.name);
+            const stats = fs.statSync(fullPath);
+            files.push({
+              name: entry.name,
+              url: `${publicPrefix}/${entry.name}`,
+              size: stats.size,
+              createdAt: stats.birthtime || stats.mtime,
+              directory: publicPrefix
+            });
+          }
+        }
+      }
+    };
+
+    scanDir(UPLOAD_MEDIA_DIR, 'images/uploads');
+    scanDir(UPLOAD_CATALOG_DIR, 'images/catalog');
+
+    files.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.json({ files });
+  } catch (err) {
+    console.error('Error listing media:', err);
+    res.status(500).json({ error: 'Ошибка чтения медиафайлов' });
+  }
+});
+
+app.post('/api/media/upload', verifyAuth, uploadMedia.array('files', 15), (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'Файлы для загрузки не переданы' });
+    }
+
+    const uploaded = req.files.map(f => ({
+      name: f.filename,
+      url: `images/uploads/${f.filename}`,
+      size: f.size
+    }));
+
+    addAuditLog({
+      action: 'MEDIA_UPLOAD',
+      actionTitle: `Загрузка медиа (${uploaded.length} файлов)`,
+      summary: uploaded.map(u => u.name).join(', '),
+      sessionId: req.session.sessionId
+    });
+
+    res.json({ success: true, files: uploaded });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/media/:filename', verifyAuth, (req, res) => {
+  const { filename } = req.params;
+  const safeFilename = path.basename(filename);
+
+  let targetPath = path.resolve(UPLOAD_MEDIA_DIR, safeFilename);
+  if (!fs.existsSync(targetPath)) {
+    targetPath = path.resolve(UPLOAD_CATALOG_DIR, safeFilename);
+  }
+
+  if (fs.existsSync(targetPath)) {
+    fs.unlinkSync(targetPath);
+    addAuditLog({
+      action: 'MEDIA_DELETE',
+      actionTitle: `Удален файл ${safeFilename}`,
+      summary: `Файл удален из хранилища медиа`,
+      sessionId: req.session.sessionId
+    });
+    return res.json({ success: true });
+  }
+
+  res.status(404).json({ error: 'Файл не найден' });
+});
+
+// ==========================================
+// 7. HISTORY & ROLLBACK ROUTES
+// ==========================================
+
 app.get('/api/history', verifyAuth, (req, res) => {
   const logs = readJson(AUDIT_FILE, []);
-  
-  // Also scan backups folder
+
+  // Scan backups folder
   let backups = [];
   try {
     const files = fs.readdirSync(BACKUPS_DIR);
@@ -661,7 +990,7 @@ app.get('/api/history', verifyAuth, (req, res) => {
             backupId: content.backupId || f.replace('.json', ''),
             timestamp: content.timestamp,
             description: content.description,
-            author: content.author,
+            sessionId: content.sessionId || 'Система',
             productsCount: content.productsCount
           };
         } catch {
@@ -671,17 +1000,16 @@ app.get('/api/history', verifyAuth, (req, res) => {
       .filter(Boolean)
       .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
   } catch (err) {
-    console.error('Error reading backups directory:', err);
+    console.error('Error reading backups:', err);
   }
 
   res.json({ logs, backups });
 });
 
-// 17. History: Rollback to Backup (Admin only)
-app.post('/api/history/rollback', verifyAuth, requireAdmin, (req, res) => {
+app.post('/api/history/rollback', verifyAuth, (req, res) => {
   const { backupId } = req.body;
   if (!backupId) {
-    return res.status(400).json({ error: 'Укажите ID резервной копии для восстановления' });
+    return res.status(400).json({ error: 'Укажите ID резервной копии каталога' });
   }
 
   const backupFilePath = path.resolve(BACKUPS_DIR, `${backupId}.json`);
@@ -695,21 +1023,19 @@ app.post('/api/history/rollback', verifyAuth, requireAdmin, (req, res) => {
       return res.status(500).json({ error: 'Поврежденная структура файла резервной копии' });
     }
 
-    // Create a new backup of current state before rollback!
+    // Backup current state first
     const currentProducts = readJson(PRODUCTS_FILE, []);
-    createBackupSnapshot(currentProducts, `Авто-снимок перед откатом к ${backupId}`, req.user.name);
+    createBackupSnapshot(currentProducts, `Авто-снимок перед откатом к ${backupId}`, req.session.sessionId);
 
     // Apply restored products
     writeJson(PRODUCTS_FILE, backupContent.products);
     syncPublicCatalog(backupContent.products);
 
     addAuditLog({
-      user: req.user.name,
-      userEmail: req.user.email,
       action: 'ROLLBACK',
       actionTitle: `Откат каталога к снимку ${backupId}`,
       summary: `Каталог восстановлен к состоянию от ${backupContent.timestamp || backupId}. Позиций: ${backupContent.products.length}`,
-      details: `Восстановлено сотрудником: ${req.user.name}`,
+      sessionId: req.session.sessionId,
       backupId
     });
 
@@ -724,8 +1050,58 @@ app.post('/api/history/rollback', verifyAuth, requireAdmin, (req, res) => {
   }
 });
 
+// ==========================================
+// 8. SETTINGS & SYSTEM BACKUP
+// ==========================================
+
+app.get('/api/settings/system', verifyAuth, (req, res) => {
+  const products = readJson(PRODUCTS_FILE, []);
+  const pages = getCustomPages();
+  const categories = getCategories();
+  const content = getPublishedContent();
+  const draft = getDraftContent();
+
+  res.json({
+    productsCount: products.length,
+    activeProductsCount: products.filter(p => p.status !== 'СКРЫТ').length,
+    hiddenProductsCount: products.filter(p => p.status === 'СКРЫТ').length,
+    pagesCount: pages.length + 7, // 7 main pages + custom
+    categoriesCount: categories.length,
+    siteVersion: content.version || '1.0.0',
+    lastPublishedAt: content.lastPublishedAt,
+    hasUnpublishedChanges: Boolean(draft.hasUnpublishedChanges),
+    serverUptime: process.uptime(),
+    nodeVersion: process.version
+  });
+});
+
+// Full system JSON export
+app.get('/api/settings/export-all', verifyAuth, (req, res) => {
+  const products = readJson(PRODUCTS_FILE, []);
+  const pages = getCustomPages();
+  const categories = getCategories();
+  const content = getPublishedContent();
+  const draft = getDraftContent();
+
+  const fullBackup = {
+    backupDate: new Date().toISOString(),
+    version: content.version || '1.0.0',
+    products,
+    pages,
+    categories,
+    content,
+    draft
+  };
+
+  const filename = `LAUTE_FULL_BACKUP_${new Date().toISOString().slice(0, 10)}.json`;
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.setHeader('Content-Type', 'application/json');
+  res.send(JSON.stringify(fullBackup, null, 2));
+});
+
 // Start Express server
 app.listen(PORT, () => {
-  console.log(`🚀 LAUTE Catalog Management Backend запущен на http://localhost:${PORT}`);
-  console.log(`📁 Хранилище: ${DATA_DIR}`);
+  console.log(`🚀 LAUTE Master Administration Server запущен на http://localhost:${PORT}`);
+  console.log(`🔒 Авторизация: scrypt-хеширование с защитой от перебора (rate limiting)`);
+  console.log(`📁 Хранилище данных: ${DATA_DIR}`);
 });

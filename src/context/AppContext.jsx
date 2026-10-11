@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { translations } from '../i18n/translations';
 import { DEFAULT_PRODUCTS } from '../data/catalogData';
-import { fetchProducts, getCurrentUser, logoutEmployee } from '../services/catalogApi';
+import { fetchProducts, getCurrentAdminSession, logoutAdmin, fetchSiteContent } from '../services/adminApi';
 
 const AppContext = createContext();
 
@@ -41,10 +41,33 @@ export const AppProvider = ({ children }) => {
 
   const [currentRoute, setCurrentRoute] = useState(getRouteFromUrl);
 
-  // Current logged in employee
-  const [currentUser, setCurrentUser] = useState(null);
+  // Current logged in admin session
+  const [adminSession, setAdminSession] = useState(null);
 
-  // Live Products Catalog synced across Excel -> База -> Каталог -> AI
+  // Dynamic Site Content (synced from CMS backend / public content.json)
+  const [siteContent, setSiteContent] = useState(() => {
+    try {
+      const saved = localStorage.getItem('laute_site_content');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+    return null;
+  });
+
+  const reloadSiteContent = useCallback(async () => {
+    try {
+      const content = await fetchSiteContent(false);
+      if (content) {
+        setSiteContent(content);
+        localStorage.setItem('laute_site_content', JSON.stringify(content));
+      }
+    } catch {
+      // fallback
+    }
+  }, []);
+
+  // Live Products Catalog synced across Excel -> База -> Каталог
   const [products, setProducts] = useState(() => {
     try {
       const saved = localStorage.getItem('laute_products');
@@ -71,13 +94,14 @@ export const AppProvider = ({ children }) => {
     }
   }, []);
 
-  // Fetch current user and products on mount
+  // Fetch current session, content and products on mount
   useEffect(() => {
-    getCurrentUser().then(user => {
-      if (user) setCurrentUser(user);
+    getCurrentAdminSession().then(sess => {
+      if (sess) setAdminSession(sess);
     });
+    reloadSiteContent();
     reloadProducts();
-  }, [reloadProducts]);
+  }, [reloadSiteContent, reloadProducts]);
 
   const updateProducts = useCallback((newProducts) => {
     setProducts(newProducts);
@@ -212,7 +236,26 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem('laute_region', region);
   }, [region]);
 
-  const t = translations[lang] || translations.ru;
+  function deepMerge(target, source) {
+    if (!source || typeof source !== 'object') return target;
+    const output = { ...target };
+    for (const key of Object.keys(source)) {
+      if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+        output[key] = deepMerge(target[key] || {}, source[key]);
+      } else if (source[key] !== undefined) {
+        output[key] = source[key];
+      }
+    }
+    return output;
+  }
+
+  const t = useMemo(() => {
+    const base = translations[lang] || translations.ru;
+    if (siteContent && siteContent.translations && siteContent.translations[lang]) {
+      return deepMerge(base, siteContent.translations[lang]);
+    }
+    return base;
+  }, [lang, siteContent]);
 
   const value = {
     lang,
@@ -222,6 +265,12 @@ export const AppProvider = ({ children }) => {
     currentRoute,
     navigateTo,
     t,
+    adminSession,
+    setAdminSession,
+    siteContent,
+    setSiteContent,
+    reloadSiteContent,
+    reloadProducts,
     products,
     updateProducts,
     selectedProduct,
@@ -254,13 +303,11 @@ export const AppProvider = ({ children }) => {
     closeAuthModal: () => setIsAuthModalOpen(false),
     isExcelModalOpen,
     openExcelModal: () => setIsExcelModalOpen(true),
-    closeExcelModal: () => setIsExcelModalOpen(false),
-    currentUser,
-    setCurrentUser,
-    reloadProducts,
+    currentUser: adminSession,
+    setCurrentUser: setAdminSession,
     logout: () => {
-      logoutEmployee();
-      setCurrentUser(null);
+      logoutAdmin();
+      setAdminSession(null);
     }
   };
 
