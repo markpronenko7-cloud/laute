@@ -544,3 +544,34 @@ export function saveCustomPages(pages) {
   writeJson(CUSTOM_PAGES_FILE, pages);
   return pages;
 }
+
+/**
+ * Получить список резервных копий контента
+ */
+export function getContentBackups() {
+  if (!fs.existsSync(CONTENT_BACKUPS_DIR)) return [];
+  try {
+    const files = fs.readdirSync(CONTENT_BACKUPS_DIR);
+    return files
+      .filter(f => f.endsWith('.json'))
+      .map(f => {
+        try {
+          const content = JSON.parse(fs.readFileSync(path.resolve(CONTENT_BACKUPS_DIR, f), 'utf8'));
+          return {
+            backupId: content.backupId || f.replace('.json', ''),
+            timestamp: content.timestamp,
+            sessionId: content.sessionId || 'Администратор',
+            version: content.content?.version || '1.0.0',
+            description: content.description || `Версия ${content.content?.version || '1.0.0'}`
+          };
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean)
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  } catch {
+    return [];
+  }
+}
+

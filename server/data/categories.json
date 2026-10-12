@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cat-kitchen",
+    "name": "Кухонные смесители",
+    "icon": "UtensilsCrossed",
+    "order": 1,
+    "isVisible": true,
+    "count": 6
+  },
+  {
+    "id": "cat-filter",
+    "name": "Кухонные смесители с подключением к фильтру",
+    "icon": "Filter",
+    "order": 2,
+    "isVisible": true,
+    "count": 4
+  },
+  {
+    "id": "cat-bath",
+    "name": "Смесители для ванны и умывальника",
+    "icon": "Droplets",
+    "order": 3,
+    "isVisible": true,
+    "count": 5
+  },
+  {
+    "id": "cat-shower",
+    "name": "Душевые системы",
+    "icon": "ShowerHead",
+    "order": 4,
+    "isVisible": true,
+    "count": 4
+  },
+  {
+    "id": "cat-thermo",
+    "name": "Термостатические смесители",
+    "icon": "Thermometer",
+    "order": 5,
+    "isVisible": true,
+    "count": 2
+  },
+  {
+    "id": "cat-built-in",
+    "name": "Встраиваемые системы скрытого монтажа",
+    "icon": "Layers",
+    "order": 6,
+    "isVisible": true,
+    "count": 3
+  }
+]

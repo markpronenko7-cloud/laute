@@ -5,7 +5,7 @@ import { REGIONS_CONFIG } from '../data/regionsData';
 import { withBrandWord } from '../utils/brandFormatter';
 
 export const Footer = () => {
-  const { lang, setLang, region, setRegion, navigateTo, t, openPartnerModal } = useApp();
+  const { lang, setLang, region, setRegion, navigateTo, t, openPartnerModal, siteContent } = useApp();
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -39,7 +39,7 @@ export const Footer = () => {
             </a>
 
             <p className="footer-desc">
-              {withBrandWord(f.brandDesc || 'LAUTE — завод смесителей, душевых систем, кухонных моек и комплектующих. Продукция для жилых пространств и профессиональных проектов.')}
+              {withBrandWord(siteContent?.footer?.brandDescription || f.brandDesc || 'LAUTE — завод смесителей, душевых систем, кухонных моек и комплектующих. Продукция для жилых пространств и профессиональных проектов.')}
             </p>
 
             {/* Official Verified Social Networks */}
@@ -184,7 +184,7 @@ export const Footer = () => {
             <div className="footer-contact-block">
               <span className="contact-role">{f.representativeOffice || 'Представительство:'}</span>
               <p className="contact-address">
-                Россия, 630073, Новосибирская область, г. Новосибирск, ул. Блюхера, 71
+                {siteContent?.footer?.officeAddress || 'Россия, 630073, Новосибирская область, г. Новосибирск, ул. Блюхера, 71'}
               </p>
             </div>
 
@@ -192,15 +192,15 @@ export const Footer = () => {
               <span className="contact-role">{f.salesDept || 'Отдел продаж:'}</span>
               <ul className="contact-list">
                 <li>
-                  <a href="tel:+79833105626" className="clickable-contact">
+                  <a href={`tel:${siteContent?.footer?.phones?.[0]?.tel || (siteContent?.footer?.phones?.[0]?.number ? siteContent.footer.phones[0].number.replace(/[^0-9+]/g, '') : '+79833105626')}`} className="clickable-contact">
                     <Phone size={13} />
-                    <span>+7 (983) 310-56-26</span>
+                    <span>{siteContent?.footer?.phones?.[0]?.number || '+7 (983) 310-56-26'}</span>
                   </a>
                 </li>
                 <li>
-                  <a href="tel:+79132030737" className="clickable-contact">
+                  <a href={`tel:${siteContent?.footer?.phones?.[1]?.tel || (siteContent?.footer?.phones?.[1]?.number ? siteContent.footer.phones[1].number.replace(/[^0-9+]/g, '') : '+79132030737')}`} className="clickable-contact">
                     <Phone size={13} />
-                    <span>+7 (913) 203-07-37</span>
+                    <span>{siteContent?.footer?.phones?.[1]?.number || '+7 (913) 203-07-37'}</span>
                   </a>
                 </li>
               </ul>
@@ -210,9 +210,9 @@ export const Footer = () => {
               <span className="contact-role">{f.emailLabel || 'Электронная почта:'}</span>
               <ul className="contact-list">
                 <li>
-                  <a href="mailto:opt@laute.ltd" className="clickable-contact">
+                  <a href={`mailto:${siteContent?.footer?.emails?.[0]?.email || 'opt@laute.ltd'}`} className="clickable-contact">
                     <Mail size={13} />
-                    <span>opt@laute.ltd</span>
+                    <span>{siteContent?.footer?.emails?.[0]?.email || 'opt@laute.ltd'}</span>
                   </a>
                 </li>
               </ul>

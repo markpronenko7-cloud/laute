@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import { withBrandWord } from '../utils/brandFormatter';
 
 export const CollectionsSection = () => {
-  const { t } = useApp();
+  const { t, siteContent } = useApp();
   const baseUrl = import.meta.env.BASE_URL;
 
   const collectionsData = [
@@ -47,13 +47,13 @@ export const CollectionsSection = () => {
       <div className="container">
         <div className="section-title-wrap reveal-on-scroll">
           <span className="section-badge collections-badge">
-            {t.home?.collectionsBadge || 'АРХИТЕКТУРНЫЕ ЛИНИИ'}
+            {siteContent?.homeBlocks?.collections?.badge || t.home?.collectionsBadge || 'АРХИТЕКТУРНЫЕ ЛИНИИ'}
           </span>
           <h2 className="section-title collections-title">
-            {withBrandWord(t.home?.collectionsTitle || 'Коллекции LAUTE')}
+            {withBrandWord(siteContent?.homeBlocks?.collections?.title || t.home?.collectionsTitle || 'Коллекции LAUTE')}
           </h2>
           <p className="section-desc collections-desc">
-            {withBrandWord(t.home?.collectionsDesc || 'Смесители, душевые зоны, кабины и сантехническое оборудование, объединённые единой философией надежности и чистоты формы.')}
+            {withBrandWord(siteContent?.homeBlocks?.collections?.desc || t.home?.collectionsDesc || 'Смесители, душевые зоны, кабины и сантехническое оборудование, объединённые единой философией надежности и чистоты формы.')}
           </p>
         </div>
 

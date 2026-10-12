@@ -1,5 +1,346 @@
 [
   {
+    "id": "log-1791804183634-2gtpe",
+    "timestamp": "2026-10-12T11:23:03.634Z",
+    "action": "PRODUCT_UPDATE",
+    "actionTitle": "Обновлен товар LT-K101-CHR",
+    "summary": "Цена: 30400 -> 28900",
+    "details": "Товар: Смеситель для кухни LAUTE Prime K-10",
+    "sessionId": "laute_sess_dev_6f06a63",
+    "backupId": "catalog_2026-10-12T11-23-03-632Z"
+  },
+  {
+    "id": "log-1791804183627-g7y0a",
+    "timestamp": "2026-10-12T11:23:03.627Z",
+    "action": "PRODUCT_UPDATE",
+    "actionTitle": "Обновлен товар LT-K101-CHR",
+    "summary": "Цена: 28900 -> 30400",
+    "details": "Товар: Смеситель для кухни LAUTE Prime K-10",
+    "sessionId": "laute_sess_dev_6f06a63",
+    "backupId": "catalog_2026-10-12T11-23-03-623Z"
+  },
+  {
+    "id": "log-1791804183614-ohksv",
+    "timestamp": "2026-10-12T11:23:03.615Z",
+    "action": "CONTENT_PUBLISH",
+    "actionTitle": "Публикация контента на сайт",
+    "summary": "Контент сайта обновлен до версии 1.0.13. Создан снимок отката: content_backup_2026-10-12T11-23-03-610Z",
+    "sessionId": "laute_sess_dev_6f06a63",
+    "backupId": "content_backup_2026-10-12T11-23-03-610Z"
+  },
+  {
+    "id": "log-1791804183604-ae7i3",
+    "timestamp": "2026-10-12T11:23:03.604Z",
+    "action": "CONTENT_DRAFT_SAVE",
+    "actionTitle": "Сохранён черновик контента сайта",
+    "summary": "Изменения сохранены в черновике (не опубликованы на витрине)",
+    "sessionId": "laute_sess_dev_6f06a63"
+  },
+  {
+    "id": "log-1791804183594-n2at2",
+    "timestamp": "2026-10-12T11:23:03.594Z",
+    "action": "CONTENT_PUBLISH",
+    "actionTitle": "Публикация контента на сайт",
+    "summary": "Контент сайта обновлен до версии 1.0.12. Создан снимок отката: content_backup_2026-10-12T11-23-03-588Z",
+    "sessionId": "laute_sess_dev_6f06a63",
+    "backupId": "content_backup_2026-10-12T11-23-03-588Z"
+  },
+  {
+    "id": "log-1791804183582-eiljr",
+    "timestamp": "2026-10-12T11:23:03.582Z",
+    "action": "CONTENT_DRAFT_SAVE",
+    "actionTitle": "Сохранён черновик контента сайта",
+    "summary": "Изменения сохранены в черновике (не опубликованы на витрине)",
+    "sessionId": "laute_sess_dev_6f06a63"
+  },
+  {
+    "id": "log-1791804183571-rq8mu",
+    "timestamp": "2026-10-12T11:23:03.571Z",
+    "action": "CONTENT_PUBLISH",
+    "actionTitle": "Публикация контента на сайт",
+    "summary": "Контент сайта обновлен до версии 1.0.11. Создан снимок отката: content_backup_2026-10-12T11-23-03-565Z",
+    "sessionId": "laute_sess_dev_6f06a63",
+    "backupId": "content_backup_2026-10-12T11-23-03-565Z"
+  },
+  {
+    "id": "log-1791804183558-zgqvm",
+    "timestamp": "2026-10-12T11:23:03.558Z",
+    "action": "CONTENT_DRAFT_SAVE",
+    "actionTitle": "Сохранён черновик контента сайта",
+    "summary": "Изменения сохранены в черновике (не опубликованы на витрине)",
+    "sessionId": "laute_sess_dev_6f06a63"
+  },
+  {
+    "id": "log-1791804183546-bmpci",
+    "timestamp": "2026-10-12T11:23:03.546Z",
+    "action": "CONTENT_PUBLISH",
+    "actionTitle": "Публикация контента на сайт",
+    "summary": "Контент сайта обновлен до версии 1.0.10. Создан снимок отката: content_backup_2026-10-12T11-23-03-541Z",
+    "sessionId": "laute_sess_dev_6f06a63",
+    "backupId": "content_backup_2026-10-12T11-23-03-541Z"
+  },
+  {
+    "id": "log-1791804183533-hydw2",
+    "timestamp": "2026-10-12T11:23:03.533Z",
+    "action": "CONTENT_DRAFT_SAVE",
+    "actionTitle": "Сохранён черновик контента сайта",
+    "summary": "Изменения сохранены в черновике (не опубликованы на витрине)",
+    "sessionId": "laute_sess_dev_6f06a63"
+  },
+  {
+    "id": "log-1791804183517-ck6u5",
+    "timestamp": "2026-10-12T11:23:03.517Z",
+    "action": "CONTENT_DRAFT_DISCARD",
+    "actionTitle": "Отмена изменений черновика",
+    "summary": "Все неопубликованные изменения сброшены к опубликованной версии",
+    "sessionId": "laute_sess_dev_6f06a63"
+  },
+  {
+    "id": "log-1791804183506-1bfij",
+    "timestamp": "2026-10-12T11:23:03.506Z",
+    "action": "CONTENT_DRAFT_SAVE",
+    "actionTitle": "Сохранён черновик контента сайта",
+    "summary": "Изменения сохранены в черновике (не опубликованы на витрине)",
+    "sessionId": "laute_sess_dev_6f06a63"
+  },
+  {
+    "id": "log-1791804183463-icu4o",
+    "timestamp": "2026-10-12T11:23:03.463Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_6f06a63",
+    "sessionId": "laute_sess_dev_6f06a63",
+    "details": "IP: 127.0.0.1, Host: 127.0.0.1:3099"
+  },
+  {
+    "id": "log-1791804050898-5ev40",
+    "timestamp": "2026-10-12T11:20:50.898Z",
+    "action": "PRODUCT_UPDATE",
+    "actionTitle": "Обновлен товар LT-K101-CHR",
+    "summary": "Цена: 30400 -> 28900",
+    "details": "Товар: Смеситель для кухни LAUTE Prime K-10",
+    "sessionId": "laute_sess_dev_21fb1c6",
+    "backupId": "catalog_2026-10-12T11-20-50-895Z"
+  },
+  {
+    "id": "log-1791804050890-68fhe",
+    "timestamp": "2026-10-12T11:20:50.890Z",
+    "action": "PRODUCT_UPDATE",
+    "actionTitle": "Обновлен товар LT-K101-CHR",
+    "summary": "Цена: 28900 -> 30400",
+    "details": "Товар: Смеситель для кухни LAUTE Prime K-10",
+    "sessionId": "laute_sess_dev_21fb1c6",
+    "backupId": "catalog_2026-10-12T11-20-50-887Z"
+  },
+  {
+    "id": "log-1791804050862-xnjfc",
+    "timestamp": "2026-10-12T11:20:50.862Z",
+    "action": "CONTENT_PUBLISH",
+    "actionTitle": "Публикация контента на сайт",
+    "summary": "Контент сайта обновлен до версии 1.0.9. Создан снимок отката: content_backup_2026-10-12T11-20-50-856Z",
+    "sessionId": "laute_sess_dev_21fb1c6",
+    "backupId": "content_backup_2026-10-12T11-20-50-856Z"
+  },
+  {
+    "id": "log-1791804050850-g4rov",
+    "timestamp": "2026-10-12T11:20:50.850Z",
+    "action": "CONTENT_DRAFT_SAVE",
+    "actionTitle": "Сохранён черновик контента сайта",
+    "summary": "Изменения сохранены в черновике (не опубликованы на витрине)",
+    "sessionId": "laute_sess_dev_21fb1c6"
+  },
+  {
+    "id": "log-1791804050840-mb5fi",
+    "timestamp": "2026-10-12T11:20:50.840Z",
+    "action": "CONTENT_PUBLISH",
+    "actionTitle": "Публикация контента на сайт",
+    "summary": "Контент сайта обновлен до версии 1.0.8. Создан снимок отката: content_backup_2026-10-12T11-20-50-835Z",
+    "sessionId": "laute_sess_dev_21fb1c6",
+    "backupId": "content_backup_2026-10-12T11-20-50-835Z"
+  },
+  {
+    "id": "log-1791804050828-4r8dn",
+    "timestamp": "2026-10-12T11:20:50.828Z",
+    "action": "CONTENT_DRAFT_SAVE",
+    "actionTitle": "Сохранён черновик контента сайта",
+    "summary": "Изменения сохранены в черновике (не опубликованы на витрине)",
+    "sessionId": "laute_sess_dev_21fb1c6"
+  },
+  {
+    "id": "log-1791804050817-4wx9r",
+    "timestamp": "2026-10-12T11:20:50.817Z",
+    "action": "CONTENT_PUBLISH",
+    "actionTitle": "Публикация контента на сайт",
+    "summary": "Контент сайта обновлен до версии 1.0.7. Создан снимок отката: content_backup_2026-10-12T11-20-50-812Z",
+    "sessionId": "laute_sess_dev_21fb1c6",
+    "backupId": "content_backup_2026-10-12T11-20-50-812Z"
+  },
+  {
+    "id": "log-1791804050805-tyvc0",
+    "timestamp": "2026-10-12T11:20:50.805Z",
+    "action": "CONTENT_DRAFT_SAVE",
+    "actionTitle": "Сохранён черновик контента сайта",
+    "summary": "Изменения сохранены в черновике (не опубликованы на витрине)",
+    "sessionId": "laute_sess_dev_21fb1c6"
+  },
+  {
+    "id": "log-1791804050793-9s81h",
+    "timestamp": "2026-10-12T11:20:50.793Z",
+    "action": "CONTENT_PUBLISH",
+    "actionTitle": "Публикация контента на сайт",
+    "summary": "Контент сайта обновлен до версии 1.0.6. Создан снимок отката: content_backup_2026-10-12T11-20-50-786Z",
+    "sessionId": "laute_sess_dev_21fb1c6",
+    "backupId": "content_backup_2026-10-12T11-20-50-786Z"
+  },
+  {
+    "id": "log-1791804050780-fq69t",
+    "timestamp": "2026-10-12T11:20:50.780Z",
+    "action": "CONTENT_DRAFT_SAVE",
+    "actionTitle": "Сохранён черновик контента сайта",
+    "summary": "Изменения сохранены в черновике (не опубликованы на витрине)",
+    "sessionId": "laute_sess_dev_21fb1c6"
+  },
+  {
+    "id": "log-1791804050754-28cpd",
+    "timestamp": "2026-10-12T11:20:50.754Z",
+    "action": "CONTENT_DRAFT_DISCARD",
+    "actionTitle": "Отмена изменений черновика",
+    "summary": "Все неопубликованные изменения сброшены к опубликованной версии",
+    "sessionId": "laute_sess_dev_21fb1c6"
+  },
+  {
+    "id": "log-1791804050743-bds0p",
+    "timestamp": "2026-10-12T11:20:50.743Z",
+    "action": "CONTENT_DRAFT_SAVE",
+    "actionTitle": "Сохранён черновик контента сайта",
+    "summary": "Изменения сохранены в черновике (не опубликованы на витрине)",
+    "sessionId": "laute_sess_dev_21fb1c6"
+  },
+  {
+    "id": "log-1791804050518-tx6n2",
+    "timestamp": "2026-10-12T11:20:50.518Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_21fb1c6",
+    "sessionId": "laute_sess_dev_21fb1c6",
+    "details": "IP: 127.0.0.1, Host: 127.0.0.1:3099"
+  },
+  {
+    "id": "log-1791738412330-0t552",
+    "timestamp": "2026-10-11T17:06:52.330Z",
+    "action": "LOGOUT",
+    "actionTitle": "Выход из панели управления",
+    "summary": "Сессия laute_sess_1170e2ed6f5 завершена",
+    "sessionId": "laute_sess_1170e2ed6f5"
+  },
+  {
+    "id": "log-1791738395253-xmn3a",
+    "timestamp": "2026-10-11T17:06:35.253Z",
+    "action": "CONTENT_DRAFT_DISCARD",
+    "actionTitle": "Отмена изменений черновика",
+    "summary": "Все неопубликованные изменения сброшены к опубликованной версии",
+    "sessionId": "laute_sess_1170e2ed6f5"
+  },
+  {
+    "id": "log-1791738371484-qce9c",
+    "timestamp": "2026-10-11T17:06:11.484Z",
+    "action": "CONTENT_PUBLISH",
+    "actionTitle": "Публикация контента на сайт",
+    "summary": "Контент сайта обновлен до версии 1.0.5. Создан снимок отката: content_backup_2026-10-11T17-06-11-477Z",
+    "sessionId": "laute_sess_1170e2ed6f5",
+    "backupId": "content_backup_2026-10-11T17-06-11-477Z"
+  },
+  {
+    "id": "log-1791738299094-3ewcr",
+    "timestamp": "2026-10-11T17:04:59.094Z",
+    "action": "CONTENT_PUBLISH",
+    "actionTitle": "Публикация контента на сайт",
+    "summary": "Контент сайта обновлен до версии 1.0.4. Создан снимок отката: content_backup_2026-10-11T17-04-59-087Z",
+    "sessionId": "laute_sess_1170e2ed6f5",
+    "backupId": "content_backup_2026-10-11T17-04-59-087Z"
+  },
+  {
+    "id": "log-1791738272101-wekzd",
+    "timestamp": "2026-10-11T17:04:32.101Z",
+    "action": "LOGIN_SUCCESS",
+    "actionTitle": "Успешный вход в панель управления",
+    "summary": "Авторизована сессия laute_sess_1170e2ed6f5",
+    "sessionId": "laute_sess_1170e2ed6f5",
+    "details": "IP: ::1"
+  },
+  {
+    "id": "log-1791738136124-g1a7p",
+    "timestamp": "2026-10-11T17:02:16.124Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-TEST-6098",
+    "summary": "Товар \"Тестовый смеситель LAUTE Pro Suite\" удален из базы каталога",
+    "sessionId": "laute_sess_270cb40f918",
+    "backupId": "catalog_2026-10-11T17-02-16-121Z"
+  },
+  {
+    "id": "log-1791738136118-57839",
+    "timestamp": "2026-10-11T17:02:16.118Z",
+    "action": "STATUS_CHANGE",
+    "actionTitle": "Скрыт товар LT-TEST-6098",
+    "summary": "Товар \"Тестовый смеситель LAUTE Pro Suite\" переведен в статус \"СКРЫТ\"",
+    "sessionId": "laute_sess_270cb40f918",
+    "backupId": "catalog_2026-10-11T17-02-16-114Z"
+  },
+  {
+    "id": "log-1791738136110-54w92",
+    "timestamp": "2026-10-11T17:02:16.110Z",
+    "action": "PRODUCT_UPDATE",
+    "actionTitle": "Обновлен товар LT-TEST-6098",
+    "summary": "Цена: 34500 -> 37900",
+    "details": "Товар: Тестовый смеситель LAUTE Pro Suite",
+    "sessionId": "laute_sess_270cb40f918",
+    "backupId": "catalog_2026-10-11T17-02-16-106Z"
+  },
+  {
+    "id": "log-1791738136102-089iz",
+    "timestamp": "2026-10-11T17:02:16.102Z",
+    "action": "PRODUCT_CREATE",
+    "actionTitle": "Добавлен товар LT-TEST-6098",
+    "summary": "Создана карточка товара \"Тестовый смеситель LAUTE Pro Suite\" (34500 ₸)",
+    "details": "Категория: Кухонные смесители",
+    "sessionId": "laute_sess_270cb40f918",
+    "backupId": "catalog_2026-10-11T17-02-16-098Z"
+  },
+  {
+    "id": "log-1791738136068-u5zm2",
+    "timestamp": "2026-10-11T17:02:16.068Z",
+    "action": "CONTENT_PUBLISH",
+    "actionTitle": "Публикация контента на сайт",
+    "summary": "Контент сайта обновлен до версии 1.0.3. Создан снимок отката: content_backup_2026-10-11T17-02-16-056Z",
+    "sessionId": "laute_sess_270cb40f918",
+    "backupId": "content_backup_2026-10-11T17-02-16-056Z"
+  },
+  {
+    "id": "log-1791738136049-ognet",
+    "timestamp": "2026-10-11T17:02:16.049Z",
+    "action": "CONTENT_DRAFT_SAVE",
+    "actionTitle": "Сохранён черновик контента сайта",
+    "summary": "Изменения сохранены в черновике (не опубликованы на витрине)",
+    "sessionId": "laute_sess_270cb40f918"
+  },
+  {
+    "id": "log-1791738136036-7zfxs",
+    "timestamp": "2026-10-11T17:02:16.036Z",
+    "action": "LOGIN_SUCCESS",
+    "actionTitle": "Успешный вход в панель управления",
+    "summary": "Авторизована сессия laute_sess_270cb40f918",
+    "sessionId": "laute_sess_270cb40f918",
+    "details": "IP: ::1"
+  },
+  {
+    "id": "log-1791738135996-5t4sd",
+    "timestamp": "2026-10-11T17:02:15.996Z",
+    "action": "LOGIN_FAILED",
+    "actionTitle": "Неудачная попытка входа",
+    "summary": "Неверный ввод пароля с IP ::1",
+    "details": "Неверный пароль доступа к панели управления"
+  },
+  {
     "id": "log-1791737574806-7umyy",
     "timestamp": "2026-10-11T16:52:54.806Z",
     "action": "PRODUCT_DELETE",

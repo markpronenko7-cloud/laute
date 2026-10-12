@@ -20,7 +20,7 @@ import { CollectionsSection } from '../components/CollectionsSection';
 import { withBrandWord } from '../utils/brandFormatter';
 
 export const HomePage = () => {
-  const { navigateTo, openPartnerModal, openServiceModal, startAIPartnerAnalysis, t } = useApp();
+  const { navigateTo, openPartnerModal, openServiceModal, startAIPartnerAnalysis, t, siteContent } = useApp();
   const baseUrl = import.meta.env.BASE_URL;
 
   const [leadForm, setLeadForm] = useState({
@@ -72,13 +72,13 @@ export const HomePage = () => {
         <div className="container">
           <div className="section-title-wrap reveal-on-scroll">
             <span className="section-badge badge-refined">
-              {h.techBadge || 'ТЕХНОЛОГИИ & МАТЕРИАЛЫ'}
+              {siteContent?.homeBlocks?.materials?.badge || h.techBadge || 'ТЕХНОЛОГИИ & МАТЕРИАЛЫ'}
             </span>
             <h2 className="section-title visual-tech-title">
-              {withBrandWord(h.techTitle || 'Инженерная надежность в каждой детали')}
+              {withBrandWord(siteContent?.homeBlocks?.materials?.title || h.techTitle || 'Инженерная надежность в каждой детали')}
             </h2>
             <p className="section-desc visual-tech-desc">
-              {withBrandWord(h.techDesc || 'Никаких компромиссов: первичная конструкционная латунь, пищевая нержавеющая сталь SUS304, ЭКО алюминий, испанские картриджи Sedal и молекулярное вакуумное PVD-осаждение.')}
+              {withBrandWord(siteContent?.homeBlocks?.materials?.desc || h.techDesc || 'Никаких компромиссов: первичная конструкционная латунь, пищевая нержавеющая сталь SUS304, ЭКО алюминий, испанские картриджи Sedal и молекулярное вакуумное PVD-осаждение.')}
             </p>
           </div>
 

@@ -117,6 +117,28 @@ export const loginWithPassword = async (password) => {
   return data;
 };
 
+// Временный беспарольный вход для локальной разработки (localhost)
+export const devAutoLogin = async () => {
+  if (typeof window !== 'undefined') {
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (!isLocal) return null;
+  }
+
+  try {
+    const res = await fetch(`${getApiBase()}/auth/dev-auto-login`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && data.token) {
+        setAuthToken(data.token);
+        return data.session;
+      }
+    }
+  } catch (err) {
+    console.warn('Dev auto-login request failed:', err);
+  }
+  return null;
+};
+
 export const getCurrentAdminSession = async () => {
   const token = getAuthToken();
   if (!token) return null;
@@ -183,7 +205,7 @@ export const fetchSiteContent = async (isDraft = false) => {
   }
 
   try {
-    const fallbackRes = await fetch(`${import.meta.env.BASE_URL}data/content.json`);
+    const fallbackRes = await fetch(`${import.meta.env.BASE_URL}data/content.json?t=${Date.now()}`);
     if (fallbackRes.ok) {
       return await fallbackRes.json();
     }
@@ -250,6 +272,21 @@ export const rollbackSiteContent = async (backupId) => {
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Ошибка отката контента');
   return data;
+};
+
+export const fetchContentBackups = async () => {
+  try {
+    const res = await fetch(`${getApiBase()}/content/backups`, {
+      headers: authHeaders()
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return data.backups || [];
+    }
+  } catch {
+    // fallback
+  }
+  return [];
 };
 
 // ==========================================
@@ -361,7 +398,7 @@ export const fetchProducts = async (includeHidden = true) => {
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     }
 
-    const staticRes = await fetch(`${import.meta.env.BASE_URL}data/catalog.json`);
+    const staticRes = await fetch(`${import.meta.env.BASE_URL}data/catalog.json?t=${Date.now()}`);
     if (staticRes.ok) {
       const staticData = await staticRes.json();
       if (Array.isArray(staticData) && staticData.length > 0) {
@@ -460,6 +497,14 @@ export const uploadMediaFiles = async (fileList) => {
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Ошибка загрузки файлов');
   return data.files;
+};
+
+export const uploadSingleImage = async (file) => {
+  const files = await uploadMediaFiles([file]);
+  if (files && files.length > 0) {
+    return files[0];
+  }
+  throw new Error('Файл не был сохранён сервером');
 };
 
 export const deleteMediaFile = async (filename) => {

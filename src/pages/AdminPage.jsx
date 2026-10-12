@@ -36,6 +36,8 @@ import {
   ChevronRight,
   ChevronDown,
   ArrowLeft,
+  ArrowUp,
+  ArrowDown,
   Copy,
   Sliders,
   Info,
@@ -48,6 +50,7 @@ import {
   checkAuthStatus,
   setupInitialPassword,
   loginWithPassword,
+  devAutoLogin,
   getCurrentAdminSession,
   logoutAdmin,
   changeAdminPassword,
@@ -69,6 +72,7 @@ import {
   deleteProduct,
   fetchMediaList,
   uploadMediaFiles,
+  uploadSingleImage,
   deleteMediaFile,
   downloadExcelTemplate,
   exportCurrentCatalog,
@@ -77,10 +81,92 @@ import {
   downloadErrorReport,
   fetchHistory,
   rollbackToBackup,
+  fetchContentBackups,
   fetchSystemSettings,
   downloadFullSystemBackup
 } from '../services/adminApi';
 import '../styles/admin.css';
+
+// Image Field Editor component with file upload, preview, and path editing
+const ImageFieldEditor = ({ value, onChange, label = 'Изображение' }) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const inputRef = useRef(null);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    setUploadError(null);
+    try {
+      const res = await uploadSingleImage(file);
+      if (res && res.url) {
+        onChange(res.url);
+      }
+    } catch (err) {
+      setUploadError(err.message || 'Ошибка загрузки изображения');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const previewSrc = value 
+    ? (value.startsWith('http') || value.startsWith('/') ? value : `${import.meta.env.BASE_URL}${value}`)
+    : '';
+
+  return (
+    <div className="image-field-editor">
+      {label && <label className="image-field-label">{label}</label>}
+      <div className="image-field-controls">
+        <div className="image-preview-thumbnail">
+          {value ? (
+            <img src={previewSrc} alt="Preview" onError={(e) => { e.target.style.display = 'none'; }} />
+          ) : (
+            <div className="image-no-preview"><ImageIcon size={20} /></div>
+          )}
+        </div>
+        <div className="image-input-column">
+          <div className="image-action-buttons">
+            <input 
+              type="file" 
+              ref={inputRef} 
+              accept="image/*" 
+              style={{ display: 'none' }} 
+              onChange={handleFileChange} 
+            />
+            <button 
+              type="button" 
+              className="admin-btn admin-btn-outline admin-btn-xs"
+              onClick={() => inputRef.current?.click()}
+              disabled={isUploading}
+            >
+              <Upload size={12} />
+              <span>{isUploading ? 'Загрузка...' : 'Выбрать файл на компьютере'}</span>
+            </button>
+            {value && (
+              <button 
+                type="button" 
+                className="admin-btn admin-btn-ghost admin-btn-xs danger"
+                onClick={() => onChange('')}
+              >
+                <Trash2 size={12} />
+                <span>Очистить</span>
+              </button>
+            )}
+          </div>
+          <input 
+            type="text" 
+            className="image-path-input" 
+            placeholder="или введите путь к файлу (например, images/hero/hero-slide-1.jpg)"
+            value={value || ''}
+            onChange={(e) => onChange(e.target.value)}
+          />
+          {uploadError && <span className="image-upload-error">{uploadError}</span>}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const AdminPage = () => {
   const { 
@@ -152,6 +238,7 @@ export const AdminPage = () => {
   // History & Backups State
   const [auditLogs, setAuditLogs] = useState([]);
   const [backupsList, setBackupsList] = useState([]);
+  const [contentBackupsList, setContentBackupsList] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   // Settings State
@@ -169,22 +256,46 @@ export const AdminPage = () => {
 
   // Check initial session & auth status on mount
   useEffect(() => {
-    checkAuthStatus().then(status => {
-      if (status && !status.isInitialized) {
-        setNeedsInitialSetup(true);
-      }
-    });
+    let isMounted = true;
 
-    getCurrentAdminSession().then(sess => {
-      if (sess) {
+    const initAuth = async () => {
+      // 1. Check existing session
+      const existingSession = await getCurrentAdminSession();
+      if (existingSession && isMounted) {
         setIsAuthenticated(true);
-        setAdminSession(sess);
-      } else {
+        setAdminSession(existingSession);
+        return;
+      }
+
+      // 2. Local development passwordless auto-login (STRICTLY localhost / 127.0.0.1)
+      const isLocalHost = typeof window !== 'undefined' && 
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+      if (isLocalHost) {
+        const devSession = await devAutoLogin();
+        if (devSession && isMounted) {
+          setIsAuthenticated(true);
+          setAdminSession(devSession);
+          showNotice('Локальная разработка: выполнен автоматический вход в панель');
+          return;
+        }
+      }
+
+      // 3. Otherwise, check standard password status (for production / remote access)
+      const status = await checkAuthStatus();
+      if (isMounted) {
+        if (status && !status.isInitialized) {
+          setNeedsInitialSetup(true);
+        }
         setIsAuthenticated(false);
         setAdminSession(null);
       }
-    });
-  }, [setAdminSession]);
+    };
+
+    initAuth();
+
+    return () => { isMounted = false; };
+  }, [setAdminSession, showNotice]);
 
   // Load active tab data
   const loadContentData = useCallback(async () => {
@@ -250,6 +361,8 @@ export const AdminPage = () => {
       const data = await fetchHistory();
       setAuditLogs(data.logs || []);
       setBackupsList(data.backups || []);
+      const cBackups = await fetchContentBackups();
+      setContentBackupsList(cBackups);
     } catch (err) {
       console.error(err);
     } finally {
@@ -275,6 +388,9 @@ export const AdminPage = () => {
       loadContentData();
     } else if (activeTab === 'editor' || activeTab === 'drafts' || activeTab === 'languages' || activeTab === 'menu' || activeTab === 'seo') {
       loadContentData();
+      if (activeTab === 'drafts' || activeTab === 'editor') {
+        loadHistoryData();
+      }
     } else if (activeTab === 'catalog') {
       loadCatalogData();
       loadCategoriesData();
@@ -365,6 +481,49 @@ export const AdminPage = () => {
     navigateTo('home');
   };
 
+  // Warning on unsaved changes when closing tab or reloading
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (draftContent?.hasUnpublishedChanges) {
+        e.preventDefault();
+        e.returnValue = 'У вас есть несохранённые изменения в черновике. Вы уверены, что хотите закрыть страницу?';
+        return e.returnValue;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [draftContent?.hasUnpublishedChanges]);
+
+  // Safe navigation back to site
+  const handleReturnToSite = () => {
+    if (draftContent?.hasUnpublishedChanges) {
+      if (!window.confirm('В черновике есть изменения, которые ещё не опубликованы на сайте. Вернуться на сайт?')) {
+        return;
+      }
+    }
+    navigateTo('home');
+  };
+
+  // Reorder slides in hero slider
+  const moveSlide = (sIdx, direction) => {
+    if (!draftContent?.homeBlocks?.heroSlider) return;
+    const slides = [...draftContent.homeBlocks.heroSlider];
+    const targetIdx = sIdx + direction;
+    if (targetIdx < 0 || targetIdx >= slides.length) return;
+
+    const temp = slides[sIdx];
+    slides[sIdx] = slides[targetIdx];
+    slides[targetIdx] = temp;
+
+    slides.forEach((s, idx) => { s.order = idx + 1; });
+
+    setDraftContent({
+      ...draftContent,
+      hasUnpublishedChanges: true,
+      homeBlocks: { ...draftContent.homeBlocks, heroSlider: slides }
+    });
+  };
+
   // Save Draft Handler
   const handleSaveDraft = async () => {
     if (!draftContent) return;
@@ -372,9 +531,9 @@ export const AdminPage = () => {
     try {
       const saved = await saveSiteContentDraft(draftContent);
       setDraftContent(saved);
-      showNotice('Черновик успешно сохранён на сервере');
+      showNotice('Изменения сохранены');
     } catch (err) {
-      showNotice(err.message, 'error');
+      showNotice(err.message || 'Ошибка сохранения черновика', 'error');
     } finally {
       setIsSavingDraft(false);
     }
@@ -388,9 +547,9 @@ export const AdminPage = () => {
       setDraftContent(res.content);
       setSiteContent(res.content);
       reloadSiteContent();
-      showNotice(`Успешно опубликовано! Новая версия сайта: ${res.version}`);
+      showNotice('Изменения опубликованы');
     } catch (err) {
-      showNotice(err.message, 'error');
+      showNotice(err.message || 'Ошибка публикации', 'error');
     } finally {
       setIsPublishing(false);
     }
@@ -402,7 +561,7 @@ export const AdminPage = () => {
     try {
       const res = await discardSiteContentDraft();
       setDraftContent(res);
-      showNotice('Изменения черновика отменены. Возврат к опубликованной версии.');
+      showNotice('Несохранённые изменения отменены');
     } catch (err) {
       showNotice(err.message, 'error');
     }
@@ -607,11 +766,11 @@ export const AdminPage = () => {
           <button 
             type="button" 
             className="admin-btn admin-btn-ghost admin-btn-sm"
-            onClick={() => navigateTo('home')}
-            title="Открыть сайт"
+            onClick={handleReturnToSite}
+            title="Вернуться на сайт"
           >
-            <ExternalLink size={14} />
-            <span>На сайт</span>
+            <ArrowLeft size={14} />
+            <span>Вернуться на сайт</span>
           </button>
 
           <button 
@@ -911,6 +1070,18 @@ export const AdminPage = () => {
                     <RotateCcw size={14} />
                     <span>Отменить</span>
                   </button>
+
+                  {contentBackupsList.length > 0 && (
+                    <button 
+                      type="button" 
+                      className="admin-btn admin-btn-outline admin-btn-sm"
+                      onClick={() => setActiveTab('drafts')}
+                      title="Восстановить предыдущую версию контента"
+                    >
+                      <RotateCcw size={14} />
+                      <span>Восстановить версию</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -954,8 +1125,29 @@ export const AdminPage = () => {
                       {draftContent.homeBlocks.heroSlider?.map((slide, sIdx) => (
                         <div key={slide.id || sIdx} className="slide-editor-item">
                           <div className="slide-item-header">
-                            <span className="slide-num">Слайд #{sIdx + 1}</span>
-                            <div className="slide-toggles">
+                            <div className="slide-item-actions">
+                              <span className="slide-num">Слайд #{sIdx + 1}</span>
+                              <button
+                                type="button"
+                                className="admin-btn admin-btn-ghost admin-btn-xs"
+                                onClick={() => moveSlide(sIdx, -1)}
+                                disabled={sIdx === 0}
+                                title="Переместить слайд выше"
+                              >
+                                <ArrowUp size={13} />
+                              </button>
+                              <button
+                                type="button"
+                                className="admin-btn admin-btn-ghost admin-btn-xs"
+                                onClick={() => moveSlide(sIdx, 1)}
+                                disabled={sIdx === (draftContent.homeBlocks.heroSlider.length - 1)}
+                                title="Переместить слайд ниже"
+                              >
+                                <ArrowDown size={13} />
+                              </button>
+                            </div>
+
+                            <div className="slide-toggles" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                               <label className="checkbox-label">
                                 <input
                                   type="checkbox"
@@ -972,6 +1164,27 @@ export const AdminPage = () => {
                                 />
                                 <span>Видимый на сайте</span>
                               </label>
+
+                              {draftContent.homeBlocks.heroSlider.length > 1 && (
+                                <button
+                                  type="button"
+                                  className="admin-btn admin-btn-ghost admin-btn-xs danger"
+                                  title="Удалить слайд"
+                                  onClick={() => {
+                                    if (window.confirm(`Удалить слайд #${sIdx + 1}?`)) {
+                                      const updated = draftContent.homeBlocks.heroSlider.filter((_, i) => i !== sIdx);
+                                      updated.forEach((s, idx) => { s.order = idx + 1; });
+                                      setDraftContent({
+                                        ...draftContent,
+                                        hasUnpublishedChanges: true,
+                                        homeBlocks: { ...draftContent.homeBlocks, heroSlider: updated }
+                                      });
+                                    }
+                                  }}
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              )}
                             </div>
                           </div>
 
@@ -1027,25 +1240,53 @@ export const AdminPage = () => {
                               />
                             </div>
 
-                            <div className="form-group">
-                              <label>Путь к фото (или URL):</label>
-                              <input
-                                type="text"
-                                value={slide.image || ''}
-                                onChange={(e) => {
-                                  const updated = [...draftContent.homeBlocks.heroSlider];
-                                  updated[sIdx].image = e.target.value;
-                                  setDraftContent({
-                                    ...draftContent,
-                                    hasUnpublishedChanges: true,
-                                    homeBlocks: { ...draftContent.homeBlocks, heroSlider: updated }
-                                  });
-                                }}
-                              />
-                            </div>
+                            <ImageFieldEditor
+                              label="Фоновое изображение слайда:"
+                              value={slide.image || ''}
+                              onChange={(url) => {
+                                const updated = [...draftContent.homeBlocks.heroSlider];
+                                updated[sIdx].image = url;
+                                setDraftContent({
+                                  ...draftContent,
+                                  hasUnpublishedChanges: true,
+                                  homeBlocks: { ...draftContent.homeBlocks, heroSlider: updated }
+                                });
+                              }}
+                            />
                           </div>
                         </div>
                       ))}
+
+                      <button
+                        type="button"
+                        className="admin-btn admin-btn-outline admin-btn-sm"
+                        style={{ marginTop: 14 }}
+                        onClick={() => {
+                          const currentSlides = draftContent.homeBlocks?.heroSlider || [];
+                          const newSlide = {
+                            id: `slide-${Date.now()}`,
+                            order: currentSlides.length + 1,
+                            tagline: 'LAUTE®',
+                            title: 'Новый заголовок слайда',
+                            subtitle: '',
+                            buttonText: 'Каталог',
+                            buttonLink: 'catalog',
+                            image: 'images/hero/hero-slide-1.jpg',
+                            isVisible: true
+                          };
+                          setDraftContent({
+                            ...draftContent,
+                            hasUnpublishedChanges: true,
+                            homeBlocks: {
+                              ...draftContent.homeBlocks,
+                              heroSlider: [...currentSlides, newSlide]
+                            }
+                          });
+                        }}
+                      >
+                        <Plus size={14} />
+                        <span>Добавить новый слайд</span>
+                      </button>
                     </div>
                   </div>
 
@@ -2298,6 +2539,62 @@ export const AdminPage = () => {
                       <span>Отменить правки черновика</span>
                     </button>
                   </div>
+
+                  {contentBackupsList.length > 0 && (
+                    <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--adm-border)' }}>
+                      <h4 style={{ fontSize: 15, marginBottom: 8, color: 'var(--adm-text-primary)' }}>
+                        Точки восстановления версий контента ({contentBackupsList.length})
+                      </h4>
+                      <p className="cell-muted" style={{ marginBottom: 14 }}>
+                        Вы можете в любой момент откатить опубликованный контент к любой из предыдущих сохранённых версий:
+                      </p>
+                      <div className="admin-table-wrapper">
+                        <table className="admin-table">
+                          <thead>
+                            <tr>
+                              <th>Дата и время</th>
+                              <th>Версия</th>
+                              <th>Снимок / Описание</th>
+                              <th>Сессия</th>
+                              <th style={{ width: 140 }}>Действие</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {contentBackupsList.map((cb) => (
+                              <tr key={cb.backupId}>
+                                <td className="cell-time">{new Date(cb.timestamp).toLocaleString('ru-RU')}</td>
+                                <td><span className="version-pill">v{cb.version || '1.0.0'}</span></td>
+                                <td><strong>{cb.description}</strong></td>
+                                <td className="cell-muted">{cb.sessionId || 'Администратор'}</td>
+                                <td>
+                                  <button
+                                    type="button"
+                                    className="admin-btn admin-btn-danger admin-btn-xs"
+                                    onClick={async () => {
+                                      if (window.confirm(`Восстановить сайт к версии от ${new Date(cb.timestamp).toLocaleString('ru-RU')}?`)) {
+                                        try {
+                                          const res = await rollbackSiteContent(cb.backupId);
+                                          setDraftContent(res.content);
+                                          setSiteContent(res.content);
+                                          reloadSiteContent();
+                                          showNotice(`Сайт успешно восстановлен к версии ${res.restoredVersion}`);
+                                        } catch (err) {
+                                          showNotice(err.message, 'error');
+                                        }
+                                      }
+                                    }}
+                                  >
+                                    <RotateCcw size={13} />
+                                    <span>Восстановить</span>
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -2646,15 +2943,11 @@ export const AdminPage = () => {
                 />
               </div>
 
-              <div className="form-group">
-                <label>Основное фото (путь к изображению):</label>
-                <input
-                  type="text"
-                  value={editingProduct?.photo1 || ''}
-                  onChange={(e) => setEditingProduct({ ...editingProduct, photo1: e.target.value })}
-                  placeholder="images/cat_kitchen.png"
-                />
-              </div>
+              <ImageFieldEditor
+                label="Основное фото товара (photo1):"
+                value={editingProduct?.photo1 || ''}
+                onChange={(url) => setEditingProduct({ ...editingProduct, photo1: url })}
+              />
 
               <div className="admin-modal-footer">
                 <button
@@ -2693,17 +2986,59 @@ export const AdminPage = () => {
                 <X size={18} />
               </button>
             </div>
-            <div className="preview-content-box">
+            <div className="preview-content-box" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
               <p className="cell-muted" style={{ marginBottom: 16 }}>
                 Ниже отображаются внесённые вами изменения черновика перед публикацией:
               </p>
-              <div className="preview-hero-sample">
-                <span className="badge-refined">{draftContent?.homeBlocks?.heroSlider?.[0]?.tagline}</span>
-                <h2>{draftContent?.homeBlocks?.heroSlider?.[0]?.title}</h2>
-                <button type="button" className="btn btn-primary">
-                  {draftContent?.homeBlocks?.heroSlider?.[0]?.buttonText}
-                </button>
+
+              <div style={{ marginBottom: 20 }}>
+                <span className="badge-tag" style={{ marginBottom: 8, display: 'inline-block' }}>Слайды главного экрана</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {draftContent?.homeBlocks?.heroSlider?.filter(s => s.isVisible !== false).map((slide, idx) => (
+                    <div key={slide.id || idx} className="preview-hero-sample" style={{ padding: 20, textAlign: 'left', display: 'flex', gap: 16, alignItems: 'center' }}>
+                      {slide.image && (
+                        <div style={{ width: 100, height: 60, borderRadius: 6, overflow: 'hidden', minWidth: 100, background: '#000' }}>
+                          <img 
+                            src={slide.image?.startsWith('http') || slide.image?.startsWith('/') ? slide.image : `${import.meta.env.BASE_URL}${slide.image}`}
+                            alt="Slide preview" 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                          />
+                        </div>
+                      )}
+                      <div>
+                        <span className="badge-refined" style={{ fontSize: 11 }}>{slide.tagline}</span>
+                        <h3 style={{ color: '#FFFFFF', fontSize: 18, margin: '6px 0' }}>{slide.title}</h3>
+                        <span style={{ fontSize: 12, color: 'var(--adm-accent-blue)' }}>Кнопка: «{slide.buttonText}»</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
+
+              {draftContent?.homeBlocks?.materials && (
+                <div style={{ marginBottom: 20, padding: 16, background: 'var(--adm-surface-card)', borderRadius: 8, border: '1px solid var(--adm-border)' }}>
+                  <span className="badge-tag" style={{ marginBottom: 8, display: 'inline-block' }}>Технологии & Материалы</span>
+                  <div style={{ color: 'var(--adm-accent-blue)', fontSize: 12, fontWeight: 700 }}>{draftContent.homeBlocks.materials.badge}</div>
+                  <h4 style={{ color: '#FFFFFF', margin: '4px 0 8px 0', fontSize: 16 }}>{draftContent.homeBlocks.materials.title}</h4>
+                  <p style={{ color: 'var(--adm-text-secondary)', fontSize: 13, margin: 0 }}>{draftContent.homeBlocks.materials.desc}</p>
+                </div>
+              )}
+
+              {draftContent?.footer && (
+                <div style={{ padding: 16, background: 'var(--adm-surface-card)', borderRadius: 8, border: '1px solid var(--adm-border)' }}>
+                  <span className="badge-tag" style={{ marginBottom: 8, display: 'inline-block' }}>Контакты и футер</span>
+                  <p style={{ color: 'var(--adm-text-secondary)', fontSize: 13, margin: '4px 0' }}>
+                    <strong>Адрес:</strong> {draftContent.footer.officeAddress}
+                  </p>
+                  <p style={{ color: 'var(--adm-text-secondary)', fontSize: 13, margin: '4px 0' }}>
+                    <strong>Телефон:</strong> {draftContent.footer.phones?.[0]?.number}
+                  </p>
+                  <p style={{ color: 'var(--adm-text-secondary)', fontSize: 13, margin: '4px 0' }}>
+                    <strong>Email:</strong> {draftContent.footer.emails?.[0]?.email}
+                  </p>
+                </div>
+              )}
             </div>
             <div className="admin-modal-footer">
               <button

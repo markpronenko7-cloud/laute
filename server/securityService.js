@@ -347,3 +347,34 @@ export function destroySession(token) {
     writeJson(SESSIONS_FILE, sessions);
   }
 }
+
+/**
+ * Создание защищённой dev-сессии для локальной разработки (без ввода пароля)
+ * Вызывается ТОЛЬКО после строгой проверки локального IP и хоста
+ */
+export function createDevSession(ip = '127.0.0.1') {
+  const token = 'laute_sess_dev_' + crypto.randomBytes(32).toString('hex');
+  const session = {
+    sessionId: token.slice(0, 22),
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    ip: ip,
+    isDev: true
+  };
+
+  const sessions = readJson(SESSIONS_FILE, {});
+  sessions[token] = session;
+  writeJson(SESSIONS_FILE, sessions);
+
+  return {
+    success: true,
+    token,
+    session: {
+      id: session.sessionId,
+      role: 'admin',
+      title: 'Сотрудник LAUTE (Локальный режим)',
+      createdAt: session.createdAt
+    }
+  };
+}
+

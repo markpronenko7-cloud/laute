@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { Globe, MapPin, User, Menu, X, ChevronDown, Sparkles, Shield } from 'lucide-react';
+import { Globe, MapPin, User, Menu, X, ChevronDown, Sparkles } from 'lucide-react';
 import { REGIONS_CONFIG } from '../data/regionsData';
 
 export const Header = () => {
@@ -252,18 +252,6 @@ export const Header = () => {
             <span>{t.nav.clientCabinet || 'Кабинет партнера'}</span>
           </button>
 
-          {/* Staff Catalog Admin Panel */}
-          <button
-            type="button"
-            className="btn btn-outline btn-sm employee-panel-btn"
-            onClick={() => navigateTo('admin')}
-            title="Закрытая панель сотрудников LAUTE (Excel и управление каталогом)"
-            style={{ borderColor: 'rgba(37, 99, 235, 0.35)', color: '#2563EB', background: 'rgba(37, 99, 235, 0.05)' }}
-          >
-            <Shield size={14} />
-            <span>Панель сотрудников</span>
-          </button>
-
           {/* Main Wholesale Partner CTA */}
           <button
             type="button"
@@ -350,16 +338,6 @@ export const Header = () => {
                 onClick={() => handleNavClick('contacts')}
               >
                 {t.nav.contacts || 'Контакты'}
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={`mobile-nav-link ${currentRoute === 'admin' ? 'active' : ''}`}
-                style={{ color: '#2563EB', fontWeight: '600' }}
-                onClick={() => handleNavClick('admin')}
-              >
-                🔒 Панель сотрудников LAUTE
               </button>
             </li>
           </ul>

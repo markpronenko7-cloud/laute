@@ -16,7 +16,8 @@ import {
   changeAdminPassword,
   authenticateWithPassword,
   validateSessionToken,
-  destroySession
+  destroySession,
+  createDevSession
 } from './securityService.js';
 import {
   getPublishedContent,
@@ -28,7 +29,8 @@ import {
   getCategories,
   saveCategories,
   getCustomPages,
-  saveCustomPages
+  saveCustomPages,
+  getContentBackups
 } from './contentService.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -59,9 +61,24 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// URL rewriting for /laute/ prefix if requests arrive with base
+app.use((req, res, next) => {
+  if (req.url.startsWith('/laute/api/')) {
+    req.url = req.url.replace('/laute/api/', '/api/');
+  } else if (req.url === '/laute/api') {
+    req.url = '/api';
+  }
+  if (req.url.startsWith('/laute/images/')) {
+    req.url = req.url.replace('/laute/images/', '/images/');
+  }
+  next();
+});
+
 // Serve uploaded images statically
 app.use('/images/catalog', express.static(UPLOAD_CATALOG_DIR));
 app.use('/images/uploads', express.static(UPLOAD_MEDIA_DIR));
+app.use('/laute/images/catalog', express.static(UPLOAD_CATALOG_DIR));
+app.use('/laute/images/uploads', express.static(UPLOAD_MEDIA_DIR));
 
 // Configure Multer for Excel in-memory and images on-disk
 const memStorage = multer.memoryStorage();
@@ -192,6 +209,39 @@ app.get('/api/health', (req, res) => {
 // Check auth status (initialized or first-time setup needed)
 app.get('/api/auth/status', (req, res) => {
   res.json(getAuthStatus());
+});
+
+// Local Development Passwordless Login (STRICTLY localhost / 127.0.0.1 in development)
+app.get('/api/auth/dev-auto-login', (req, res) => {
+  const ip = getClientIp(req);
+  const host = req.headers.host || '';
+  const isLocalIp = ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1' || ip === 'localhost';
+  const isLocalHost = host.startsWith('localhost') || host.startsWith('127.0.0.1');
+  const isDevEnv = process.env.NODE_ENV !== 'production';
+
+  // Strict check: ONLY localhost in non-production environment
+  if (!isLocalIp || !isLocalHost || !isDevEnv) {
+    return res.status(403).json({
+      success: false,
+      error: 'Беспарольный вход разрешён исключительно в локальной среде разработки (localhost).'
+    });
+  }
+
+  const result = createDevSession(ip);
+  addAuditLog({
+    action: 'DEV_LOGIN',
+    actionTitle: 'Локальный вход сотрудника (без пароля)',
+    summary: `Авторизована локальная сессия разработки ${result.session.id}`,
+    sessionId: result.session.id,
+    details: `IP: ${ip}, Host: ${host}`
+  });
+
+  res.json({
+    success: true,
+    token: result.token,
+    session: result.session,
+    devMode: true
+  });
 });
 
 // First-time setup (only if not yet initialized)
@@ -385,6 +435,11 @@ app.post('/api/content/rollback', verifyAuth, (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// List content backups
+app.get('/api/content/backups', verifyAuth, (req, res) => {
+  res.json({ backups: getContentBackups() });
 });
 
 // ==========================================
@@ -1099,9 +1154,20 @@ app.get('/api/settings/export-all', verifyAuth, (req, res) => {
   res.send(JSON.stringify(fullBackup, null, 2));
 });
 
-// Start Express server
-app.listen(PORT, () => {
-  console.log(`🚀 LAUTE Master Administration Server запущен на http://localhost:${PORT}`);
-  console.log(`🔒 Авторизация: scrypt-хеширование с защитой от перебора (rate limiting)`);
-  console.log(`📁 Хранилище данных: ${DATA_DIR}`);
-});
+export { app };
+
+// Start Express server if run standalone (or explicitly requested)
+const isDirectRun = Boolean(process.argv[1] && (
+  process.argv[1].endsWith('server/index.js') || 
+  process.argv[1].endsWith('server\\index.js') ||
+  process.argv[1].endsWith('index.js')
+));
+
+if (process.env.VITE_EMBEDDED !== 'true' && (isDirectRun || process.env.RUN_STANDALONE_SERVER === 'true' || !process.env.VITE)) {
+  app.listen(PORT, () => {
+    console.log(`🚀 LAUTE Master Administration Server запущен на http://localhost:${PORT}`);
+    console.log(`🔒 Авторизация: scrypt-хеширование с защитой от перебора (rate limiting)`);
+    console.log(`📁 Хранилище данных: ${DATA_DIR}`);
+  });
+}
+
