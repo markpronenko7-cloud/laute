@@ -249,7 +249,8 @@ export const Header = () => {
             title={t.nav.clientCabinet || 'Кабинет партнера'}
           >
             <User size={15} />
-            <span>{t.nav.clientCabinet || 'Кабинет партнера'}</span>
+            <span className="cabinet-btn-full">{t.nav.clientCabinet || 'Кабинет партнера'}</span>
+            <span className="cabinet-btn-short">Кабинет</span>
           </button>
 
           {/* Main Wholesale Partner CTA */}
@@ -258,7 +259,8 @@ export const Header = () => {
             className="btn btn-primary btn-partner-cta"
             onClick={openPartnerModal}
           >
-            <span>{t.nav.requestQuote || 'Стать партнёром'}</span>
+            <span className="partner-cta-full">{t.nav.requestQuote || 'Стать партнёром'}</span>
+            <span className="partner-cta-short">Партнёрство</span>
           </button>
 
           {/* Mobile Menu Toggle */}

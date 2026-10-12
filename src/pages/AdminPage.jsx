@@ -182,12 +182,25 @@ export const AdminPage = () => {
 
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(Boolean(adminSession));
+  const [isDemoMode, setIsDemoMode] = useState(Boolean(adminSession?.isDemo));
   const [passwordInput, setPasswordInput] = useState('');
   const [authError, setAuthError] = useState('');
   const [isSubmittingAuth, setIsSubmittingAuth] = useState(false);
   const [needsInitialSetup, setNeedsInitialSetup] = useState(false);
   const [initialPasswordInput, setInitialPasswordInput] = useState('');
   const [initialPasswordConfirm, setInitialPasswordConfirm] = useState('');
+
+  const handleEnterDemoMode = () => {
+    setIsDemoMode(true);
+    setIsAuthenticated(true);
+    setAdminSession({
+      id: 'demo_session',
+      role: 'demo_inspector',
+      isDemo: true,
+      name: 'Ознакомительный просмотр'
+    });
+    showNotice('Включён ознакомительный режим. Доступен полный просмотр всех разделов.');
+  };
 
   // Active Tab: 1 to 13
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -475,8 +488,11 @@ export const AdminPage = () => {
 
   // Handle Logout
   const handleLogout = async () => {
-    await logoutAdmin();
+    if (!isDemoMode) {
+      await logoutAdmin();
+    }
     setIsAuthenticated(false);
+    setIsDemoMode(false);
     setAdminSession(null);
     navigateTo('home');
   };
@@ -526,6 +542,10 @@ export const AdminPage = () => {
 
   // Save Draft Handler
   const handleSaveDraft = async () => {
+    if (isDemoMode) {
+      showNotice('В ознакомительном демо-режиме изменение реальных данных заблокировано. Для сохранения требуется авторизация с мастер-паролем.');
+      return;
+    }
     if (!draftContent) return;
     setIsSavingDraft(true);
     try {
@@ -541,6 +561,10 @@ export const AdminPage = () => {
 
   // Publish Draft Handler
   const handlePublish = async () => {
+    if (isDemoMode) {
+      showNotice('В ознакомительном демо-режиме публикация на сайте заблокирована. Для публикации требуется авторизация с мастер-паролем.');
+      return;
+    }
     setIsPublishing(true);
     try {
       const res = await publishSiteContent();
@@ -557,6 +581,10 @@ export const AdminPage = () => {
 
   // Discard Draft Handler
   const handleDiscardDraft = async () => {
+    if (isDemoMode) {
+      showNotice('В ознакомительном демо-режиме отмена изменений заблокирована.');
+      return;
+    }
     if (!window.confirm('Вы уверены, что хотите отменить все несохранённые изменения черновика?')) return;
     try {
       const res = await discardSiteContentDraft();
@@ -570,6 +598,10 @@ export const AdminPage = () => {
   // Password Change Handler in Settings
   const handleChangePassword = async (e) => {
     e.preventDefault();
+    if (isDemoMode) {
+      setPasswordChangeMsg('В ознакомительном демо-режиме смена мастер-пароля заблокирована.');
+      return;
+    }
     if (newPasswordChange.length < 6) {
       setPasswordChangeMsg('Новый пароль должен быть не менее 6 символов');
       return;
@@ -700,6 +732,24 @@ export const AdminPage = () => {
             </form>
           )}
 
+          {/* Demonstration Inspection Mode for testing and review */}
+          <div className="admin-demo-access-block">
+            <div className="admin-demo-divider">
+              <span>или</span>
+            </div>
+            <button
+              type="button"
+              className="admin-btn admin-btn-outline admin-btn-full admin-btn-demo"
+              onClick={handleEnterDemoMode}
+            >
+              <Eye size={15} />
+              <span>Ознакомительный демо-режим</span>
+            </button>
+            <p className="admin-demo-access-hint">
+              Полный просмотр разделов каталога, цен и настроек панели сотрудников LAUTE
+            </p>
+          </div>
+
           <div className="admin-login-footer">
             <button
               type="button"
@@ -720,6 +770,31 @@ export const AdminPage = () => {
   // -------------------------------------------------------------
   return (
     <div className="admin-layout">
+      {/* Demo Mode Notice Banner */}
+      {isDemoMode && (
+        <div className="admin-demo-banner">
+          <div className="admin-demo-banner-content">
+            <Shield size={16} className="admin-demo-icon" />
+            <div>
+              <strong>Ознакомительный демонстрационный режим LAUTE:</strong>
+              <span> открыт полный просмотр всех 13 разделов и интерфейса. Внесение реальных изменений защищено.</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="admin-btn admin-btn-xs admin-btn-outline"
+            onClick={() => {
+              setIsDemoMode(false);
+              setIsAuthenticated(false);
+              setAdminSession(null);
+            }}
+          >
+            <Lock size={12} />
+            <span>Выйти из демо-режима</span>
+          </button>
+        </div>
+      )}
+
       {/* Top Application Bar */}
       <header className="admin-navbar">
         <div className="admin-navbar-left">
@@ -1659,6 +1734,10 @@ export const AdminPage = () => {
                                 type="button"
                                 className="admin-btn admin-btn-danger admin-btn-xs"
                                 onClick={async () => {
+                                  if (isDemoMode) {
+                                    showNotice('В демонстрационном режиме удаление страниц заблокировано.');
+                                    return;
+                                  }
                                   if (window.confirm(`Удалить страницу "${cp.title}"?`)) {
                                     await deleteCustomPage(cp.id);
                                     loadPagesData();
@@ -1827,6 +1906,10 @@ export const AdminPage = () => {
                                   type="button"
                                   className={`action-btn ${isHidden ? 'active-green' : ''}`}
                                   onClick={async () => {
+                                    if (isDemoMode) {
+                                      showNotice('В демонстрационном режиме изменение статуса товара заблокировано.');
+                                      return;
+                                    }
                                     const newStatus = isHidden ? 'АКТИВЕН' : 'СКРЫТ';
                                     await toggleProductStatus(prod.article, newStatus);
                                     loadCatalogData();
@@ -1841,6 +1924,10 @@ export const AdminPage = () => {
                                   type="button"
                                   className="action-btn danger"
                                   onClick={async () => {
+                                    if (isDemoMode) {
+                                      showNotice('В демонстрационном режиме удаление товаров заблокировано.');
+                                      return;
+                                    }
                                     if (window.confirm(`Вы уверены, что хотите удалить товар ${prod.article} (${prod.name}) из каталога?`)) {
                                       await deleteProduct(prod.article);
                                       loadCatalogData();
@@ -2056,6 +2143,10 @@ export const AdminPage = () => {
                       className="admin-btn admin-btn-success admin-btn-lg"
                       disabled={isCommittingExcel || !validationResult.validRows || validationResult.validRows.length === 0}
                       onClick={async () => {
+                        if (isDemoMode) {
+                          showNotice('В демонстрационном режиме применение импорта Excel к базе данных заблокировано.');
+                          return;
+                        }
                         setIsCommittingExcel(true);
                         try {
                           const res = await commitExcelImport(validationResult.validRows);
@@ -2188,6 +2279,10 @@ export const AdminPage = () => {
                             className="media-mini-btn danger"
                             title="Удалить файл"
                             onClick={async () => {
+                              if (isDemoMode) {
+                                showNotice('В демонстрационном режиме удаление файлов заблокировано.');
+                                return;
+                              }
                               if (window.confirm(`Удалить файл "${file.name}"?`)) {
                                 await deleteMediaFile(file.name);
                                 loadMediaData();
@@ -2815,6 +2910,10 @@ export const AdminPage = () => {
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
+                if (isDemoMode) {
+                  showNotice('В демонстрационном режиме сохранение изменений товаров заблокировано.');
+                  return;
+                }
                 setIsSavingProduct(true);
                 try {
                   if (isAddingNewProduct) {

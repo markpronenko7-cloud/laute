@@ -1768,3 +1768,83 @@
   }
 }
 
+/* ==========================================
+   16. DEMO INSPECTION MODE FOR REVIEWS
+   ========================================== */
+.admin-demo-access-block {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.admin-demo-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 14px 0 12px;
+  position: relative;
+}
+
+.admin-demo-divider::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--adm-border);
+  z-index: 1;
+}
+
+.admin-demo-divider span {
+  position: relative;
+  z-index: 2;
+  background: var(--adm-surface-card);
+  padding: 0 10px;
+  font-size: 12px;
+  color: var(--adm-text-muted);
+}
+
+.admin-btn-demo {
+  border-color: rgba(249, 115, 22, 0.35);
+  color: #F97316;
+  gap: 8px;
+}
+
+.admin-btn-demo:hover {
+  background: rgba(249, 115, 22, 0.1);
+  border-color: rgba(249, 115, 22, 0.6);
+  color: #FB923C;
+}
+
+.admin-demo-access-hint {
+  font-size: 11px;
+  color: var(--adm-text-muted);
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+.admin-demo-banner {
+  background: linear-gradient(90deg, rgba(249, 115, 22, 0.15) 0%, rgba(14, 165, 233, 0.10) 100%);
+  border-bottom: 1px solid rgba(249, 115, 22, 0.35);
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #F8FAFC;
+  font-size: 13px;
+  z-index: 101;
+  flex-wrap: wrap;
+}
+
+.admin-demo-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-demo-icon {
+  color: #F97316;
+  flex-shrink: 0;
+}
+

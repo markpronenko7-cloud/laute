@@ -1,7 +1,7 @@
 {
-  "version": "1.0.13",
-  "lastPublishedAt": "2026-10-12T11:23:03.611Z",
-  "publishedBy": "Сессия laute_sess_dev_6f06a63",
+  "version": "1.0.14",
+  "lastPublishedAt": "2026-10-12T12:00:46.568Z",
+  "publishedBy": "Сессия laute_sess_b1ddaa76247",
   "seo": {
     "global": {
       "siteName": "LAUTE",
@@ -1310,6 +1310,6 @@
     }
   },
   "hasUnpublishedChanges": false,
-  "lastDraftSavedAt": "2026-10-12T11:23:03.601Z",
-  "draftSessionId": "laute_sess_dev_6f06a63"
+  "lastDraftSavedAt": "2026-10-12T12:00:46.551Z",
+  "draftSessionId": "laute_sess_b1ddaa76247"
 }
