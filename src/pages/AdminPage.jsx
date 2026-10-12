@@ -44,7 +44,10 @@ import {
   Sparkles,
   Phone,
   Mail,
-  MapPin
+  MapPin,
+  Boxes,
+  Warehouse,
+  BarChart3
 } from 'lucide-react';
 import {
   checkAuthStatus,
@@ -83,8 +86,23 @@ import {
   rollbackToBackup,
   fetchContentBackups,
   fetchSystemSettings,
-  downloadFullSystemBackup
+  downloadFullSystemBackup,
+  fetchWarehouses,
+  createWarehouse,
+  updateWarehouse,
+  deleteWarehouse,
+  fetchWarehouseStock,
+  saveStockItem,
+  saveBulkStock,
+  downloadStockTemplate,
+  exportStockToExcel,
+  validateStockExcelFile,
+  commitStockExcelImport
 } from '../services/adminApi';
+import {
+  downloadStockTemplateExcel,
+  parseStockExcelClient
+} from '../utils/excelManager';
 import '../styles/admin.css';
 
 // Image Field Editor component with file upload, preview, and path editing
@@ -226,6 +244,28 @@ export const AdminPage = () => {
   // Categories State
   const [categoriesList, setCategoriesList] = useState([]);
   const [editingCategory, setEditingCategory] = useState(null);
+
+  // Warehouse & Stock Management State
+  const [warehousesList, setWarehousesList] = useState([]);
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState('almaty');
+  const [stockList, setStockList] = useState([]);
+  const [isLoadingStock, setIsLoadingStock] = useState(false);
+  const [isSavingStock, setIsSavingStock] = useState(false);
+  const [stockSearchQuery, setStockSearchQuery] = useState('');
+  const [stockCategoryFilter, setStockCategoryFilter] = useState('Все');
+  const [stockLevelFilter, setStockLevelFilter] = useState('all'); // all | in_stock | out_of_stock | unspecified
+  const [stockLocalEdits, setStockLocalEdits] = useState({});
+  const [isWhModalOpen, setIsWhModalOpen] = useState(false);
+  const [editingWh, setEditingWh] = useState(null);
+  const [whFormData, setWhFormData] = useState({ id: '', name: '', country: '', city: '', address: '', priority: 1, isActive: true });
+  const [whFormError, setWhFormError] = useState('');
+  const [isSavingWh, setIsSavingWh] = useState(false);
+  const [isStockExcelModalOpen, setIsStockExcelModalOpen] = useState(false);
+  const [stockExcelDiff, setStockExcelDiff] = useState(null);
+  const [stockExcelMode, setStockExcelMode] = useState('partial'); // partial | replace
+  const [isStockExcelConfirming, setIsStockExcelConfirming] = useState(false);
+  const [stockExcelReplaceAgreed, setStockExcelReplaceAgreed] = useState(false);
+  const stockFileInputRef = useRef(null);
 
   // Pages State
   const [pagesList, setPagesList] = useState([]);
@@ -392,6 +432,26 @@ export const AdminPage = () => {
     }
   }, []);
 
+  const loadStockData = useCallback(async (targetWhId = null) => {
+    setIsLoadingStock(true);
+    try {
+      const whs = await fetchWarehouses();
+      if (Array.isArray(whs) && whs.length > 0) {
+        setWarehousesList(whs);
+        const whId = targetWhId || selectedWarehouseId || whs[0].id;
+        if (!selectedWarehouseId || targetWhId) {
+          setSelectedWarehouseId(whId);
+        }
+        const stockData = await fetchWarehouseStock(whId);
+        setStockList(stockData || []);
+      }
+    } catch (err) {
+      console.error('Ошибка загрузки остатков:', err);
+    } finally {
+      setIsLoadingStock(false);
+    }
+  }, [selectedWarehouseId]);
+
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -407,6 +467,10 @@ export const AdminPage = () => {
     } else if (activeTab === 'catalog') {
       loadCatalogData();
       loadCategoriesData();
+    } else if (activeTab === 'stock') {
+      loadCatalogData();
+      loadCategoriesData();
+      loadStockData();
     } else if (activeTab === 'categories') {
       loadCategoriesData();
     } else if (activeTab === 'pages') {
@@ -424,6 +488,7 @@ export const AdminPage = () => {
     loadContentData, 
     loadCatalogData, 
     loadCategoriesData, 
+    loadStockData,
     loadPagesData, 
     loadMediaData, 
     loadHistoryData, 
@@ -623,12 +688,293 @@ export const AdminPage = () => {
     }
   };
 
-  // Navigation Items (13 Sections)
+  // -------------------------------------------------------------
+  // WAREHOUSE & STOCK MANAGEMENT HANDLERS
+  // -------------------------------------------------------------
+  const handleSelectWarehouse = async (whId) => {
+    setSelectedWarehouseId(whId);
+    setStockLocalEdits({});
+    setIsLoadingStock(true);
+    try {
+      const stockData = await fetchWarehouseStock(whId);
+      setStockList(stockData || []);
+    } catch (err) {
+      console.error(err);
+      showNotice('Ошибка загрузки остатков склада', 'error');
+    } finally {
+      setIsLoadingStock(false);
+    }
+  };
+
+  const handleSaveStockRow = async (sku) => {
+    if (isDemoMode) {
+      showNotice('В ознакомительном демо-режиме изменение складских остатков защищено.');
+      return;
+    }
+    const editVal = stockLocalEdits[sku];
+    if (editVal === undefined || editVal === '') {
+      showNotice('Укажите количество для сохранения', 'error');
+      return;
+    }
+    const qty = parseInt(editVal, 10);
+    if (isNaN(qty) || qty < 0) {
+      showNotice('Количество не может быть отрицательным числом', 'error');
+      return;
+    }
+
+    setIsSavingStock(true);
+    try {
+      await saveStockItem(selectedWarehouseId, sku, qty);
+      setStockList(prev => {
+        const existingIdx = prev.findIndex(s => s.sku === sku && s.warehouseId === selectedWarehouseId);
+        const now = new Date().toISOString();
+        if (existingIdx >= 0) {
+          const updated = [...prev];
+          updated[existingIdx] = { ...updated[existingIdx], quantity: qty, updatedAt: now };
+          return updated;
+        } else {
+          return [...prev, { warehouseId: selectedWarehouseId, sku, quantity: qty, updatedAt: now, updatedBy: 'admin' }];
+        }
+      });
+      setStockLocalEdits(prev => {
+        const copy = { ...prev };
+        delete copy[sku];
+        return copy;
+      });
+      showNotice(`Остаток ${sku} успешно сохранён: ${qty} шт.`);
+    } catch (err) {
+      showNotice(err.message || 'Ошибка сохранения остатка', 'error');
+    } finally {
+      setIsSavingStock(false);
+    }
+  };
+
+  const handleOpenWhModal = (wh = null) => {
+    setEditingWh(wh);
+    setWhFormError('');
+    if (wh) {
+      setWhFormData({
+        id: wh.id,
+        name: wh.name,
+        country: wh.country || '',
+        city: wh.city || '',
+        address: wh.address || '',
+        priority: wh.priority || 1,
+        isActive: wh.isActive !== false
+      });
+    } else {
+      setWhFormData({
+        id: '',
+        name: '',
+        country: '',
+        city: '',
+        address: '',
+        priority: (warehousesList.length + 1),
+        isActive: true
+      });
+    }
+    setIsWhModalOpen(true);
+  };
+
+  const handleSaveWh = async (e) => {
+    e.preventDefault();
+    if (isDemoMode) {
+      showNotice('В ознакомительном демо-режиме изменение складов защищено.');
+      return;
+    }
+    if (!whFormData.name.trim()) {
+      setWhFormError('Укажите название склада');
+      return;
+    }
+    const whId = (editingWh ? editingWh.id : whFormData.id.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '')) || whFormData.name.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    if (!whId) {
+      setWhFormError('Укажите идентификатор склада');
+      return;
+    }
+
+    setIsSavingWh(true);
+    setWhFormError('');
+    try {
+      if (editingWh) {
+        await updateWarehouse(editingWh.id, {
+          name: whFormData.name,
+          country: whFormData.country,
+          city: whFormData.city,
+          address: whFormData.address,
+          priority: Number(whFormData.priority) || 1,
+          isActive: whFormData.isActive
+        });
+        showNotice(`Склад «${whFormData.name}» обновлён`);
+      } else {
+        await createWarehouse({
+          id: whId,
+          name: whFormData.name,
+          country: whFormData.country,
+          city: whFormData.city,
+          address: whFormData.address,
+          priority: Number(whFormData.priority) || 1,
+          isActive: whFormData.isActive
+        });
+        showNotice(`Склад «${whFormData.name}» успешно добавлен`);
+      }
+      setIsWhModalOpen(false);
+      await loadStockData(editingWh ? editingWh.id : whId);
+    } catch (err) {
+      setWhFormError(err.message || 'Ошибка сохранения склада');
+    } finally {
+      setIsSavingWh(false);
+    }
+  };
+
+  const handleDeleteWh = async (wh) => {
+    if (isDemoMode) {
+      showNotice('В ознакомительном демо-режиме удаление складов защищено.');
+      return;
+    }
+    if (warehousesList.length <= 1) {
+      showNotice('Нельзя удалить единственный склад в системе', 'error');
+      return;
+    }
+    const itemsOnWh = stockList.filter(s => s.warehouseId === wh.id && s.quantity > 0).length;
+    let msg = `Удалить склад «${wh.name}»?`;
+    if (itemsOnWh > 0) {
+      msg = `Внимание: на складе «${wh.name}» числится ${itemsOnWh} позиций с остатком. Вы уверены, что хотите удалить этот склад?`;
+    }
+    if (!window.confirm(msg)) return;
+
+    try {
+      await deleteWarehouse(wh.id);
+      showNotice(`Склад «${wh.name}» удалён`);
+      const remainingWhs = warehousesList.filter(w => w.id !== wh.id);
+      setWarehousesList(remainingWhs);
+      if (selectedWarehouseId === wh.id && remainingWhs.length > 0) {
+        handleSelectWarehouse(remainingWhs[0].id);
+      }
+    } catch (err) {
+      showNotice(err.message || 'Ошибка удаления склада', 'error');
+    }
+  };
+
+  const handleDownloadStockTemplate = async () => {
+    try {
+      const activeWh = warehousesList.find(w => w.id === selectedWarehouseId);
+      if (!activeWh) return;
+      try {
+        await downloadStockTemplate(selectedWarehouseId);
+      } catch (e) {
+        downloadStockTemplateExcel(activeWh, catalogList);
+      }
+      showNotice(`Шаблон остатков для склада «${activeWh.name}» скачан`);
+    } catch (err) {
+      showNotice(err.message || 'Ошибка загрузки шаблона', 'error');
+    }
+  };
+
+  const handleExportStockExcel = async () => {
+    try {
+      const activeWh = warehousesList.find(w => w.id === selectedWarehouseId);
+      if (!activeWh) return;
+      try {
+        await exportStockToExcel(selectedWarehouseId);
+      } catch (e) {
+        downloadStockTemplateExcel(activeWh, catalogList);
+      }
+      showNotice(`Файл остатков для склада «${activeWh.name}» экспортирован`);
+    } catch (err) {
+      showNotice(err.message || 'Ошибка экспорта остатков', 'error');
+    }
+  };
+
+  const handleStockFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (stockFileInputRef.current) stockFileInputRef.current.value = '';
+
+    const activeWh = warehousesList.find(w => w.id === selectedWarehouseId);
+    if (!activeWh) return;
+
+    try {
+      let result = null;
+      try {
+        result = await validateStockExcelFile(file, selectedWarehouseId);
+      } catch (apiErr) {
+        result = await parseStockExcelClient(file, activeWh, catalogList, stockList);
+      }
+
+      if (result) {
+        setStockExcelDiff(result);
+        setStockExcelMode('partial');
+        setStockExcelReplaceAgreed(false);
+        setIsStockExcelModalOpen(true);
+      }
+    } catch (err) {
+      showNotice(err.message || 'Ошибка проверки Excel-файла', 'error');
+    }
+  };
+
+  const handleCommitStockExcel = async () => {
+    if (isDemoMode) {
+      showNotice('В ознакомительном демо-режиме изменение остатков через Excel защищено.');
+      return;
+    }
+    if (!stockExcelDiff || !stockExcelDiff.diffList) return;
+    if (stockExcelMode === 'replace' && !stockExcelReplaceAgreed) {
+      showNotice('Для режима полной замены подтвердите согласие флажком', 'error');
+      return;
+    }
+
+    setIsStockExcelConfirming(true);
+    try {
+      try {
+        await commitStockExcelImport(selectedWarehouseId, stockExcelDiff.diffList, stockExcelMode);
+      } catch (apiErr) {
+        const newStockMap = new Map();
+        stockList.forEach(s => newStockMap.set(s.sku, s.quantity));
+
+        if (stockExcelMode === 'replace') {
+          const updatedSkus = new Set(stockExcelDiff.diffList.map(d => d.sku));
+          catalogList.forEach(p => {
+            if (!updatedSkus.has(p.article)) {
+              newStockMap.set(p.article, 0);
+            }
+          });
+        }
+
+        stockExcelDiff.diffList.forEach(d => {
+          newStockMap.set(d.sku, d.newQuantity);
+        });
+
+        const updatedStockArray = [];
+        newStockMap.forEach((qty, sku) => {
+          updatedStockArray.push({
+            warehouseId: selectedWarehouseId,
+            sku,
+            quantity: qty,
+            updatedAt: new Date().toISOString(),
+            updatedBy: 'admin (excel)'
+          });
+        });
+        setStockList(updatedStockArray);
+      }
+
+      showNotice(`Остатки склада успешно обновлены из Excel (${stockExcelDiff.diffList.length} поз.)`);
+      setIsStockExcelModalOpen(false);
+      setStockExcelDiff(null);
+      await loadStockData(selectedWarehouseId);
+    } catch (err) {
+      showNotice(err.message || 'Ошибка применения изменений', 'error');
+    } finally {
+      setIsStockExcelConfirming(false);
+    }
+  };
+
+  // Navigation Items (14 Sections)
   const navItems = [
     { id: 'dashboard', label: 'Главная панель', icon: LayoutDashboard },
     { id: 'editor', label: 'Редактор сайта', icon: Edit3, badge: draftContent?.hasUnpublishedChanges ? 'Черновик' : null },
     { id: 'pages', label: 'Страницы', icon: FileText },
     { id: 'catalog', label: 'Каталог', icon: Package, count: catalogList.length },
+    { id: 'stock', label: 'Складские остатки', icon: Boxes },
     { id: 'categories', label: 'Категории товаров', icon: FolderTree },
     { id: 'excel', label: 'Импорт и экспорт Excel', icon: FileSpreadsheet },
     { id: 'media', label: 'Фотографии и медиа', icon: ImageIcon },
@@ -1949,6 +2295,383 @@ export const AdminPage = () => {
             </div>
           )}
 
+          {/* TAB: СКЛАДСКИЕ ОСТАТКИ */}
+          {activeTab === 'stock' && (
+            <div className="admin-view stock-view">
+              <div className="view-header">
+                <div>
+                  <h2 className="view-title">Складские остатки LAUTE</h2>
+                  <p className="view-subtitle">
+                    Раздельное управление запасами филиалов компании (Алматы, Новосибирск, Москва, Китай), ручное редактирование и Excel-синхронизация
+                  </p>
+                </div>
+                <div className="header-actions">
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-outline admin-btn-sm"
+                    onClick={() => handleOpenWhModal(null)}
+                    title="Добавить новый логистический склад"
+                  >
+                    <Plus size={14} />
+                    <span>Добавить склад</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-outline admin-btn-sm"
+                    onClick={handleDownloadStockTemplate}
+                    title="Скачать шаблон Excel для выбранного склада"
+                  >
+                    <Download size={14} />
+                    <span>Шаблон Excel</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-outline admin-btn-sm"
+                    onClick={handleExportStockExcel}
+                    title="Выгрузить остатки выбранного склада в Excel"
+                  >
+                    <FileSpreadsheet size={14} />
+                    <span>Экспорт</span>
+                  </button>
+                  <input
+                    type="file"
+                    ref={stockFileInputRef}
+                    accept=".xlsx,.xls"
+                    style={{ display: 'none' }}
+                    onChange={handleStockFileUpload}
+                  />
+                  <button 
+                    type="button" 
+                    className="admin-btn admin-btn-primary admin-btn-sm"
+                    onClick={() => stockFileInputRef.current?.click()}
+                    title="Загрузить файл остатков для выбранного склада"
+                  >
+                    <Upload size={14} />
+                    <span>Загрузить Excel</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Warehouse Selection Bar */}
+              <div className="warehouse-selector-bar">
+                <div className="warehouse-pills-list">
+                  {warehousesList.map((wh) => {
+                    const isSelected = wh.id === selectedWarehouseId;
+                    return (
+                      <div 
+                        key={wh.id} 
+                        className={`warehouse-pill ${isSelected ? 'active' : ''}`}
+                        onClick={() => handleSelectWarehouse(wh.id)}
+                      >
+                        <span className="wh-dot"></span>
+                        <div className="wh-pill-info">
+                          <span className="wh-pill-name">{wh.name}</span>
+                          <span className="wh-pill-location">{wh.city ? `${wh.city}, ${wh.country}` : wh.country}</span>
+                        </div>
+                        {!wh.isActive && (
+                          <span className="wh-pill-tag inactive">Отключен</span>
+                        )}
+                        <button
+                          type="button"
+                          className="wh-pill-edit-btn"
+                          title={`Настройки склада «${wh.name}»`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenWhModal(wh);
+                          }}
+                        >
+                          <Sliders size={12} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Active Warehouse Info & Stock Stats Cards */}
+              {(() => {
+                const currentWh = warehousesList.find(w => w.id === selectedWarehouseId) || warehousesList[0];
+                const stockMap = new Map();
+                stockList.forEach(s => {
+                  if (s.warehouseId === selectedWarehouseId) {
+                    stockMap.set(s.sku, s);
+                  }
+                });
+
+                let inStockCount = 0;
+                let totalUnits = 0;
+                let outOfStockCount = 0;
+                let notSpecifiedCount = 0;
+
+                catalogList.forEach(prod => {
+                  const item = stockMap.get(prod.article);
+                  if (!item || item.quantity === null || item.quantity === undefined) {
+                    notSpecifiedCount++;
+                  } else if (item.quantity > 0) {
+                    inStockCount++;
+                    totalUnits += item.quantity;
+                  } else {
+                    outOfStockCount++;
+                  }
+                });
+
+                return (
+                  <div className="stock-summary-grid">
+                    <div className="stock-summary-card primary">
+                      <span className="stat-label">Текущий выбранный склад</span>
+                      <h3 className="stat-value">{currentWh?.name || '—'}</h3>
+                      <p className="stat-sub">{currentWh?.address || currentWh?.city || 'Адрес не указан'}</p>
+                    </div>
+
+                    <div className="stock-summary-card">
+                      <span className="stat-label">В наличии на складе</span>
+                      <h3 className="stat-value">{inStockCount} <small>поз.</small></h3>
+                      <p className="stat-sub">Всего физических единиц: <strong>{totalUnits} шт.</strong></p>
+                    </div>
+
+                    <div className="stock-summary-card">
+                      <span className="stat-label">Закончились (0 шт.)</span>
+                      <h3 className="stat-value">{outOfStockCount} <small>поз.</small></h3>
+                      <p className="stat-sub">Требуется пополнение запасов</p>
+                    </div>
+
+                    <div className="stock-summary-card">
+                      <span className="stat-label">Не указаны / Не загружены</span>
+                      <h3 className="stat-value">{notSpecifiedCount} <small>поз.</small></h3>
+                      <p className="stat-sub">Из {catalogList.length} позиций каталога</p>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Filters & Search */}
+              <div className="admin-filters-bar">
+                <div className="search-box">
+                  <Search size={16} className="search-icon" />
+                  <input
+                    type="text"
+                    value={stockSearchQuery}
+                    onChange={(e) => setStockSearchQuery(e.target.value)}
+                    placeholder="Поиск по артикулу (SKU) или названию изделия..."
+                  />
+                  {stockSearchQuery && (
+                    <button type="button" onClick={() => setStockSearchQuery('')} className="clear-btn">
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+
+                <div className="filter-select-group">
+                  <select
+                    value={stockCategoryFilter}
+                    onChange={(e) => setStockCategoryFilter(e.target.value)}
+                    className="admin-select"
+                  >
+                    <option value="Все">Все категории ({catalogList.length})</option>
+                    {categoriesList.map((c) => (
+                      <option key={c.id || c.name} value={c.name}>{c.name}</option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={stockLevelFilter}
+                    onChange={(e) => setStockLevelFilter(e.target.value)}
+                    className="admin-select"
+                  >
+                    <option value="all">Все уровни остатков</option>
+                    <option value="in_stock">В наличии (&gt; 0 шт.)</option>
+                    <option value="out_of_stock">Закончились (0 шт.)</option>
+                    <option value="unspecified">Не указаны / Не загружены</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Warehouse Stock Products Table */}
+              <div className="admin-table-wrapper">
+                {isLoadingStock ? (
+                  <div className="admin-loading-indicator">
+                    <RefreshCw size={24} className="spin-icon" />
+                    <span>Загрузка складских остатков...</span>
+                  </div>
+                ) : (
+                  <table className="admin-table stock-table">
+                    <thead>
+                      <tr>
+                        <th style={{ width: 60 }}>Фото</th>
+                        <th style={{ width: 140 }}>Артикул (SKU)</th>
+                        <th>Наименование товара</th>
+                        <th>Категория</th>
+                        <th style={{ width: 220 }}>Количество на складе</th>
+                        <th style={{ width: 150 }}>Статус наличия</th>
+                        <th style={{ width: 160 }}>Обновлено</th>
+                        <th style={{ width: 120 }}>Действия</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {catalogList
+                        .filter(prod => {
+                          const matchSearch = !stockSearchQuery ||
+                            prod.article?.toLowerCase().includes(stockSearchQuery.toLowerCase()) ||
+                            prod.name?.toLowerCase().includes(stockSearchQuery.toLowerCase());
+                          const matchCat = stockCategoryFilter === 'Все' || prod.category === stockCategoryFilter;
+
+                          const stockItem = stockList.find(s => s.sku === prod.article && s.warehouseId === selectedWarehouseId);
+                          const currentQty = stockItem ? stockItem.quantity : null;
+
+                          let matchLevel = true;
+                          if (stockLevelFilter === 'in_stock') {
+                            matchLevel = currentQty !== null && currentQty > 0;
+                          } else if (stockLevelFilter === 'out_of_stock') {
+                            matchLevel = currentQty !== null && currentQty === 0;
+                          } else if (stockLevelFilter === 'unspecified') {
+                            matchLevel = currentQty === null || currentQty === undefined;
+                          }
+
+                          return matchSearch && matchCat && matchLevel;
+                        })
+                        .map(prod => {
+                          const thumbSrc = prod.photo1 ? `${import.meta.env.BASE_URL}${prod.photo1}` : '';
+                          const stockItem = stockList.find(s => s.sku === prod.article && s.warehouseId === selectedWarehouseId);
+                          const dbQty = stockItem ? stockItem.quantity : null;
+                          const hasEdit = stockLocalEdits[prod.article] !== undefined;
+                          const displayQty = hasEdit ? stockLocalEdits[prod.article] : (dbQty !== null ? dbQty : '');
+                          const numVal = parseInt(displayQty, 10);
+                          const isChanged = hasEdit && (dbQty === null ? displayQty !== '' : numVal !== dbQty);
+
+                          let statusTagClass = 'tag-unspecified';
+                          let statusTagLabel = 'Не указан';
+
+                          if (dbQty !== null && !isNaN(dbQty)) {
+                            if (dbQty > 0) {
+                              statusTagClass = 'tag-instock';
+                              statusTagLabel = `В наличии (${dbQty} шт.)`;
+                            } else {
+                              statusTagClass = 'tag-outofstock';
+                              statusTagLabel = '0 шт. (закончился)';
+                            }
+                          }
+
+                          const formattedDate = stockItem?.updatedAt 
+                            ? new Date(stockItem.updatedAt).toLocaleDateString('ru-RU', { 
+                                day: '2-digit', 
+                                month: '2-digit', 
+                                year: 'numeric', 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })
+                            : '—';
+
+                          return (
+                            <tr key={prod.article}>
+                              <td>
+                                <div className="table-thumb-frame">
+                                  {prod.photo1 ? (
+                                    <img 
+                                      src={thumbSrc} 
+                                      alt={prod.name} 
+                                      className="table-thumb" 
+                                      onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
+                                  ) : (
+                                    <ImageIcon size={18} className="cell-muted" />
+                                  )}
+                                </div>
+                              </td>
+                              <td><code>{prod.article}</code></td>
+                              <td>
+                                <div className="prod-title-wrap">
+                                  <strong>{prod.name}</strong>
+                                  <span className="prod-sub">{prod.collection || 'LAUTE'}</span>
+                                </div>
+                              </td>
+                              <td>{prod.category}</td>
+                              <td>
+                                <div className="stock-qty-input-group">
+                                  <button
+                                    type="button"
+                                    className="qty-step-btn"
+                                    onClick={() => {
+                                      const cur = parseInt(displayQty || '0', 10) || 0;
+                                      const next = Math.max(0, cur - 1);
+                                      setStockLocalEdits(prev => ({ ...prev, [prod.article]: next }));
+                                    }}
+                                    title="Уменьшить на 1"
+                                  >
+                                    -
+                                  </button>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    className={`stock-qty-field ${isChanged ? 'field-modified' : ''}`}
+                                    placeholder="Не указан"
+                                    value={displayQty}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setStockLocalEdits(prev => ({ ...prev, [prod.article]: val }));
+                                    }}
+                                  />
+                                  <button
+                                    type="button"
+                                    className="qty-step-btn"
+                                    onClick={() => {
+                                      const cur = parseInt(displayQty || '0', 10) || 0;
+                                      const next = cur + 1;
+                                      setStockLocalEdits(prev => ({ ...prev, [prod.article]: next }));
+                                    }}
+                                    title="Увеличить на 1"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              </td>
+                              <td>
+                                <span className={`stock-status-badge ${statusTagClass}`}>
+                                  {statusTagLabel}
+                                </span>
+                              </td>
+                              <td className="cell-date">
+                                <span>{formattedDate}</span>
+                              </td>
+                              <td>
+                                <div className="actions-cell">
+                                  <button
+                                    type="button"
+                                    className={`action-btn ${isChanged ? 'btn-save-active' : ''}`}
+                                    disabled={!isChanged || isSavingStock}
+                                    onClick={() => handleSaveStockRow(prod.article)}
+                                    title={isChanged ? 'Сохранить изменённое количество' : 'Значение не изменено'}
+                                  >
+                                    <Save size={15} />
+                                  </button>
+                                  {hasEdit && (
+                                    <button
+                                      type="button"
+                                      className="action-btn"
+                                      onClick={() => {
+                                        setStockLocalEdits(prev => {
+                                          const copy = { ...prev };
+                                          delete copy[prod.article];
+                                          return copy;
+                                        });
+                                      }}
+                                      title="Сбросить правку"
+                                    >
+                                      <RotateCcw size={14} />
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* TAB 5: КАТЕГОРИИ */}
           {activeTab === 'categories' && (
             <div className="admin-view categories-view">
@@ -2486,24 +3209,42 @@ export const AdminPage = () => {
               <div className="admin-section-card">
                 <div className="lang-status-grid">
                   <div className="lang-status-card">
-                    <span className="lang-badge">RU</span>
-                    <h4>Русский язык (Основной)</h4>
-                    <span className="stat-tag success">100% Заполнено</span>
-                    <p>Используется как стандартный базовый язык завода и резервный fallback для остальных версий.</p>
+                    <div className="lang-card-header">
+                      <span className="lang-badge">RU</span>
+                      <span className="stat-tag success">Основной (Базовый)</span>
+                    </div>
+                    <h4>Русский язык</h4>
+                    <p className="lang-desc">Базовый язык завода LAUTE и эталонная версия для синхронизации номенклатуры каталога и документации.</p>
+                    <div className="lang-meta">
+                      <span>Локаль: ru-RU</span>
+                      <span>Fallback: —</span>
+                    </div>
                   </div>
 
                   <div className="lang-status-card">
-                    <span className="lang-badge">KZ</span>
-                    <h4>Қазақ тілі (Казахский)</h4>
-                    <span className="stat-tag success">Активен</span>
-                    <p>Полноценный перевод интерфейса, навигации, карточек номенклатуры и сервиса.</p>
+                    <div className="lang-card-header">
+                      <span className="lang-badge">KZ</span>
+                      <span className="stat-tag info">Подключен (KZ)</span>
+                    </div>
+                    <h4>Қазақ тілі</h4>
+                    <p className="lang-desc">Региональная версия для партнёров и покупателей в Республике Казахстан. Локализация каталога и сервиса.</p>
+                    <div className="lang-meta">
+                      <span>Локаль: kk-KZ</span>
+                      <span>Fallback: RU</span>
+                    </div>
                   </div>
 
                   <div className="lang-status-card">
-                    <span className="lang-badge">EN</span>
-                    <h4>English (Английский)</h4>
-                    <span className="stat-tag success">Активен</span>
-                    <p>Международная версия для экспортных контрактов, дистрибьюторов и глобального каталога.</p>
+                    <div className="lang-card-header">
+                      <span className="lang-badge">EN</span>
+                      <span className="stat-tag info">Подключен (EN)</span>
+                    </div>
+                    <h4>English</h4>
+                    <p className="lang-desc">Международная версия для экспортных контрактов, зарубежных дистрибьюторов и глобального каталога.</p>
+                    <div className="lang-meta">
+                      <span>Локаль: en-US</span>
+                      <span>Fallback: RU</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -3157,6 +3898,298 @@ export const AdminPage = () => {
               >
                 <Check size={14} />
                 <span>Опубликовать эти изменения</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: CREATE / EDIT WAREHOUSE */}
+      {isWhModalOpen && (
+        <div className="admin-modal-backdrop">
+          <div className="admin-modal-card">
+            <div className="admin-modal-header">
+              <div className="modal-header-title">
+                <Warehouse size={18} />
+                <h3>{editingWh ? `Редактирование склада «${editingWh.name}»` : 'Добавить новый логистический склад'}</h3>
+              </div>
+              <button
+                type="button"
+                className="modal-close-btn"
+                onClick={() => setIsWhModalOpen(false)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveWh} className="admin-modal-body">
+              {whFormError && (
+                <div className="admin-alert-banner" style={{ padding: '8px 12px', marginBottom: 16 }}>
+                  <AlertTriangle size={16} />
+                  <span>{whFormError}</span>
+                </div>
+              )}
+
+              <div className="form-group">
+                <label>Идентификатор (slug):</label>
+                <input
+                  type="text"
+                  value={whFormData.id}
+                  disabled={Boolean(editingWh)}
+                  placeholder="almaty, novosibirsk, moscow, china..."
+                  onChange={(e) => setWhFormData({ ...whFormData, id: e.target.value })}
+                  required
+                />
+                <span className="form-help-text">Уникальный системный код для связки с базой остатков.</span>
+              </div>
+
+              <div className="form-group">
+                <label>Название склада (для интерфейса):</label>
+                <input
+                  type="text"
+                  value={whFormData.name}
+                  placeholder="Алматы, Новосибирск, Москва, Китай..."
+                  onChange={(e) => setWhFormData({ ...whFormData, name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="form-group">
+                  <label>Страна:</label>
+                  <input
+                    type="text"
+                    value={whFormData.country}
+                    placeholder="Казахстан, Россия, КНР..."
+                    onChange={(e) => setWhFormData({ ...whFormData, country: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Город:</label>
+                  <input
+                    type="text"
+                    value={whFormData.city}
+                    placeholder="Алматы, Москва..."
+                    onChange={(e) => setWhFormData({ ...whFormData, city: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Физический адрес или комплекс:</label>
+                <input
+                  type="text"
+                  value={whFormData.address}
+                  placeholder="г. Алматы, пр. Райымбека, 212"
+                  onChange={(e) => setWhFormData({ ...whFormData, address: e.target.value })}
+                />
+              </div>
+
+              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'center' }}>
+                <div className="form-group">
+                  <label>Приоритет в списке:</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={whFormData.priority}
+                    onChange={(e) => setWhFormData({ ...whFormData, priority: parseInt(e.target.value, 10) || 1 })}
+                  />
+                </div>
+                <div className="form-group" style={{ paddingTop: 20 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={whFormData.isActive}
+                      onChange={(e) => setWhFormData({ ...whFormData, isActive: e.target.checked })}
+                    />
+                    <span>Склад активен для выбора</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="admin-modal-footer" style={{ marginTop: 24 }}>
+                {editingWh && (
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn-danger admin-btn-sm"
+                    style={{ marginRight: 'auto' }}
+                    onClick={() => handleDeleteWh(editingWh)}
+                  >
+                    <Trash2 size={14} />
+                    <span>Удалить склад</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="admin-btn admin-btn-outline"
+                  onClick={() => setIsWhModalOpen(false)}
+                >
+                  Отмена
+                </button>
+                <button
+                  type="submit"
+                  className="admin-btn admin-btn-primary"
+                  disabled={isSavingWh}
+                >
+                  <Save size={14} />
+                  <span>{isSavingWh ? 'Сохранение...' : 'Сохранить склад'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: STOCK EXCEL DIFF PREVIEW & IMPORT */}
+      {isStockExcelModalOpen && stockExcelDiff && (
+        <div className="admin-modal-backdrop">
+          <div className="admin-modal-card wide">
+            <div className="admin-modal-header">
+              <div className="modal-header-title">
+                <FileSpreadsheet size={18} />
+                <h3>Предварительный просмотр импорта остатков: Склад «{stockExcelDiff.warehouseName || selectedWarehouseId}»</h3>
+              </div>
+              <button
+                type="button"
+                className="modal-close-btn"
+                onClick={() => {
+                  setIsStockExcelModalOpen(false);
+                  setStockExcelDiff(null);
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="admin-modal-body">
+              {/* Import Mode Radio Selection */}
+              <div className="import-mode-selector">
+                <label className={`mode-card ${stockExcelMode === 'partial' ? 'selected' : ''}`}>
+                  <input
+                    type="radio"
+                    name="stockMode"
+                    value="partial"
+                    checked={stockExcelMode === 'partial'}
+                    onChange={() => setStockExcelMode('partial')}
+                  />
+                  <div>
+                    <strong>Частичное обновление (Безопасный режим по умолчанию)</strong>
+                    <p>Обновляются только позиции, указанные в Excel. Неуказанные артикулы на этом складе сохраняют текущее количество без изменений.</p>
+                  </div>
+                </label>
+
+                <label className={`mode-card danger-mode ${stockExcelMode === 'replace' ? 'selected' : ''}`}>
+                  <input
+                    type="radio"
+                    name="stockMode"
+                    value="replace"
+                    checked={stockExcelMode === 'replace'}
+                    onChange={() => setStockExcelMode('replace')}
+                  />
+                  <div>
+                    <strong>Полная замена остатков склада (Режим инвентаризации)</strong>
+                    <p>Товары из Excel получат новые значения. Все остальные товары на складе «{stockExcelDiff.warehouseName}» будут обнулены (0 шт.).</p>
+                  </div>
+                </label>
+              </div>
+
+              {stockExcelMode === 'replace' && (
+                <div className="admin-alert-banner" style={{ background: 'rgba(239, 68, 68, 0.1)', borderColor: 'rgba(239, 68, 68, 0.4)', margin: '16px 0' }}>
+                  <AlertTriangle size={20} style={{ color: '#EF4444' }} />
+                  <div>
+                    <h4 style={{ color: '#EF4444', margin: '0 0 4px 0' }}>Требуется подтверждение полной замены</h4>
+                    <p style={{ margin: 0, fontSize: 13, color: 'var(--adm-text-secondary)' }}>
+                      Этот режим затрагивает ТОЛЬКО склад «{stockExcelDiff.warehouseName}». Остальные склады (Новосибирск, Москва, КНР) не будут затронуты.
+                    </p>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, cursor: 'pointer', fontWeight: 600, color: '#FFFFFF' }}>
+                      <input
+                        type="checkbox"
+                        checked={stockExcelReplaceAgreed}
+                        onChange={(e) => setStockExcelReplaceAgreed(e.target.checked)}
+                      />
+                      <span>Я подтверждаю полную замену остатков на данном складе</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* Stats Summary Chips */}
+              <div className="diff-stats-chips">
+                <span className="diff-chip success">Валидных строк: {stockExcelDiff.validCount || stockExcelDiff.diffList?.length || 0}</span>
+                {stockExcelDiff.errorCount > 0 && (
+                  <span className="diff-chip danger">Ошибок в файле: {stockExcelDiff.errorCount}</span>
+                )}
+                <span className="diff-chip info">Выбран склад: {stockExcelDiff.warehouseName}</span>
+              </div>
+
+              {/* Errors List */}
+              {stockExcelDiff.errors && stockExcelDiff.errors.length > 0 && (
+                <div className="excel-diff-errors-box">
+                  <h4>Ошибки и предупреждения валидации ({stockExcelDiff.errors.length}):</h4>
+                  <ul>
+                    {stockExcelDiff.errors.map((err, eIdx) => (
+                      <li key={eIdx}>
+                        {typeof err === 'string' ? err : `Строка ${err.row}${err.sku ? ` (${err.sku})` : ''}: ${err.message}`}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Diff Preview Table */}
+              <div className="admin-table-wrapper" style={{ maxHeight: 320, overflowY: 'auto' }}>
+                <table className="admin-table diff-table">
+                  <thead>
+                    <tr>
+                      <th>SKU</th>
+                      <th>Наименование</th>
+                      <th>Было</th>
+                      <th>Станет</th>
+                      <th>Разница</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stockExcelDiff.diffList?.map((d) => (
+                      <tr key={d.sku}>
+                        <td><code>{d.sku}</code></td>
+                        <td><strong>{d.name}</strong></td>
+                        <td>{d.oldQuantity} шт.</td>
+                        <td><strong>{d.newQuantity} шт.</strong></td>
+                        <td>
+                          <span className={`diff-delta ${d.diff > 0 ? 'plus' : d.diff < 0 ? 'minus' : 'zero'}`}>
+                            {d.diff > 0 ? `+${d.diff}` : d.diff === 0 ? '0' : d.diff} шт.
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="admin-modal-footer">
+              <button
+                type="button"
+                className="admin-btn admin-btn-outline"
+                onClick={() => {
+                  setIsStockExcelModalOpen(false);
+                  setStockExcelDiff(null);
+                }}
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                className="admin-btn admin-btn-success"
+                disabled={
+                  isStockExcelConfirming ||
+                  !stockExcelDiff.diffList ||
+                  stockExcelDiff.diffList.length === 0 ||
+                  (stockExcelMode === 'replace' && !stockExcelReplaceAgreed)
+                }
+                onClick={handleCommitStockExcel}
+              >
+                <Check size={14} />
+                <span>{isStockExcelConfirming ? 'Применение...' : `Подтвердить и обновить склад «${stockExcelDiff.warehouseName}»`}</span>
               </button>
             </div>
           </div>

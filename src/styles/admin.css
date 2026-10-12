@@ -14,8 +14,8 @@
   --adm-border-light: rgba(255, 255, 255, 0.08);
   
   --adm-text-primary: #F8FAFC;
-  --adm-text-secondary: #94A3B8;
-  --adm-text-muted: #64748B;
+  --adm-text-secondary: #CBD5E1;
+  --adm-text-muted: #94A3B8;
   
   --adm-accent-blue: #38BDF8;
   --adm-accent-blue-hover: #0EA5E9;
@@ -718,29 +718,30 @@
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 14px;
   text-align: left;
 }
 
 .admin-table th {
   background: var(--adm-surface-card);
   color: var(--adm-text-secondary);
-  padding: 12px 16px;
-  font-weight: 600;
-  font-size: 12px;
+  padding: 13px 16px;
+  font-weight: 700;
+  font-size: 13px;
   border-bottom: 1px solid var(--adm-border);
   white-space: nowrap;
 }
 
 .admin-table td {
-  padding: 13px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   color: var(--adm-text-primary);
   vertical-align: middle;
+  line-height: 1.45;
 }
 
 .admin-table tr:hover td {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .admin-table tr.row-muted td {
@@ -748,40 +749,41 @@
 }
 
 .cell-time {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--adm-text-muted);
   white-space: nowrap;
 }
 
 .cell-muted {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--adm-text-muted);
 }
 
 .cell-actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
 }
 
 .log-action-tag {
   background: var(--adm-surface-light);
   color: var(--adm-accent-blue);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  padding: 2px 7px;
+  padding: 3px 8px;
   border-radius: 4px;
 }
 
 .table-thumb-frame {
-  width: 42px;
-  height: 42px;
+  width: 46px;
+  height: 46px;
   background: var(--adm-surface-card);
   border: 1px solid var(--adm-border);
-  border-radius: 4px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .table-thumb {
@@ -793,31 +795,35 @@
 .prod-title-wrap strong {
   display: block;
   color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .prod-sub {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--adm-text-muted);
+  margin-top: 2px;
 }
 
 .price-tag {
   font-weight: 700;
   color: #FFFFFF;
+  font-size: 14px;
 }
 
 .actions-cell {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .action-btn {
   background: var(--adm-surface-light);
   border: 1px solid var(--adm-border);
   color: var(--adm-text-secondary);
-  width: 32px;
-  height: 32px;
-  border-radius: 4px;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1847,4 +1853,617 @@
   color: #F97316;
   flex-shrink: 0;
 }
+
+/* ==========================================
+   15. WAREHOUSES & STOCK MANAGEMENT (НОВЫЙ РАЗДЕЛ)
+   ========================================== */
+.admin-view {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.stock-view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.warehouse-selector-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-md);
+}
+
+.warehouse-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--adm-text-secondary);
+  background: var(--adm-surface-card);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.warehouse-pill-btn:hover {
+  background: var(--adm-surface-light);
+  color: #FFFFFF;
+}
+
+.warehouse-pill-btn.active {
+  background: rgba(14, 165, 233, 0.15);
+  border-color: var(--adm-accent-blue);
+  color: var(--adm-accent-blue);
+}
+
+.warehouse-pill-btn .wh-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--adm-success);
+}
+
+.warehouse-pill-btn.is-inactive .wh-status-dot {
+  background: var(--adm-text-muted);
+}
+
+.stock-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.stock-stat-card {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-md);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stock-stat-label {
+  font-size: 12px;
+  color: var(--adm-text-muted);
+  font-weight: 500;
+}
+
+.stock-stat-val {
+  font-size: 24px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.stock-qty-input {
+  width: 90px;
+  background: var(--adm-surface-card);
+  border: 1px solid var(--adm-border);
+  color: #FFFFFF;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  transition: border-color 0.2s ease;
+}
+
+.stock-qty-input:focus {
+  outline: none;
+  border-color: var(--adm-accent-blue);
+}
+
+.stock-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.stock-status-pill.in-stock {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--adm-success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.stock-status-pill.out-of-stock {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--adm-danger);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.stock-status-pill.unspecified {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--adm-text-muted);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.excel-diff-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.excel-diff-table th {
+  background: var(--adm-surface-card);
+  color: var(--adm-text-secondary);
+  padding: 10px 14px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--adm-border);
+  text-align: left;
+}
+
+.excel-diff-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.diff-tag-increase {
+  color: var(--adm-success);
+  font-weight: 700;
+}
+
+.diff-tag-decrease {
+  color: var(--adm-danger);
+  font-weight: 700;
+}
+
+.diff-tag-same {
+  color: var(--adm-text-muted);
+}
+
+/* ==========================================
+   WAREHOUSE & STOCK MANAGEMENT COMPLETE STYLES
+   ========================================== */
+.warehouse-selector-bar {
+  margin-bottom: 20px;
+}
+
+.warehouse-pills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.warehouse-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.warehouse-pill:hover {
+  border-color: rgba(56, 189, 248, 0.5);
+  background: var(--adm-surface-light);
+}
+
+.warehouse-pill.active {
+  background: rgba(14, 165, 233, 0.12);
+  border-color: var(--adm-accent-blue);
+  box-shadow: 0 0 16px rgba(14, 165, 233, 0.2);
+}
+
+.wh-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--adm-text-muted);
+  transition: background 0.2s ease;
+}
+
+.warehouse-pill.active .wh-dot {
+  background: #38BDF8;
+  box-shadow: 0 0 8px #38BDF8;
+}
+
+.wh-pill-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.wh-pill-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1.2;
+}
+
+.wh-pill-location {
+  font-size: 11px;
+  color: var(--adm-text-muted);
+}
+
+.warehouse-pill.active .wh-pill-location {
+  color: var(--adm-text-secondary);
+}
+
+.wh-pill-tag.inactive {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+}
+
+.wh-pill-edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--adm-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-left: 4px;
+}
+
+.wh-pill-edit-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+}
+
+/* Stock Summary Grid */
+.stock-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stock-summary-card {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-md);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.stock-summary-card.primary {
+  border-color: rgba(56, 189, 248, 0.35);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%);
+}
+
+.stock-summary-card .stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--adm-text-muted);
+  margin-bottom: 6px;
+}
+
+.stock-summary-card .stat-value {
+  font-size: 26px;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin: 0 0 6px 0;
+}
+
+.stock-summary-card .stat-value small {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--adm-text-secondary);
+  margin-left: 4px;
+}
+
+.stock-summary-card .stat-sub {
+  font-size: 12px;
+  color: var(--adm-text-secondary);
+  margin: 0;
+}
+
+/* Stock Qty Inputs in Table */
+.stock-qty-input-group {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--adm-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.qty-step-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.04);
+  border: none;
+  color: var(--adm-text-secondary);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.qty-step-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+
+.stock-qty-field {
+  width: 68px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #FFFFFF;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.stock-qty-field::-webkit-outer-spin-button,
+.stock-qty-field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.stock-qty-field.field-modified {
+  background: rgba(245, 158, 11, 0.15);
+  color: #FBBF24;
+}
+
+.btn-save-active {
+  background: var(--adm-accent-blue) !important;
+  color: #FFFFFF !important;
+  border-color: var(--adm-accent-blue) !important;
+  box-shadow: 0 0 10px rgba(14, 165, 233, 0.4);
+}
+
+/* Stock Status Badges */
+.stock-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.stock-status-badge.tag-instock {
+  background: rgba(16, 185, 129, 0.14);
+  color: #34D399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.stock-status-badge.tag-outofstock {
+  background: rgba(239, 68, 68, 0.14);
+  color: #F87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.stock-status-badge.tag-unspecified {
+  background: rgba(148, 163, 184, 0.12);
+  color: #CBD5E1;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.cell-date {
+  font-size: 12px;
+  color: var(--adm-text-secondary);
+}
+
+/* Wide Modal Card */
+.admin-modal-card.wide {
+  max-width: 860px;
+  width: 95%;
+}
+
+/* Import Mode Selector */
+.import-mode-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.mode-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: var(--adm-surface-card);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mode-card:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.mode-card.selected {
+  border-color: var(--adm-accent-blue);
+  background: rgba(14, 165, 233, 0.08);
+}
+
+.mode-card.danger-mode.selected {
+  border-color: #EF4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.mode-card input[type="radio"] {
+  margin-top: 3px;
+  accent-color: var(--adm-accent-blue);
+}
+
+.mode-card strong {
+  display: block;
+  font-size: 13px;
+  color: #FFFFFF;
+  margin-bottom: 4px;
+}
+
+.mode-card p {
+  font-size: 12px;
+  color: var(--adm-text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Diff Stats Chips */
+.diff-stats-chips {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.diff-chip {
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.diff-chip.success {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34D399;
+}
+
+.diff-chip.danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+}
+
+.diff-chip.info {
+  background: rgba(14, 165, 233, 0.15);
+  color: #38BDF8;
+}
+
+/* Excel Diff Errors Box */
+.excel-diff-errors-box {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--adm-radius-sm);
+  padding: 14px 18px;
+  margin-bottom: 16px;
+}
+
+.excel-diff-errors-box h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #EF4444;
+  margin: 0 0 8px 0;
+}
+
+.excel-diff-errors-box ul {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--adm-text-secondary);
+  font-size: 12px;
+}
+
+/* Diff Table */
+.diff-table th, .diff-table td {
+  padding: 10px 14px;
+}
+
+.diff-delta {
+  font-weight: 700;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.diff-delta.plus {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34D399;
+}
+
+.diff-delta.minus {
+  background: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+}
+
+.diff-delta.zero {
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--adm-text-muted);
+}
+
+/* Languages Tab Clean Grid */
+.lang-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.lang-status-card {
+  background: var(--adm-surface-card);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-md);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.lang-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.lang-badge {
+  font-size: 14px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+}
+
+.lang-status-card h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0 0 8px 0;
+}
+
+.lang-desc {
+  font-size: 13px;
+  color: var(--adm-text-secondary);
+  line-height: 1.5;
+  margin: 0 0 16px 0;
+  flex: 1;
+}
+
+.lang-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  color: var(--adm-text-muted);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 12px;
+}
+
 

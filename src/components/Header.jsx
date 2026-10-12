@@ -154,7 +154,8 @@ export const Header = () => {
                   className={`nav-link ${currentRoute === 'service' ? 'active' : ''}`} 
                   onClick={() => handleNavClick('service')}
                 >
-                  {t.nav.service || 'Первый цифровой сервис'}
+                  <span className="nav-service-full">{t.nav.service || 'Первый цифровой сервис'}</span>
+                  <span className="nav-service-short">Сервис</span>
                 </button>
               </li>
               <li>

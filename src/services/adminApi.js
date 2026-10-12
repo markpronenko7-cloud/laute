@@ -474,12 +474,47 @@ export const deleteProduct = async (sku) => {
 // ==========================================
 
 export const fetchMediaList = async () => {
-  const res = await fetch(`${getApiBase()}/media`, {
-    headers: { ...authHeaders() }
-  });
-  if (!res.ok) throw new Error('Ошибка загрузки списка медиа');
-  const data = await res.json();
-  return data.files || [];
+  try {
+    const res = await fetch(`${getApiBase()}/media`, {
+      headers: { ...authHeaders() }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.files) && data.files.length > 0) {
+        return data.files;
+      }
+    }
+  } catch (err) {
+    // Offline/static fallback
+  }
+
+  // Authentic project images fallback for static/Pages hosting
+  return [
+    { name: 'hero-slide-1.jpg', url: 'images/hero/hero-slide-1.jpg', size: 654841, modified: new Date().toISOString() },
+    { name: 'hero-slide-2.jpg', url: 'images/hero/hero-slide-2.jpg', size: 767215, modified: new Date().toISOString() },
+    { name: 'hero-slide-3.jpg', url: 'images/hero/hero-slide-3.jpg', size: 713731, modified: new Date().toISOString() },
+    { name: 'hero-slide-4.jpg', url: 'images/hero/hero-slide-4.jpg', size: 840681, modified: new Date().toISOString() },
+    { name: 'hero-slide-5.jpg', url: 'images/hero/hero-slide-5.jpg', size: 735010, modified: new Date().toISOString() },
+    { name: 'hero-slide-6.jpg', url: 'images/hero/hero-slide-6.jpg', size: 673763, modified: new Date().toISOString() },
+    { name: 'cat_kitchen.png', url: 'images/cat_kitchen.png', size: 1791211, modified: new Date().toISOString() },
+    { name: 'cat_bath.png', url: 'images/cat_bath.png', size: 1385357, modified: new Date().toISOString() },
+    { name: 'cat_shower.png', url: 'images/cat_shower.png', size: 1943322, modified: new Date().toISOString() },
+    { name: 'cat_german_line.png', url: 'images/cat_german_line.png', size: 1636480, modified: new Date().toISOString() },
+    { name: 'cat_sinks.png', url: 'images/cat_sinks.png', size: 349649, modified: new Date().toISOString() },
+    { name: 'cat_accessories.png', url: 'images/cat_accessories.png', size: 936940, modified: new Date().toISOString() },
+    { name: 'cat_laute_brand.jpg', url: 'images/cat_laute_brand.jpg', size: 100295, modified: new Date().toISOString() },
+    { name: 'brass_eccentric_macro.jpg', url: 'images/brass_eccentric_macro.jpg', size: 773262, modified: new Date().toISOString() },
+    { name: 'eco_aluminum_macro.jpg', url: 'images/eco_aluminum_macro.jpg', size: 579528, modified: new Date().toISOString() },
+    { name: 'sus304_steel_macro.jpg', url: 'images/sus304_steel_macro.jpg', size: 778383, modified: new Date().toISOString() },
+    { name: 'sedal_cartridge_macro.jpg', url: 'images/sedal_cartridge_macro.jpg', size: 705361, modified: new Date().toISOString() },
+    { name: 'pvd_finish_macro.jpg', url: 'images/pvd_finish_macro.jpg', size: 557617, modified: new Date().toISOString() },
+    { name: 'prod_casting.png', url: 'images/prod_casting.png', size: 321025, modified: new Date().toISOString() },
+    { name: 'prod_machining.png', url: 'images/prod_machining.png', size: 481842, modified: new Date().toISOString() },
+    { name: 'prod_polishing.png', url: 'images/prod_polishing.png', size: 514737, modified: new Date().toISOString() },
+    { name: 'prod_coating.png', url: 'images/prod_coating.png', size: 758281, modified: new Date().toISOString() },
+    { name: 'prod_testing.png', url: 'images/prod_testing.png', size: 549076, modified: new Date().toISOString() },
+    { name: 'prod_qc.png', url: 'images/prod_qc.png', size: 429163, modified: new Date().toISOString() }
+  ];
 };
 
 export const uploadMediaFiles = async (fileList) => {
@@ -642,3 +677,196 @@ export const downloadFullSystemBackup = async () => {
   triggerBlobDownload(blob, `LAUTE_FULL_BACKUP_${dateStr}.json`);
   return true;
 };
+
+// ==========================================
+// 8. УПРАВЛЕНИЕ СКЛАДАМИ И ОСТАТКАМИ (WAREHOUSES & STOCK)
+// ==========================================
+
+export const fetchWarehouses = async () => {
+  try {
+    const res = await fetch(`${getApiBase()}/warehouses`, {
+      headers: { ...authHeaders() }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.warehouses)) return data.warehouses;
+    }
+  } catch (err) {
+    // static fallback
+  }
+
+  // Fallback to public JSON for static GitHub Pages demo
+  const staticPath = `${import.meta.env.BASE_URL}data/warehouses.json`;
+  try {
+    const staticRes = await fetch(staticPath);
+    if (staticRes.ok) return await staticRes.json();
+  } catch (err) {
+    console.warn('Failed to load static warehouses.json fallback');
+  }
+
+  return [
+    { id: 'almaty', name: 'Алматы', country: 'Казахстан', city: 'Алматы', address: 'г. Алматы, пр. Райымбека, 212', isActive: true, priority: 1 },
+    { id: 'novosibirsk', name: 'Новосибирск', country: 'Россия', city: 'Новосибирск', address: 'г. Новосибирск, ул. Блюхера, 71', isActive: true, priority: 2 },
+    { id: 'moscow', name: 'Москва', country: 'Россия', city: 'Москва', address: 'г. Москва, складской комплекс Юг', isActive: true, priority: 3 },
+    { id: 'china', name: 'Китай', country: 'КНР', city: 'Чжэцзян', address: 'Заводской комплекс LAUTE', isActive: true, priority: 4 }
+  ];
+};
+
+export const createWarehouse = async (warehouseData) => {
+  const res = await fetch(`${getApiBase()}/warehouses`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders()
+    },
+    body: JSON.stringify(warehouseData)
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Ошибка создания склада');
+  return data;
+};
+
+export const updateWarehouse = async (id, warehouseData) => {
+  const res = await fetch(`${getApiBase()}/warehouses/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders()
+    },
+    body: JSON.stringify(warehouseData)
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Ошибка обновления склада');
+  return data;
+};
+
+export const deleteWarehouse = async (id) => {
+  const res = await fetch(`${getApiBase()}/warehouses/${id}`, {
+    method: 'DELETE',
+    headers: { ...authHeaders() }
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Ошибка удаления склада');
+  return data;
+};
+
+export const fetchWarehouseStock = async (warehouseId = null, sku = null) => {
+  try {
+    let url = `${getApiBase()}/stock`;
+    const params = new URLSearchParams();
+    if (warehouseId) params.append('warehouseId', warehouseId);
+    if (sku) params.append('sku', sku);
+    if (params.toString()) url += `?${params.toString()}`;
+
+    const res = await fetch(url, { headers: { ...authHeaders() } });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.stock)) return data.stock;
+    }
+  } catch (err) {
+    // static fallback
+  }
+
+  // Fallback to static public JSON
+  const staticPath = `${import.meta.env.BASE_URL}data/warehouse_stock.json`;
+  try {
+    const staticRes = await fetch(staticPath);
+    if (staticRes.ok) {
+      const allStock = await staticRes.json();
+      if (warehouseId) return allStock.filter(s => s.warehouseId === warehouseId);
+      return allStock;
+    }
+  } catch (err) {
+    console.warn('Failed to load static warehouse_stock.json');
+  }
+
+  return [];
+};
+
+export const saveStockItem = async (warehouseId, sku, quantity) => {
+  const res = await fetch(`${getApiBase()}/stock`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders()
+    },
+    body: JSON.stringify({ warehouseId, sku, quantity })
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Ошибка сохранения остатка');
+  return data;
+};
+
+export const saveBulkStock = async (warehouseId, items) => {
+  const res = await fetch(`${getApiBase()}/stock/bulk`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders()
+    },
+    body: JSON.stringify({ warehouseId, items })
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Ошибка сохранения списка остатков');
+  return data;
+};
+
+export const downloadStockTemplate = async (warehouseId) => {
+  const res = await fetch(`${getApiBase()}/stock/excel/template?warehouseId=${warehouseId}`, {
+    headers: { ...authHeaders() }
+  });
+  if (!res.ok) throw new Error('Ошибка загрузки шаблона остатков');
+  const blob = await res.blob();
+  triggerBlobDownload(blob, `LAUTE_Stock_Template_${warehouseId}.xlsx`);
+  return true;
+};
+
+export const exportStockToExcel = async (warehouseId) => {
+  const res = await fetch(`${getApiBase()}/stock/excel/export?warehouseId=${warehouseId}`, {
+    headers: { ...authHeaders() }
+  });
+  if (!res.ok) throw new Error('Ошибка экспорта складских остатков');
+  const blob = await res.blob();
+  const dateStr = new Date().toISOString().slice(0, 10);
+  triggerBlobDownload(blob, `LAUTE_Stock_${warehouseId}_${dateStr}.xlsx`);
+  return true;
+};
+
+export const validateStockExcelFile = async (file, warehouseId) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('warehouseId', warehouseId);
+
+  const res = await fetch(`${getApiBase()}/stock/excel/validate`, {
+    method: 'POST',
+    headers: { ...authHeaders() },
+    body: formData
+  });
+
+  const data = await res.json();
+  if (!res.ok && !data.diffList) {
+    throw new Error(data.error || 'Ошибка проверки Excel-файла остатков');
+  }
+  return data;
+};
+
+export const commitStockExcelImport = async (warehouseId, diffList, mode = 'partial') => {
+  const res = await fetch(`${getApiBase()}/stock/excel/commit`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders()
+    },
+    body: JSON.stringify({ warehouseId, diffList, mode })
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Ошибка подтверждения импорта остатков');
+  return data;
+};
+

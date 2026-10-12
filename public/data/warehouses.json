@@ -1,0 +1,42 @@
+[
+  {
+    "id": "almaty",
+    "name": "Алматы",
+    "country": "Казахстан",
+    "city": "Алматы",
+    "address": "г. Алматы, пр. Райымбека, 212",
+    "isActive": true,
+    "priority": 1,
+    "updatedAt": "2026-10-12T10:00:00.000Z"
+  },
+  {
+    "id": "novosibirsk",
+    "name": "Новосибирск",
+    "country": "Россия",
+    "city": "Новосибирск",
+    "address": "г. Новосибирск, ул. Блюхера, 71",
+    "isActive": true,
+    "priority": 2,
+    "updatedAt": "2026-10-12T10:00:00.000Z"
+  },
+  {
+    "id": "moscow",
+    "name": "Москва",
+    "country": "Россия",
+    "city": "Москва",
+    "address": "г. Москва, складской комплекс Юг",
+    "isActive": true,
+    "priority": 3,
+    "updatedAt": "2026-10-12T10:00:00.000Z"
+  },
+  {
+    "id": "china",
+    "name": "Китай",
+    "country": "КНР",
+    "city": "Вэньчжоу / Чжэцзян",
+    "address": "Заводской комплекс LAUTE, провинция Чжэцзян",
+    "isActive": true,
+    "priority": 4,
+    "updatedAt": "2026-10-12T10:00:00.000Z"
+  }
+]

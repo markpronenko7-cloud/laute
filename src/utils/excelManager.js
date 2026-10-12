@@ -329,3 +329,157 @@ export const applyExcelImport = (currentProducts, validatedRows) => {
 
   return Array.from(productMap.values());
 };
+
+/**
+ * Генерирует и скачивает официальный Excel-шаблон остатков для конкретного склада
+ */
+export const downloadStockTemplateExcel = (warehouse, products = [], currentStock = []) => {
+  const stockMap = new Map();
+  currentStock.forEach(s => {
+    if (s.warehouseId === warehouse.id) {
+      stockMap.set(s.sku, s.quantity);
+    }
+  });
+
+  const rows = products.map(p => ({
+    'Артикул (SKU)': p.article,
+    'Наименование товара': p.name,
+    'Категория': p.category,
+    'Количество на складе (шт)': stockMap.has(p.article) ? stockMap.get(p.article) : 0,
+    'Склад': warehouse.name
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = [
+    { wch: 18 },
+    { wch: 40 },
+    { wch: 24 },
+    { wch: 26 },
+    { wch: 18 }
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, `Остатки — ${warehouse.name}`);
+  XLSX.writeFile(wb, `LAUTE_Stock_Template_${warehouse.id}.xlsx`);
+};
+
+/**
+ * Парсит и валидирует загруженный Excel-файл со складскими остатками на клиенте
+ */
+export const parseStockExcelClient = async (file, warehouse, currentProducts, currentStock = []) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+
+        if (!sheet) {
+          throw new Error('Файл не содержит листов');
+        }
+
+        const rawRows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        if (rawRows.length < 2) {
+          throw new Error('Файл Excel пуст или содержит только заголовок');
+        }
+
+        const headers = rawRows[0].map(h => String(h || '').trim().toLowerCase());
+        const skuIdx = headers.findIndex(h => h.includes('артикул') || h.includes('sku'));
+        const qtyIdx = headers.findIndex(h => h.includes('количество') || h.includes('остаток') || h.includes('кол-во') || h.includes('qty'));
+
+        if (skuIdx === -1) {
+          throw new Error('Не найдена колонка "Артикул" или "SKU" в файле');
+        }
+        if (qtyIdx === -1) {
+          throw new Error('Не найдена колонка "Количество" в файле');
+        }
+
+        const productsMap = new Map();
+        currentProducts.forEach(p => productsMap.set(p.article, p));
+
+        const stockMap = new Map();
+        currentStock.forEach(s => {
+          if (s.warehouseId === warehouse.id) {
+            stockMap.set(s.sku, s.quantity);
+          }
+        });
+
+        const diffList = [];
+        const errors = [];
+        const seenSkus = new Set();
+        const now = new Date().toISOString();
+
+        for (let i = 1; i < rawRows.length; i++) {
+          const row = rawRows[i];
+          if (!row || row.length === 0) continue;
+
+          const skuRaw = row[skuIdx];
+          const qtyRaw = row[qtyIdx];
+          if (!skuRaw && (qtyRaw === null || qtyRaw === undefined)) continue;
+
+          const sku = String(skuRaw || '').trim();
+          if (!sku) {
+            errors.push({ row: i + 1, message: 'Строка без артикула SKU' });
+            continue;
+          }
+
+          if (seenSkus.has(sku)) {
+            errors.push({ row: i + 1, sku, message: `Повторяющийся артикул ${sku} в файле` });
+            continue;
+          }
+          seenSkus.add(sku);
+
+          const product = productsMap.get(sku);
+          if (!product) {
+            errors.push({ row: i + 1, sku, message: `Артикул ${sku} не найден в номенклатуре LAUTE` });
+            continue;
+          }
+
+          let qty = 0;
+          if (typeof qtyRaw === 'number') {
+            qty = Math.max(0, Math.floor(qtyRaw));
+          } else {
+            const parsed = parseInt(String(qtyRaw || '0').replace(/[^0-9]/g, ''), 10);
+            if (isNaN(parsed) || parsed < 0) {
+              errors.push({ row: i + 1, sku, message: `Некорректное число количества "${qtyRaw}"` });
+              continue;
+            }
+            qty = parsed;
+          }
+
+          const currentQty = stockMap.has(sku) ? stockMap.get(sku) : 0;
+          const diff = qty - currentQty;
+
+          diffList.push({
+            sku,
+            name: product.name,
+            category: product.category,
+            warehouseId: warehouse.id,
+            warehouseName: warehouse.name,
+            oldQuantity: currentQty,
+            newQuantity: qty,
+            diff,
+            updatedAt: now
+          });
+        }
+
+        resolve({
+          warehouseId: warehouse.id,
+          warehouseName: warehouse.name,
+          totalRows: diffList.length + errors.length,
+          validCount: diffList.length,
+          errorCount: errors.length,
+          diffList,
+          errors
+        });
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = () => reject(new Error('Ошибка чтения файла'));
+    reader.readAsArrayBuffer(file);
+  });
+};
+

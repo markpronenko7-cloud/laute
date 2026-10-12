@@ -1,0 +1,345 @@
+[
+  {
+    "warehouseId": "almaty",
+    "sku": "LT-K101-CHR",
+    "quantity": 18,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "novosibirsk",
+    "sku": "LT-K101-CHR",
+    "quantity": 25,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "moscow",
+    "sku": "LT-K101-CHR",
+    "quantity": 34,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "china",
+    "sku": "LT-K101-CHR",
+    "quantity": 100,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Завод LAUTE (КНР)"
+  },
+  {
+    "warehouseId": "almaty",
+    "sku": "LT-K102-FLT",
+    "quantity": 14,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "novosibirsk",
+    "sku": "LT-K102-FLT",
+    "quantity": 19,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "moscow",
+    "sku": "LT-K102-FLT",
+    "quantity": 22,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "china",
+    "sku": "LT-K102-FLT",
+    "quantity": 100,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Завод LAUTE (КНР)"
+  },
+  {
+    "warehouseId": "almaty",
+    "sku": "LT-K103-FLX",
+    "quantity": 9,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "novosibirsk",
+    "sku": "LT-K103-FLX",
+    "quantity": 10,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "moscow",
+    "sku": "LT-K103-FLX",
+    "quantity": 18,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "china",
+    "sku": "LT-K103-FLX",
+    "quantity": 100,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Завод LAUTE (КНР)"
+  },
+  {
+    "warehouseId": "almaty",
+    "sku": "LT-B201-SLM",
+    "quantity": 22,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "novosibirsk",
+    "sku": "LT-B201-SLM",
+    "quantity": 30,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "moscow",
+    "sku": "LT-B201-SLM",
+    "quantity": 40,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "china",
+    "sku": "LT-B201-SLM",
+    "quantity": 100,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Завод LAUTE (КНР)"
+  },
+  {
+    "warehouseId": "almaty",
+    "sku": "LT-B202-HGH",
+    "quantity": 11,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "novosibirsk",
+    "sku": "LT-B202-HGH",
+    "quantity": 14,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "moscow",
+    "sku": "LT-B202-HGH",
+    "quantity": 20,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "china",
+    "sku": "LT-B202-HGH",
+    "quantity": 100,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Завод LAUTE (КНР)"
+  },
+  {
+    "warehouseId": "almaty",
+    "sku": "LT-V301-SHT",
+    "quantity": 19,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "novosibirsk",
+    "sku": "LT-V301-SHT",
+    "quantity": 22,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "moscow",
+    "sku": "LT-V301-SHT",
+    "quantity": 28,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "china",
+    "sku": "LT-V301-SHT",
+    "quantity": 100,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Завод LAUTE (КНР)"
+  },
+  {
+    "warehouseId": "almaty",
+    "sku": "LT-U302-LNG",
+    "quantity": 25,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "novosibirsk",
+    "sku": "LT-U302-LNG",
+    "quantity": 35,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "moscow",
+    "sku": "LT-U302-LNG",
+    "quantity": 45,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "china",
+    "sku": "LT-U302-LNG",
+    "quantity": 100,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Завод LAUTE (КНР)"
+  },
+  {
+    "warehouseId": "almaty",
+    "sku": "LT-S401-COL",
+    "quantity": 12,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "novosibirsk",
+    "sku": "LT-S401-COL",
+    "quantity": 16,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "moscow",
+    "sku": "LT-S401-COL",
+    "quantity": 24,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "china",
+    "sku": "LT-S401-COL",
+    "quantity": 100,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Завод LAUTE (КНР)"
+  },
+  {
+    "warehouseId": "almaty",
+    "sku": "LT-W501-SNK",
+    "quantity": 8,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "novosibirsk",
+    "sku": "LT-W501-SNK",
+    "quantity": 12,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "moscow",
+    "sku": "LT-W501-SNK",
+    "quantity": 15,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "china",
+    "sku": "LT-W501-SNK",
+    "quantity": 100,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Завод LAUTE (КНР)"
+  },
+  {
+    "warehouseId": "almaty",
+    "sku": "LT-H601-BID",
+    "quantity": 15,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "novosibirsk",
+    "sku": "LT-H601-BID",
+    "quantity": 20,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "moscow",
+    "sku": "LT-H601-BID",
+    "quantity": 26,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "china",
+    "sku": "LT-H601-BID",
+    "quantity": 100,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Завод LAUTE (КНР)"
+  },
+  {
+    "warehouseId": "almaty",
+    "sku": "LT-C701-35M",
+    "quantity": 50,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "novosibirsk",
+    "sku": "LT-C701-35M",
+    "quantity": 80,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "moscow",
+    "sku": "LT-C701-35M",
+    "quantity": 120,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "china",
+    "sku": "LT-C701-35M",
+    "quantity": 100,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Завод LAUTE (КНР)"
+  },
+  {
+    "warehouseId": "almaty",
+    "sku": "LT-A801-AER",
+    "quantity": 45,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "novosibirsk",
+    "sku": "LT-A801-AER",
+    "quantity": 60,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "moscow",
+    "sku": "LT-A801-AER",
+    "quantity": 90,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Складской отдел"
+  },
+  {
+    "warehouseId": "china",
+    "sku": "LT-A801-AER",
+    "quantity": 100,
+    "updatedAt": "2026-10-12T13:44:46.421Z",
+    "updatedBy": "Завод LAUTE (КНР)"
+  },
+  {
+    "warehouseId": "almaty",
+    "sku": "LT-KIT-01",
+    "quantity": 45,
+    "updatedAt": "2026-10-12T14:12:11.271Z",
+    "updatedBy": "Сотрудник"
+  }
+]

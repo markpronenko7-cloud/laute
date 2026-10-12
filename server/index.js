@@ -7,7 +7,9 @@ import { fileURLToPath } from 'url';
 import { 
   createExportWorkbook, 
   parseAndValidateExcelBuffer, 
-  createErrorReportWorkbook 
+  createErrorReportWorkbook,
+  createWarehouseStockWorkbook,
+  parseAndValidateWarehouseStockExcelBuffer
 } from './excelService.js';
 import {
   initAuthConfig,
@@ -44,9 +46,14 @@ const DATA_DIR = path.resolve(__dirname, 'data');
 const BACKUPS_DIR = path.resolve(DATA_DIR, 'backups');
 const PRODUCTS_FILE = path.resolve(DATA_DIR, 'products.json');
 const AUDIT_FILE = path.resolve(DATA_DIR, 'audit_log.json');
+const WAREHOUSES_FILE = path.resolve(DATA_DIR, 'warehouses.json');
+const STOCK_FILE = path.resolve(DATA_DIR, 'warehouse_stock.json');
 const PUBLIC_CATALOG_FILE = path.resolve(__dirname, '..', 'public', 'data', 'catalog.json');
+const PUBLIC_WAREHOUSES_FILE = path.resolve(__dirname, '..', 'public', 'data', 'warehouses.json');
+const PUBLIC_STOCK_FILE = path.resolve(__dirname, '..', 'public', 'data', 'warehouse_stock.json');
 const UPLOAD_CATALOG_DIR = path.resolve(__dirname, '..', 'public', 'images', 'catalog');
 const UPLOAD_MEDIA_DIR = path.resolve(__dirname, '..', 'public', 'images', 'uploads');
+
 
 // Ensure directories exist
 [DATA_DIR, BACKUPS_DIR, UPLOAD_CATALOG_DIR, UPLOAD_MEDIA_DIR].forEach(dir => {
@@ -938,6 +945,476 @@ app.get('/api/excel/error-report', async (req, res) => {
 });
 
 // ==========================================
+// 5.5. WAREHOUSES & STOCK MANAGEMENT (НОВЫЙ РАЗДЕЛ)
+// ==========================================
+
+function syncPublicWarehouses(warehouses) {
+  try {
+    const dir = path.dirname(PUBLIC_WAREHOUSES_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(PUBLIC_WAREHOUSES_FILE, JSON.stringify(warehouses, null, 2), 'utf8');
+  } catch (err) {
+    console.error('Error syncing public warehouses:', err);
+  }
+}
+
+function syncPublicStock(stock) {
+  try {
+    const dir = path.dirname(PUBLIC_STOCK_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(PUBLIC_STOCK_FILE, JSON.stringify(stock, null, 2), 'utf8');
+  } catch (err) {
+    console.error('Error syncing public stock:', err);
+  }
+}
+
+// Alias for audit logging
+const logAudit = addAuditLog;
+
+// 1. Get all warehouses
+app.get('/api/warehouses', (req, res) => {
+  const warehouses = readJson(WAREHOUSES_FILE, []);
+  res.json({ warehouses });
+});
+
+// 2. Create warehouse
+app.post('/api/warehouses', verifyAuth, (req, res) => {
+  try {
+    const { name, country, city, address, isActive } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Наименование склада обязательно' });
+    }
+
+    const warehouses = readJson(WAREHOUSES_FILE, []);
+    const cleanName = name.trim();
+    if (warehouses.some(w => w.name.toLowerCase() === cleanName.toLowerCase())) {
+      return res.status(400).json({ error: `Склад с названием "${cleanName}" уже существует` });
+    }
+
+    const id = cleanName.toLowerCase().replace(/[^a-z0-9а-яё]/gi, '_').replace(/_+/g, '_') + '_' + Date.now().toString(36);
+    const newWarehouse = {
+      id,
+      name: cleanName,
+      country: country?.trim() || 'Казахстан',
+      city: city?.trim() || cleanName,
+      address: address?.trim() || '',
+      isActive: isActive !== false,
+      priority: warehouses.length + 1,
+      updatedAt: new Date().toISOString()
+    };
+
+    warehouses.push(newWarehouse);
+    writeJson(WAREHOUSES_FILE, warehouses);
+    syncPublicWarehouses(warehouses);
+
+    logAudit({
+      action: 'WAREHOUSE_CREATE',
+      actionTitle: `Создан склад "${cleanName}"`,
+      summary: `Добавлен новый склад в систему: ${cleanName} (${newWarehouse.country})`,
+      sessionId: req.session.sessionId
+    });
+
+    res.json({ success: true, warehouse: newWarehouse });
+  } catch (err) {
+    console.error('Error creating warehouse:', err);
+    res.status(500).json({ error: 'Ошибка создания склада' });
+  }
+});
+
+// 3. Update warehouse
+app.put('/api/warehouses/:id', verifyAuth, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, country, city, address, isActive, priority } = req.body;
+
+    const warehouses = readJson(WAREHOUSES_FILE, []);
+    const idx = warehouses.findIndex(w => w.id === id);
+    if (idx === -1) {
+      return res.status(400).json({ error: 'Склад не найден' });
+    }
+
+    const current = warehouses[idx];
+    const oldName = current.name;
+    const updated = {
+      ...current,
+      name: name !== undefined ? name.trim() : current.name,
+      country: country !== undefined ? country.trim() : current.country,
+      city: city !== undefined ? city.trim() : current.city,
+      address: address !== undefined ? address.trim() : current.address,
+      isActive: isActive !== undefined ? Boolean(isActive) : current.isActive,
+      priority: priority !== undefined ? Number(priority) : current.priority,
+      updatedAt: new Date().toISOString()
+    };
+
+    warehouses[idx] = updated;
+    writeJson(WAREHOUSES_FILE, warehouses);
+    syncPublicWarehouses(warehouses);
+
+    logAudit({
+      action: 'WAREHOUSE_UPDATE',
+      actionTitle: `Обновлен склад "${updated.name}"`,
+      summary: `Изменены параметры склада: ${oldName} -> ${updated.name}`,
+      sessionId: req.session.sessionId
+    });
+
+    res.json({ success: true, warehouse: updated });
+  } catch (err) {
+    console.error('Error updating warehouse:', err);
+    res.status(500).json({ error: 'Ошибка обновления склада' });
+  }
+});
+
+// 4. Delete warehouse (with stock check)
+app.delete('/api/warehouses/:id', verifyAuth, (req, res) => {
+  try {
+    const { id } = req.params;
+    const warehouses = readJson(WAREHOUSES_FILE, []);
+    const target = warehouses.find(w => w.id === id);
+    if (!target) {
+      return res.status(404).json({ error: 'Склад не найден' });
+    }
+
+    if (warehouses.length <= 1) {
+      return res.status(400).json({ error: 'Нельзя удалить единственный оставшийся склад' });
+    }
+
+    const stock = readJson(STOCK_FILE, []);
+    const nonZeroStock = stock.filter(s => s.warehouseId === id && Number(s.quantity) > 0);
+    if (nonZeroStock.length > 0) {
+      return res.status(400).json({ 
+        error: `Нельзя удалить склад "${target.name}": на нем числятся ненулевые остатки по ${nonZeroStock.length} позициям. Сначала обнулите или переместите остатки.` 
+      });
+    }
+
+    const updatedWarehouses = warehouses.filter(w => w.id !== id);
+    const updatedStock = stock.filter(s => s.warehouseId !== id);
+
+    writeJson(WAREHOUSES_FILE, updatedWarehouses);
+    writeJson(STOCK_FILE, updatedStock);
+    syncPublicWarehouses(updatedWarehouses);
+    syncPublicStock(updatedStock);
+
+    logAudit({
+      action: 'WAREHOUSE_DELETE',
+      actionTitle: `Удален склад "${target.name}"`,
+      summary: `Склад ${target.name} удален из системы`,
+      sessionId: req.session.sessionId
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error deleting warehouse:', err);
+    res.status(500).json({ error: 'Ошибка удаления склада' });
+  }
+});
+
+// 5. Get stock entries
+app.get('/api/stock', (req, res) => {
+  try {
+    const { warehouseId, sku } = req.query;
+    let stock = readJson(STOCK_FILE, []);
+
+    if (warehouseId) {
+      stock = stock.filter(s => s.warehouseId === warehouseId);
+    }
+    if (sku) {
+      stock = stock.filter(s => s.sku === sku);
+    }
+
+    res.json({ stock });
+  } catch (err) {
+    console.error('Error fetching stock:', err);
+    res.status(500).json({ error: 'Ошибка получения складских остатков' });
+  }
+});
+
+// 6. Update single stock entry
+app.put('/api/stock', verifyAuth, (req, res) => {
+  try {
+    const { warehouseId, sku, quantity } = req.body;
+    if (!warehouseId || !sku) {
+      return res.status(400).json({ error: 'Не указан склад или артикул' });
+    }
+
+    const qtyNumber = quantity === null || quantity === '' ? null : Math.max(0, parseInt(quantity, 10) || 0);
+    const warehouses = readJson(WAREHOUSES_FILE, []);
+    const targetWh = warehouses.find(w => w.id === warehouseId);
+    if (!targetWh) {
+      return res.status(400).json({ error: 'Указанный склад не существует' });
+    }
+
+    const stock = readJson(STOCK_FILE, []);
+    const idx = stock.findIndex(s => s.warehouseId === warehouseId && s.sku === sku);
+    const now = new Date().toISOString();
+
+    let updatedItem;
+    if (idx !== -1) {
+      updatedItem = {
+        ...stock[idx],
+        quantity: qtyNumber,
+        updatedAt: now,
+        updatedBy: req.session?.role || 'Сотрудник'
+      };
+      stock[idx] = updatedItem;
+    } else {
+      updatedItem = {
+        warehouseId,
+        sku,
+        quantity: qtyNumber,
+        updatedAt: now,
+        updatedBy: req.session?.role || 'Сотрудник'
+      };
+      stock.push(updatedItem);
+    }
+
+    writeJson(STOCK_FILE, stock);
+    syncPublicStock(stock);
+
+    // Sync cityStock in products if matching city
+    const products = readJson(PRODUCTS_FILE, []);
+    const pIdx = products.findIndex(p => p.article === sku);
+    if (pIdx !== -1 && targetWh.name) {
+      if (!products[pIdx].cityStock) products[pIdx].cityStock = {};
+      products[pIdx].cityStock[targetWh.name] = qtyNumber ?? 0;
+      writeJson(PRODUCTS_FILE, products);
+      syncPublicCatalog(products);
+    }
+
+    logAudit({
+      action: 'STOCK_UPDATE',
+      actionTitle: `Остаток ${sku} на складе ${targetWh.name}`,
+      summary: `Изменено количество товара ${sku} на складе ${targetWh.name}: ${qtyNumber ?? 'не указано'} шт.`,
+      sessionId: req.session.sessionId
+    });
+
+    res.json({ success: true, stockItem: updatedItem });
+  } catch (err) {
+    console.error('Error updating stock item:', err);
+    res.status(500).json({ error: 'Ошибка обновления остатка' });
+  }
+});
+
+// 7. Bulk update stock entries
+app.post('/api/stock/bulk', verifyAuth, (req, res) => {
+  try {
+    const { warehouseId, items } = req.body;
+    if (!warehouseId || !Array.isArray(items)) {
+      return res.status(400).json({ error: 'Некорректные параметры обновления остатков' });
+    }
+
+    const warehouses = readJson(WAREHOUSES_FILE, []);
+    const targetWh = warehouses.find(w => w.id === warehouseId);
+    if (!targetWh) {
+      return res.status(400).json({ error: 'Склад не найден' });
+    }
+
+    const stock = readJson(STOCK_FILE, []);
+    const stockMap = new Map();
+    stock.forEach((s, i) => stockMap.set(`${s.warehouseId}::${s.sku}`, i));
+
+    const now = new Date().toISOString();
+    items.forEach(item => {
+      const sku = item.sku;
+      const qtyNumber = item.quantity === null || item.quantity === '' ? null : Math.max(0, parseInt(item.quantity, 10) || 0);
+      const key = `${warehouseId}::${sku}`;
+
+      if (stockMap.has(key)) {
+        const idx = stockMap.get(key);
+        stock[idx] = {
+          ...stock[idx],
+          quantity: qtyNumber,
+          updatedAt: now,
+          updatedBy: req.session?.role || 'Сотрудник'
+        };
+      } else {
+        stock.push({
+          warehouseId,
+          sku,
+          quantity: qtyNumber,
+          updatedAt: now,
+          updatedBy: req.session?.role || 'Сотрудник'
+        });
+        stockMap.set(key, stock.length - 1);
+      }
+    });
+
+    writeJson(STOCK_FILE, stock);
+    syncPublicStock(stock);
+
+    logAudit({
+      action: 'STOCK_BULK_UPDATE',
+      actionTitle: `Массовое сохранение остатков (${targetWh.name})`,
+      summary: `Обновлены остатки для ${items.length} товаров на складе ${targetWh.name}`,
+      sessionId: req.session.sessionId
+    });
+
+    res.json({ success: true, count: items.length });
+  } catch (err) {
+    console.error('Error bulk updating stock:', err);
+    res.status(500).json({ error: 'Ошибка массового сохранения остатков' });
+  }
+});
+
+// 8. Download Warehouse Stock Template
+app.get('/api/stock/excel/template', async (req, res) => {
+  try {
+    const warehouseId = req.query.warehouseId || 'almaty';
+    const warehouses = readJson(WAREHOUSES_FILE, []);
+    const warehouse = warehouses.find(w => w.id === warehouseId) || warehouses[0] || { id: 'almaty', name: 'Алматы' };
+
+    const products = readJson(PRODUCTS_FILE, []);
+    const stock = readJson(STOCK_FILE, []);
+
+    const workbook = await createWarehouseStockWorkbook(warehouse, products, stock);
+    const filename = `LAUTE_Stock_Template_${warehouse.id}.xlsx`;
+
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error('Error generating stock template:', err);
+    res.status(500).json({ error: 'Ошибка генерации шаблона остатков' });
+  }
+});
+
+// 9. Export Warehouse Stock
+app.get('/api/stock/excel/export', async (req, res) => {
+  try {
+    const warehouseId = req.query.warehouseId || 'almaty';
+    const warehouses = readJson(WAREHOUSES_FILE, []);
+    const warehouse = warehouses.find(w => w.id === warehouseId) || warehouses[0] || { id: 'almaty', name: 'Алматы' };
+
+    const products = readJson(PRODUCTS_FILE, []);
+    const stock = readJson(STOCK_FILE, []);
+
+    const workbook = await createWarehouseStockWorkbook(warehouse, products, stock);
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const filename = `LAUTE_Stock_${warehouse.id}_${dateStr}.xlsx`;
+
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error('Error exporting stock:', err);
+    res.status(500).json({ error: 'Ошибка экспорта остатков' });
+  }
+});
+
+// 10. Validate Warehouse Stock Excel File
+app.post('/api/stock/excel/validate', verifyAuth, uploadExcel.single('file'), async (req, res) => {
+  try {
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({ error: 'Файл Excel не передан' });
+    }
+
+    const warehouseId = req.body.warehouseId || req.query.warehouseId;
+    if (!warehouseId) {
+      return res.status(400).json({ error: 'Не указан склад для валидации остатков' });
+    }
+
+    const warehouses = readJson(WAREHOUSES_FILE, []);
+    const warehouse = warehouses.find(w => w.id === warehouseId);
+    if (!warehouse) {
+      return res.status(400).json({ error: 'Указанный склад не существует' });
+    }
+
+    const currentProducts = readJson(PRODUCTS_FILE, []);
+    const currentStock = readJson(STOCK_FILE, []);
+
+    const result = await parseAndValidateWarehouseStockExcelBuffer(
+      req.file.buffer,
+      warehouse,
+      currentProducts,
+      currentStock
+    );
+
+    res.json(result);
+  } catch (err) {
+    console.error('Error validating stock Excel:', err);
+    res.status(400).json({ error: err.message || 'Ошибка валидации Excel-файла остатков' });
+  }
+});
+
+// 11. Commit Warehouse Stock Changes
+app.post('/api/stock/excel/commit', verifyAuth, (req, res) => {
+  try {
+    const { warehouseId, diffList, mode } = req.body; // mode: 'partial' (default) | 'replace'
+    if (!warehouseId || !Array.isArray(diffList)) {
+      return res.status(400).json({ error: 'Некорректные данные для подтверждения обновления остатков' });
+    }
+
+    const warehouses = readJson(WAREHOUSES_FILE, []);
+    const warehouse = warehouses.find(w => w.id === warehouseId);
+    if (!warehouse) {
+      return res.status(400).json({ error: 'Склад не найден' });
+    }
+
+    const stock = readJson(STOCK_FILE, []);
+    const now = new Date().toISOString();
+    const stockMap = new Map();
+    stock.forEach((s, i) => stockMap.set(`${s.warehouseId}::${s.sku}`, i));
+
+    const updatedSkus = new Set();
+    diffList.forEach(item => {
+      const sku = item.sku;
+      const qtyNumber = Math.max(0, parseInt(item.newQuantity, 10) || 0);
+      const key = `${warehouseId}::${sku}`;
+      updatedSkus.add(sku);
+
+      if (stockMap.has(key)) {
+        const idx = stockMap.get(key);
+        stock[idx] = {
+          ...stock[idx],
+          quantity: qtyNumber,
+          updatedAt: now,
+          updatedBy: req.session?.role || 'Импорт Excel'
+        };
+      } else {
+        stock.push({
+          warehouseId,
+          sku,
+          quantity: qtyNumber,
+          updatedAt: now,
+          updatedBy: req.session?.role || 'Импорт Excel'
+        });
+        stockMap.set(key, stock.length - 1);
+      }
+    });
+
+    // In 'replace' mode, zero out SKUs on this warehouse that were NOT in the Excel file
+    if (mode === 'replace') {
+      stock.forEach((s, idx) => {
+        if (s.warehouseId === warehouseId && !updatedSkus.has(s.sku)) {
+          stock[idx] = {
+            ...s,
+            quantity: 0,
+            updatedAt: now,
+            updatedBy: 'Полная замена Excel (обнуление)'
+          };
+        }
+      });
+    }
+
+    writeJson(STOCK_FILE, stock);
+    syncPublicStock(stock);
+
+    logAudit({
+      action: 'STOCK_EXCEL_IMPORT',
+      actionTitle: `Импорт Excel остатков (${warehouse.name})`,
+      summary: `Применено обновление остатков из Excel для склада ${warehouse.name}: ${diffList.length} позиций (${mode === 'replace' ? 'полная замена' : 'частичное обновление'})`,
+      sessionId: req.session.sessionId
+    });
+
+    res.json({ success: true, updatedCount: diffList.length, mode });
+  } catch (err) {
+    console.error('Error committing stock changes:', err);
+    res.status(500).json({ error: 'Ошибка сохранения изменений остатков' });
+  }
+});
+
+// ==========================================
 // 6. MEDIA MANAGER ROUTES
 // ==========================================
 
@@ -968,6 +1445,9 @@ app.get('/api/media', verifyAuth, (req, res) => {
 
     scanDir(UPLOAD_MEDIA_DIR, 'images/uploads');
     scanDir(UPLOAD_CATALOG_DIR, 'images/catalog');
+    scanDir(path.resolve(__dirname, '..', 'public', 'images'), 'images');
+    scanDir(path.resolve(__dirname, '..', 'public', 'images', 'collections'), 'images/collections');
+    scanDir(path.resolve(__dirname, '..', 'public', 'images', 'hero'), 'images/hero');
 
     files.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     res.json({ files });

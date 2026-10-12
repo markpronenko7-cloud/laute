@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export const ProductDetailModal = () => {
-  const { selectedProduct, closeProductModal, openPartnerModal, startComparison, products } = useApp();
+  const { selectedProduct, closeProductModal, openPartnerModal, startComparison, products, adminSession } = useApp();
   const [selectedPhoto, setSelectedPhoto] = useState(0);
 
   if (!selectedProduct) return null;
@@ -102,14 +102,19 @@ export const ProductDetailModal = () => {
                 <span>Наличие по городам присутствия LAUTE:</span>
               </div>
               <div className="stock-cities-list">
-                {Object.entries(selectedProduct.cityStock || {}).map(([city, count]) => (
-                  <div key={city} className="city-stock-row">
-                    <span className="city-name">{city}</span>
-                    <span className={`city-count ${count > 0 ? 'in-stock' : 'out-of-stock'}`}>
-                      {count > 0 ? `В наличии (${count} шт.)` : 'Под заказ'}
-                    </span>
-                  </div>
-                ))}
+                {Object.entries(selectedProduct.cityStock || {}).map(([city, count]) => {
+                  const isStaffOrPartner = Boolean(adminSession) || Boolean(localStorage.getItem('laute_partner_token'));
+                  return (
+                    <div key={city} className="city-stock-row">
+                      <span className="city-name">{city}</span>
+                      <span className={`city-count ${count > 0 ? 'in-stock' : 'out-of-stock'}`}>
+                        {isStaffOrPartner 
+                          ? (count > 0 ? `В наличии (${count} шт.)` : 'Под заказ')
+                          : (count > 0 ? 'В наличии' : 'Под заказ от завода')}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

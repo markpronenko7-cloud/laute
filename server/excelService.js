@@ -606,3 +606,176 @@ export async function createErrorReportWorkbook(errors) {
 
   return workbook;
 }
+
+/**
+ * Создаёт официальный Excel-шаблон / выгрузку остатков для конкретного склада
+ */
+export async function createWarehouseStockWorkbook(warehouse, products, stockList = []) {
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = 'LAUTE Warehouse System';
+  workbook.created = new Date();
+
+  const stockMap = new Map();
+  stockList.forEach(s => {
+    if (s.warehouseId === warehouse.id) {
+      stockMap.set(s.sku, s);
+    }
+  });
+
+  const ws = workbook.addWorksheet(`Остатки — ${warehouse.name}`, { views: [{ showGridLines: true }] });
+  ws.columns = [
+    { header: 'Артикул (SKU) *', key: 'sku', width: 20 },
+    { header: 'Наименование товара (справочно)', key: 'name', width: 44 },
+    { header: 'Категория', key: 'category', width: 24 },
+    { header: 'Количество на складе (шт) *', key: 'quantity', width: 28 },
+    { header: 'Дата обновления', key: 'updatedAt', width: 22 },
+    { header: 'Склад', key: 'warehouse', width: 18 }
+  ];
+
+  ws.getRow(1).height = 32;
+  ws.getRow(1).eachCell(cell => {
+    cell.font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF162032' } };
+    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+  });
+
+  products.forEach((p, idx) => {
+    const itemStock = stockMap.get(p.article);
+    const qty = itemStock ? itemStock.quantity : 0;
+    const upd = itemStock ? new Date(itemStock.updatedAt).toLocaleDateString('ru-RU') : 'Не указана';
+
+    const row = ws.addRow({
+      sku: p.article,
+      name: p.name,
+      category: p.category || '',
+      quantity: qty,
+      updatedAt: upd,
+      warehouse: warehouse.name
+    });
+
+    row.height = 24;
+    const isEven = idx % 2 === 0;
+    row.eachCell((cell, colNumber) => {
+      cell.font = { name: 'Segoe UI', size: 10 };
+      cell.alignment = { vertical: 'middle', horizontal: colNumber === 1 || colNumber === 4 ? 'center' : 'left' };
+      if (isEven) {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+      }
+    });
+  });
+
+  return workbook;
+}
+
+/**
+ * Валидирует загруженный Excel-файл со складскими остатками для выбранного склада
+ */
+export async function parseAndValidateWarehouseStockExcelBuffer(buffer, warehouse, currentProducts, currentStock = []) {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer);
+
+  const worksheet = workbook.worksheets[0];
+  if (!worksheet) {
+    throw new Error('Файл Excel не содержит листов');
+  }
+
+  const headerRow = worksheet.getRow(1);
+  let skuColIdx = -1;
+  let qtyColIdx = -1;
+
+  headerRow.eachCell((cell, colNumber) => {
+    const val = String(cell.value || '').trim().toLowerCase();
+    if (val.includes('артикул') || val.includes('sku')) {
+      skuColIdx = colNumber;
+    } else if (val.includes('количество') || val.includes('остаток') || val.includes('кол-во') || val.includes('qty')) {
+      qtyColIdx = colNumber;
+    }
+  });
+
+  if (skuColIdx === -1) {
+    throw new Error('Не найдена колонка "Артикул" или "SKU" в первой строке Excel');
+  }
+  if (qtyColIdx === -1) {
+    throw new Error('Не найдена колонка "Количество на складе" в первой строке Excel');
+  }
+
+  const productsMap = new Map();
+  currentProducts.forEach(p => productsMap.set(p.article, p));
+
+  const stockMap = new Map();
+  currentStock.forEach(s => {
+    if (s.warehouseId === warehouse.id) {
+      stockMap.set(s.sku, s.quantity);
+    }
+  });
+
+  const diffList = [];
+  const errors = [];
+  const seenSkus = new Set();
+  const now = new Date().toISOString();
+
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return; // skip header
+
+    const skuRaw = row.getCell(skuColIdx).value;
+    const qtyRaw = row.getCell(qtyColIdx).value;
+
+    if (!skuRaw && (qtyRaw === null || qtyRaw === undefined)) return; // empty row
+
+    const sku = String(skuRaw || '').trim();
+    if (!sku) {
+      errors.push({ row: rowNumber, message: 'Строка без артикула SKU' });
+      return;
+    }
+
+    if (seenSkus.has(sku)) {
+      errors.push({ row: rowNumber, sku, message: `Повторяющийся артикул ${sku} в файле` });
+      return;
+    }
+    seenSkus.add(sku);
+
+    const product = productsMap.get(sku);
+    if (!product) {
+      errors.push({ row: rowNumber, sku, message: `Артикул ${sku} не найден в каталоге LAUTE` });
+      return;
+    }
+
+    let qty = 0;
+    if (typeof qtyRaw === 'number') {
+      qty = Math.max(0, Math.floor(qtyRaw));
+    } else {
+      const parsed = parseInt(String(qtyRaw || '0').replace(/[^0-9]/g, ''), 10);
+      if (isNaN(parsed) || parsed < 0) {
+        errors.push({ row: rowNumber, sku, message: `Некорректное количество "${qtyRaw}" для ${sku}` });
+        return;
+      }
+      qty = parsed;
+    }
+
+    const currentQty = stockMap.has(sku) ? stockMap.get(sku) : null;
+    const diff = currentQty !== null ? qty - currentQty : qty;
+
+    diffList.push({
+      sku,
+      name: product.name,
+      category: product.category,
+      warehouseId: warehouse.id,
+      warehouseName: warehouse.name,
+      oldQuantity: currentQty !== null ? currentQty : 0,
+      newQuantity: qty,
+      diff,
+      updatedAt: now
+    });
+  });
+
+  return {
+    warehouseId: warehouse.id,
+    warehouseName: warehouse.name,
+    totalRows: diffList.length + errors.length,
+    validCount: diffList.length,
+    errorCount: errors.length,
+    diffList,
+    errors
+  };
+}
+
