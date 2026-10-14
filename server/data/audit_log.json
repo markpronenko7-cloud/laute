@@ -1,5 +1,165 @@
 [
   {
+    "id": "log-1791985134275-91eb9",
+    "timestamp": "2026-10-14T13:38:54.275Z",
+    "action": "STOCK_UPDATE",
+    "actionTitle": "Остаток LT-KIT-01 на складе Алматы",
+    "summary": "Изменено количество товара LT-KIT-01 на складе Алматы: 45 шт.",
+    "sessionId": "laute_sess_4d821bc1a25"
+  },
+  {
+    "id": "log-1791985134176-d1qy2",
+    "timestamp": "2026-10-14T13:38:54.176Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-TEST-4106",
+    "summary": "Товар \"Тестовый смеситель LAUTE Pro Suite\" удален из базы каталога",
+    "sessionId": "laute_sess_4d821bc1a25",
+    "backupId": "catalog_2026-10-14T13-38-54-128Z"
+  },
+  {
+    "id": "log-1791985134125-86i9y",
+    "timestamp": "2026-10-14T13:38:54.125Z",
+    "action": "STATUS_CHANGE",
+    "actionTitle": "Скрыт товар LT-TEST-4106",
+    "summary": "Товар \"Тестовый смеситель LAUTE Pro Suite\" переведен в статус \"СКРЫТ\"",
+    "sessionId": "laute_sess_4d821bc1a25",
+    "backupId": "catalog_2026-10-14T13-38-54-121Z"
+  },
+  {
+    "id": "log-1791985134117-gwasd",
+    "timestamp": "2026-10-14T13:38:54.117Z",
+    "action": "PRODUCT_UPDATE",
+    "actionTitle": "Обновлен товар LT-TEST-4106",
+    "summary": "Цена: 34500 -> 37900",
+    "details": "Товар: Тестовый смеситель LAUTE Pro Suite",
+    "sessionId": "laute_sess_4d821bc1a25",
+    "backupId": "catalog_2026-10-14T13-38-54-114Z"
+  },
+  {
+    "id": "log-1791985134110-11kia",
+    "timestamp": "2026-10-14T13:38:54.110Z",
+    "action": "PRODUCT_CREATE",
+    "actionTitle": "Добавлен товар LT-TEST-4106",
+    "summary": "Создана карточка товара \"Тестовый смеситель LAUTE Pro Suite\" (34500 ₸)",
+    "details": "Категория: Кухонные смесители",
+    "sessionId": "laute_sess_4d821bc1a25",
+    "backupId": "catalog_2026-10-14T13-38-54-107Z"
+  },
+  {
+    "id": "log-1791985134095-itj3f",
+    "timestamp": "2026-10-14T13:38:54.095Z",
+    "action": "CONTENT_PUBLISH",
+    "actionTitle": "Публикация контента на сайт",
+    "summary": "Контент сайта обновлен до версии 1.0.19. Создан снимок отката: content_backup_2026-10-14T13-38-54-089Z",
+    "sessionId": "laute_sess_4d821bc1a25",
+    "backupId": "content_backup_2026-10-14T13-38-54-089Z"
+  },
+  {
+    "id": "log-1791985134081-au5r8",
+    "timestamp": "2026-10-14T13:38:54.081Z",
+    "action": "CONTENT_DRAFT_SAVE",
+    "actionTitle": "Сохранён черновик контента сайта",
+    "summary": "Изменения сохранены в черновике (не опубликованы на витрине)",
+    "sessionId": "laute_sess_4d821bc1a25"
+  },
+  {
+    "id": "log-1791985134066-kp9ko",
+    "timestamp": "2026-10-14T13:38:54.066Z",
+    "action": "LOGIN_SUCCESS",
+    "actionTitle": "Успешный вход в панель управления",
+    "summary": "Авторизована сессия laute_sess_4d821bc1a25",
+    "sessionId": "laute_sess_4d821bc1a25",
+    "details": "IP: ::1"
+  },
+  {
+    "id": "log-1791985134025-axfie",
+    "timestamp": "2026-10-14T13:38:54.025Z",
+    "action": "LOGIN_FAILED",
+    "actionTitle": "Неудачная попытка входа",
+    "summary": "Неверный ввод пароля с IP ::1",
+    "details": "Неверный пароль доступа к панели управления"
+  },
+  {
+    "id": "log-1791983491105-nrtn0",
+    "timestamp": "2026-10-14T13:11:31.105Z",
+    "action": "STOCK_UPDATE",
+    "actionTitle": "Остаток LT-KIT-01 на складе Алматы",
+    "summary": "Изменено количество товара LT-KIT-01 на складе Алматы: 45 шт.",
+    "sessionId": "laute_sess_ef9104156f5"
+  },
+  {
+    "id": "log-1791983490918-hotuv",
+    "timestamp": "2026-10-14T13:11:30.918Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-TEST-0890",
+    "summary": "Товар \"Тестовый смеситель LAUTE Pro Suite\" удален из базы каталога",
+    "sessionId": "laute_sess_ef9104156f5",
+    "backupId": "catalog_2026-10-14T13-11-30-914Z"
+  },
+  {
+    "id": "log-1791983490909-wir8j",
+    "timestamp": "2026-10-14T13:11:30.909Z",
+    "action": "STATUS_CHANGE",
+    "actionTitle": "Скрыт товар LT-TEST-0890",
+    "summary": "Товар \"Тестовый смеситель LAUTE Pro Suite\" переведен в статус \"СКРЫТ\"",
+    "sessionId": "laute_sess_ef9104156f5",
+    "backupId": "catalog_2026-10-14T13-11-30-906Z"
+  },
+  {
+    "id": "log-1791983490901-j5dt0",
+    "timestamp": "2026-10-14T13:11:30.902Z",
+    "action": "PRODUCT_UPDATE",
+    "actionTitle": "Обновлен товар LT-TEST-0890",
+    "summary": "Цена: 34500 -> 37900",
+    "details": "Товар: Тестовый смеситель LAUTE Pro Suite",
+    "sessionId": "laute_sess_ef9104156f5",
+    "backupId": "catalog_2026-10-14T13-11-30-898Z"
+  },
+  {
+    "id": "log-1791983490894-hnakh",
+    "timestamp": "2026-10-14T13:11:30.894Z",
+    "action": "PRODUCT_CREATE",
+    "actionTitle": "Добавлен товар LT-TEST-0890",
+    "summary": "Создана карточка товара \"Тестовый смеситель LAUTE Pro Suite\" (34500 ₸)",
+    "details": "Категория: Кухонные смесители",
+    "sessionId": "laute_sess_ef9104156f5",
+    "backupId": "catalog_2026-10-14T13-11-30-890Z"
+  },
+  {
+    "id": "log-1791983490874-bfsvk",
+    "timestamp": "2026-10-14T13:11:30.874Z",
+    "action": "CONTENT_PUBLISH",
+    "actionTitle": "Публикация контента на сайт",
+    "summary": "Контент сайта обновлен до версии 1.0.18. Создан снимок отката: content_backup_2026-10-14T13-11-30-868Z",
+    "sessionId": "laute_sess_ef9104156f5",
+    "backupId": "content_backup_2026-10-14T13-11-30-868Z"
+  },
+  {
+    "id": "log-1791983490860-hrtrt",
+    "timestamp": "2026-10-14T13:11:30.860Z",
+    "action": "CONTENT_DRAFT_SAVE",
+    "actionTitle": "Сохранён черновик контента сайта",
+    "summary": "Изменения сохранены в черновике (не опубликованы на витрине)",
+    "sessionId": "laute_sess_ef9104156f5"
+  },
+  {
+    "id": "log-1791983490844-06yr4",
+    "timestamp": "2026-10-14T13:11:30.844Z",
+    "action": "LOGIN_SUCCESS",
+    "actionTitle": "Успешный вход в панель управления",
+    "summary": "Авторизована сессия laute_sess_ef9104156f5",
+    "sessionId": "laute_sess_ef9104156f5",
+    "details": "IP: ::1"
+  },
+  {
+    "id": "log-1791983490803-n3aaa",
+    "timestamp": "2026-10-14T13:11:30.803Z",
+    "action": "LOGIN_FAILED",
+    "actionTitle": "Неудачная попытка входа",
+    "summary": "Неверный ввод пароля с IP ::1",
+    "details": "Неверный пароль доступа к панели управления"
+  },
+  {
     "id": "log-1791814331274-mwo5h",
     "timestamp": "2026-10-12T14:12:11.275Z",
     "action": "STOCK_UPDATE",

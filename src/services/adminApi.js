@@ -816,24 +816,36 @@ export const saveBulkStock = async (warehouseId, items) => {
   return data;
 };
 
-export const downloadStockTemplate = async (warehouseId) => {
-  const res = await fetch(`${getApiBase()}/stock/excel/template?warehouseId=${warehouseId}`, {
+export const downloadStockTemplate = async (warehouseId = 'all') => {
+  const isAll = !warehouseId || warehouseId === 'all';
+  const url = isAll 
+    ? `${getApiBase()}/stock/excel/template?warehouseId=all` 
+    : `${getApiBase()}/stock/excel/template?warehouseId=${encodeURIComponent(warehouseId)}`;
+  
+  const res = await fetch(url, {
     headers: { ...authHeaders() }
   });
   if (!res.ok) throw new Error('Ошибка загрузки шаблона остатков');
   const blob = await res.blob();
-  triggerBlobDownload(blob, `LAUTE_Stock_Template_${warehouseId}.xlsx`);
+  const filename = isAll ? 'LAUTE_Stock_Template_ALL_WAREHOUSES.xlsx' : `LAUTE_Stock_Template_${warehouseId}.xlsx`;
+  triggerBlobDownload(blob, filename);
   return true;
 };
 
-export const exportStockToExcel = async (warehouseId) => {
-  const res = await fetch(`${getApiBase()}/stock/excel/export?warehouseId=${warehouseId}`, {
+export const exportStockToExcel = async (warehouseId = 'all') => {
+  const isAll = !warehouseId || warehouseId === 'all';
+  const url = isAll 
+    ? `${getApiBase()}/stock/excel/export?warehouseId=all` 
+    : `${getApiBase()}/stock/excel/export?warehouseId=${encodeURIComponent(warehouseId)}`;
+
+  const res = await fetch(url, {
     headers: { ...authHeaders() }
   });
   if (!res.ok) throw new Error('Ошибка экспорта складских остатков');
   const blob = await res.blob();
   const dateStr = new Date().toISOString().slice(0, 10);
-  triggerBlobDownload(blob, `LAUTE_Stock_${warehouseId}_${dateStr}.xlsx`);
+  const filename = isAll ? `LAUTE_Stock_ALL_WAREHOUSES_${dateStr}.xlsx` : `LAUTE_Stock_${warehouseId}_${dateStr}.xlsx`;
+  triggerBlobDownload(blob, filename);
   return true;
 };
 

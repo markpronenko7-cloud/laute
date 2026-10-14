@@ -72,7 +72,7 @@ export const HeroCarousel = () => {
       id: 'materials',
       image: `${baseUrl}images/hero/hero-slide-6.jpg`,
       showLargeLogo: false,
-      tagline: t.home?.heroSlides?.[5]?.tagline || 'ИНЖЕНЕРНАЯ ФИЛОСОФИЯ  LAUTE',
+      tagline: t.home?.heroSlides?.[5]?.tagline || 'ИНЖЕНЕРНАЯ ФИЛОСОФИЯ LAUTE',
       title: t.home?.heroSlides?.[5]?.title || 'Интеллект и экологичность в деталях.',
       subtitle: t.home?.heroSlides?.[5]?.subtitle || 'SUS304 · ЭКО алюминий · Латунь А+ · PVD-покрытие',
       buttonText: t.home?.heroSlides?.[5]?.buttonText || 'Смотреть технологии',

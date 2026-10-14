@@ -45,8 +45,13 @@ export const Header = () => {
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
-  // Close mobile drawer on route change or escape key
+  // Close mobile drawer on route change or escape key, and prevent body scroll when open
   useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         setIsMobileMenuOpen(false);
@@ -55,8 +60,11 @@ export const Header = () => {
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMobileMenuOpen]);
 
   const languageOptions = [
     { code: 'ru', label: 'РУС', full: 'Русский' },
@@ -154,8 +162,7 @@ export const Header = () => {
                   className={`nav-link ${currentRoute === 'service' ? 'active' : ''}`} 
                   onClick={() => handleNavClick('service')}
                 >
-                  <span className="nav-service-full">{t.nav.service || 'Первый цифровой сервис'}</span>
-                  <span className="nav-service-short">Сервис</span>
+                  <span>{t.nav.service || 'Первый цифровой сервис'}</span>
                 </button>
               </li>
               <li>
@@ -181,9 +188,9 @@ export const Header = () => {
               onClick={() => setIsLangOpen(!isLangOpen)}
               aria-label={t.nav.language || 'Язык сайта'}
             >
-              <Globe size={15} className="select-icon" />
+              <Globe size={14} className="select-icon" />
               <span className="select-val">{lang === 'ru' ? 'РУС' : lang === 'kz' ? 'КАЗ' : 'ENG'}</span>
-              <ChevronDown size={13} className={`arrow-icon ${isLangOpen ? 'open' : ''}`} />
+              <ChevronDown size={12} className={`arrow-icon ${isLangOpen ? 'open' : ''}`} />
             </button>
 
             {isLangOpen && (
@@ -214,9 +221,9 @@ export const Header = () => {
               onClick={() => setIsRegionOpen(!isRegionOpen)}
               aria-label={t.regions?.selectRegion || t.nav.region || 'Ваш регион'}
             >
-              <MapPin size={15} className="select-icon" />
+              <MapPin size={14} className="select-icon" />
               <span className="select-val">{t.regions?.[region] || region}</span>
-              <ChevronDown size={13} className={`arrow-icon ${isRegionOpen ? 'open' : ''}`} />
+              <ChevronDown size={12} className={`arrow-icon ${isRegionOpen ? 'open' : ''}`} />
             </button>
 
             {isRegionOpen && (
@@ -249,9 +256,8 @@ export const Header = () => {
             onClick={openAuthModal}
             title={t.nav.clientCabinet || 'Кабинет партнера'}
           >
-            <User size={15} />
-            <span className="cabinet-btn-full">{t.nav.clientCabinet || 'Кабинет партнера'}</span>
-            <span className="cabinet-btn-short">Кабинет</span>
+            <User size={14} />
+            <span className="cabinet-btn-label">{t.nav.clientCabinet || 'Кабинет партнера'}</span>
           </button>
 
           {/* Main Wholesale Partner CTA */}
@@ -260,8 +266,7 @@ export const Header = () => {
             className="btn btn-primary btn-partner-cta"
             onClick={openPartnerModal}
           >
-            <span className="partner-cta-full">{t.nav.requestQuote || 'Стать партнёром'}</span>
-            <span className="partner-cta-short">Партнёрство</span>
+            <span>{t.nav.requestQuote || 'Стать партнёром'}</span>
           </button>
 
           {/* Mobile Menu Toggle */}
@@ -271,7 +276,7 @@ export const Header = () => {
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Меню"
           >
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
       </div>

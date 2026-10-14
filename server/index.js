@@ -9,6 +9,7 @@ import {
   parseAndValidateExcelBuffer, 
   createErrorReportWorkbook,
   createWarehouseStockWorkbook,
+  createAllWarehousesStockWorkbook,
   parseAndValidateWarehouseStockExcelBuffer
 } from './excelService.js';
 import {
@@ -1255,18 +1256,26 @@ app.post('/api/stock/bulk', verifyAuth, (req, res) => {
   }
 });
 
-// 8. Download Warehouse Stock Template
+// 8. Download Warehouse Stock Template (Mode A single or Mode B all warehouses)
 app.get('/api/stock/excel/template', async (req, res) => {
   try {
     const warehouseId = req.query.warehouseId || 'almaty';
+    const isAllMode = warehouseId === 'all' || req.query.mode === 'all';
     const warehouses = readJson(WAREHOUSES_FILE, []);
-    const warehouse = warehouses.find(w => w.id === warehouseId) || warehouses[0] || { id: 'almaty', name: 'Алматы' };
-
     const products = readJson(PRODUCTS_FILE, []);
     const stock = readJson(STOCK_FILE, []);
 
-    const workbook = await createWarehouseStockWorkbook(warehouse, products, stock);
-    const filename = `LAUTE_Stock_Template_${warehouse.id}.xlsx`;
+    let workbook;
+    let filename;
+
+    if (isAllMode) {
+      workbook = await createAllWarehousesStockWorkbook(warehouses, products, stock);
+      filename = 'LAUTE_Stock_Template_ALL_WAREHOUSES.xlsx';
+    } else {
+      const warehouse = warehouses.find(w => w.id === warehouseId) || warehouses[0] || { id: 'almaty', name: 'Алматы' };
+      workbook = await createWarehouseStockWorkbook(warehouse, products, stock);
+      filename = `LAUTE_Stock_Template_${warehouse.id}.xlsx`;
+    }
 
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -1278,19 +1287,27 @@ app.get('/api/stock/excel/template', async (req, res) => {
   }
 });
 
-// 9. Export Warehouse Stock
+// 9. Export Warehouse Stock (Mode A single or Mode B all warehouses)
 app.get('/api/stock/excel/export', async (req, res) => {
   try {
     const warehouseId = req.query.warehouseId || 'almaty';
+    const isAllMode = warehouseId === 'all' || req.query.mode === 'all';
     const warehouses = readJson(WAREHOUSES_FILE, []);
-    const warehouse = warehouses.find(w => w.id === warehouseId) || warehouses[0] || { id: 'almaty', name: 'Алматы' };
-
     const products = readJson(PRODUCTS_FILE, []);
     const stock = readJson(STOCK_FILE, []);
-
-    const workbook = await createWarehouseStockWorkbook(warehouse, products, stock);
     const dateStr = new Date().toISOString().slice(0, 10);
-    const filename = `LAUTE_Stock_${warehouse.id}_${dateStr}.xlsx`;
+
+    let workbook;
+    let filename;
+
+    if (isAllMode) {
+      workbook = await createAllWarehousesStockWorkbook(warehouses, products, stock);
+      filename = `LAUTE_Stock_ALL_WAREHOUSES_${dateStr}.xlsx`;
+    } else {
+      const warehouse = warehouses.find(w => w.id === warehouseId) || warehouses[0] || { id: 'almaty', name: 'Алматы' };
+      workbook = await createWarehouseStockWorkbook(warehouse, products, stock);
+      filename = `LAUTE_Stock_${warehouse.id}_${dateStr}.xlsx`;
+    }
 
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -1302,23 +1319,16 @@ app.get('/api/stock/excel/export', async (req, res) => {
   }
 });
 
-// 10. Validate Warehouse Stock Excel File
+// 10. Validate Warehouse Stock Excel File (Supports Mode A and Mode B)
 app.post('/api/stock/excel/validate', verifyAuth, uploadExcel.single('file'), async (req, res) => {
   try {
     if (!req.file || !req.file.buffer) {
       return res.status(400).json({ error: 'Файл Excel не передан' });
     }
 
-    const warehouseId = req.body.warehouseId || req.query.warehouseId;
-    if (!warehouseId) {
-      return res.status(400).json({ error: 'Не указан склад для валидации остатков' });
-    }
-
+    const warehouseId = req.body.warehouseId || req.query.warehouseId || 'all';
     const warehouses = readJson(WAREHOUSES_FILE, []);
-    const warehouse = warehouses.find(w => w.id === warehouseId);
-    if (!warehouse) {
-      return res.status(400).json({ error: 'Указанный склад не существует' });
-    }
+    const warehouse = warehouses.find(w => w.id === warehouseId) || warehouses[0];
 
     const currentProducts = readJson(PRODUCTS_FILE, []);
     const currentStock = readJson(STOCK_FILE, []);
@@ -1327,7 +1337,8 @@ app.post('/api/stock/excel/validate', verifyAuth, uploadExcel.single('file'), as
       req.file.buffer,
       warehouse,
       currentProducts,
-      currentStock
+      currentStock,
+      warehouses
     );
 
     res.json(result);
@@ -1337,31 +1348,31 @@ app.post('/api/stock/excel/validate', verifyAuth, uploadExcel.single('file'), as
   }
 });
 
-// 11. Commit Warehouse Stock Changes
+// 11. Commit Warehouse Stock Changes (Supports Mode A and Mode B)
 app.post('/api/stock/excel/commit', verifyAuth, (req, res) => {
   try {
     const { warehouseId, diffList, mode } = req.body; // mode: 'partial' (default) | 'replace'
-    if (!warehouseId || !Array.isArray(diffList)) {
+    if (!Array.isArray(diffList)) {
       return res.status(400).json({ error: 'Некорректные данные для подтверждения обновления остатков' });
     }
 
     const warehouses = readJson(WAREHOUSES_FILE, []);
-    const warehouse = warehouses.find(w => w.id === warehouseId);
-    if (!warehouse) {
-      return res.status(400).json({ error: 'Склад не найден' });
-    }
-
     const stock = readJson(STOCK_FILE, []);
     const now = new Date().toISOString();
     const stockMap = new Map();
     stock.forEach((s, i) => stockMap.set(`${s.warehouseId}::${s.sku}`, i));
 
-    const updatedSkus = new Set();
+    const updatedWarehouseSet = new Set();
+    const updatedSkuSet = new Set();
+
     diffList.forEach(item => {
+      const targetWhId = item.warehouseId || warehouseId;
       const sku = item.sku;
       const qtyNumber = Math.max(0, parseInt(item.newQuantity, 10) || 0);
-      const key = `${warehouseId}::${sku}`;
-      updatedSkus.add(sku);
+      const key = `${targetWhId}::${sku}`;
+
+      updatedWarehouseSet.add(targetWhId);
+      updatedSkuSet.add(`${targetWhId}::${sku}`);
 
       if (stockMap.has(key)) {
         const idx = stockMap.get(key);
@@ -1373,7 +1384,7 @@ app.post('/api/stock/excel/commit', verifyAuth, (req, res) => {
         };
       } else {
         stock.push({
-          warehouseId,
+          warehouseId: targetWhId,
           sku,
           quantity: qtyNumber,
           updatedAt: now,
@@ -1383,10 +1394,10 @@ app.post('/api/stock/excel/commit', verifyAuth, (req, res) => {
       }
     });
 
-    // In 'replace' mode, zero out SKUs on this warehouse that were NOT in the Excel file
+    // In 'replace' mode, zero out SKUs on affected warehouse(s) that were NOT in the Excel file
     if (mode === 'replace') {
       stock.forEach((s, idx) => {
-        if (s.warehouseId === warehouseId && !updatedSkus.has(s.sku)) {
+        if (updatedWarehouseSet.has(s.warehouseId) && !updatedSkuSet.has(`${s.warehouseId}::${s.sku}`)) {
           stock[idx] = {
             ...s,
             quantity: 0,
@@ -1400,14 +1411,36 @@ app.post('/api/stock/excel/commit', verifyAuth, (req, res) => {
     writeJson(STOCK_FILE, stock);
     syncPublicStock(stock);
 
+    // Sync cityStock in catalog products for active warehouses
+    const products = readJson(PRODUCTS_FILE, []);
+    let productsModified = false;
+    products.forEach((prod, pIdx) => {
+      if (!prod.cityStock) prod.cityStock = {};
+      warehouses.forEach(wh => {
+        const itemStock = stock.find(s => s.warehouseId === wh.id && s.sku === prod.article);
+        if (itemStock && wh.name) {
+          prod.cityStock[wh.name] = itemStock.quantity ?? 0;
+          productsModified = true;
+        }
+      });
+    });
+    if (productsModified) {
+      writeJson(PRODUCTS_FILE, products);
+      syncPublicCatalog(products);
+    }
+
+    const whSummaryName = warehouseId === 'all' 
+      ? 'Все склады' 
+      : (warehouses.find(w => w.id === warehouseId)?.name || warehouseId);
+
     logAudit({
       action: 'STOCK_EXCEL_IMPORT',
-      actionTitle: `Импорт Excel остатков (${warehouse.name})`,
-      summary: `Применено обновление остатков из Excel для склада ${warehouse.name}: ${diffList.length} позиций (${mode === 'replace' ? 'полная замена' : 'частичное обновление'})`,
+      actionTitle: `Импорт Excel остатков (${whSummaryName})`,
+      summary: `Применено обновление остатков из Excel для (${whSummaryName}): ${diffList.length} позиций (${mode === 'replace' ? 'полная замена' : 'частичное обновление'})`,
       sessionId: req.session.sessionId
     });
 
-    res.json({ success: true, updatedCount: diffList.length, mode });
+    res.json({ success: true, updatedCount: diffList.length, mode, warehousesAffected: updatedWarehouseSet.size });
   } catch (err) {
     console.error('Error committing stock changes:', err);
     res.status(500).json({ error: 'Ошибка сохранения изменений остатков' });
