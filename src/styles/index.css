@@ -483,13 +483,13 @@ img {
 
 .header-container {
   height: 100%;
-  max-width: var(--container-max-width);
+  max-width: min(1820px, 100%);
   margin: 0 auto;
-  padding: 0 max(var(--container-padding-x), var(--sar, 0px)) 0 max(var(--container-padding-x), var(--sal, 0px));
+  padding: 0 max(clamp(16px, 2vw, 36px), var(--sar, 0px)) 0 max(clamp(16px, 2vw, 36px), var(--sal, 0px));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: clamp(8px, 1.2vw, 20px);
+  gap: clamp(10px, 1.2vw, 20px);
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
@@ -497,6 +497,7 @@ img {
 
 @media (max-width: 768px) {
   .header-container {
+    padding: 0 max(16px, var(--sar, 0px)) 0 max(16px, var(--sal, 0px));
     gap: 8px;
   }
 }
@@ -512,14 +513,14 @@ img {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  padding: 4px 0;
+  padding: 2px 0;
 }
 
 .header .brand-logo-img,
 .brand-logo-img {
-  height: clamp(38px, 3.2vw, 52px);
+  height: clamp(28px, 2.2vw, 36px);
   width: auto;
-  max-width: clamp(140px, 15vw, 220px);
+  max-width: clamp(110px, 10vw, 150px);
   object-fit: contain;
   display: block;
   filter: brightness(0) invert(1);
@@ -536,16 +537,16 @@ img {
 @media (max-width: 768px) {
   .header .brand-logo-img,
   .brand-logo-img {
-    height: 38px;
-    max-width: 155px;
+    height: 30px;
+    max-width: 130px;
   }
 }
 
 @media (max-width: 380px) {
   .header .brand-logo-img,
   .brand-logo-img {
-    height: 32px;
-    max-width: 125px;
+    height: 26px;
+    max-width: 110px;
   }
 }
 
@@ -590,9 +591,10 @@ img {
 .header-left {
   display: flex;
   align-items: center;
-  gap: clamp(10px, 1.5vw, 28px);
+  gap: clamp(10px, 1.2vw, 24px);
   min-width: 0;
-  flex-shrink: 1;
+  flex: 1 1 auto;
+  overflow: hidden; /* Failsafe: NEVER bleed into header-right */
 }
 
 @media (max-width: 768px) {
@@ -604,10 +606,11 @@ img {
 .nav-desktop {
   display: none;
   min-width: 0;
+  overflow: hidden; /* Failsafe */
 }
 
-/* Activate desktop navigation at 1320px to guarantee ample space for all 7 items and controls */
-@media (min-width: 1320px) {
+/* Activate desktop navigation at 1240px: with compact elements, 1240px has ample buffer */
+@media (min-width: 1240px) {
   .nav-desktop {
     display: block;
   }
@@ -616,23 +619,23 @@ img {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: clamp(8px, 1vw, 16px);
+  gap: clamp(6px, 0.8vw, 14px);
   list-style: none;
   white-space: nowrap;
 }
 
 @media (min-width: 1560px) {
   .nav-links {
-    gap: 20px;
+    gap: 18px;
   }
 }
 
 .nav-link {
-  font-size: clamp(0.78rem, 0.8vw, 0.88rem);
+  font-size: clamp(0.72rem, 0.7vw, 0.82rem);
   font-weight: 600;
   color: #FFFFFF;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
-  padding: 5px 0;
+  padding: 4px 4px;
   position: relative;
   white-space: nowrap;
   transition: color var(--transition-fast), opacity var(--transition-fast);
@@ -663,8 +666,10 @@ img {
 .header-right {
   display: flex;
   align-items: center;
-  gap: clamp(5px, 0.7vw, 10px);
+  gap: clamp(4px, 0.5vw, 8px);
   flex-shrink: 0;
+  margin-left: auto;
+  z-index: 5;
 }
 
 /* Region dropdown in header: hide on screens below 960px where it is available in drawer */
@@ -676,13 +681,13 @@ img {
 
 @media (max-width: 768px) {
   .header-right {
-    gap: 7px;
+    gap: 6px;
   }
 }
 
 @media (max-width: 380px) {
   .header-right {
-    gap: 5px;
+    gap: 4px;
   }
 }
 
@@ -695,9 +700,9 @@ img {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 5px 9px;
-  min-height: 32px;
-  font-size: 0.78rem;
+  padding: 4px 8px;
+  min-height: 28px;
+  font-size: 0.74rem;
   font-weight: 600;
   color: #FFFFFF;
   background: rgba(8, 12, 20, 0.65);
@@ -711,24 +716,37 @@ img {
   white-space: nowrap;
 }
 
+.header-region-dropdown .select-val {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 1560px) {
+  .header-region-dropdown .select-val {
+    max-width: 140px;
+  }
+}
+
 @media (max-width: 768px) {
   .header-lang-dropdown .select-trigger {
-    padding: 5px 8px;
-    min-height: 34px;
-    font-size: 0.74rem;
-    gap: 4px;
+    padding: 4px 7px;
+    min-height: 30px;
+    font-size: 0.72rem;
+    gap: 3px;
   }
 
   .header-lang-dropdown .select-icon {
-    width: 13px;
-    height: 13px;
+    width: 12px;
+    height: 12px;
   }
 }
 
 @media (max-width: 380px) {
   .header-lang-dropdown .select-trigger {
-    padding: 4px 6px;
-    font-size: 0.70rem;
+    padding: 3px 5px;
+    font-size: 0.68rem;
   }
 }
 
@@ -815,10 +833,10 @@ img {
   color: #FFFFFF;
   border: 1px solid rgba(255, 255, 255, 0.20);
   background: rgba(8, 12, 20, 0.65);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 600;
-  padding: 5px 10px;
-  min-height: 32px;
+  padding: 4px 8px;
+  min-height: 28px;
   border-radius: var(--radius-sm);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
@@ -835,11 +853,20 @@ img {
   border-color: rgba(255, 255, 255, 0.40);
 }
 
-@media (min-width: 1180px) {
+@media (min-width: 1240px) {
   .cabinet-btn {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
+  }
+}
+
+@media (min-width: 1240px) and (max-width: 1360px) {
+  .cabinet-btn-label {
+    display: none;
+  }
+  .cabinet-btn {
+    padding: 5px 8px;
   }
 }
 
@@ -849,9 +876,9 @@ img {
   color: #FFFFFF !important;
   border: none !important;
   font-weight: 700;
-  font-size: 0.78rem;
-  padding: 6px 13px;
-  min-height: 32px;
+  font-size: 0.74rem;
+  padding: 5px 11px;
+  min-height: 28px;
   border-radius: var(--radius-sm);
   white-space: nowrap;
   box-shadow: var(--shadow-flame);
@@ -878,8 +905,8 @@ img {
   background: rgba(8, 12, 20, 0.65);
   border: 1px solid rgba(255, 255, 255, 0.20);
   border-radius: var(--radius-sm);
-  min-width: 32px;
-  min-height: 32px;
+  min-width: 30px;
+  min-height: 30px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -896,7 +923,7 @@ img {
   border-color: rgba(255, 255, 255, 0.40);
 }
 
-@media (min-width: 1320px) {
+@media (min-width: 1240px) {
   .mobile-toggle {
     display: none !important;
   }

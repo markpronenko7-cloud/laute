@@ -1,5 +1,23 @@
 [
   {
+    "id": "log-1791985717168-37nk5",
+    "timestamp": "2026-10-14T13:48:37.168Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_9e4c049",
+    "sessionId": "laute_sess_dev_9e4c049",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
+    "id": "log-1791985717160-5z2u5",
+    "timestamp": "2026-10-14T13:48:37.160Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_9d1179a",
+    "sessionId": "laute_sess_dev_9d1179a",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
     "id": "log-1791985134275-91eb9",
     "timestamp": "2026-10-14T13:38:54.275Z",
     "action": "STOCK_UPDATE",
