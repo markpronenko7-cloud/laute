@@ -376,7 +376,7 @@ export const translations = {
       "company": "LAUTE туралы",
       "production": "LAUTE туралы",
       "partners": "Серіктестерге",
-      "whereToBuy": "Қайдан сатып алуға болады",
+      "whereToBuy": "Қайдан сатып алу",
       "service": "Алғашқы цифрлық сервис",
       "contacts": "Байланыс",
       "clientCabinet": "Серіктес кабинеті",

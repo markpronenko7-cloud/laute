@@ -12,6 +12,13 @@ export const Header = () => {
 
   const langRef = useRef(null);
   const regionRef = useRef(null);
+  const containerRef = useRef(null);
+  const measureRef = useRef(null);
+
+  const [isDesktopNavVisible, setIsDesktopNavVisible] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth >= 1680;
+  });
 
   useEffect(() => {
     let ticking = false;
@@ -89,11 +96,44 @@ export const Header = () => {
     navigateTo(route);
   };
 
+  useEffect(() => {
+    const checkHeaderFit = () => {
+      if (!measureRef.current || !containerRef.current) return;
+      const needed = measureRef.current.scrollWidth + 36;
+      const available = containerRef.current.clientWidth || window.innerWidth;
+      setIsDesktopNavVisible(available >= needed);
+    };
+
+    checkHeaderFit();
+    const rafId = requestAnimationFrame(checkHeaderFit);
+
+    let resizeObserver;
+    if (typeof ResizeObserver !== 'undefined' && containerRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        checkHeaderFit();
+      });
+      resizeObserver.observe(containerRef.current);
+    }
+
+    window.addEventListener('resize', checkHeaderFit);
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', checkHeaderFit);
+      if (resizeObserver) resizeObserver.disconnect();
+    };
+  }, [lang, region, currentRegionLabel, t]);
+
+  useEffect(() => {
+    if (isDesktopNavVisible && isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+    }
+  }, [isDesktopNavVisible]);
+
   const logoSrc = `${import.meta.env.BASE_URL}laute-logo.png`;
 
   return (
-    <header className={`header ${isScrolled ? 'header-scrolled' : ''}`}>
-      <div className="container header-container">
+    <header className={`header ${isScrolled ? 'header-scrolled' : ''} ${isDesktopNavVisible ? 'header-desktop-mode' : 'header-compact-mode'}`}>
+      <div className="container header-container" ref={containerRef}>
         {/* Left: Brand Logo & Main Nav */}
         <div className="header-left">
           <a 
@@ -116,7 +156,8 @@ export const Header = () => {
             </span>
           </a>
 
-          <nav className="nav-desktop" aria-label="Основная навигация">
+          {isDesktopNavVisible && (
+            <nav className="nav-desktop" aria-label="Основная навигация">
             <ul className="nav-links">
               <li>
                 <button 
@@ -183,6 +224,7 @@ export const Header = () => {
               </li>
             </ul>
           </nav>
+          )}
         </div>
 
         {/* Right: Selectors & Actions */}
@@ -269,15 +311,17 @@ export const Header = () => {
           </div>
 
           {/* B2B Client Cabinet */}
-          <button
-            type="button"
-            className="btn btn-outline btn-sm cabinet-btn"
-            onClick={openAuthModal}
-            title={t.nav.clientCabinet || 'Кабинет партнера'}
-          >
-            <User size={15} />
-            <span className="cabinet-btn-label">{t.nav.clientCabinet || 'Кабинет партнёра'}</span>
-          </button>
+          {isDesktopNavVisible && (
+            <button
+              type="button"
+              className="btn btn-outline btn-sm cabinet-btn"
+              onClick={openAuthModal}
+              title={t.nav.clientCabinet || 'Кабинет партнера'}
+            >
+              <User size={15} />
+              <span className="cabinet-btn-label">{t.nav.clientCabinet || 'Кабинет партнёра'}</span>
+            </button>
+          )}
 
           {/* Main Wholesale Partner CTA */}
           <button
@@ -289,14 +333,16 @@ export const Header = () => {
           </button>
 
           {/* Mobile Menu Toggle */}
-          <button
-            type="button"
-            className="mobile-toggle"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="Меню"
-          >
-            {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
+          {!isDesktopNavVisible && (
+            <button
+              type="button"
+              className="mobile-toggle"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Меню"
+            >
+              {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          )}
         </div>
       </div>
 
@@ -436,6 +482,41 @@ export const Header = () => {
           </div>
         </div>
       )}
+
+      {/* Off-screen measurement node to accurately calculate whether desktop header fits without collision */}
+      <div
+        ref={measureRef}
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          top: -9999,
+          left: -9999,
+          visibility: 'hidden',
+          pointerEvents: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '24px',
+          whiteSpace: 'nowrap',
+          zIndex: -100
+        }}
+      >
+        <div style={{ width: 110, height: 40 }} />
+        <ul className="nav-links" style={{ display: 'flex', gap: '16px' }}>
+          <li className="nav-link">{t.nav?.home || 'Главная'}</li>
+          <li className="nav-link">{t.nav?.catalog || t.nav?.products || 'Каталог'}</li>
+          <li className="nav-link">{t.nav?.about || t.nav?.company || 'О LAUTE'}</li>
+          <li className="nav-link">{t.nav?.partners || 'Партнёрам'}</li>
+          <li className="nav-link">{t.nav?.whereToBuy || 'Где купить'}</li>
+          <li className="nav-link">{t.nav?.service || 'Первый цифровой сервис'}</li>
+          <li className="nav-link">{t.nav?.contacts || 'Контакты'}</li>
+        </ul>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div className="select-trigger"><Globe size={15} /> <span>{lang === 'ru' ? 'РУС' : lang === 'kz' ? 'КАЗ' : 'ENG'}</span></div>
+          <div className="select-trigger"><MapPin size={15} /> <span>{currentRegionLabel}</span></div>
+          <div className="cabinet-btn" style={{ display: 'inline-flex' }}><User size={15} /> <span>{t.nav?.clientCabinet || 'Кабинет партнёра'}</span></div>
+          <div className="btn-partner-cta" style={{ display: 'inline-flex' }}><span>{t.nav?.requestQuote || 'Стать партнёром'}</span></div>
+        </div>
+      </div>
     </header>
   );
 };

@@ -593,6 +593,7 @@ img {
   gap: clamp(14px, 1.6vw, 28px);
   min-width: 0;
   flex: 0 1 auto;
+  overflow: hidden;
 }
 
 @media (max-width: 768px) {
@@ -606,9 +607,14 @@ img {
   min-width: 0;
 }
 
-/* Activate desktop navigation at 1500px with solid readable typography — on screens below 1500px (e.g. MacBook Air/Pro 1280-1440px), navigation switches to compact mode before elements can collide */
-@media (min-width: 1500px) {
-  .nav-desktop {
+/* In desktop mode, display desktop nav */
+.header-desktop-mode .nav-desktop {
+  display: block;
+}
+
+/* Fallback pure CSS: only activate desktop navigation on screens >= 1680px where all languages are guaranteed to fit without collision */
+@media (min-width: 1680px) {
+  .header:not(.header-compact-mode) .nav-desktop {
     display: block;
   }
 }
@@ -864,13 +870,22 @@ img {
   border-color: rgba(255, 255, 255, 0.40);
 }
 
-@media (min-width: 1500px) {
-  .cabinet-btn {
+.header-desktop-mode .cabinet-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.header-desktop-mode .cabinet-btn-label {
+  display: inline !important;
+}
+
+@media (min-width: 1680px) {
+  .header:not(.header-compact-mode) .cabinet-btn {
     display: inline-flex;
     align-items: center;
     gap: 7px;
   }
-  .cabinet-btn-label {
+  .header:not(.header-compact-mode) .cabinet-btn-label {
     display: inline !important;
   }
 }
@@ -928,8 +943,12 @@ img {
   border-color: rgba(255, 255, 255, 0.40);
 }
 
-@media (min-width: 1500px) {
-  .mobile-toggle {
+.header-desktop-mode .mobile-toggle {
+  display: none !important;
+}
+
+@media (min-width: 1680px) {
+  .header:not(.header-compact-mode) .mobile-toggle {
     display: none !important;
   }
 }
