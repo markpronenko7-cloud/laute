@@ -1104,6 +1104,26 @@ export const AdminPage = () => {
     }
   };
 
+  const handleDownloadAllWarehousesStock = async (mode = 'template') => {
+    try {
+      try {
+        if (mode === 'template') {
+          await downloadStockTemplate('all');
+        } else {
+          await exportStockToExcel('all');
+        }
+      } catch (e) {
+        downloadStockTemplateExcel('all', catalogList, stockList, warehousesList);
+      }
+      showNotice(mode === 'template' 
+        ? 'Файл шаблона для ВСЕХ складов (.xlsx) успешно скачан' 
+        : 'Текущие остатки ВСЕХ складов экспортированы в Excel (.xlsx)'
+      );
+    } catch (err) {
+      showNotice(err.message || 'Ошибка формирования файла Excel для всех складов', 'error');
+    }
+  };
+
   const handleDownloadStockTemplate = async (whId = excelSelectedWarehouseId) => {
     if (!whId) {
       showNotice('Пожалуйста, выберите склад для скачивания шаблона Режима А', 'error');
@@ -1118,7 +1138,7 @@ export const AdminPage = () => {
       try {
         await downloadStockTemplate(whId);
       } catch (e) {
-        downloadStockTemplateExcel(activeWh, catalogList);
+        downloadStockTemplateExcel(activeWh, catalogList, stockList, warehousesList);
       }
       showNotice(`Шаблон остатков для склада «${activeWh.name}» скачан`);
     } catch (err) {
@@ -1140,7 +1160,7 @@ export const AdminPage = () => {
       try {
         await exportStockToExcel(whId);
       } catch (e) {
-        downloadStockTemplateExcel(activeWh, catalogList);
+        downloadStockTemplateExcel(activeWh, catalogList, stockList, warehousesList);
       }
       showNotice(`Файл остатков для склада «${activeWh.name}» экспортирован`);
     } catch (err) {
@@ -1158,8 +1178,8 @@ export const AdminPage = () => {
       try {
         result = await validateStockExcelFile(file, excelSelectedWarehouseId || selectedWarehouseId || 'all');
       } catch (apiErr) {
-        const activeWh = warehousesList.find(w => w.id === (excelSelectedWarehouseId || selectedWarehouseId));
-        result = await parseStockExcelClient(file, activeWh, catalogList, stockList);
+        const activeWh = warehousesList.find(w => w.id === (excelSelectedWarehouseId || selectedWarehouseId)) || null;
+        result = await parseStockExcelClient(file, activeWh, catalogList, stockList, warehousesList);
       }
 
       if (result) {
@@ -3046,6 +3066,16 @@ export const AdminPage = () => {
                 <div className="header-actions">
                   <button 
                     type="button" 
+                    className="admin-btn admin-btn-primary admin-btn-sm"
+                    onClick={() => handleDownloadAllWarehousesStock('template')}
+                    title="Скачать официальный Excel-шаблон остатков сразу для всех складов компании"
+                  >
+                    <Download size={14} />
+                    <span>Скачать Excel для всех складов</span>
+                  </button>
+
+                  <button 
+                    type="button" 
                     className="admin-btn admin-btn-outline admin-btn-sm"
                     onClick={() => handleOpenWhModal(null)}
                     title="Добавить новый логистический склад"
@@ -3093,12 +3123,7 @@ export const AdminPage = () => {
                           style={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left', marginBottom: 4 }}
                           onClick={async () => {
                             setStockExcelDownloadMenuOpen(false);
-                            try {
-                              await downloadStockTemplate('all');
-                              showNotice('Шаблон матрицы всех складов скачан (.xlsx)');
-                            } catch (e) {
-                              downloadStockTemplateExcel(null, catalogList);
-                            }
+                            await handleDownloadAllWarehousesStock('template');
                           }}
                         >
                           <Download size={13} />
@@ -3110,12 +3135,7 @@ export const AdminPage = () => {
                           style={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left', marginBottom: 10 }}
                           onClick={async () => {
                             setStockExcelDownloadMenuOpen(false);
-                            try {
-                              await exportStockToExcel('all');
-                              showNotice('Текущие остатки всех складов экспортированы в Excel');
-                            } catch (e) {
-                              downloadStockTemplateExcel(null, catalogList);
-                            }
+                            await handleDownloadAllWarehousesStock('export');
                           }}
                         >
                           <FileSpreadsheet size={13} />
@@ -4286,6 +4306,33 @@ export const AdminPage = () => {
                     <Upload size={14} />
                     <span>{isValidatingExcel ? 'Проверка файла...' : 'Выбрать файл XLSX'}</span>
                   </button>
+                </div>
+
+                {/* 4. Warehouse Stock Matrix Template */}
+                <div className="excel-action-card featured" style={{ border: '1px solid var(--adm-accent-blue)' }}>
+                  <div className="card-top-icon" style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38BDF8' }}>
+                    <Layers size={26} />
+                  </div>
+                  <h3>Остатки всех складов (Матрица XLSX)</h3>
+                  <p>Единый Excel-шаблон со столбцами по всем филиалам ({warehousesList.map(w => w.name).join(', ')}). Позволяет обновлять складские остатки по всей филиальной сети одновременно.</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 'auto' }}>
+                    <button 
+                      type="button" 
+                      className="admin-btn admin-btn-primary admin-btn-full"
+                      onClick={() => handleDownloadAllWarehousesStock('template')}
+                    >
+                      <Download size={14} />
+                      <span>Скачать Excel для всех складов</span>
+                    </button>
+                    <button 
+                      type="button" 
+                      className="admin-btn admin-btn-outline admin-btn-full"
+                      onClick={() => handleDownloadAllWarehousesStock('export')}
+                    >
+                      <FileSpreadsheet size={14} />
+                      <span>Экспорт текущих остатков всех складов</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 

@@ -14,8 +14,9 @@ import {
 } from 'lucide-react';
 
 export const ProductDetailModal = () => {
-  const { selectedProduct, closeProductModal, openPartnerModal, startComparison, products, adminSession } = useApp();
+  const { selectedProduct, closeProductModal, openPartnerModal, startComparison, products, adminSession, t, lang } = useApp();
   const [selectedPhoto, setSelectedPhoto] = useState(0);
+  const pm = t.productModal || {};
 
   if (!selectedProduct) return null;
 
@@ -71,7 +72,7 @@ export const ProductDetailModal = () => {
               {selectedProduct.isPopular && (
                 <span className="product-badge-popular">
                   <Sparkles size={12} />
-                  <span>Лидер продаж</span>
+                  <span>{pm.popularBadge || 'Лидер продаж'}</span>
                 </span>
               )}
             </div>
@@ -99,7 +100,7 @@ export const ProductDetailModal = () => {
             <div className="city-stock-card">
               <div className="stock-card-title">
                 <MapPin size={14} color="#EA580C" />
-                <span>Наличие по городам присутствия LAUTE:</span>
+                <span>{pm.stockInCities || 'Наличие по городам присутствия LAUTE:'}</span>
               </div>
               <div className="stock-cities-list">
                 {Object.entries(selectedProduct.cityStock || {}).map(([city, count]) => {
@@ -109,8 +110,8 @@ export const ProductDetailModal = () => {
                       <span className="city-name">{city}</span>
                       <span className={`city-count ${count > 0 ? 'in-stock' : 'out-of-stock'}`}>
                         {isStaffOrPartner 
-                          ? (count > 0 ? `В наличии (${count} шт.)` : 'Под заказ')
-                          : (count > 0 ? 'В наличии' : 'Под заказ от завода')}
+                          ? (count > 0 ? (pm.inStockWithCount || 'В наличии ({count} шт.)').replace('{count}', count) : (pm.onOrderShort || 'Под заказ'))
+                          : (count > 0 ? (pm.inStock || 'В наличии') : (pm.onOrder || 'Под заказ от завода'))}
                       </span>
                     </div>
                   );
@@ -124,16 +125,16 @@ export const ProductDetailModal = () => {
             <div className="product-category-crumb">
               <span>{selectedProduct.category}</span>
               <span className="crumb-sep">/</span>
-              <span className="product-article-tag">Арт. {selectedProduct.article}</span>
+              <span className="product-article-tag">{(pm.art || 'Арт.')} {selectedProduct.article}</span>
             </div>
 
             <h2 className="product-modal-name">{selectedProduct.name}</h2>
 
             <div className="product-price-row">
               <div className="price-val">
-                {selectedProduct.price ? `${selectedProduct.price.toLocaleString('ru-RU')} ${selectedProduct.currency || '₸'}` : 'По запросу'}
+                {selectedProduct.price ? `${selectedProduct.price.toLocaleString('ru-RU')} ${selectedProduct.currency || '₸'}` : (pm.onDemand || 'По запросу')}
               </div>
-              <span className="price-type-note">Официальная базовая цена</span>
+              <span className="price-type-note">{pm.officialBasePrice || 'Официальная базовая цена'}</span>
             </div>
 
             <p className="product-description-text">
@@ -141,39 +142,39 @@ export const ProductDetailModal = () => {
             </p>
 
             <div className="product-specs-sheet">
-              <div className="sheet-title">Характеристики и размеры:</div>
+              <div className="sheet-title">{pm.specsAndDimensions || 'Характеристики и размеры:'}</div>
 
               {selectedProduct.dimensions && (
                 <div className="spec-row">
-                  <span className="spec-key">Размеры:</span>
+                  <span className="spec-key">{pm.dimensions || 'Размеры:'}</span>
                   <span className="spec-val">{selectedProduct.dimensions}</span>
                 </div>
               )}
 
               {selectedProduct.weight && (
                 <div className="spec-row">
-                  <span className="spec-key">Вес нетто:</span>
+                  <span className="spec-key">{pm.weightNet || 'Вес нетто:'}</span>
                   <span className="spec-val">{selectedProduct.weight}</span>
                 </div>
               )}
 
               {selectedProduct.volume && (
                 <div className="spec-row">
-                  <span className="spec-key">Логистический объём:</span>
+                  <span className="spec-key">{pm.volume || 'Логистический объём:'}</span>
                   <span className="spec-val">{selectedProduct.volume}</span>
                 </div>
               )}
 
               {selectedProduct.specs && (
                 <div className="spec-row">
-                  <span className="spec-key">Спецификация:</span>
+                  <span className="spec-key">{pm.specs || 'Спецификация:'}</span>
                   <span className="spec-val">{selectedProduct.specs}</span>
                 </div>
               )}
 
               <div className="spec-row">
-                <span className="spec-key">Гарантия:</span>
-                <span className="spec-val">5 лет (заводская)</span>
+                <span className="spec-key">{pm.warranty || 'Гарантия:'}</span>
+                <span className="spec-val">{pm.warrantyVal || '5 лет (заводская)'}</span>
               </div>
             </div>
 
@@ -187,7 +188,7 @@ export const ProductDetailModal = () => {
                   openPartnerModal();
                 }}
               >
-                <span>Запросить оптовый счёт / Спецификацию</span>
+                <span>{pm.requestQuote || 'Запросить оптовый счёт / Спецификацию'}</span>
                 <ArrowRight size={16} />
               </button>
 
@@ -197,7 +198,7 @@ export const ProductDetailModal = () => {
                 onClick={handleCompareClick}
               >
                 <Scale size={15} />
-                <span>Сравнить с другой моделью LAUTE</span>
+                <span>{pm.compare || 'Сравнить с другой моделью LAUTE'}</span>
               </button>
             </div>
           </div>

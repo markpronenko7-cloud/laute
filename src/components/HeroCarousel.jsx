@@ -4,7 +4,7 @@ import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { withBrandWord } from '../utils/brandFormatter';
 
 export const HeroCarousel = () => {
-  const { navigateTo, openPartnerModal, t, siteContent } = useApp();
+  const { navigateTo, openPartnerModal, t, siteContent, lang } = useApp();
   const baseUrl = import.meta.env.BASE_URL;
 
   const [activeSlide, setActiveSlide] = useState(0);
@@ -101,14 +101,15 @@ export const HeroCarousel = () => {
         } else if (s.buttonLink) {
           action = () => navigateTo(s.buttonLink);
         }
+        const slideT = t.home?.heroSlides?.[idx] || {};
         return {
           id: s.id || `slide-${idx}`,
           image: s.image?.startsWith('http') ? s.image : `${baseUrl}${String(s.image || 'images/hero/hero-slide-1.jpg').replace(/^\//, '')}`,
           showLargeLogo: idx === 0 || idx === 4,
-          tagline: s.tagline || t.home?.heroSlides?.[idx]?.tagline || 'LAUTE®',
-          title: s.title || t.home?.heroSlides?.[idx]?.title || 'Управляй водой грамотно',
-          subtitle: s.subtitle || t.home?.heroSlides?.[idx]?.subtitle,
-          buttonText: s.buttonText || t.home?.heroSlides?.[idx]?.buttonText || 'Каталог',
+          tagline: (lang !== 'ru' && slideT.tagline) ? slideT.tagline : (s.tagline || slideT.tagline || 'LAUTE®'),
+          title: (lang !== 'ru' && slideT.title) ? slideT.title : (s.title || slideT.title || 'Управляй водой грамотно'),
+          subtitle: (lang !== 'ru' && slideT.subtitle) ? slideT.subtitle : (s.subtitle || slideT.subtitle),
+          buttonText: (lang !== 'ru' && slideT.buttonText) ? slideT.buttonText : (s.buttonText || slideT.buttonText || 'Каталог'),
           action,
           buttonId: `hero-slide${idx + 1}-btn`
         };

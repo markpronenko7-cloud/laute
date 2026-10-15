@@ -1,7 +1,7 @@
 {
-  "version": "1.0.19",
-  "lastPublishedAt": "2026-10-14T13:38:54.090Z",
-  "publishedBy": "Сессия laute_sess_4d821bc1a25",
+  "version": "1.0.22",
+  "lastPublishedAt": "2026-10-15T14:54:05.745Z",
+  "publishedBy": "Сессия laute_sess_dev_e5b0402",
   "seo": {
     "global": {
       "siteName": "LAUTE",
@@ -73,7 +73,7 @@
     },
     {
       "id": "nav-catalog",
-      "label": "Каталог",
+      "label": "Каталок",
       "route": "catalog",
       "order": 2,
       "isVisible": true
@@ -1310,6 +1310,6 @@
     }
   },
   "hasUnpublishedChanges": false,
-  "lastDraftSavedAt": "2026-10-14T13:38:54.079Z",
-  "draftSessionId": "laute_sess_4d821bc1a25"
+  "lastDraftSavedAt": "2026-10-15T14:54:02.564Z",
+  "draftSessionId": "laute_sess_dev_e5b0402"
 }

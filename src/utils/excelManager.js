@@ -331,42 +331,111 @@ export const applyExcelImport = (currentProducts, validatedRows) => {
 };
 
 /**
- * Генерирует и скачивает официальный Excel-шаблон остатков для конкретного склада
+ * Генерирует и скачивает официальный Excel-шаблон остатков
+ * Поддерживает:
+ * — Режим B: Все склады одновременно (матрица столбцов) при warehouse = null или 'all'
+ * — Режим A: Отдельно выбранный склад
  */
-export const downloadStockTemplateExcel = (warehouse, products = [], currentStock = []) => {
+export const downloadStockTemplateExcel = (warehouse, products = [], currentStock = [], allWarehouses = []) => {
+  const isAll = !warehouse || warehouse === 'all' || warehouse?.id === 'all';
+
+  if (isAll) {
+    // Режим B — Матрица всех складов
+    const whList = (Array.isArray(allWarehouses) && allWarehouses.length > 0)
+      ? allWarehouses
+      : [
+          { id: 'almaty', name: 'Алматы' },
+          { id: 'novosibirsk', name: 'Новосибирск' },
+          { id: 'moscow', name: 'Москва' },
+          { id: 'china', name: 'Китай' }
+        ];
+
+    const stockMap = new Map();
+    (currentStock || []).forEach(s => {
+      stockMap.set(`${s.warehouseId}::${s.sku}`, s.quantity);
+    });
+
+    const headers = ['Артикул (SKU)', 'Наименование товара', 'Категория'];
+    whList.forEach(wh => {
+      headers.push(`${wh.name} (шт)`);
+    });
+    headers.push('Дата выгрузки');
+
+    const exportDate = new Date().toLocaleDateString('ru-RU');
+
+    const rows = (products || []).map(p => {
+      const row = {
+        'Артикул (SKU)': p.article,
+        'Наименование товара': p.name,
+        'Категория': p.category || ''
+      };
+      whList.forEach(wh => {
+        const key = `${wh.id}::${p.article}`;
+        const qty = stockMap.has(key) ? stockMap.get(key) : null;
+        row[`${wh.name} (шт)`] = (qty !== null && qty !== undefined) ? qty : '';
+      });
+      row['Дата выгрузки'] = exportDate;
+      return row;
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows, { header: headers });
+    ws['!cols'] = [
+      { wch: 18 },
+      { wch: 44 },
+      { wch: 24 },
+      ...whList.map(() => ({ wch: 20 })),
+      { wch: 16 }
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Все склады LAUTE');
+    XLSX.writeFile(wb, 'LAUTE_Stock_Template_ALL_WAREHOUSES.xlsx');
+    return true;
+  }
+
+  // Режим A — Конкретный выбранный склад
+  const whObj = typeof warehouse === 'object' && warehouse !== null 
+    ? warehouse 
+    : { id: String(warehouse), name: String(warehouse) };
+
   const stockMap = new Map();
-  currentStock.forEach(s => {
-    if (s.warehouseId === warehouse.id) {
+  (currentStock || []).forEach(s => {
+    if (s.warehouseId === whObj.id) {
       stockMap.set(s.sku, s.quantity);
     }
   });
 
-  const rows = products.map(p => ({
-    'Артикул (SKU)': p.article,
-    'Наименование товара': p.name,
-    'Категория': p.category,
-    'Количество на складе (шт)': stockMap.has(p.article) ? stockMap.get(p.article) : 0,
-    'Склад': warehouse.name
-  }));
+  const rows = (products || []).map(p => {
+    const qty = stockMap.has(p.article) ? stockMap.get(p.article) : null;
+    return {
+      'Артикул (SKU)': p.article,
+      'Наименование товара': p.name,
+      'Категория': p.category || '',
+      'Количество на складе (шт)': (qty !== null && qty !== undefined) ? qty : '',
+      'Склад': whObj.name || whObj.id
+    };
+  });
 
   const ws = XLSX.utils.json_to_sheet(rows);
   ws['!cols'] = [
     { wch: 18 },
-    { wch: 40 },
+    { wch: 42 },
     { wch: 24 },
     { wch: 26 },
     { wch: 18 }
   ];
 
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, `Остатки — ${warehouse.name}`);
-  XLSX.writeFile(wb, `LAUTE_Stock_Template_${warehouse.id}.xlsx`);
+  XLSX.utils.book_append_sheet(wb, ws, `Остатки — ${whObj.name || whObj.id}`);
+  XLSX.writeFile(wb, `LAUTE_Stock_Template_${whObj.id}.xlsx`);
+  return true;
 };
 
 /**
  * Парсит и валидирует загруженный Excel-файл со складскими остатками на клиенте
+ * Поддерживает как файл одного склада (Режим А), так и матрицу всех складов (Режим B)
  */
-export const parseStockExcelClient = async (file, warehouse, currentProducts, currentStock = []) => {
+export const parseStockExcelClient = async (file, warehouse, currentProducts, currentStock = [], allWarehouses = []) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -387,24 +456,43 @@ export const parseStockExcelClient = async (file, warehouse, currentProducts, cu
 
         const headers = rawRows[0].map(h => String(h || '').trim().toLowerCase());
         const skuIdx = headers.findIndex(h => h.includes('артикул') || h.includes('sku'));
-        const qtyIdx = headers.findIndex(h => h.includes('количество') || h.includes('остаток') || h.includes('кол-во') || h.includes('qty'));
 
         if (skuIdx === -1) {
           throw new Error('Не найдена колонка "Артикул" или "SKU" в файле');
-        }
-        if (qtyIdx === -1) {
-          throw new Error('Не найдена колонка "Количество" в файле');
         }
 
         const productsMap = new Map();
         currentProducts.forEach(p => productsMap.set(p.article, p));
 
         const stockMap = new Map();
-        currentStock.forEach(s => {
-          if (s.warehouseId === warehouse.id) {
-            stockMap.set(s.sku, s.quantity);
+        (currentStock || []).forEach(s => {
+          stockMap.set(`${s.warehouseId}::${s.sku}`, s.quantity);
+        });
+
+        // Проверяем, есть ли колонки нескольких складов (Режим B)
+        const whColumns = [];
+        (allWarehouses || []).forEach(wh => {
+          const colIdx = headers.findIndex(h => 
+            h.includes(wh.name.toLowerCase()) || 
+            h.includes(wh.id.toLowerCase())
+          );
+          if (colIdx !== -1) {
+            whColumns.push({ colIdx, warehouse: wh });
           }
         });
+
+        const isMultiWh = whColumns.length > 0;
+        let singleQtyIdx = -1;
+        let singleWh = warehouse || (allWarehouses && allWarehouses[0]) || { id: 'almaty', name: 'Алматы' };
+
+        if (!isMultiWh) {
+          singleQtyIdx = headers.findIndex(h => 
+            h.includes('количество') || h.includes('остаток') || h.includes('кол-во') || h.includes('qty')
+          );
+          if (singleQtyIdx === -1) {
+            throw new Error('Не найдены колонки складов или колонка "Количество" в файле');
+          }
+        }
 
         const diffList = [];
         const errors = [];
@@ -416,14 +504,8 @@ export const parseStockExcelClient = async (file, warehouse, currentProducts, cu
           if (!row || row.length === 0) continue;
 
           const skuRaw = row[skuIdx];
-          const qtyRaw = row[qtyIdx];
-          if (!skuRaw && (qtyRaw === null || qtyRaw === undefined)) continue;
-
           const sku = String(skuRaw || '').trim();
-          if (!sku) {
-            errors.push({ row: i + 1, message: 'Строка без артикула SKU' });
-            continue;
-          }
+          if (!sku) continue;
 
           if (seenSkus.has(sku)) {
             errors.push({ row: i + 1, sku, message: `Повторяющийся артикул ${sku} в файле` });
@@ -437,37 +519,79 @@ export const parseStockExcelClient = async (file, warehouse, currentProducts, cu
             continue;
           }
 
-          let qty = 0;
-          if (typeof qtyRaw === 'number') {
-            qty = Math.max(0, Math.floor(qtyRaw));
+          if (isMultiWh) {
+            // Обрабатываем каждый склад в матрице
+            whColumns.forEach(({ colIdx, warehouse: wh }) => {
+              const val = row[colIdx];
+              if (val === null || val === undefined || val === '') return; // Пропускаем пустые (без изменений)
+
+              let qty = 0;
+              if (typeof val === 'number') {
+                qty = Math.max(0, Math.floor(val));
+              } else {
+                const parsed = parseInt(String(val).replace(/[^0-9]/g, ''), 10);
+                if (isNaN(parsed) || parsed < 0) {
+                  errors.push({ row: i + 1, sku, message: `Некорректное число для склада ${wh.name}: "${val}"` });
+                  return;
+                }
+                qty = parsed;
+              }
+
+              const stockKey = `${wh.id}::${sku}`;
+              const currentQty = stockMap.has(stockKey) ? stockMap.get(stockKey) : null;
+              const diff = currentQty !== null ? qty - currentQty : qty;
+
+              diffList.push({
+                sku,
+                name: product.name,
+                category: product.category,
+                warehouseId: wh.id,
+                warehouseName: wh.name,
+                oldQuantity: currentQty !== null ? currentQty : '—',
+                newQuantity: qty,
+                diff,
+                updatedAt: now
+              });
+            });
           } else {
-            const parsed = parseInt(String(qtyRaw || '0').replace(/[^0-9]/g, ''), 10);
-            if (isNaN(parsed) || parsed < 0) {
-              errors.push({ row: i + 1, sku, message: `Некорректное число количества "${qtyRaw}"` });
-              continue;
+            // Обрабатываем один склад
+            const val = row[singleQtyIdx];
+            if (val === null || val === undefined || val === '') continue;
+
+            let qty = 0;
+            if (typeof val === 'number') {
+              qty = Math.max(0, Math.floor(val));
+            } else {
+              const parsed = parseInt(String(val).replace(/[^0-9]/g, ''), 10);
+              if (isNaN(parsed) || parsed < 0) {
+                errors.push({ row: i + 1, sku, message: `Некорректное число количества "${val}"` });
+                continue;
+              }
+              qty = parsed;
             }
-            qty = parsed;
+
+            const stockKey = `${singleWh.id}::${sku}`;
+            const currentQty = stockMap.has(stockKey) ? stockMap.get(stockKey) : 0;
+            const diff = qty - currentQty;
+
+            diffList.push({
+              sku,
+              name: product.name,
+              category: product.category,
+              warehouseId: singleWh.id,
+              warehouseName: singleWh.name,
+              oldQuantity: currentQty,
+              newQuantity: qty,
+              diff,
+              updatedAt: now
+            });
           }
-
-          const currentQty = stockMap.has(sku) ? stockMap.get(sku) : 0;
-          const diff = qty - currentQty;
-
-          diffList.push({
-            sku,
-            name: product.name,
-            category: product.category,
-            warehouseId: warehouse.id,
-            warehouseName: warehouse.name,
-            oldQuantity: currentQty,
-            newQuantity: qty,
-            diff,
-            updatedAt: now
-          });
         }
 
         resolve({
-          warehouseId: warehouse.id,
-          warehouseName: warehouse.name,
+          isMultiWarehouse: isMultiWh,
+          warehouseId: isMultiWh ? 'all' : singleWh.id,
+          warehouseName: isMultiWh ? 'Все склады' : singleWh.name,
           totalRows: diffList.length + errors.length,
           validCount: diffList.length,
           errorCount: errors.length,

@@ -1,5 +1,352 @@
 [
   {
+    "id": "log-1792076183858-3s6k9",
+    "timestamp": "2026-10-15T14:56:23.858Z",
+    "action": "LOGOUT",
+    "actionTitle": "Выход из панели управления",
+    "summary": "Сессия laute_sess_dev_5ca463c завершена",
+    "sessionId": "laute_sess_dev_5ca463c"
+  },
+  {
+    "id": "log-1792076165935-gg9cv",
+    "timestamp": "2026-10-15T14:56:05.935Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-A801-AER",
+    "summary": "Товар \"Аэратор водосберегающий поворотный LAUTE Neoperl Swivel M24\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_5ca463c",
+    "backupId": "catalog_2026-10-15T14-56-05-931Z"
+  },
+  {
+    "id": "log-1792076164639-m1gzr",
+    "timestamp": "2026-10-15T14:56:04.639Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-C701-35M",
+    "summary": "Товар \"Оригинальный керамический картридж LAUTE Keram 35 мм\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_5ca463c",
+    "backupId": "catalog_2026-10-15T14-56-04-636Z"
+  },
+  {
+    "id": "log-1792076163537-bmjif",
+    "timestamp": "2026-10-15T14:56:03.537Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-H601-BID",
+    "summary": "Товар \"Встраиваемый гигиенический душ LAUTE Compact Bidet H-10\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_5ca463c",
+    "backupId": "catalog_2026-10-15T14-56-03-532Z"
+  },
+  {
+    "id": "log-1792076162218-d5tqc",
+    "timestamp": "2026-10-15T14:56:02.218Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-W501-SNK",
+    "summary": "Товар \"Кухонная мойка нержавеющая сталь LAUTE Steel Pro W-60\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_5ca463c",
+    "backupId": "catalog_2026-10-15T14-56-02-213Z"
+  },
+  {
+    "id": "log-1792076160689-8sxpo",
+    "timestamp": "2026-10-15T14:56:00.689Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-S401-COL",
+    "summary": "Товар \"Душевая система с тропическим душем LAUTE Rain Tower S-40\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_5ca463c",
+    "backupId": "catalog_2026-10-15T14-56-00-685Z"
+  },
+  {
+    "id": "log-1792076158967-twccz",
+    "timestamp": "2026-10-15T14:55:58.967Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-U302-LNG",
+    "summary": "Товар \"Универсальный смеситель для ванны и раковины LAUTE Grand 350 U-30\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_5ca463c",
+    "backupId": "catalog_2026-10-15T14-55-58-962Z"
+  },
+  {
+    "id": "log-1792076157344-xcd5e",
+    "timestamp": "2026-10-15T14:55:57.344Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-V301-SHT",
+    "summary": "Товар \"Смеситель для ванны LAUTE Pure Bath V-20\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_5ca463c",
+    "backupId": "catalog_2026-10-15T14-55-57-340Z"
+  },
+  {
+    "id": "log-1792076155849-dtcvh",
+    "timestamp": "2026-10-15T14:55:55.849Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-B202-HGH",
+    "summary": "Товар \"Высокий смеситель для накладных чаш LAUTE High Tower B-05\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_5ca463c",
+    "backupId": "catalog_2026-10-15T14-55-55-845Z"
+  },
+  {
+    "id": "log-1792076154692-hmivv",
+    "timestamp": "2026-10-15T14:55:54.692Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-B201-SLM",
+    "summary": "Товар \"Смеситель для раковины LAUTE Line Basin B-01\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_5ca463c",
+    "backupId": "catalog_2026-10-15T14-55-54-688Z"
+  },
+  {
+    "id": "log-1792076153318-f2b4c",
+    "timestamp": "2026-10-15T14:55:53.318Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-K103-FLX",
+    "summary": "Товар \"Смеситель для кухни LAUTE Flexi Pro K-15 (с гибким изливом)\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_5ca463c",
+    "backupId": "catalog_2026-10-15T14-55-53-314Z"
+  },
+  {
+    "id": "log-1792076150968-zzvjz",
+    "timestamp": "2026-10-15T14:55:50.968Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-K102-FLT",
+    "summary": "Товар \"Смеситель для кухни LAUTE Quadro Filter Q-12 (под фильтр)\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_5ca463c",
+    "backupId": "catalog_2026-10-15T14-55-50-964Z"
+  },
+  {
+    "id": "log-1792076149688-oghpu",
+    "timestamp": "2026-10-15T14:55:49.688Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-K101-CHR",
+    "summary": "Товар \"Смеситель для кухни LAUTE Prime K-10\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_5ca463c",
+    "backupId": "catalog_2026-10-15T14-55-49-682Z"
+  },
+  {
+    "id": "log-1792076145888-kwoz7",
+    "timestamp": "2026-10-15T14:55:45.888Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_5ca463c",
+    "sessionId": "laute_sess_dev_5ca463c",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
+    "id": "log-1792076145880-4qvgo",
+    "timestamp": "2026-10-15T14:55:45.880Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_e583e91",
+    "sessionId": "laute_sess_dev_e583e91",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
+    "id": "log-1792076048100-fblgw",
+    "timestamp": "2026-10-15T14:54:08.100Z",
+    "action": "LOGOUT",
+    "actionTitle": "Выход из панели управления",
+    "summary": "Сессия laute_sess_dev_e5b0402 завершена",
+    "sessionId": "laute_sess_dev_e5b0402"
+  },
+  {
+    "id": "log-1792076045751-s2y3g",
+    "timestamp": "2026-10-15T14:54:05.751Z",
+    "action": "CONTENT_PUBLISH",
+    "actionTitle": "Публикация контента на сайт",
+    "summary": "Контент сайта обновлен до версии 1.0.22. Создан снимок отката: content_backup_2026-10-15T14-54-05-744Z",
+    "sessionId": "laute_sess_dev_e5b0402",
+    "backupId": "content_backup_2026-10-15T14-54-05-744Z"
+  },
+  {
+    "id": "log-1792076042567-p5cv1",
+    "timestamp": "2026-10-15T14:54:02.567Z",
+    "action": "CONTENT_DRAFT_SAVE",
+    "actionTitle": "Сохранён черновик контента сайта",
+    "summary": "Изменения сохранены в черновике (не опубликованы на витрине)",
+    "sessionId": "laute_sess_dev_e5b0402"
+  },
+  {
+    "id": "log-1792076023594-xhm1h",
+    "timestamp": "2026-10-15T14:53:43.595Z",
+    "action": "CONTENT_PUBLISH",
+    "actionTitle": "Публикация контента на сайт",
+    "summary": "Контент сайта обновлен до версии 1.0.21. Создан снимок отката: content_backup_2026-10-15T14-53-43-588Z",
+    "sessionId": "laute_sess_dev_e5b0402",
+    "backupId": "content_backup_2026-10-15T14-53-43-588Z"
+  },
+  {
+    "id": "log-1792076016001-1gspa",
+    "timestamp": "2026-10-15T14:53:36.001Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_e5b0402",
+    "sessionId": "laute_sess_dev_e5b0402",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
+    "id": "log-1792075497447-y0cax",
+    "timestamp": "2026-10-15T14:44:57.447Z",
+    "action": "CONTENT_PUBLISH",
+    "actionTitle": "Публикация контента на сайт",
+    "summary": "Контент сайта обновлен до версии 1.0.20. Создан снимок отката: content_backup_2026-10-15T14-44-57-441Z",
+    "sessionId": "laute_sess_dev_b939f41",
+    "backupId": "content_backup_2026-10-15T14-44-57-441Z"
+  },
+  {
+    "id": "log-1792075351732-hmckd",
+    "timestamp": "2026-10-15T14:42:31.732Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_b939f41",
+    "sessionId": "laute_sess_dev_b939f41",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
+    "id": "log-1792075327996-vw9qn",
+    "timestamp": "2026-10-15T14:42:07.996Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_d1ff04b",
+    "sessionId": "laute_sess_dev_d1ff04b",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
+    "id": "log-1792075290131-6w225",
+    "timestamp": "2026-10-15T14:41:30.131Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_475c17d",
+    "sessionId": "laute_sess_dev_475c17d",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
+    "id": "log-1792075280711-5f4ty",
+    "timestamp": "2026-10-15T14:41:20.711Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_78c2b9d",
+    "sessionId": "laute_sess_dev_78c2b9d",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
+    "id": "log-1792075257882-nn6cy",
+    "timestamp": "2026-10-15T14:40:57.882Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_7719a3d",
+    "sessionId": "laute_sess_dev_7719a3d",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
+    "id": "log-1792075257872-3x4h3",
+    "timestamp": "2026-10-15T14:40:57.872Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_ad4256d",
+    "sessionId": "laute_sess_dev_ad4256d",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
+    "id": "log-1792075183840-bpznj",
+    "timestamp": "2026-10-15T14:39:43.840Z",
+    "action": "LOGOUT",
+    "actionTitle": "Выход из панели управления",
+    "summary": "Сессия laute_sess_dev_ae2e621 завершена",
+    "sessionId": "laute_sess_dev_ae2e621"
+  },
+  {
+    "id": "log-1792075170772-ay7lq",
+    "timestamp": "2026-10-15T14:39:30.772Z",
+    "action": "PAGE_UPDATE",
+    "actionTitle": "Обновлена страница \"О компании LAUTE\"",
+    "summary": "URL: /company",
+    "sessionId": "laute_sess_dev_ae2e621"
+  },
+  {
+    "id": "log-1792075170577-jm5dz",
+    "timestamp": "2026-10-15T14:39:30.577Z",
+    "action": "PAGE_UPDATE",
+    "actionTitle": "Обновлена страница \"О компании LAUTE\"",
+    "summary": "URL: /company",
+    "sessionId": "laute_sess_dev_ae2e621"
+  },
+  {
+    "id": "log-1792075170310-bwluw",
+    "timestamp": "2026-10-15T14:39:30.310Z",
+    "action": "PAGE_UPDATE",
+    "actionTitle": "Обновлена страница \"О компании LAUTE\"",
+    "summary": "URL: /company",
+    "sessionId": "laute_sess_dev_ae2e621"
+  },
+  {
+    "id": "log-1792075170068-02q7z",
+    "timestamp": "2026-10-15T14:39:30.068Z",
+    "action": "PAGE_UPDATE",
+    "actionTitle": "Обновлена страница \"О компании LAUTE\"",
+    "summary": "URL: /company",
+    "sessionId": "laute_sess_dev_ae2e621"
+  },
+  {
+    "id": "log-1792075169805-ocgs8",
+    "timestamp": "2026-10-15T14:39:29.805Z",
+    "action": "PAGE_UPDATE",
+    "actionTitle": "Обновлена страница \"О компании LAUTE\"",
+    "summary": "URL: /company",
+    "sessionId": "laute_sess_dev_ae2e621"
+  },
+  {
+    "id": "log-1792075169556-968ng",
+    "timestamp": "2026-10-15T14:39:29.556Z",
+    "action": "PAGE_UPDATE",
+    "actionTitle": "Обновлена страница \"О компании LAUTE\"",
+    "summary": "URL: /company",
+    "sessionId": "laute_sess_dev_ae2e621"
+  },
+  {
+    "id": "log-1792075168340-jzyuo",
+    "timestamp": "2026-10-15T14:39:28.340Z",
+    "action": "PAGE_UPDATE",
+    "actionTitle": "Обновлена страница \"О компании LAUTE\"",
+    "summary": "URL: /company",
+    "sessionId": "laute_sess_dev_ae2e621"
+  },
+  {
+    "id": "log-1792075145297-gxi4m",
+    "timestamp": "2026-10-15T14:39:05.297Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_ae2e621",
+    "sessionId": "laute_sess_dev_ae2e621",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
+    "id": "log-1792075145285-ijglo",
+    "timestamp": "2026-10-15T14:39:05.285Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_2cfcbee",
+    "sessionId": "laute_sess_dev_2cfcbee",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
+    "id": "log-1792075130649-iv7wm",
+    "timestamp": "2026-10-15T14:38:50.649Z",
+    "action": "LOGOUT",
+    "actionTitle": "Выход из панели управления",
+    "summary": "Сессия laute_sess_dev_bd16095 завершена",
+    "sessionId": "laute_sess_dev_bd16095"
+  },
+  {
+    "id": "log-1792075127126-6yb1x",
+    "timestamp": "2026-10-15T14:38:47.126Z",
+    "action": "PAGE_UPDATE",
+    "actionTitle": "Обновлена страница \"О компании LAUTE\"",
+    "summary": "URL: /company",
+    "sessionId": "laute_sess_dev_bd16095"
+  },
+  {
+    "id": "log-1792075118215-aiqsw",
+    "timestamp": "2026-10-15T14:38:38.215Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_bd16095",
+    "sessionId": "laute_sess_dev_bd16095",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
     "id": "log-1792072667105-eqpp5",
     "timestamp": "2026-10-15T13:57:47.105Z",
     "action": "PAGE_DELETE",

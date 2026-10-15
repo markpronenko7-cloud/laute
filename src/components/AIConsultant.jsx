@@ -386,7 +386,7 @@ export const AIConsultant = () => {
                           onClick={() => openProductModal(prod)}
                         >
                           <Eye size={12} />
-                          <span>Подробнее</span>
+                          <span>{lang === 'kz' ? 'Толығырақ' : lang === 'en' ? 'Details' : 'Подробнее'}</span>
                         </button>
 
                         <button
@@ -396,10 +396,10 @@ export const AIConsultant = () => {
                             const other = msg.recommendedProducts.find(p => p.article !== prod.article) || products.find(p => p.category === prod.category && p.article !== prod.article);
                             if (other) startComparison(prod, other);
                           }}
-                          title="Сравнить с другой моделью"
+                          title={lang === 'kz' ? 'Басқа модельмен салыстыру' : lang === 'en' ? 'Compare with another model' : 'Сравнить с другой моделью'}
                         >
                           <Scale size={12} />
-                          <span>Сравнить</span>
+                          <span>{lang === 'kz' ? 'Салыстыру' : lang === 'en' ? 'Compare' : 'Сравнить'}</span>
                         </button>
                       </div>
                     </div>

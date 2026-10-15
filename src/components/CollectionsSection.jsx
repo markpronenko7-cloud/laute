@@ -10,7 +10,7 @@ export const CollectionsSection = () => {
     {
       id: 'bathroom',
       title: t.home?.spacesBathroom || 'Пространства ванных комнат',
-      subtitle: 'Смесители для раковин, накладных чаш и ванн с чистой архитектурной геометрией',
+      subtitle: t.home?.spacesBathroomSub || 'Смесители для раковин, накладных чаш и ванн с чистой архитектурной геометрией',
       categoryBadge: (t.home?.spacesBathroom || 'ПРОСТРАНСТВА ВАННЫХ КОМНАТ').toUpperCase(),
       image: `${baseUrl}images/collections/coll-bathroom.jpg`,
       layoutClass: 'collection-card-featured'
@@ -18,7 +18,7 @@ export const CollectionsSection = () => {
     {
       id: 'kitchen',
       title: t.home?.spacesKitchen || 'Кухонные смесители',
-      subtitle: 'Функциональные смесители с поворотным и гибким изливом. Модели со встроенным каналом для подключения к системе фильтрации питьевой воды.',
+      subtitle: t.home?.spacesKitchenSub || 'Функциональные смесители с поворотным и гибким изливом. Модели со встроенным каналом для подключения к системе фильтрации питьевой воды.',
       categoryBadge: (t.home?.spacesKitchen || 'КУХОННЫЕ СМЕСИТЕЛИ').toUpperCase(),
       filterFeatureBadge: t.home?.spacesKitchenFilter || 'С подключением к системе фильтрации чистой воды',
       image: `${baseUrl}images/collections/coll-kitchen.jpg`,
@@ -27,7 +27,7 @@ export const CollectionsSection = () => {
     {
       id: 'shower',
       title: t.home?.spacesShower || 'Душевые зоны и кабины',
-      subtitle: 'Встраиваемые решения, термостатический контроль, тропический душ и надежные душевые кабины',
+      subtitle: t.home?.spacesShowerSub || 'Встраиваемые решения, термостатический контроль, тропический душ и надежные душевые кабины',
       categoryBadge: (t.home?.spacesShower || 'ДУШЕВЫЕ ЗОНЫ И КАБИНЫ').toUpperCase(),
       image: `${baseUrl}images/collections/coll-shower.jpg`,
       layoutClass: 'collection-card-standard'
@@ -35,8 +35,8 @@ export const CollectionsSection = () => {
     {
       id: 'engineering',
       title: t.home?.techBadge || 'Технологии & Материалы',
-      subtitle: 'Нержавеющая сталь SUS304, ЭКО алюминий, испанские картриджи Sedal, латунь А+ и PVD-покрытие',
-      categoryBadge: 'ТЕХНОЛОГИИ & МАТЕРИАЛЫ',
+      subtitle: t.home?.spacesEngineeringSub || 'Нержавеющая сталь SUS304, ЭКО алюминий, испанские картриджи Sedal, латунь А+ и PVD-покрытие',
+      categoryBadge: (t.home?.techBadge || 'ТЕХНОЛОГИИ & МАТЕРИАЛЫ').toUpperCase(),
       image: `${baseUrl}images/collections/coll-engineering.jpg`,
       layoutClass: 'collection-card-wide'
     }

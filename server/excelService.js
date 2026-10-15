@@ -641,7 +641,7 @@ export async function createWarehouseStockWorkbook(warehouse, products, stockLis
 
   products.forEach((p, idx) => {
     const itemStock = stockMap.get(p.article);
-    const qty = itemStock && itemStock.quantity !== null && itemStock.quantity !== undefined ? itemStock.quantity : 0;
+    const qty = (itemStock && itemStock.quantity !== null && itemStock.quantity !== undefined) ? itemStock.quantity : '';
     const upd = itemStock?.updatedAt ? new Date(itemStock.updatedAt).toLocaleDateString('ru-RU') : 'Не указана';
 
     const row = ws.addRow({
@@ -720,7 +720,7 @@ export async function createAllWarehousesStockWorkbook(warehouses, products, sto
     warehouses.forEach(wh => {
       const key = `${wh.id}::${p.article}`;
       const qty = stockMap.has(key) ? stockMap.get(key) : null;
-      rowData[`wh_${wh.id}`] = qty !== null && qty !== undefined ? qty : 0;
+      rowData[`wh_${wh.id}`] = (qty !== null && qty !== undefined) ? qty : '';
     });
 
     const row = ws.addRow(rowData);

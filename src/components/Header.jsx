@@ -42,7 +42,11 @@ export const Header = () => {
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('touchstart', handleOutsideClick, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+    };
   }, []);
 
   // Close mobile drawer on route change or escape key, and prevent body scroll when open
@@ -72,9 +76,12 @@ export const Header = () => {
     { code: 'en', label: 'ENG', full: 'English' }
   ];
 
+  const currentRegionObj = REGIONS_CONFIG.find((reg) => reg.id === region);
+  const currentRegionLabel = t.regions?.[region] || currentRegionObj?.names?.[lang] || currentRegionObj?.names?.ru || region;
+
   const regionOptions = REGIONS_CONFIG.map((reg) => ({
     code: reg.id,
-    label: t.regions?.[reg.id] || reg.names[lang] || reg.names.ru
+    label: t.regions?.[reg.id] || reg.names?.[lang] || reg.names?.ru || reg.id
   }));
 
   const handleNavClick = (route) => {
@@ -185,7 +192,13 @@ export const Header = () => {
             <button
               type="button"
               className="select-trigger"
-              onClick={() => setIsLangOpen(!isLangOpen)}
+              onClick={() => {
+                setIsLangOpen(prev => {
+                  const next = !prev;
+                  if (next) setIsRegionOpen(false);
+                  return next;
+                });
+              }}
               aria-label={t.nav.language || 'Язык сайта'}
             >
               <Globe size={15} className="select-icon" />
@@ -218,11 +231,17 @@ export const Header = () => {
             <button
               type="button"
               className="select-trigger"
-              onClick={() => setIsRegionOpen(!isRegionOpen)}
+              onClick={() => {
+                setIsRegionOpen(prev => {
+                  const next = !prev;
+                  if (next) setIsLangOpen(false);
+                  return next;
+                });
+              }}
               aria-label={t.regions?.selectRegion || t.nav.region || 'Ваш регион'}
             >
               <MapPin size={15} className="select-icon" />
-              <span className="select-val">{t.regions?.[region] || region}</span>
+              <span className="select-val">{currentRegionLabel}</span>
               <ChevronDown size={13} className={`arrow-icon ${isRegionOpen ? 'open' : ''}`} />
             </button>
 

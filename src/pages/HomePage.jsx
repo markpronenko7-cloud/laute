@@ -20,7 +20,7 @@ import { CollectionsSection } from '../components/CollectionsSection';
 import { withBrandWord } from '../utils/brandFormatter';
 
 export const HomePage = () => {
-  const { navigateTo, openPartnerModal, openServiceModal, startAIPartnerAnalysis, t, siteContent } = useApp();
+  const { navigateTo, openPartnerModal, openServiceModal, startAIPartnerAnalysis, t, siteContent, lang } = useApp();
   const baseUrl = import.meta.env.BASE_URL;
 
   const [leadForm, setLeadForm] = useState({
@@ -72,13 +72,13 @@ export const HomePage = () => {
         <div className="container">
           <div className="section-title-wrap reveal-on-scroll">
             <span className="section-badge badge-refined">
-              {siteContent?.homeBlocks?.materials?.badge || h.techBadge || 'ТЕХНОЛОГИИ & МАТЕРИАЛЫ'}
+              {(lang !== 'ru' && h.techBadge) ? h.techBadge : (siteContent?.homeBlocks?.materials?.badge || h.techBadge || 'ТЕХНОЛОГИИ & МАТЕРИАЛЫ')}
             </span>
             <h2 className="section-title visual-tech-title">
-              {withBrandWord(siteContent?.homeBlocks?.materials?.title || h.techTitle || 'Инженерная надежность в каждой детали')}
+              {withBrandWord((lang !== 'ru' && h.techTitle) ? h.techTitle : (siteContent?.homeBlocks?.materials?.title || h.techTitle || 'Инженерная надежность в каждой детали'))}
             </h2>
             <p className="section-desc visual-tech-desc">
-              {withBrandWord(siteContent?.homeBlocks?.materials?.desc || h.techDesc || 'Никаких компромиссов: первичная конструкционная латунь, пищевая нержавеющая сталь SUS304, ЭКО алюминий, испанские картриджи Sedal и молекулярное вакуумное PVD-осаждение.')}
+              {withBrandWord((lang !== 'ru' && h.techDesc) ? h.techDesc : (siteContent?.homeBlocks?.materials?.desc || h.techDesc || 'Никаких компромиссов: первичная конструкционная латунь, пищевая нержавеющая сталь SUS304, ЭКО алюминий, испанские картриджи Sedal и молекулярное вакуумное PVD-осаждение.'))}
             </p>
           </div>
 
@@ -109,15 +109,15 @@ export const HomePage = () => {
                 <div className="tech-spec-bullets">
                   <div className="tech-spec-item">
                     <span className="spec-item-bullet">•</span>
-                    <span>Диски из оксида алюминия Al₂O₃ с алмазной притиркой</span>
+                    <span>{h.sedalBullet1 || 'Диски из оксида алюминия Al₂O₃ с алмазной притиркой'}</span>
                   </div>
                   <div className="tech-spec-item">
                     <span className="spec-item-bullet">•</span>
-                    <span>Ресурс 500 000 циклов (EN 817) без капель и протечек</span>
+                    <span>{h.sedalBullet2 || 'Ресурс 500 000 циклов (EN 817) без капель и протечек'}</span>
                   </div>
                   <div className="tech-spec-item">
                     <span className="spec-item-bullet">•</span>
-                    <span>Термостойкость до 90°C и гидротест 16 бар</span>
+                    <span>{h.sedalBullet3 || 'Термостойкость до 90°C и гидротест 16 бар'}</span>
                   </div>
                 </div>
               </div>
