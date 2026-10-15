@@ -102,9 +102,11 @@ import {
   validateStockExcelFile,
   commitStockExcelImport,
   fetchRegionWarehouseMap,
-  saveRegionWarehouseMap
+  saveRegionWarehouseMap,
+  duplicateCustomPage
 } from '../services/adminApi';
 import { REGIONS_CONFIG } from '../data/regionsData';
+import { VisualPageBuilder } from '../components/builder/VisualPageBuilder';
 import {
   downloadStockTemplateExcel,
   parseStockExcelClient
@@ -317,10 +319,14 @@ export const AdminPage = () => {
   // SEO Active Page Tab
   const [seoActivePage, setSeoActivePage] = useState('home');
 
-  // Pages State
+  // Pages & Visual Page Builder State
   const [pagesList, setPagesList] = useState([]);
   const [selectedPageForEditor, setSelectedPageForEditor] = useState('home');
   const [editingCustomPage, setEditingCustomPage] = useState(null);
+  const [builderEditingPage, setBuilderEditingPage] = useState(null);
+  const [isCreatePageModalOpen, setIsCreatePageModalOpen] = useState(false);
+  const [newPageForm, setNewPageForm] = useState({ title: '', slug: '', description: '', template: 'hero_text' });
+  const [pagesSearchQuery, setPagesSearchQuery] = useState('');
 
   // Excel State
   const [excelFile, setExcelFile] = useState(null);
@@ -1786,6 +1792,78 @@ export const AdminPage = () => {
                 </div>
               </div>
 
+              {/* Tilda-style Visual Builder Banner in Editor */}
+              <div style={{
+                margin: '14px 0 20px',
+                padding: '16px 20px',
+                background: 'linear-gradient(135deg, rgba(212,175,55,0.12) 0%, rgba(170,130,10,0.06) 100%)',
+                border: '1px solid rgba(212,175,55,0.3)',
+                borderRadius: 10,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 16
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <div style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 8,
+                    background: 'rgba(212,175,55,0.18)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#D4AF37'
+                  }}>
+                    <Sliders size={20} />
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 700, color: '#FFFFFF', fontSize: 14, letterSpacing: '0.01em' }}>
+                      Визуальный Tilda-конструктор блоков для страницы «{
+                        selectedPageForEditor === 'home' ? 'Главная' :
+                        selectedPageForEditor === 'contacts' ? 'Контакты' :
+                        selectedPageForEditor === 'company' ? 'О компании' :
+                        selectedPageForEditor === 'partners' ? 'Партнёрам' :
+                        selectedPageForEditor === 'service' ? 'Сервис' :
+                        selectedPageForEditor === 'catalog' ? 'Каталог' :
+                        selectedPageForEditor
+                      }»
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--adm-text-muted)', marginTop: 2 }}>
+                      Добавляйте любые готовые блоки из библиотеки, перемещайте порядок, меняйте фото/текст прямо на холсте и управляйте версиями
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="admin-btn admin-btn-primary admin-btn-sm"
+                  style={{
+                    background: 'linear-gradient(135deg, #D4AF37 0%, #AA820A 100%)',
+                    color: '#000000',
+                    fontWeight: 700,
+                    padding: '8px 18px',
+                    boxShadow: '0 2px 10px rgba(212,175,55,0.3)'
+                  }}
+                  onClick={() => {
+                    const matched = pagesList.find(p => p.id === selectedPageForEditor || p.slug === selectedPageForEditor);
+                    if (matched) {
+                      setBuilderEditingPage(matched);
+                      setActiveTab('pages');
+                    } else if (pagesList.length > 0) {
+                      setBuilderEditingPage(pagesList[0]);
+                      setActiveTab('pages');
+                    } else {
+                      setActiveTab('pages');
+                    }
+                  }}
+                >
+                  <Edit3 size={15} />
+                  <span>Открыть в Конструкторе блоков</span>
+                </button>
+              </div>
+
               {/* EDITOR FOR HOME PAGE */}
               {selectedPageForEditor === 'home' && draftContent?.homeBlocks && (
                 <div className="editor-blocks-container">
@@ -2222,141 +2300,434 @@ export const AdminPage = () => {
             </div>
           )}
 
-          {/* TAB 3: СТРАНИЦЫ */}
+          {/* TAB 3: СТРАНИЦЫ И ВИЗУАЛЬНЫЙ КОНСТРУКТОР */}
           {activeTab === 'pages' && (
-            <div className="admin-view pages-view">
-              <div className="view-header">
-                <div>
-                  <h2 className="view-title">Управление страницами</h2>
-                  <p className="view-subtitle">Все разделы сайта LAUTE и создание новых информационных страниц на основе шаблонов</p>
+            builderEditingPage ? (
+              <VisualPageBuilder
+                page={builderEditingPage}
+                allPages={pagesList}
+                onBack={() => {
+                  setBuilderEditingPage(null);
+                  loadPagesData();
+                }}
+                onSaveSuccess={(updated) => {
+                  setPagesList(prev => prev.map(p => p.id === updated.id ? updated : p));
+                  loadPagesData();
+                }}
+                showNotice={showNotice}
+              />
+            ) : (
+              <div className="admin-view pages-view">
+                <div className="view-header">
+                  <div>
+                    <h2 className="view-title">Управление страницами и Визуальный конструктор</h2>
+                    <p className="view-subtitle">
+                      Редактирование существующих страниц LAUTE и создание новых разделов в визуальном конструкторе (как в Tilda)
+                    </p>
+                  </div>
+                  <div className="header-actions">
+                    <button 
+                      type="button" 
+                      className="admin-btn admin-btn-primary admin-btn-sm"
+                      onClick={() => {
+                        setNewPageForm({
+                          title: '',
+                          slug: '',
+                          description: '',
+                          template: 'hero_text'
+                        });
+                        setIsCreatePageModalOpen(true);
+                      }}
+                      style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #AA820A 100%)', color: '#000', fontWeight: 700 }}
+                    >
+                      <Plus size={15} />
+                      <span>+ Создать страницу</span>
+                    </button>
+                  </div>
                 </div>
-                <div className="header-actions">
-                  <button 
-                    type="button" 
-                    className="admin-btn admin-btn-primary admin-btn-sm"
-                    onClick={() => {
-                      setEditingCustomPage({
-                        title: '',
-                        slug: '',
-                        description: '',
-                        template: 'info',
-                        blocks: [{ type: 'hero', title: '', subtitle: '' }, { type: 'text', content: '' }]
-                      });
-                    }}
-                  >
-                    <Plus size={14} />
-                    <span>Создать страницу</span>
-                  </button>
-                </div>
-              </div>
 
-              {/* Standard Pages Table */}
-              <div className="admin-section-card">
-                <h3 className="card-section-title">Основные разделы сайта</h3>
-                <div className="admin-table-wrapper">
-                  <table className="admin-table">
-                    <thead>
-                      <tr>
-                        <th>Название раздела</th>
-                        <th>Маршрут (URL)</th>
-                        <th>Тип</th>
-                        <th>Статус</th>
-                        <th>Действия</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        { title: 'Главная', route: '/', type: 'Главная страница' },
-                        { title: 'Каталог', route: '/catalog', type: 'Каталог товаров' },
-                        { title: 'О LAUTE', route: '/company', type: 'О компании' },
-                        { title: 'Партнёрам', route: '/partners', type: 'B2B раздел' },
-                        { title: 'Первый цифровой сервис', route: '/service', type: 'Сервис и гарантия' },
-                        { title: 'Где купить', route: '/where-to-buy', type: 'Дилерская сеть' },
-                        { title: 'Контакты', route: '/contacts', type: 'Контакты' }
-                      ].map((p, idx) => (
-                        <tr key={idx}>
-                          <td><strong>{p.title}</strong></td>
-                          <td><code>{p.route}</code></td>
-                          <td>{p.type}</td>
-                          <td><span className="stat-tag success">Активна</span></td>
-                          <td>
-                            <button
-                              type="button"
-                              className="admin-btn admin-btn-ghost admin-btn-xs"
-                              onClick={() => {
-                                setSelectedPageForEditor(p.route.replace('/', '') || 'home');
-                                setActiveTab('editor');
-                              }}
-                            >
-                              <Edit3 size={13} />
-                              <span>Редактировать</span>
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                {/* Search & Quick Filters Bar */}
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
+                  <div style={{ position: 'relative', flex: 1, maxWidth: 380 }}>
+                    <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--adm-text-muted)' }} />
+                    <input
+                      type="text"
+                      className="admin-input"
+                      placeholder="Поиск страницы по названию или URL..."
+                      value={pagesSearchQuery}
+                      onChange={e => setPagesSearchQuery(e.target.value)}
+                      style={{ width: '100%', paddingLeft: 32, fontSize: 13 }}
+                    />
+                  </div>
+                  <span style={{ fontSize: 12, color: 'var(--adm-text-muted)' }}>
+                    Всего страниц: <strong>{pagesList.length}</strong>
+                  </span>
                 </div>
-              </div>
 
-              {/* Custom Info Pages */}
-              <div className="admin-section-card">
-                <h3 className="card-section-title">Дополнительные информационные страницы ({pagesList.length})</h3>
-                {pagesList.length === 0 ? (
-                  <p className="empty-text">Дополнительных информационных страниц пока нет.</p>
-                ) : (
+                {/* Unified Pages Table */}
+                <div className="admin-section-card">
                   <div className="admin-table-wrapper">
                     <table className="admin-table">
                       <thead>
                         <tr>
-                          <th>Заголовок</th>
-                          <th>URL slug</th>
-                          <th>Шаблон</th>
+                          <th>Название страницы</th>
+                          <th>URL (Маршрут)</th>
+                          <th>Блоков</th>
+                          <th>Тип страницы</th>
                           <th>Статус</th>
-                          <th>Действия</th>
+                          <th>Изменена</th>
+                          <th style={{ textAlign: 'right' }}>Действия</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {pagesList.map((cp) => (
-                          <tr key={cp.id}>
-                            <td><strong>{cp.title}</strong></td>
-                            <td><code>/{cp.slug}</code></td>
-                            <td>{cp.template}</td>
-                            <td><span className="stat-tag success">{cp.status || 'ОПУБЛИКОВАН'}</span></td>
-                            <td className="cell-actions">
-                              <button
-                                type="button"
-                                className="admin-btn admin-btn-ghost admin-btn-xs"
-                                onClick={() => setEditingCustomPage(cp)}
-                              >
-                                <Edit3 size={13} />
-                              </button>
-                              <button
-                                type="button"
-                                className="admin-btn admin-btn-danger admin-btn-xs"
-                                onClick={async () => {
-                                  if (isDemoMode) {
-                                    showNotice('В демонстрационном режиме удаление страниц заблокировано.');
-                                    return;
-                                  }
-                                  if (window.confirm(`Удалить страницу "${cp.title}"?`)) {
-                                    await deleteCustomPage(cp.id);
-                                    loadPagesData();
-                                    showNotice('Страница удалена');
-                                  }
-                                }}
-                              >
-                                <Trash2 size={13} />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
+                        {pagesList
+                          .filter(p => {
+                            if (!pagesSearchQuery) return true;
+                            const q = pagesSearchQuery.toLowerCase();
+                            return p.title?.toLowerCase().includes(q) || p.slug?.toLowerCase().includes(q);
+                          })
+                          .map((p) => {
+                            const formattedDate = p.updatedAt
+                              ? new Date(p.updatedAt).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                              : '—';
+
+                            return (
+                              <tr key={p.id}>
+                                <td>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <strong style={{ color: '#FFFFFF', fontSize: 13 }}>{p.title}</strong>
+                                    {p.isSystem && (
+                                      <span className="stat-tag success" style={{ fontSize: 10, padding: '1px 6px' }}>
+                                        Системная
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td>
+                                  <code>{p.route || `/${p.slug}`}</code>
+                                </td>
+                                <td>
+                                  <span style={{ background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: 4, fontSize: 12, color: 'var(--adm-accent-blue)', fontWeight: 600 }}>
+                                    {p.blocks?.length || 0} блоков
+                                  </span>
+                                </td>
+                                <td>
+                                  <span style={{ fontSize: 12, color: 'var(--adm-text-muted)' }}>
+                                    {p.isSystem ? 'Основной раздел' : 'Информационная'}
+                                  </span>
+                                </td>
+                                <td>
+                                  <span className={`stat-tag ${p.status === 'ОПУБЛИКОВАН' ? 'success' : 'warning'}`}>
+                                    {p.status || 'ОПУБЛИКОВАН'}
+                                  </span>
+                                </td>
+                                <td style={{ fontSize: 12, color: 'var(--adm-text-muted)' }}>
+                                  {formattedDate}
+                                </td>
+                                <td>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+                                    <button
+                                      type="button"
+                                      className="admin-btn admin-btn-primary admin-btn-xs"
+                                      onClick={() => setBuilderEditingPage(p)}
+                                      title="Открыть в визуальном конструкторе блоков"
+                                      style={{ fontWeight: 600 }}
+                                    >
+                                      <Sliders size={13} />
+                                      <span>Конструктор</span>
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      className="action-btn"
+                                      onClick={async () => {
+                                        if (isDemoMode) {
+                                          showNotice('В демонстрационном режиме дублирование защищено.');
+                                          return;
+                                        }
+                                        try {
+                                          const dup = await duplicateCustomPage(p.id);
+                                          await loadPagesData();
+                                          showNotice(`Страница сдублирована: "${dup.title}"`);
+                                        } catch (err) {
+                                          showNotice(err.message || 'Ошибка дублирования', 'error');
+                                        }
+                                      }}
+                                      title="Сдублировать страницу"
+                                    >
+                                      <Copy size={13} />
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      className="action-btn"
+                                      onClick={() => {
+                                        const cleanRoute = (p.route || `/${p.slug}`).replace(/^\//, '');
+                                        navigateTo(cleanRoute || 'home');
+                                      }}
+                                      title="Открыть на живом сайте"
+                                    >
+                                      <ExternalLink size={13} />
+                                    </button>
+
+                                    {!p.isSystem && (
+                                      <button
+                                        type="button"
+                                        className="action-btn"
+                                        style={{ color: 'var(--adm-accent-red)' }}
+                                        onClick={async () => {
+                                          if (isDemoMode) {
+                                            showNotice('В демонстрационном режиме удаление защищено.');
+                                            return;
+                                          }
+                                          if (window.confirm(`Удалить страницу "${p.title}" (/${p.slug})?`)) {
+                                            try {
+                                              await deleteCustomPage(p.id);
+                                              await loadPagesData();
+                                              showNotice(`Страница "${p.title}" удалена`);
+                                            } catch (err) {
+                                              showNotice(err.message || 'Ошибка удаления', 'error');
+                                            }
+                                          }
+                                        }}
+                                        title="Удалить страницу"
+                                      >
+                                        <Trash2 size={13} />
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
                       </tbody>
                     </table>
                   </div>
+                </div>
+
+                {/* Create Page Modal */}
+                {isCreatePageModalOpen && (
+                  <div className="admin-modal-overlay" onClick={() => setIsCreatePageModalOpen(false)}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 540 }}>
+                      <div className="admin-modal-header">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <Plus size={18} style={{ color: '#D4AF37' }} />
+                          <h3>Создание новой страницы</h3>
+                        </div>
+                        <button type="button" className="close-btn" onClick={() => setIsCreatePageModalOpen(false)}>
+                          <X size={18} />
+                        </button>
+                      </div>
+
+                      <form
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          if (!newPageForm.title || !newPageForm.slug) {
+                            showNotice('Укажите название и URL slug страницы', 'error');
+                            return;
+                          }
+                          const cleanSlug = newPageForm.slug.toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+
+                          let initialBlocks = [];
+                          const now = Date.now();
+                          if (newPageForm.template === 'hero_text') {
+                            initialBlocks = [
+                              {
+                                id: `blk-${now}-1`,
+                                type: 'hero',
+                                badge: 'LAUTE',
+                                title: newPageForm.title,
+                                subtitle: newPageForm.description || '',
+                                buttonText: 'Подробнее',
+                                buttonLink: '#',
+                                buttonType: 'primary',
+                                style: { background: 'dark', alignment: 'center', padding: 'lg' }
+                              },
+                              {
+                                id: `blk-${now}-2`,
+                                type: 'text',
+                                title: 'О разделе',
+                                content: 'Содержимое новой страницы. Настройте этот блок в визуальном конструкторе.',
+                                style: { background: 'card', alignment: 'left', padding: 'md' }
+                              }
+                            ];
+                          } else if (newPageForm.template === 'presentation') {
+                            initialBlocks = [
+                              {
+                                id: `blk-${now}-1`,
+                                type: 'hero',
+                                badge: 'ПРЕЗЕНТАЦИЯ',
+                                title: newPageForm.title,
+                                subtitle: newPageForm.description || '',
+                                buttonText: 'Оставить заявку',
+                                buttonLink: '#lead-form',
+                                buttonType: 'gold',
+                                style: { background: 'dark', alignment: 'center', padding: 'lg' }
+                              },
+                              {
+                                id: `blk-${now}-2`,
+                                type: 'features',
+                                badge: 'ПРЕИМУЩЕСТВА',
+                                title: 'Ключевые особенности',
+                                items: [
+                                  { title: 'Пункт 1', desc: 'Описание первого преимущества' },
+                                  { title: 'Пункт 2', desc: 'Описание второго преимущества' },
+                                  { title: 'Пункт 3', desc: 'Описание третьего преимущества' }
+                                ],
+                                style: { background: 'card', alignment: 'left', padding: 'md' }
+                              },
+                              {
+                                id: `blk-${now}-3`,
+                                type: 'form_lead',
+                                title: 'Оставить заявку',
+                                subtitle: 'Заполните форму для оперативной связи',
+                                formType: 'contact',
+                                style: { background: 'dark', alignment: 'center', padding: 'lg' }
+                              }
+                            ];
+                          } else if (newPageForm.template === 'contacts') {
+                            initialBlocks = [
+                              {
+                                id: `blk-${now}-1`,
+                                type: 'hero',
+                                badge: 'КОНТАКТЫ',
+                                title: newPageForm.title,
+                                subtitle: newPageForm.description || '',
+                                style: { background: 'dark', alignment: 'center', padding: 'md' }
+                              },
+                              {
+                                id: `blk-${now}-2`,
+                                type: 'contact_cards',
+                                badge: 'ОФИСЫ',
+                                title: 'Наши филиалы',
+                                items: [
+                                  { title: 'Центральный офис', city: 'Новосибирск', address: 'ул. Блюхера, 71', phone: '+7 (983) 310-56-26', email: 'nsk@laute.ltd' }
+                                ],
+                                style: { background: 'card', alignment: 'left', padding: 'lg' }
+                              }
+                            ];
+                          }
+
+                          try {
+                            const created = await createCustomPage({
+                              title: newPageForm.title,
+                              slug: cleanSlug,
+                              route: `/${cleanSlug}`,
+                              description: newPageForm.description,
+                              blocks: initialBlocks,
+                              status: 'ОПУБЛИКОВАН'
+                            });
+                            setIsCreatePageModalOpen(false);
+                            setNewPageForm({ title: '', slug: '', description: '', template: 'hero_text' });
+                            await loadPagesData();
+                            showNotice(`Страница "${created.title}" успешно создана!`);
+                            setBuilderEditingPage(created);
+                          } catch (err) {
+                            showNotice(err.message || 'Ошибка создания страницы', 'error');
+                          }
+                        }}
+                      >
+                        <div className="admin-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                          <div>
+                            <label className="field-label required">Название страницы:</label>
+                            <input
+                              type="text"
+                              required
+                              className="admin-input"
+                              placeholder="Например: Наши технологии"
+                              value={newPageForm.title}
+                              onChange={e => {
+                                const title = e.target.value;
+                                const autoSlug = title
+                                  .toLowerCase()
+                                  .replace(/[а-яё]/g, char => {
+                                    const map = {
+                                      'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh',
+                                      'з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o',
+                                      'п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'kh','ц':'ts',
+                                      'ч':'ch','ш':'sh','щ':'shch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya'
+                                    };
+                                    return map[char] || char;
+                                  })
+                                  .replace(/[^a-z0-9_-]/g, '-')
+                                  .replace(/-+/g, '-');
+                                setNewPageForm(prev => ({
+                                  ...prev,
+                                  title,
+                                  slug: prev.slug === '' || prev.slug === autoSlug.slice(0, -1) ? autoSlug : prev.slug
+                                }));
+                              }}
+                              style={{ width: '100%' }}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="field-label required">URL slug (адрес страницы):</label>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <span style={{ color: 'var(--adm-text-muted)', fontSize: 13 }}>https://laute.ltd/</span>
+                              <input
+                                type="text"
+                                required
+                                className="admin-input"
+                                placeholder="technologies"
+                                value={newPageForm.slug}
+                                onChange={e => setNewPageForm({ ...newPageForm, slug: e.target.value })}
+                                style={{ flex: 1 }}
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="field-label">Краткое описание (SEO Description):</label>
+                            <textarea
+                              rows={2}
+                              className="admin-input"
+                              placeholder="Описание страницы для поисковых систем"
+                              value={newPageForm.description}
+                              onChange={e => setNewPageForm({ ...newPageForm, description: e.target.value })}
+                              style={{ width: '100%', resize: 'vertical' }}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="field-label">Стартовый шаблон страницы:</label>
+                            <select
+                              className="admin-select"
+                              value={newPageForm.template}
+                              onChange={e => setNewPageForm({ ...newPageForm, template: e.target.value })}
+                              style={{ width: '100%' }}
+                            >
+                              <option value="hero_text">Стандартный: Hero-баннер + Текстовый блок</option>
+                              <option value="presentation">Презентация: Hero + Преимущества + Форма заявки</option>
+                              <option value="contacts">Контакты: Hero + Карточки филиалов + Обратная связь</option>
+                              <option value="empty">Пустая страница (начать с чистого листа)</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="admin-modal-footer">
+                          <button
+                            type="button"
+                            className="admin-btn admin-btn-ghost admin-btn-sm"
+                            onClick={() => setIsCreatePageModalOpen(false)}
+                          >
+                            Отмена
+                          </button>
+                          <button
+                            type="submit"
+                            className="admin-btn admin-btn-primary admin-btn-sm"
+                            style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #AA820A 100%)', color: '#000', fontWeight: 700 }}
+                          >
+                            <Plus size={14} />
+                            <span>Создать и открыть в конструкторе</span>
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
                 )}
               </div>
-            </div>
+            )
           )}
 
           {/* TAB 4: КАТАЛОГ */}

@@ -17,9 +17,10 @@ import { ProductDetailModal } from './components/modals/ProductDetailModal';
 import { ProductComparisonModal } from './components/modals/ProductComparisonModal';
 import { ExcelManagerModal } from './components/modals/ExcelManagerModal';
 import { AdminPage } from './pages/AdminPage';
+import { CustomPageRenderer } from './components/builder/CustomPageRenderer';
 
 export const AppContent = () => {
-  const { currentRoute } = useApp();
+  const { currentRoute, pagesList = [] } = useApp();
 
   if (currentRoute === 'admin') {
     return <AdminPage />;
@@ -40,8 +41,15 @@ export const AppContent = () => {
       case 'contacts':
         return <ContactsPage />;
       case 'home':
-      default:
         return <HomePage />;
+      default: {
+        // Dynamic custom pages created through Visual Page Builder
+        const customPage = pagesList.find(p => p.slug === currentRoute || p.route === `/${currentRoute}`);
+        if (customPage) {
+          return <CustomPageRenderer page={customPage} />;
+        }
+        return <HomePage />;
+      }
     }
   };
 

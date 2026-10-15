@@ -1,5 +1,64 @@
 [
   {
+    "id": "log-1792072667105-eqpp5",
+    "timestamp": "2026-10-15T13:57:47.105Z",
+    "action": "PAGE_DELETE",
+    "actionTitle": "Удалена страница \"Наши технологии (Копия)\"",
+    "summary": "URL: /our-technologies-copy",
+    "sessionId": "laute_sess_dev_66c1b80"
+  },
+  {
+    "id": "log-1792072667095-ronaa",
+    "timestamp": "2026-10-15T13:57:47.095Z",
+    "action": "PAGE_DELETE",
+    "actionTitle": "Удалена страница \"Наши технологии\"",
+    "summary": "URL: /our-technologies",
+    "sessionId": "laute_sess_dev_66c1b80"
+  },
+  {
+    "id": "log-1792072667067-9ihec",
+    "timestamp": "2026-10-15T13:57:47.067Z",
+    "action": "PAGE_DUPLICATE",
+    "actionTitle": "Сдублирована страница \"Наши технологии\" -> \"Наши технологии (Копия)\"",
+    "summary": "Новый URL: /our-technologies-copy",
+    "sessionId": "laute_sess_dev_66c1b80"
+  },
+  {
+    "id": "log-1792072667056-curqg",
+    "timestamp": "2026-10-15T13:57:47.056Z",
+    "action": "PAGE_CREATE",
+    "actionTitle": "Создана страница \"Наши технологии\"",
+    "summary": "URL: /our-technologies",
+    "sessionId": "laute_sess_dev_66c1b80"
+  },
+  {
+    "id": "log-1792072667046-x31wx",
+    "timestamp": "2026-10-15T13:57:47.046Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_66c1b80",
+    "sessionId": "laute_sess_dev_66c1b80",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
+    "id": "log-1792072656393-o9srn",
+    "timestamp": "2026-10-15T13:57:36.393Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_78fc3a3",
+    "sessionId": "laute_sess_dev_78fc3a3",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
+    "id": "log-1792072651428-w1ygg",
+    "timestamp": "2026-10-15T13:57:31.428Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_93e2196",
+    "sessionId": "laute_sess_dev_93e2196",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
     "id": "log-1792070993104-sj15l",
     "timestamp": "2026-10-15T13:29:53.104Z",
     "action": "DEV_LOGIN",

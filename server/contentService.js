@@ -9,14 +9,16 @@ const __dirname = path.dirname(__filename);
 const DATA_DIR = path.resolve(__dirname, 'data');
 const BACKUPS_DIR = path.resolve(DATA_DIR, 'backups');
 const CONTENT_BACKUPS_DIR = path.resolve(BACKUPS_DIR, 'content');
+const PAGES_BACKUPS_DIR = path.resolve(BACKUPS_DIR, 'pages');
 const CONTENT_FILE = path.resolve(DATA_DIR, 'content.json');
 const DRAFT_FILE = path.resolve(DATA_DIR, 'draft_content.json');
 const CATEGORIES_FILE = path.resolve(DATA_DIR, 'categories.json');
 const CUSTOM_PAGES_FILE = path.resolve(DATA_DIR, 'custom_pages.json');
 const PUBLIC_CONTENT_FILE = path.resolve(__dirname, '..', 'public', 'data', 'content.json');
+const PUBLIC_PAGES_FILE = path.resolve(__dirname, '..', 'public', 'data', 'custom_pages.json');
 
 // Ensure directories
-[DATA_DIR, BACKUPS_DIR, CONTENT_BACKUPS_DIR].forEach(dir => {
+[DATA_DIR, BACKUPS_DIR, CONTENT_BACKUPS_DIR, PAGES_BACKUPS_DIR].forEach(dir => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
@@ -535,14 +537,69 @@ export function getCustomPages() {
   const pages = readJson(CUSTOM_PAGES_FILE, null);
   if (!pages) {
     writeJson(CUSTOM_PAGES_FILE, DEFAULT_CUSTOM_PAGES);
+    writeJson(PUBLIC_PAGES_FILE, DEFAULT_CUSTOM_PAGES);
     return DEFAULT_CUSTOM_PAGES;
   }
   return pages;
 }
 
-export function saveCustomPages(pages) {
+export function saveCustomPages(pages, description = 'Обновление страниц') {
   writeJson(CUSTOM_PAGES_FILE, pages);
+  writeJson(PUBLIC_PAGES_FILE, pages);
+
+  // Create version backup
+  try {
+    const backupId = `pages_${Date.now()}`;
+    const backupFile = path.resolve(PAGES_BACKUPS_DIR, `${backupId}.json`);
+    writeJson(backupFile, {
+      backupId,
+      timestamp: new Date().toISOString(),
+      description,
+      pages
+    });
+  } catch (err) {
+    console.error('Error creating page backup:', err);
+  }
+
   return pages;
+}
+
+export function getPageBackups() {
+  if (!fs.existsSync(PAGES_BACKUPS_DIR)) return [];
+  try {
+    const files = fs.readdirSync(PAGES_BACKUPS_DIR);
+    return files
+      .filter(f => f.endsWith('.json'))
+      .map(f => {
+        try {
+          const content = JSON.parse(fs.readFileSync(path.resolve(PAGES_BACKUPS_DIR, f), 'utf8'));
+          return {
+            backupId: content.backupId || f.replace('.json', ''),
+            timestamp: content.timestamp,
+            description: content.description || 'Резервная копия страниц'
+          };
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean)
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  } catch {
+    return [];
+  }
+}
+
+export function rollbackPagesToBackup(backupId) {
+  const backupFile = path.resolve(PAGES_BACKUPS_DIR, `${backupId}.json`);
+  if (!fs.existsSync(backupFile)) {
+    throw new Error('Резервная копия страниц не найдена');
+  }
+  const backup = JSON.parse(fs.readFileSync(backupFile, 'utf8'));
+  if (!Array.isArray(backup.pages)) {
+    throw new Error('Некорректный формат резервной копии страниц');
+  }
+  saveCustomPages(backup.pages, `Откат к версии ${backupId}`);
+  return backup.pages;
 }
 
 /**

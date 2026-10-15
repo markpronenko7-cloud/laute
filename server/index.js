@@ -33,7 +33,9 @@ import {
   saveCategories,
   getCustomPages,
   saveCustomPages,
-  getContentBackups
+  getContentBackups,
+  getPageBackups,
+  rollbackPagesToBackup
 } from './contentService.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -550,6 +552,74 @@ app.delete('/api/pages/:id', verifyAuth, (req, res) => {
   });
 
   res.json({ success: true });
+});
+
+// Duplicate Page
+app.post('/api/pages/:id/duplicate', verifyAuth, (req, res) => {
+  const { id } = req.params;
+  const pages = getCustomPages();
+
+  const source = pages.find(p => p.id === id);
+  if (!source) {
+    return res.status(404).json({ error: 'Исходная страница не найдена' });
+  }
+
+  let newSlug = `${source.slug}-copy`;
+  let counter = 1;
+  while (pages.some(p => p.slug === newSlug)) {
+    counter++;
+    newSlug = `${source.slug}-copy-${counter}`;
+  }
+
+  const duplicatedPage = {
+    ...JSON.parse(JSON.stringify(source)),
+    id: `page-${Date.now()}`,
+    title: `${source.title} (Копия)`,
+    slug: newSlug,
+    route: `/${newSlug}`,
+    isSystem: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    blocks: source.blocks ? source.blocks.map(b => ({ ...b, id: `blk-${Date.now()}-${Math.random().toString(36).substr(2, 5)}` })) : []
+  };
+
+  pages.push(duplicatedPage);
+  saveCustomPages(pages, `Дублирование страницы "${source.title}"`);
+
+  addAuditLog({
+    action: 'PAGE_DUPLICATE',
+    actionTitle: `Сдублирована страница "${source.title}" -> "${duplicatedPage.title}"`,
+    summary: `Новый URL: /${newSlug}`,
+    sessionId: req.session.sessionId
+  });
+
+  res.json({ success: true, page: duplicatedPage });
+});
+
+// Page Versions History
+app.get('/api/pages/versions', verifyAuth, (req, res) => {
+  res.json({ versions: getPageBackups() });
+});
+
+// Rollback Pages to Version
+app.post('/api/pages/rollback', verifyAuth, (req, res) => {
+  const { backupId } = req.body;
+  if (!backupId) {
+    return res.status(400).json({ error: 'Не указан идентификатор резервной копии' });
+  }
+
+  try {
+    const restored = rollbackPagesToBackup(backupId);
+    addAuditLog({
+      action: 'PAGE_ROLLBACK',
+      actionTitle: `Откат структуры страниц к версии ${backupId}`,
+      summary: `Восстановлено страниц: ${restored.length}`,
+      sessionId: req.session.sessionId
+    });
+    res.json({ success: true, pages: restored });
+  } catch (err) {
+    res.status(400).json({ error: err.message || 'Ошибка отката страниц' });
+  }
 });
 
 // Categories

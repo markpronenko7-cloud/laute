@@ -9,7 +9,8 @@ import {
   fetchWarehouses,
   fetchWarehouseStock,
   fetchRegionWarehouseMap,
-  saveRegionWarehouseMap
+  saveRegionWarehouseMap,
+  fetchCustomPages
 } from '../services/adminApi';
 
 const AppContext = createContext();
@@ -26,13 +27,11 @@ const getRouteFromUrl = () => {
     if (cleanSearch) return cleanSearch;
   }
 
-  const validRoutes = ['catalog', 'company', 'partners', 'where-to-buy', 'service', 'contacts', 'materials', 'cabinet', 'admin'];
-
-  if (hash && validRoutes.includes(hash)) {
+  if (hash) {
     return hash;
   }
 
-  if (path && validRoutes.includes(path)) {
+  if (path) {
     return path;
   }
 
@@ -106,6 +105,9 @@ export const AppProvider = ({ children }) => {
   const [isB2BAuthorized, setIsB2BAuthorized] = useState(() => {
     return localStorage.getItem('laute_b2b_auth') === 'true';
   });
+
+  // Pages List State for Visual Page Builder
+  const [pagesList, setPagesList] = useState([]);
 
   // Change region and auto-sync default warehouse
   const setRegion = useCallback((newRegion) => {
@@ -189,6 +191,18 @@ export const AppProvider = ({ children }) => {
     }
   }, []);
 
+  // Reload all CMS pages
+  const reloadPages = useCallback(async () => {
+    try {
+      const pages = await fetchCustomPages();
+      if (Array.isArray(pages) && pages.length > 0) {
+        setPagesList(pages);
+      }
+    } catch (err) {
+      console.warn('Error loading pages context:', err);
+    }
+  }, []);
+
   // Fetch current session, content, products and stock on mount
   useEffect(() => {
     getCurrentAdminSession().then(sess => {
@@ -197,7 +211,8 @@ export const AppProvider = ({ children }) => {
     reloadSiteContent();
     reloadProducts();
     reloadStockData();
-  }, [reloadSiteContent, reloadProducts, reloadStockData]);
+    reloadPages();
+  }, [reloadSiteContent, reloadProducts, reloadStockData, reloadPages]);
 
   const updateProducts = useCallback((newProducts) => {
     setProducts(newProducts);
@@ -423,6 +438,10 @@ export const AppProvider = ({ children }) => {
       setIsB2BAuthorized(val);
       localStorage.setItem('laute_b2b_auth', val ? 'true' : 'false');
     },
+    // Visual Page Builder & CMS Pages
+    pagesList,
+    setPagesList,
+    reloadPages,
     logout: () => {
       logoutAdmin();
       setAdminSession(null);

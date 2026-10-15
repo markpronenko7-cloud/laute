@@ -303,6 +303,17 @@ export const fetchCustomPages = async () => {
   } catch {
     // fallback
   }
+
+  // Fallback to static public JSON
+  try {
+    const res = await fetch(`${import.meta.env.BASE_URL}data/custom_pages.json?t=${Date.now()}`);
+    if (res.ok) {
+      const data = await res.json();
+      return Array.isArray(data) ? data : (data.pages || []);
+    }
+  } catch {
+    // ignore
+  }
   return [];
 };
 
@@ -344,6 +355,42 @@ export const deleteCustomPage = async (id) => {
     throw new Error(data.error || 'Ошибка удаления страницы');
   }
   return true;
+};
+
+export const duplicateCustomPage = async (id) => {
+  const res = await fetch(`${getApiBase()}/pages/${id}/duplicate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders()
+    }
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Ошибка дублирования страницы');
+  return data.page;
+};
+
+export const fetchPageVersions = async () => {
+  const res = await fetch(`${getApiBase()}/pages/versions`, {
+    headers: { ...authHeaders() }
+  });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.versions || [];
+};
+
+export const rollbackPagesVersion = async (backupId) => {
+  const res = await fetch(`${getApiBase()}/pages/rollback`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders()
+    },
+    body: JSON.stringify({ backupId })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Ошибка отката версии страниц');
+  return data.pages;
 };
 
 export const fetchCategories = async () => {
