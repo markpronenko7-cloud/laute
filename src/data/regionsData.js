@@ -20,6 +20,21 @@ export const REGIONS_CONFIG = [
     serviceEmail: 'nsk@laute.ltd'
   },
   {
+    id: 'moscow',
+    names: {
+      ru: 'Москва, Россия',
+      kz: 'Мәскеу, Ресей',
+      en: 'Moscow, Russia'
+    },
+    office: 'Россия, г. Москва, складской комплекс Юг',
+    primaryPhone: '+7 (983) 310-56-26',
+    altPhones: ['+7 (913) 203-07-37'],
+    primaryEmail: 'msk@laute.ltd',
+    altEmail: 'opt@laute.ltd',
+    responsibleManager: 'Отдел поставок Москва и Центр',
+    serviceEmail: 'msk@laute.ltd'
+  },
+  {
     id: 'kz',
     names: {
       ru: 'Казахстан',
@@ -33,6 +48,21 @@ export const REGIONS_CONFIG = [
     altEmail: 'opt@laute.ltd',
     responsibleManager: 'Экспортное направление LAUTE (РК)',
     serviceEmail: 'opt@laute.ltd'
+  },
+  {
+    id: 'almaty',
+    names: {
+      ru: 'Алматы',
+      kz: 'Алматы',
+      en: 'Almaty'
+    },
+    office: 'Казахстан, г. Алматы, пр. Райымбека, 212',
+    primaryPhone: '+7 (983) 310-56-26',
+    altPhones: ['+7 (913) 203-07-37'],
+    primaryEmail: 'kz@laute.ltd',
+    altEmail: 'opt@laute.ltd',
+    responsibleManager: 'Складской комплекс Алматы',
+    serviceEmail: 'kz@laute.ltd'
   },
   {
     id: 'uae',

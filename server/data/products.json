@@ -14,10 +14,11 @@
     "photo2": "images/collections/coll-kitchen.jpg",
     "photo3": "images/cat_laute_brand.jpg",
     "cityStock": {
-      "Алматы": 18,
+      "Алматы": 1,
       "Астана": 12,
       "Новосибирск": 25,
-      "Москва": 34
+      "Москва": 34,
+      "Китай": 100
     },
     "status": "АКТИВЕН",
     "isPopular": true,
@@ -63,10 +64,11 @@
     "photo2": "images/collections/coll-kitchen.jpg",
     "photo3": "images/cat_laute_brand.jpg",
     "cityStock": {
-      "Алматы": 14,
+      "Алматы": 2,
       "Астана": 8,
       "Новосибирск": 19,
-      "Москва": 22
+      "Москва": 22,
+      "Китай": 100
     },
     "status": "АКТИВЕН",
     "isPopular": true,
@@ -111,10 +113,11 @@
     "photo2": "images/collections/coll-kitchen.jpg",
     "photo3": "images/cat_laute_brand.jpg",
     "cityStock": {
-      "Алматы": 9,
+      "Алматы": 3,
       "Астана": 15,
       "Новосибирск": 10,
-      "Москва": 18
+      "Москва": 18,
+      "Китай": 100
     },
     "status": "АКТИВЕН",
     "isPopular": false,
@@ -157,10 +160,11 @@
     "photo2": "images/collections/coll-bathroom.jpg",
     "photo3": "images/cat_laute_brand.jpg",
     "cityStock": {
-      "Алматы": 22,
+      "Алматы": 0,
       "Астана": 16,
       "Новосибирск": 30,
-      "Москва": 40
+      "Москва": 40,
+      "Китай": 100
     },
     "status": "АКТИВЕН",
     "isPopular": true,
@@ -204,10 +208,11 @@
     "photo2": "images/collections/coll-bathroom.jpg",
     "photo3": "images/cat_laute_brand.jpg",
     "cityStock": {
-      "Алматы": 11,
+      "Алматы": 0,
       "Астана": 7,
       "Новосибирск": 14,
-      "Москва": 20
+      "Москва": 20,
+      "Китай": 100
     },
     "status": "АКТИВЕН",
     "isPopular": false,
@@ -250,10 +255,11 @@
     "photo2": "images/collections/coll-bathroom.jpg",
     "photo3": "images/cat_laute_brand.jpg",
     "cityStock": {
-      "Алматы": 19,
+      "Алматы": 0,
       "Астана": 14,
       "Новосибирск": 22,
-      "Москва": 28
+      "Москва": 28,
+      "Китай": 100
     },
     "status": "АКТИВЕН",
     "isPopular": true,
@@ -295,10 +301,11 @@
     "photo2": "images/collections/coll-bathroom.jpg",
     "photo3": "images/cat_laute_brand.jpg",
     "cityStock": {
-      "Алматы": 25,
+      "Алматы": 0,
       "Астана": 18,
       "Новосибирск": 35,
-      "Москва": 45
+      "Москва": 45,
+      "Китай": 100
     },
     "status": "АКТИВЕН",
     "isPopular": true,
@@ -341,10 +348,11 @@
     "photo2": "images/collections/coll-shower.jpg",
     "photo3": "images/cat_laute_brand.jpg",
     "cityStock": {
-      "Алматы": 12,
+      "Алматы": 0,
       "Астана": 9,
       "Новосибирск": 16,
-      "Москва": 24
+      "Москва": 24,
+      "Китай": 100
     },
     "status": "АКТИВЕН",
     "isPopular": true,
@@ -387,10 +395,11 @@
     "photo2": "images/collections/coll-kitchen.jpg",
     "photo3": "images/cat_laute_brand.jpg",
     "cityStock": {
-      "Алматы": 8,
+      "Алматы": 0,
       "Астана": 5,
       "Новосибирск": 12,
-      "Москва": 15
+      "Москва": 15,
+      "Китай": 100
     },
     "status": "АКТИВЕН",
     "isPopular": false,
@@ -433,10 +442,11 @@
     "photo2": "images/collections/coll-bathroom.jpg",
     "photo3": "images/cat_laute_brand.jpg",
     "cityStock": {
-      "Алматы": 15,
+      "Алматы": 0,
       "Астана": 11,
       "Новосибирск": 20,
-      "Москва": 26
+      "Москва": 26,
+      "Китай": 100
     },
     "status": "АКТИВЕН",
     "isPopular": false,
@@ -478,10 +488,11 @@
     "photo2": "images/cat_laute_brand.jpg",
     "photo3": "images/cat_components.png",
     "cityStock": {
-      "Алматы": 50,
+      "Алматы": 0,
       "Астана": 40,
       "Новосибирск": 80,
-      "Москва": 120
+      "Москва": 120,
+      "Китай": 100
     },
     "status": "АКТИВЕН",
     "isPopular": false,
@@ -523,10 +534,11 @@
     "photo2": "images/cat_laute_brand.jpg",
     "photo3": "images/cat_components.png",
     "cityStock": {
-      "Алматы": 45,
+      "Алматы": 0,
       "Астана": 35,
       "Новосибирск": 60,
-      "Москва": 90
+      "Москва": 90,
+      "Китай": 100
     },
     "status": "АКТИВЕН",
     "isPopular": false,

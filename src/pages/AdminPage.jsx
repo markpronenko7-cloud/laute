@@ -100,8 +100,11 @@ import {
   downloadStockTemplate,
   exportStockToExcel,
   validateStockExcelFile,
-  commitStockExcelImport
+  commitStockExcelImport,
+  fetchRegionWarehouseMap,
+  saveRegionWarehouseMap
 } from '../services/adminApi';
+import { REGIONS_CONFIG } from '../data/regionsData';
 import {
   downloadStockTemplateExcel,
   parseStockExcelClient
@@ -198,7 +201,8 @@ export const AdminPage = () => {
     setSiteContent, 
     reloadSiteContent,
     adminSession,
-    setAdminSession 
+    setAdminSession,
+    reloadStockData
   } = useApp();
 
   // Authentication State
@@ -256,7 +260,7 @@ export const AdminPage = () => {
 
   // Warehouse & Stock Management State
   const [warehousesList, setWarehousesList] = useState([]);
-  const [selectedWarehouseId, setSelectedWarehouseId] = useState('almaty');
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState('');
   const [stockList, setStockList] = useState([]);
   const [isLoadingStock, setIsLoadingStock] = useState(false);
   const [isSavingStock, setIsSavingStock] = useState(false);
@@ -276,8 +280,22 @@ export const AdminPage = () => {
   const [stockExcelReplaceAgreed, setStockExcelReplaceAgreed] = useState(false);
   const stockFileInputRef = useRef(null);
 
+  // Region-Warehouse Mapping & Excel Single Mode State
+  const [adminRegionMap, setAdminRegionMap] = useState({
+    siberia: 'novosibirsk',
+    kz: 'almaty',
+    almaty: 'almaty',
+    moscow: 'moscow',
+    china: 'china',
+    uae: null,
+    usa: null
+  });
+  const [isSavingRegionMap, setIsSavingRegionMap] = useState(false);
+  const [excelSelectedWarehouseId, setExcelSelectedWarehouseId] = useState(''); // No hardcoded Almaty!
+  const [testPreviewRegion, setTestPreviewRegion] = useState('siberia');
+
   // Multi-Warehouse Matrix & Mass Stock State
-  const [stockMatrixViewMode, setStockMatrixViewMode] = useState('matrix'); // matrix | single | warehouses
+  const [stockMatrixViewMode, setStockMatrixViewMode] = useState('matrix'); // matrix | single | region_map | warehouses
   const [selectedStockSkus, setSelectedStockSkus] = useState([]);
   const [isMassStockModalOpen, setIsMassStockModalOpen] = useState(false);
   const [massStockTargetWh, setMassStockTargetWh] = useState('all');
@@ -467,15 +485,19 @@ export const AdminPage = () => {
   const loadStockData = useCallback(async (targetWhId = null) => {
     setIsLoadingStock(true);
     try {
-      const whs = await fetchWarehouses();
+      const [whs, allStock, regMap] = await Promise.all([
+        fetchWarehouses(),
+        fetchWarehouseStock(null), // Fetch complete stock matrix across all warehouses
+        fetchRegionWarehouseMap()
+      ]);
       if (Array.isArray(whs) && whs.length > 0) {
         setWarehousesList(whs);
         const whId = targetWhId || selectedWarehouseId || whs[0].id;
-        if (!selectedWarehouseId || targetWhId) {
-          setSelectedWarehouseId(whId);
-        }
-        const stockData = await fetchWarehouseStock(whId);
-        setStockList(stockData || []);
+        setSelectedWarehouseId(whId);
+      }
+      setStockList(allStock || []);
+      if (regMap && typeof regMap === 'object') {
+        setAdminRegionMap(regMap);
       }
     } catch (err) {
       console.error('Ошибка загрузки остатков:', err);
@@ -909,18 +931,21 @@ export const AdminPage = () => {
       showNotice(err.message || 'Ошибка привязки фото к товару', 'error');
     }
   };
-  const handleSelectWarehouse = async (whId) => {
+  const handleSelectWarehouse = (whId) => {
     setSelectedWarehouseId(whId);
     setStockLocalEdits({});
-    setIsLoadingStock(true);
+  };
+
+  const handleSaveRegionMap = async () => {
+    setIsSavingRegionMap(true);
     try {
-      const stockData = await fetchWarehouseStock(whId);
-      setStockList(stockData || []);
+      await saveRegionWarehouseMap(adminRegionMap);
+      await reloadStockData();
+      showNotice('Таблица соответствий «Регион → Склад» успешно сохранена');
     } catch (err) {
-      console.error(err);
-      showNotice('Ошибка загрузки остатков склада', 'error');
+      showNotice(err.message || 'Ошибка сохранения таблицы соответствий', 'error');
     } finally {
-      setIsLoadingStock(false);
+      setIsSavingRegionMap(false);
     }
   };
 
@@ -1073,12 +1098,19 @@ export const AdminPage = () => {
     }
   };
 
-  const handleDownloadStockTemplate = async () => {
+  const handleDownloadStockTemplate = async (whId = excelSelectedWarehouseId) => {
+    if (!whId) {
+      showNotice('Пожалуйста, выберите склад для скачивания шаблона Режима А', 'error');
+      return;
+    }
     try {
-      const activeWh = warehousesList.find(w => w.id === selectedWarehouseId);
-      if (!activeWh) return;
+      const activeWh = warehousesList.find(w => w.id === whId);
+      if (!activeWh) {
+        showNotice('Склад не найден в настройках', 'error');
+        return;
+      }
       try {
-        await downloadStockTemplate(selectedWarehouseId);
+        await downloadStockTemplate(whId);
       } catch (e) {
         downloadStockTemplateExcel(activeWh, catalogList);
       }
@@ -1088,12 +1120,19 @@ export const AdminPage = () => {
     }
   };
 
-  const handleExportStockExcel = async () => {
+  const handleExportStockExcel = async (whId = excelSelectedWarehouseId) => {
+    if (!whId) {
+      showNotice('Пожалуйста, выберите склад для экспорта остатков Режима А', 'error');
+      return;
+    }
     try {
-      const activeWh = warehousesList.find(w => w.id === selectedWarehouseId);
-      if (!activeWh) return;
+      const activeWh = warehousesList.find(w => w.id === whId);
+      if (!activeWh) {
+        showNotice('Склад не найден в настройках', 'error');
+        return;
+      }
       try {
-        await exportStockToExcel(selectedWarehouseId);
+        await exportStockToExcel(whId);
       } catch (e) {
         downloadStockTemplateExcel(activeWh, catalogList);
       }
@@ -1108,14 +1147,12 @@ export const AdminPage = () => {
     if (!file) return;
     if (stockFileInputRef.current) stockFileInputRef.current.value = '';
 
-    const activeWh = warehousesList.find(w => w.id === selectedWarehouseId);
-    if (!activeWh) return;
-
     try {
       let result = null;
       try {
-        result = await validateStockExcelFile(file, selectedWarehouseId);
+        result = await validateStockExcelFile(file, excelSelectedWarehouseId || selectedWarehouseId || 'all');
       } catch (apiErr) {
+        const activeWh = warehousesList.find(w => w.id === (excelSelectedWarehouseId || selectedWarehouseId));
         result = await parseStockExcelClient(file, activeWh, catalogList, stockList);
       }
 
@@ -2668,42 +2705,43 @@ export const AdminPage = () => {
                           marginTop: 6,
                           background: 'var(--adm-surface-card)',
                           border: '1px solid var(--adm-border)',
-                          borderRadius: 8,
+                          borderRadius: 10,
                           boxShadow: 'var(--adm-shadow-lg)',
                           zIndex: 100,
-                          minWidth: 260,
-                          padding: 6
+                          minWidth: 320,
+                          padding: 12
                         }}
                       >
-                        <div style={{ padding: '6px 10px', fontSize: 11, fontWeight: 700, color: 'var(--adm-text-muted)', textTransform: 'uppercase' }}>
+                        {/* MODE B */}
+                        <div style={{ padding: '4px 6px 6px', fontSize: 11, fontWeight: 700, color: 'var(--adm-accent-blue)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           Режим B — Все склады (Матрица)
                         </div>
                         <button
                           type="button"
                           className="admin-btn admin-btn-ghost admin-btn-xs"
-                          style={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left', marginBottom: 2 }}
+                          style={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left', marginBottom: 4 }}
                           onClick={async () => {
                             setStockExcelDownloadMenuOpen(false);
                             try {
                               await downloadStockTemplate('all');
-                              showNotice('Шаблон матрицы всех складов скачан');
+                              showNotice('Шаблон матрицы всех складов скачан (.xlsx)');
                             } catch (e) {
                               downloadStockTemplateExcel(null, catalogList);
                             }
                           }}
                         >
                           <Download size={13} />
-                          <span>Скачать шаблон (Все склады)</span>
+                          <span>Скачать шаблон (Матрица всех складов)</span>
                         </button>
                         <button
                           type="button"
                           className="admin-btn admin-btn-ghost admin-btn-xs"
-                          style={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left', marginBottom: 6 }}
+                          style={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left', marginBottom: 10 }}
                           onClick={async () => {
                             setStockExcelDownloadMenuOpen(false);
                             try {
                               await exportStockToExcel('all');
-                              showNotice('Остатки всех складов экспортированы в Excel');
+                              showNotice('Текущие остатки всех складов экспортированы в Excel');
                             } catch (e) {
                               downloadStockTemplateExcel(null, catalogList);
                             }
@@ -2713,34 +2751,59 @@ export const AdminPage = () => {
                           <span>Экспорт остатков (Все склады)</span>
                         </button>
 
-                        <div style={{ borderTop: '1px solid var(--adm-border)', margin: '4px 0' }}></div>
+                        <div style={{ borderTop: '1px solid var(--adm-border)', margin: '8px 0' }}></div>
 
-                        <div style={{ padding: '6px 10px', fontSize: 11, fontWeight: 700, color: 'var(--adm-text-muted)', textTransform: 'uppercase' }}>
-                          Режим A — Текущий склад ({warehousesList.find(w => w.id === selectedWarehouseId)?.name || 'Алматы'})
+                        {/* MODE A */}
+                        <div style={{ padding: '4px 6px 6px', fontSize: 11, fontWeight: 700, color: 'var(--adm-accent-amber)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Режим A — Отдельный склад
+                        </div>
+                        <div style={{ marginBottom: 8 }}>
+                          <label style={{ display: 'block', fontSize: 11, color: 'var(--adm-text-muted)', marginBottom: 4 }}>
+                            Выберите склад для работы:
+                          </label>
+                          <select
+                            className="admin-select"
+                            style={{ width: '100%', fontSize: 12, padding: '4px 8px' }}
+                            value={excelSelectedWarehouseId}
+                            onChange={(e) => setExcelSelectedWarehouseId(e.target.value)}
+                          >
+                            <option value="">— Выберите нужный склад —</option>
+                            {warehousesList.map(w => (
+                              <option key={w.id} value={w.id}>{w.name} ({w.city || w.country})</option>
+                            ))}
+                          </select>
                         </div>
                         <button
                           type="button"
                           className="admin-btn admin-btn-ghost admin-btn-xs"
-                          style={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left', marginBottom: 2 }}
+                          style={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left', marginBottom: 4 }}
                           onClick={() => {
+                            if (!excelSelectedWarehouseId) {
+                              showNotice('Пожалуйста, выберите склад для выгрузки шаблона Режима А', 'error');
+                              return;
+                            }
                             setStockExcelDownloadMenuOpen(false);
-                            handleDownloadStockTemplate();
+                            handleDownloadStockTemplate(excelSelectedWarehouseId);
                           }}
                         >
                           <Download size={13} />
-                          <span>Скачать шаблон (Один склад)</span>
+                          <span>Скачать шаблон выбранного склада</span>
                         </button>
                         <button
                           type="button"
                           className="admin-btn admin-btn-ghost admin-btn-xs"
                           style={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left' }}
                           onClick={() => {
+                            if (!excelSelectedWarehouseId) {
+                              showNotice('Пожалуйста, выберите склад для экспорта Режима А', 'error');
+                              return;
+                            }
                             setStockExcelDownloadMenuOpen(false);
-                            handleExportStockExcel();
+                            handleExportStockExcel(excelSelectedWarehouseId);
                           }}
                         >
                           <FileSpreadsheet size={13} />
-                          <span>Экспорт выбранного склада</span>
+                          <span>Экспорт остатков выбранного склада</span>
                         </button>
                       </div>
                     )}
@@ -2783,6 +2846,15 @@ export const AdminPage = () => {
                 >
                   <Warehouse size={15} />
                   <span>По отдельному филиалу</span>
+                </button>
+
+                <button
+                  type="button"
+                  className={`stock-mode-nav-btn ${stockMatrixViewMode === 'region_map' ? 'active' : ''}`}
+                  onClick={() => setStockMatrixViewMode('region_map')}
+                >
+                  <MapPin size={15} />
+                  <span>Соответствие: Регион → Склад</span>
                 </button>
 
                 <button
@@ -3061,11 +3133,11 @@ export const AdminPage = () => {
                                                     className="wh-qty-display unspecified"
                                                     onClick={() => {
                                                       setMatrixEditingCell({ whId: wh.id, sku: prod.article });
-                                                      setMatrixCellVal('0');
+                                                      setMatrixCellVal('');
                                                     }}
                                                     title={`Нажмите, чтобы ввести остаток для склада «${wh.name}»`}
                                                   >
-                                                    — Не указано
+                                                    Нет данных
                                                   </span>
                                                 );
                                               } else if (qtyVal > 0) {
@@ -3318,7 +3390,7 @@ export const AdminPage = () => {
                             const isChanged = hasEdit && (dbQty === null ? displayQty !== '' : numVal !== dbQty);
 
                             let statusTagClass = 'tag-unspecified';
-                            let statusTagLabel = 'Не указан';
+                            let statusTagLabel = 'Нет данных';
 
                             if (dbQty !== null && !isNaN(dbQty)) {
                               if (dbQty > 0) {
@@ -3326,7 +3398,7 @@ export const AdminPage = () => {
                                 statusTagLabel = `В наличии (${dbQty} шт.)`;
                               } else {
                                 statusTagClass = 'tag-outofstock';
-                                statusTagLabel = '0 шт. (закончился)';
+                                statusTagLabel = '0 шт. (под заказ)';
                               }
                             }
 
@@ -3383,7 +3455,7 @@ export const AdminPage = () => {
                                       min="0"
                                       step="1"
                                       className={`stock-qty-field ${isChanged ? 'field-modified' : ''}`}
-                                      placeholder="Не указан"
+                                      placeholder="Нет данных"
                                       value={displayQty}
                                       onChange={(e) => {
                                         const val = e.target.value;
@@ -3448,6 +3520,197 @@ export const AdminPage = () => {
                     </table>
                   </div>
                 </>
+              )}
+
+              {/* VIEW: REGION TO WAREHOUSE MAPPING & LIVE TEST PREVIEW */}
+              {stockMatrixViewMode === 'region_map' && (
+                <div className="warehouse-region-map-section" style={{ padding: '4px 0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+                    <div>
+                      <h3 style={{ fontSize: 16, margin: '0 0 4px 0', color: '#FFFFFF' }}>
+                        Соответствие: Регион сайта → Склад по умолчанию
+                      </h3>
+                      <p className="cell-muted" style={{ margin: 0, maxWidth: 780, fontSize: 13 }}>
+                        При выборе посетителем региона в шапке сайта автоматически подставляются остатки настроенного склада.
+                        Если для региона склад не привязан, система показывает нейтральное состояние «Склад не выбран» без случайных цифр.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn-primary admin-btn-sm"
+                      onClick={handleSaveRegionMap}
+                      disabled={isSavingRegionMap}
+                    >
+                      <Save size={14} />
+                      <span>{isSavingRegionMap ? 'Сохранение...' : 'Сохранить соответствия'}</span>
+                    </button>
+                  </div>
+
+                  {/* Mapping Table */}
+                  <div className="admin-table-wrapper" style={{ marginBottom: 24 }}>
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: 220 }}>Регион сайта</th>
+                          <th style={{ width: 140 }}>Код региона</th>
+                          <th style={{ width: 280 }}>Склад по умолчанию</th>
+                          <th style={{ width: 200 }}>Статус связки</th>
+                          <th>Координация поставок</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {REGIONS_CONFIG.map(reg => {
+                          const currentWhId = adminRegionMap[reg.id] || '';
+                          const matchedWh = warehousesList.find(w => w.id === currentWhId);
+
+                          return (
+                            <tr key={reg.id}>
+                              <td>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                  <MapPin size={16} style={{ color: 'var(--adm-accent-blue)' }} />
+                                  <strong style={{ color: '#FFFFFF' }}>{reg.names?.ru || reg.id}</strong>
+                                </div>
+                              </td>
+                              <td>
+                                <code>{reg.id}</code>
+                              </td>
+                              <td>
+                                <select
+                                  className="admin-select"
+                                  style={{ width: '100%', fontSize: 13, padding: '6px 10px', background: 'var(--adm-surface-card)' }}
+                                  value={currentWhId}
+                                  onChange={(e) => {
+                                    const val = e.target.value || null;
+                                    setAdminRegionMap(prev => ({
+                                      ...prev,
+                                      [reg.id]: val
+                                    }));
+                                  }}
+                                >
+                                  <option value="">— Склад не выбран —</option>
+                                  {warehousesList.map(w => (
+                                    <option key={w.id} value={w.id}>
+                                      {w.name} ({w.city ? `${w.city}, ${w.country}` : w.country})
+                                    </option>
+                                  ))}
+                                </select>
+                              </td>
+                              <td>
+                                {matchedWh ? (
+                                  <span className="wh-pill-tag active" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                    <Check size={12} /> {matchedWh.name}
+                                  </span>
+                                ) : (
+                                  <span className="wh-pill-tag inactive" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                    <X size={12} /> Склад не выбран
+                                  </span>
+                                )}
+                              </td>
+                              <td style={{ fontSize: 12, color: 'var(--adm-text-muted)' }}>
+                                {reg.responsibleManager || reg.office || '—'}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Test Preview Section */}
+                  <div style={{ background: 'var(--adm-surface-card)', border: '1px solid var(--adm-border)', borderRadius: 12, padding: 18 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Eye size={18} style={{ color: 'var(--adm-accent-amber)' }} />
+                        <h4 style={{ margin: 0, fontSize: 14, color: '#FFFFFF' }}>
+                          Интерактивный тестовый предпросмотр остатков по регионам
+                        </h4>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <label style={{ fontSize: 12, color: 'var(--adm-text-muted)' }}>Проверить выбор региона:</label>
+                        <select
+                          className="admin-select"
+                          style={{ fontSize: 13, padding: '4px 10px' }}
+                          value={testPreviewRegion}
+                          onChange={(e) => setTestPreviewRegion(e.target.value)}
+                        >
+                          {REGIONS_CONFIG.map(r => (
+                            <option key={r.id} value={r.id}>{r.names?.ru || r.id}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {(() => {
+                      const selWhId = adminRegionMap[testPreviewRegion];
+                      const selWh = warehousesList.find(w => w.id === selWhId);
+
+                      return (
+                        <div>
+                          <div style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, marginBottom: 14, fontSize: 13, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                            <div>
+                              <span style={{ color: 'var(--adm-text-muted)' }}>Регион: </span>
+                              <strong style={{ color: '#FFFFFF' }}>{REGIONS_CONFIG.find(r => r.id === testPreviewRegion)?.names?.ru}</strong>
+                            </div>
+                            <div>
+                              <span style={{ color: 'var(--adm-text-muted)' }}>Склад по умолчанию: </span>
+                              {selWh ? (
+                                <strong style={{ color: 'var(--adm-accent-blue)' }}>{selWh.name} ({selWh.city || selWh.country})</strong>
+                              ) : (
+                                <strong style={{ color: 'var(--adm-accent-amber)' }}>Склад не выбран (остатки скрыты)</strong>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="admin-table-wrapper" style={{ maxHeight: 280, overflowY: 'auto' }}>
+                            <table className="admin-table admin-table-compact">
+                              <thead>
+                                <tr>
+                                  <th>Артикул</th>
+                                  <th>Название</th>
+                                  <th>Категория</th>
+                                  <th>Отображаемый остаток для региона</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {catalogList.slice(0, 15).map(prod => {
+                                  if (!selWhId) {
+                                    return (
+                                      <tr key={prod.article}>
+                                        <td><code>{prod.article}</code></td>
+                                        <td>{prod.name}</td>
+                                        <td>{prod.category}</td>
+                                        <td><span className="wh-qty-display unspecified">Склад не выбран</span></td>
+                                      </tr>
+                                    );
+                                  }
+                                  const item = stockList.find(s => s.sku === prod.article && s.warehouseId === selWhId);
+                                  const qty = item ? item.quantity : null;
+                                  let statusNode;
+                                  if (qty === null || qty === undefined) {
+                                    statusNode = <span className="wh-qty-display unspecified">Нет данных</span>;
+                                  } else if (qty > 0) {
+                                    statusNode = <span className="wh-qty-display in-stock">{qty} шт. в наличии</span>;
+                                  } else {
+                                    statusNode = <span className="wh-qty-display out-of-stock">0 шт. (под заказ)</span>;
+                                  }
+
+                                  return (
+                                    <tr key={prod.article}>
+                                      <td><code>{prod.article}</code></td>
+                                      <td>{prod.name}</td>
+                                      <td>{prod.category}</td>
+                                      <td>{statusNode}</td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
               )}
 
               {/* VIEW 3: WAREHOUSE CONFIGURATION (НАСТРОЙКА СКЛАДОВ) */}

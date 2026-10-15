@@ -2,9 +2,9 @@
   {
     "warehouseId": "almaty",
     "sku": "LT-K101-CHR",
-    "quantity": 18,
-    "updatedAt": "2026-10-12T13:44:46.421Z",
-    "updatedBy": "Складской отдел"
+    "quantity": 1,
+    "updatedAt": "2026-10-15T13:27:05.971Z",
+    "updatedBy": "Импорт Excel"
   },
   {
     "warehouseId": "novosibirsk",
@@ -30,9 +30,9 @@
   {
     "warehouseId": "almaty",
     "sku": "LT-K102-FLT",
-    "quantity": 14,
-    "updatedAt": "2026-10-12T13:44:46.421Z",
-    "updatedBy": "Складской отдел"
+    "quantity": 2,
+    "updatedAt": "2026-10-15T13:27:05.971Z",
+    "updatedBy": "Импорт Excel"
   },
   {
     "warehouseId": "novosibirsk",
@@ -58,9 +58,9 @@
   {
     "warehouseId": "almaty",
     "sku": "LT-K103-FLX",
-    "quantity": 9,
-    "updatedAt": "2026-10-12T13:44:46.421Z",
-    "updatedBy": "Складской отдел"
+    "quantity": 3,
+    "updatedAt": "2026-10-15T13:27:05.971Z",
+    "updatedBy": "Импорт Excel"
   },
   {
     "warehouseId": "novosibirsk",
@@ -86,9 +86,9 @@
   {
     "warehouseId": "almaty",
     "sku": "LT-B201-SLM",
-    "quantity": 22,
-    "updatedAt": "2026-10-12T13:44:46.421Z",
-    "updatedBy": "Складской отдел"
+    "quantity": 0,
+    "updatedAt": "2026-10-15T13:27:05.971Z",
+    "updatedBy": "Полная замена Excel (обнуление)"
   },
   {
     "warehouseId": "novosibirsk",
@@ -114,9 +114,9 @@
   {
     "warehouseId": "almaty",
     "sku": "LT-B202-HGH",
-    "quantity": 11,
-    "updatedAt": "2026-10-12T13:44:46.421Z",
-    "updatedBy": "Складской отдел"
+    "quantity": 0,
+    "updatedAt": "2026-10-15T13:27:05.971Z",
+    "updatedBy": "Полная замена Excel (обнуление)"
   },
   {
     "warehouseId": "novosibirsk",
@@ -142,9 +142,9 @@
   {
     "warehouseId": "almaty",
     "sku": "LT-V301-SHT",
-    "quantity": 19,
-    "updatedAt": "2026-10-12T13:44:46.421Z",
-    "updatedBy": "Складской отдел"
+    "quantity": 0,
+    "updatedAt": "2026-10-15T13:27:05.971Z",
+    "updatedBy": "Полная замена Excel (обнуление)"
   },
   {
     "warehouseId": "novosibirsk",
@@ -170,9 +170,9 @@
   {
     "warehouseId": "almaty",
     "sku": "LT-U302-LNG",
-    "quantity": 25,
-    "updatedAt": "2026-10-12T13:44:46.421Z",
-    "updatedBy": "Складской отдел"
+    "quantity": 0,
+    "updatedAt": "2026-10-15T13:27:05.971Z",
+    "updatedBy": "Полная замена Excel (обнуление)"
   },
   {
     "warehouseId": "novosibirsk",
@@ -198,9 +198,9 @@
   {
     "warehouseId": "almaty",
     "sku": "LT-S401-COL",
-    "quantity": 12,
-    "updatedAt": "2026-10-12T13:44:46.421Z",
-    "updatedBy": "Складской отдел"
+    "quantity": 0,
+    "updatedAt": "2026-10-15T13:27:05.971Z",
+    "updatedBy": "Полная замена Excel (обнуление)"
   },
   {
     "warehouseId": "novosibirsk",
@@ -226,9 +226,9 @@
   {
     "warehouseId": "almaty",
     "sku": "LT-W501-SNK",
-    "quantity": 8,
-    "updatedAt": "2026-10-12T13:44:46.421Z",
-    "updatedBy": "Складской отдел"
+    "quantity": 0,
+    "updatedAt": "2026-10-15T13:27:05.971Z",
+    "updatedBy": "Полная замена Excel (обнуление)"
   },
   {
     "warehouseId": "novosibirsk",
@@ -254,9 +254,9 @@
   {
     "warehouseId": "almaty",
     "sku": "LT-H601-BID",
-    "quantity": 15,
-    "updatedAt": "2026-10-12T13:44:46.421Z",
-    "updatedBy": "Складской отдел"
+    "quantity": 0,
+    "updatedAt": "2026-10-15T13:27:05.971Z",
+    "updatedBy": "Полная замена Excel (обнуление)"
   },
   {
     "warehouseId": "novosibirsk",
@@ -282,9 +282,9 @@
   {
     "warehouseId": "almaty",
     "sku": "LT-C701-35M",
-    "quantity": 50,
-    "updatedAt": "2026-10-12T13:44:46.421Z",
-    "updatedBy": "Складской отдел"
+    "quantity": 0,
+    "updatedAt": "2026-10-15T13:27:05.971Z",
+    "updatedBy": "Полная замена Excel (обнуление)"
   },
   {
     "warehouseId": "novosibirsk",
@@ -310,9 +310,9 @@
   {
     "warehouseId": "almaty",
     "sku": "LT-A801-AER",
-    "quantity": 45,
-    "updatedAt": "2026-10-12T13:44:46.421Z",
-    "updatedBy": "Складской отдел"
+    "quantity": 0,
+    "updatedAt": "2026-10-15T13:27:05.971Z",
+    "updatedBy": "Полная замена Excel (обнуление)"
   },
   {
     "warehouseId": "novosibirsk",
@@ -338,8 +338,8 @@
   {
     "warehouseId": "almaty",
     "sku": "LT-KIT-01",
-    "quantity": 45,
-    "updatedAt": "2026-10-14T13:38:54.271Z",
-    "updatedBy": "Сотрудник"
+    "quantity": 0,
+    "updatedAt": "2026-10-15T13:27:05.971Z",
+    "updatedBy": "Полная замена Excel (обнуление)"
   }
 ]

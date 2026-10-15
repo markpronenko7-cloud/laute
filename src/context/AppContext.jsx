@@ -1,7 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { translations } from '../i18n/translations';
 import { DEFAULT_PRODUCTS } from '../data/catalogData';
-import { fetchProducts, getCurrentAdminSession, logoutAdmin, fetchSiteContent } from '../services/adminApi';
+import {
+  fetchProducts,
+  getCurrentAdminSession,
+  logoutAdmin,
+  fetchSiteContent,
+  fetchWarehouses,
+  fetchWarehouseStock,
+  fetchRegionWarehouseMap,
+  saveRegionWarehouseMap
+} from '../services/adminApi';
 
 const AppContext = createContext();
 
@@ -35,7 +44,7 @@ export const AppProvider = ({ children }) => {
     return localStorage.getItem('laute_lang') || 'ru';
   });
 
-  const [region, setRegion] = useState(() => {
+  const [region, setRegionState] = useState(() => {
     return localStorage.getItem('laute_region') || 'siberia';
   });
 
@@ -81,6 +90,92 @@ export const AppProvider = ({ children }) => {
     return DEFAULT_PRODUCTS;
   });
 
+  // Warehouses & Stock State
+  const [warehousesList, setWarehousesList] = useState([]);
+  const [stockList, setStockList] = useState([]);
+  const [regionWarehouseMap, setRegionWarehouseMap] = useState({
+    siberia: 'novosibirsk',
+    kz: 'almaty',
+    almaty: 'almaty',
+    moscow: 'moscow',
+    china: 'china',
+    uae: null,
+    usa: null
+  });
+  const [clientSelectedWarehouseId, setClientSelectedWarehouseId] = useState(null);
+  const [isB2BAuthorized, setIsB2BAuthorized] = useState(() => {
+    return localStorage.getItem('laute_b2b_auth') === 'true';
+  });
+
+  // Change region and auto-sync default warehouse
+  const setRegion = useCallback((newRegion) => {
+    setRegionState(newRegion);
+    setClientSelectedWarehouseId(null); // Reset manual override to default mapped warehouse
+  }, []);
+
+  // Active warehouse: manual client choice OR default mapped for current region
+  const activeWarehouseId = clientSelectedWarehouseId || regionWarehouseMap[region] || null;
+  const activeWarehouse = warehousesList.find(w => w.id === activeWarehouseId) || null;
+
+  // Real warehouse stock lookup for any SKU
+  const getStockForSku = useCallback((sku, targetWhId = activeWarehouseId) => {
+    if (!targetWhId) {
+      return {
+        quantity: null,
+        warehouseId: null,
+        warehouseName: null,
+        status: 'no_warehouse',
+        label: 'Склад не выбран'
+      };
+    }
+    const whObj = warehousesList.find(w => w.id === targetWhId);
+    const item = stockList.find(s => s.sku === sku && s.warehouseId === targetWhId);
+
+    if (!item || item.quantity === null || item.quantity === undefined) {
+      return {
+        quantity: null,
+        warehouseId: targetWhId,
+        warehouseName: whObj?.name || targetWhId,
+        status: 'unspecified',
+        label: 'Нет данных'
+      };
+    }
+
+    if (item.quantity === 0) {
+      return {
+        quantity: 0,
+        warehouseId: targetWhId,
+        warehouseName: whObj?.name || targetWhId,
+        status: 'out_of_stock',
+        label: '0 шт. (под заказ)'
+      };
+    }
+
+    return {
+      quantity: item.quantity,
+      warehouseId: targetWhId,
+      warehouseName: whObj?.name || targetWhId,
+      status: 'in_stock',
+      label: `${item.quantity} шт. в наличии`
+    };
+  }, [activeWarehouseId, warehousesList, stockList]);
+
+  // Reload warehouses, region mapping and stock data
+  const reloadStockData = useCallback(async () => {
+    try {
+      const [whs, map, stocks] = await Promise.all([
+        fetchWarehouses(),
+        fetchRegionWarehouseMap(),
+        fetchWarehouseStock(null)
+      ]);
+      if (Array.isArray(whs) && whs.length > 0) setWarehousesList(whs);
+      if (map && typeof map === 'object') setRegionWarehouseMap(map);
+      if (Array.isArray(stocks)) setStockList(stocks);
+    } catch (err) {
+      console.warn('Error loading stock/warehouse context:', err);
+    }
+  }, []);
+
   // Reload products from backend or sync
   const reloadProducts = useCallback(async () => {
     try {
@@ -94,14 +189,15 @@ export const AppProvider = ({ children }) => {
     }
   }, []);
 
-  // Fetch current session, content and products on mount
+  // Fetch current session, content, products and stock on mount
   useEffect(() => {
     getCurrentAdminSession().then(sess => {
       if (sess) setAdminSession(sess);
     });
     reloadSiteContent();
     reloadProducts();
-  }, [reloadSiteContent, reloadProducts]);
+    reloadStockData();
+  }, [reloadSiteContent, reloadProducts, reloadStockData]);
 
   const updateProducts = useCallback((newProducts) => {
     setProducts(newProducts);
@@ -305,6 +401,28 @@ export const AppProvider = ({ children }) => {
     openExcelModal: () => setIsExcelModalOpen(true),
     currentUser: adminSession,
     setCurrentUser: setAdminSession,
+    // Warehouse & Regional Stocks Synchronization
+    warehousesList,
+    setWarehousesList,
+    stockList,
+    setStockList,
+    regionWarehouseMap,
+    setRegionWarehouseMap,
+    updateRegionWarehouseMap: async (newMap) => {
+      setRegionWarehouseMap(newMap);
+      await saveRegionWarehouseMap(newMap);
+    },
+    activeWarehouseId,
+    activeWarehouse,
+    clientSelectedWarehouseId,
+    setClientSelectedWarehouse: (whId) => setClientSelectedWarehouseId(whId),
+    getStockForSku,
+    reloadStockData,
+    isB2BAuthorized,
+    setIsB2BAuthorized: (val) => {
+      setIsB2BAuthorized(val);
+      localStorage.setItem('laute_b2b_auth', val ? 'true' : 'false');
+    },
     logout: () => {
       logoutAdmin();
       setAdminSession(null);

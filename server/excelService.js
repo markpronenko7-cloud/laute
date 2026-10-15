@@ -757,12 +757,19 @@ export async function parseAndValidateWarehouseStockExcelBuffer(buffer, targetWa
   const warehouseColIndices = []; // { colNumber, warehouse }
   let singleQtyColIdx = -1;
 
-  const warehousesToMatch = allWarehouses && allWarehouses.length > 0 
-    ? allWarehouses 
-    : (targetWarehouse ? [targetWarehouse] : []);
+  const warehousesToMatch = [];
+  if (Array.isArray(allWarehouses) && allWarehouses.length > 0) {
+    warehousesToMatch.push(...allWarehouses);
+  } else if (Array.isArray(targetWarehouse)) {
+    warehousesToMatch.push(...targetWarehouse);
+  } else if (targetWarehouse && typeof targetWarehouse === 'object' && targetWarehouse.name) {
+    warehousesToMatch.push(targetWarehouse);
+  }
 
   headerRow.eachCell((cell, colNumber) => {
-    const val = String(cell.value || '').trim().toLowerCase();
+    const rawVal = cell.value;
+    const textVal = (typeof rawVal === 'object' && rawVal?.text) ? rawVal.text : String(rawVal || '');
+    const val = textVal.trim().toLowerCase();
     if (val.includes('артикул') || val.includes('sku')) {
       skuColIdx = colNumber;
       return;
@@ -770,9 +777,10 @@ export async function parseAndValidateWarehouseStockExcelBuffer(buffer, targetWa
 
     // Check if this column matches any known warehouse name or ID
     for (const wh of warehousesToMatch) {
-      const whNameLower = wh.name.toLowerCase();
-      const whIdLower = wh.id.toLowerCase();
-      if (val.includes(whNameLower) || val.includes(whIdLower)) {
+      if (!wh) continue;
+      const whNameLower = (wh.name || '').toLowerCase();
+      const whIdLower = (wh.id || '').toLowerCase();
+      if ((whNameLower && val.includes(whNameLower)) || (whIdLower && val.includes(whIdLower))) {
         warehouseColIndices.push({ colNumber, warehouse: wh });
         return;
       }
@@ -906,6 +914,7 @@ export async function parseAndValidateWarehouseStockExcelBuffer(buffer, targetWa
   });
 
   return {
+    valid: errors.length === 0,
     mode: isMultiWarehouseMode ? 'all' : 'single',
     warehouseId: isMultiWarehouseMode ? 'all' : (targetWarehouse?.id || 'single'),
     warehouseName: isMultiWarehouseMode ? 'Все склады' : (targetWarehouse?.name || ''),

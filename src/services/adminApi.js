@@ -882,3 +882,53 @@ export const commitStockExcelImport = async (warehouseId, diffList, mode = 'part
   return data;
 };
 
+export const fetchRegionWarehouseMap = async () => {
+  try {
+    const res = await fetch(`${getApiBase()}/region-warehouse-map`, {
+      headers: { ...authHeaders() }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.mapping) return data.mapping;
+    }
+  } catch (err) {
+    // fallback to static
+  }
+
+  // Fallback to static public JSON
+  try {
+    const staticRes = await fetch(`${import.meta.env.BASE_URL}data/region_warehouse_map.json`);
+    if (staticRes.ok) {
+      return await staticRes.json();
+    }
+  } catch (err) {
+    console.warn('Fallback region_warehouse_map.json failed');
+  }
+
+  return {
+    siberia: 'novosibirsk',
+    kz: 'almaty',
+    almaty: 'almaty',
+    moscow: 'moscow',
+    china: 'china',
+    uae: null,
+    usa: null
+  };
+};
+
+export const saveRegionWarehouseMap = async (mapping) => {
+  const res = await fetch(`${getApiBase()}/region-warehouse-map`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders()
+    },
+    body: JSON.stringify({ mapping })
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Ошибка сохранения таблицы соответствия регионов и складов');
+  return data;
+};
+
+

@@ -1,5 +1,39 @@
 [
   {
+    "id": "log-1792070993104-sj15l",
+    "timestamp": "2026-10-15T13:29:53.104Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_a2e43b6",
+    "sessionId": "laute_sess_dev_a2e43b6",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
+    "id": "log-1792070825976-46yfc",
+    "timestamp": "2026-10-15T13:27:05.976Z",
+    "action": "STOCK_EXCEL_IMPORT",
+    "actionTitle": "Импорт Excel остатков (Алматы)",
+    "summary": "Применено обновление остатков из Excel для (Алматы): 3 позиций (полная замена)",
+    "sessionId": "laute_sess_dev_0bcc11f"
+  },
+  {
+    "id": "log-1792070733329-2n4d1",
+    "timestamp": "2026-10-15T13:25:33.329Z",
+    "action": "STOCK_EXCEL_IMPORT",
+    "actionTitle": "Импорт Excel остатков (Алматы)",
+    "summary": "Применено обновление остатков из Excel для (Алматы): 3 позиций (частичное обновление)",
+    "sessionId": "laute_sess_dev_0bcc11f"
+  },
+  {
+    "id": "log-1792070416527-h3q9c",
+    "timestamp": "2026-10-15T13:20:16.527Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_0bcc11f",
+    "sessionId": "laute_sess_dev_0bcc11f",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
     "id": "log-1791985717168-37nk5",
     "timestamp": "2026-10-14T13:48:37.168Z",
     "action": "DEV_LOGIN",

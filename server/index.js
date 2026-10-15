@@ -49,9 +49,11 @@ const PRODUCTS_FILE = path.resolve(DATA_DIR, 'products.json');
 const AUDIT_FILE = path.resolve(DATA_DIR, 'audit_log.json');
 const WAREHOUSES_FILE = path.resolve(DATA_DIR, 'warehouses.json');
 const STOCK_FILE = path.resolve(DATA_DIR, 'warehouse_stock.json');
+const REGION_MAP_FILE = path.resolve(DATA_DIR, 'region_warehouse_map.json');
 const PUBLIC_CATALOG_FILE = path.resolve(__dirname, '..', 'public', 'data', 'catalog.json');
 const PUBLIC_WAREHOUSES_FILE = path.resolve(__dirname, '..', 'public', 'data', 'warehouses.json');
 const PUBLIC_STOCK_FILE = path.resolve(__dirname, '..', 'public', 'data', 'warehouse_stock.json');
+const PUBLIC_REGION_MAP_FILE = path.resolve(__dirname, '..', 'public', 'data', 'region_warehouse_map.json');
 const UPLOAD_CATALOG_DIR = path.resolve(__dirname, '..', 'public', 'images', 'catalog');
 const UPLOAD_MEDIA_DIR = path.resolve(__dirname, '..', 'public', 'images', 'uploads');
 
@@ -969,6 +971,16 @@ function syncPublicStock(stock) {
   }
 }
 
+function syncPublicRegionMap(mapping) {
+  try {
+    const dir = path.dirname(PUBLIC_REGION_MAP_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(PUBLIC_REGION_MAP_FILE, JSON.stringify(mapping, null, 2), 'utf8');
+  } catch (err) {
+    console.error('Error syncing public region map:', err);
+  }
+}
+
 // Alias for audit logging
 const logAudit = addAuditLog;
 
@@ -1106,6 +1118,48 @@ app.delete('/api/warehouses/:id', verifyAuth, (req, res) => {
   } catch (err) {
     console.error('Error deleting warehouse:', err);
     res.status(500).json({ error: 'Ошибка удаления склада' });
+  }
+});
+
+// 4.5. Get region-to-warehouse mapping
+app.get('/api/region-warehouse-map', (req, res) => {
+  try {
+    const defaultMap = {
+      siberia: 'novosibirsk',
+      kz: 'almaty',
+      almaty: 'almaty',
+      moscow: 'moscow',
+      china: 'china',
+      uae: null,
+      usa: null
+    };
+    const mapping = readJson(REGION_MAP_FILE, defaultMap);
+    res.json({ mapping });
+  } catch (err) {
+    console.error('Error fetching region-warehouse map:', err);
+    res.status(500).json({ error: 'Ошибка получения таблицы соответствия регионов и складов' });
+  }
+});
+
+// Update region-to-warehouse mapping
+app.put('/api/region-warehouse-map', verifyAuth, (req, res) => {
+  try {
+    const { mapping } = req.body;
+    if (!mapping || typeof mapping !== 'object') {
+      return res.status(400).json({ error: 'Некорректная структура таблицы соответствий' });
+    }
+    writeJson(REGION_MAP_FILE, mapping);
+    syncPublicRegionMap(mapping);
+    logAudit({
+      action: 'UPDATE_REGION_WAREHOUSE_MAP',
+      actionTitle: 'Обновлена таблица соответствия регионов складам LAUTE',
+      summary: 'Сохранены правила привязки регионов к складам по умолчанию',
+      sessionId: req.session?.sessionId
+    });
+    res.json({ success: true, mapping });
+  } catch (err) {
+    console.error('Error saving region-warehouse map:', err);
+    res.status(500).json({ error: 'Ошибка сохранения таблицы соответствия регионов и складов' });
   }
 });
 

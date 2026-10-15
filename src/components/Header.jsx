@@ -188,9 +188,9 @@ export const Header = () => {
               onClick={() => setIsLangOpen(!isLangOpen)}
               aria-label={t.nav.language || 'Язык сайта'}
             >
-              <Globe size={14} className="select-icon" />
+              <Globe size={15} className="select-icon" />
               <span className="select-val">{lang === 'ru' ? 'РУС' : lang === 'kz' ? 'КАЗ' : 'ENG'}</span>
-              <ChevronDown size={12} className={`arrow-icon ${isLangOpen ? 'open' : ''}`} />
+              <ChevronDown size={13} className={`arrow-icon ${isLangOpen ? 'open' : ''}`} />
             </button>
 
             {isLangOpen && (
@@ -221,9 +221,9 @@ export const Header = () => {
               onClick={() => setIsRegionOpen(!isRegionOpen)}
               aria-label={t.regions?.selectRegion || t.nav.region || 'Ваш регион'}
             >
-              <MapPin size={14} className="select-icon" />
+              <MapPin size={15} className="select-icon" />
               <span className="select-val">{t.regions?.[region] || region}</span>
-              <ChevronDown size={12} className={`arrow-icon ${isRegionOpen ? 'open' : ''}`} />
+              <ChevronDown size={13} className={`arrow-icon ${isRegionOpen ? 'open' : ''}`} />
             </button>
 
             {isRegionOpen && (
@@ -241,7 +241,7 @@ export const Header = () => {
                       setIsRegionOpen(false);
                     }}
                   >
-                    <MapPin size={13} style={{ opacity: 0.7 }} />
+                    <MapPin size={14} style={{ opacity: 0.7 }} />
                     <span className="opt-label">{opt.label}</span>
                   </button>
                 ))}
@@ -256,8 +256,8 @@ export const Header = () => {
             onClick={openAuthModal}
             title={t.nav.clientCabinet || 'Кабинет партнера'}
           >
-            <User size={14} />
-            <span className="cabinet-btn-label">{t.nav.clientCabinet || 'Кабинет партнера'}</span>
+            <User size={15} />
+            <span className="cabinet-btn-label">{t.nav.clientCabinet || 'Кабинет партнёра'}</span>
           </button>
 
           {/* Main Wholesale Partner CTA */}

@@ -10,19 +10,31 @@ import {
   Scale, 
   MapPin, 
   Sparkles, 
-  Layers 
+  Layers,
+  CheckCircle2,
+  Warehouse
 } from 'lucide-react';
 
 export const CatalogPage = () => {
   const { 
     lang, 
+    region,
     t, 
     openPartnerModal, 
     openAuthModal, 
     products, 
     openExcelModal, 
     openProductModal, 
-    startComparison 
+    startComparison,
+    adminSession,
+    isB2BAuthorized,
+    setIsB2BAuthorized,
+    warehousesList,
+    activeWarehouseId,
+    activeWarehouse,
+    clientSelectedWarehouseId,
+    setClientSelectedWarehouse,
+    getStockForSku
   } = useApp();
 
   const [catalogView, setCatalogView] = useState('products'); // 'products' | 'categories'
@@ -378,10 +390,19 @@ export const CatalogPage = () => {
                 <ArrowRight size={16} />
               </button>
               
-              <button type="button" className="btn btn-outline" onClick={openAuthModal}>
-                <PackageCheck size={16} />
-                <span>{cat.authBtn || 'Проверить остатки (B2B кабинет)'}</span>
-              </button>
+              {isB2BAuthorized || adminSession ? (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <button type="button" className="btn btn-outline" onClick={openAuthModal}>
+                    <CheckCircle2 size={15} color="#10B981" />
+                    <span>Склад: {activeWarehouse?.name || 'Не выбран'}</span>
+                  </button>
+                </div>
+              ) : (
+                <button type="button" className="btn btn-outline" onClick={openAuthModal}>
+                  <PackageCheck size={16} />
+                  <span>{cat.authBtn || 'Проверить остатки (B2B кабинет)'}</span>
+                </button>
+              )}
 
               {/* Employee Excel Mass Update Button */}
               <button 
@@ -399,13 +420,47 @@ export const CatalogPage = () => {
       </section>
 
       {/* Stock Notice & Rules */}
-      <section className="stock-notice-bar">
+      <section className="stock-notice-bar" style={isB2BAuthorized || adminSession ? { background: 'rgba(16, 185, 129, 0.08)', borderBottom: '1px solid rgba(16, 185, 129, 0.25)' } : {}}>
         <div className="container">
-          <div className="notice-inner">
-            <Info size={18} className="notice-icon" />
-            <div className="notice-text">
-              <strong>{cat.stockTitle || 'Порядок работы с остатками и ценами:'}</strong> {cat.stockDesc || 'Базовые цены носят ориентировочный характер. Индивидуальные оптовые скидки, наличие по номенклатуре и плановые Excel-выгрузки остатков предоставляются авторизованным дилерам через Личный кабинет партнёра (обновление по графику поставок, не real-time).'}
+          <div className="notice-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {isB2BAuthorized || adminSession ? <Warehouse size={18} color="#10B981" /> : <Info size={18} className="notice-icon" />}
+              <div className="notice-text">
+                {isB2BAuthorized || adminSession ? (
+                  <>
+                    <strong>Служебные остатки филиала LAUTE:</strong> {activeWarehouse ? `Показываются фактические остатки склада «${activeWarehouse.name}» (${activeWarehouse.city || activeWarehouse.country}).` : 'Склад по умолчанию для выбранного региона не назначен.'}
+                  </>
+                ) : (
+                  <>
+                    <strong>{cat.stockTitle || 'Порядок работы с остатками и ценами:'}</strong> {cat.stockDesc || 'Базовые цены носят ориентировочный характер. Индивидуальные оптовые скидки, наличие по номенклатуре и плановые Excel-выгрузки остатков предоставляются авторизованным дилерам через Личный кабинет партнёра.'}
+                  </>
+                )}
+              </div>
             </div>
+
+            {(isB2BAuthorized || adminSession) && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.82rem', color: '#94A3B8' }}>Сменить склад:</span>
+                <select 
+                  value={activeWarehouseId || ''}
+                  onChange={(e) => setClientSelectedWarehouse(e.target.value || null)}
+                  style={{
+                    background: '#0F172A',
+                    color: '#FFFFFF',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    borderRadius: '6px',
+                    padding: '4px 8px',
+                    fontSize: '0.82rem',
+                    fontWeight: 600
+                  }}
+                >
+                  <option value="">(По умолчанию для региона)</option>
+                  {warehousesList.map(w => (
+                    <option key={w.id} value={w.id}>{w.name} ({w.city || w.country})</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -517,8 +572,47 @@ export const CatalogPage = () => {
                     </div>
 
                     <div className="sku-stock-summary">
-                      <MapPin size={13} color="#EA580C" />
-                      <span>Алматы: {p.cityStock?.['Алматы'] > 0 ? `${p.cityStock['Алматы']} шт. в наличии` : 'Под заказ'}</span>
+                      {isB2BAuthorized || adminSession ? (() => {
+                        const stock = getStockForSku(p.article);
+                        if (stock.status === 'in_stock') {
+                          return (
+                            <>
+                              <MapPin size={13} color="#10B981" />
+                              <span style={{ color: '#10B981', fontWeight: 600 }}>
+                                {stock.warehouseName}: {stock.label}
+                              </span>
+                            </>
+                          );
+                        } else if (stock.status === 'out_of_stock') {
+                          return (
+                            <>
+                              <MapPin size={13} color="#F59E0B" />
+                              <span style={{ color: '#F59E0B', fontWeight: 600 }}>
+                                {stock.warehouseName}: 0 шт. (под заказ)
+                              </span>
+                            </>
+                          );
+                        } else if (stock.status === 'no_warehouse') {
+                          return (
+                            <>
+                              <MapPin size={13} color="#94A3B8" />
+                              <span style={{ color: '#94A3B8' }}>Склад не выбран</span>
+                            </>
+                          );
+                        } else {
+                          return (
+                            <>
+                              <MapPin size={13} color="#94A3B8" />
+                              <span style={{ color: '#94A3B8' }}>{stock.warehouseName}: Нет данных</span>
+                            </>
+                          );
+                        }
+                      })() : (
+                        <>
+                          <MapPin size={13} color="#94A3B8" />
+                          <span style={{ color: '#94A3B8' }}>Складские остатки: в B2B кабинете</span>
+                        </>
+                      )}
                     </div>
 
                     <div className="sku-card-actions">

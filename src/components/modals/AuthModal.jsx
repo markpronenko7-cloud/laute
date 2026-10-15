@@ -1,18 +1,38 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { X, Lock, ArrowRight, Info } from 'lucide-react';
+import { X, Lock, ArrowRight, Info, CheckCircle2, LogOut, Warehouse } from 'lucide-react';
 
 export const AuthModal = () => {
-  const { isAuthModalOpen, closeAuthModal, openPartnerModal, lang, t } = useApp();
+  const { 
+    isAuthModalOpen, 
+    closeAuthModal, 
+    openPartnerModal, 
+    lang, 
+    t,
+    isB2BAuthorized,
+    setIsB2BAuthorized,
+    activeWarehouse
+  } = useApp();
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
-  const [notice, setNotice] = useState(false);
+  const [successNotice, setSuccessNotice] = useState(false);
 
   if (!isAuthModalOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setNotice(true);
+    if (!password) return;
+    setIsB2BAuthorized(true);
+    setSuccessNotice(true);
+    setTimeout(() => {
+      setSuccessNotice(false);
+      closeAuthModal();
+    }, 1200);
+  };
+
+  const handleLogout = () => {
+    setIsB2BAuthorized(false);
+    closeAuthModal();
   };
 
   const authT = t.modals?.auth || {};
@@ -29,39 +49,51 @@ export const AuthModal = () => {
             <Lock size={15} />
             <span>{lang === 'kz' ? 'LAUTE көтерме клиентінің кабинеті' : lang === 'en' ? 'LAUTE Wholesale Client Portal' : 'Кабинет оптового клиента LAUTE'}</span>
           </div>
-          <h3 className="modal-title">{authT.title || 'Вход для авторизованных партнёров'}</h3>
+          <h3 className="modal-title">
+            {isB2BAuthorized ? 'Партнёрский B2B-доступ активен' : (authT.title || 'Вход для авторизованных партнёров')}
+          </h3>
           <p className="modal-subtitle">
-            {authT.subtitle || 'Доступ к персональным скидкам от базового прайса, выгрузкам остатков по региональным складам и оформлению заказов.'}
+            {isB2BAuthorized 
+              ? `Вам открыт служебный просмотр складских остатков по текущему филиалу: «${activeWarehouse?.name || 'Склад не выбран'}».`
+              : (authT.subtitle || 'Доступ к персональным скидкам от базового прайса, выгрузкам остатков по региональным складам и оформлению заказов.')
+            }
           </p>
         </div>
 
-        {notice ? (
-          <div className="auth-notice-box">
-            <Info size={24} color="#B45309" />
+        {isB2BAuthorized ? (
+          <div className="auth-notice-box" style={{ background: 'rgba(16, 185, 129, 0.08)', borderColor: 'rgba(16, 185, 129, 0.3)' }}>
+            <CheckCircle2 size={24} color="#10B981" />
             <div>
-              <h4>{lang === 'kz' ? 'Авторизация және қолжетімділік беру тәртібі' : lang === 'en' ? 'Authorization & Access Procedure' : 'Порядок авторизации и выдачи доступов'}</h4>
+              <h4 style={{ color: '#10B981' }}>Авторизация подтверждена</h4>
               <p>
-                {lang === 'kz' ? 'LAUTE регламентіне сәйкес, есептік жазбаларды шартқа қол қойылғаннан кейін жауапты өңірлік менеджер жасайды. Егер сіз логин мен уақытша құпиясөзді әлі алмаған болсаңыз, серіктесті тіркеуге өтінім жіберіңіз.' : lang === 'en' ? 'According to LAUTE protocol, client accounts are provisioned by regional territory managers after agreement signing. If you have not received login credentials yet, please submit a partnership application.' : 'В соответствии с регламентом LAUTE, учетные записи создаются ответственным региональным менеджером после подписания договора. Если вы еще не получили логин и временный пароль, пожалуйста, отправьте заявку на регистрацию партнёра.'}
+                Текущий склад по умолчанию: <strong>{activeWarehouse?.name || 'Не выбран'}</strong> ({activeWarehouse?.city || activeWarehouse?.country || '—'}).
+                Вы можете переключать склад в каталоге или личном кабинете.
               </p>
               <div style={{ marginTop: '16px', display: 'flex', gap: '10px' }}>
                 <button
                   type="button"
                   className="btn btn-primary btn-sm"
-                  onClick={() => {
-                    closeAuthModal();
-                    openPartnerModal();
-                  }}
+                  onClick={closeAuthModal}
                 >
-                  {lang === 'kz' ? 'B2B-кабинетке өтінім беру' : lang === 'en' ? 'Request B2B Portal Access' : 'Оформить заявку на B2B-кабинет'}
+                  Перейти к каталогу с остатками
                 </button>
                 <button
                   type="button"
                   className="btn btn-outline btn-sm"
-                  onClick={() => setNotice(false)}
+                  onClick={handleLogout}
                 >
-                  {lang === 'kz' ? 'Артқа' : lang === 'en' ? 'Back' : 'Назад'}
+                  <LogOut size={14} />
+                  <span>Выйти из кабинета</span>
                 </button>
               </div>
+            </div>
+          </div>
+        ) : successNotice ? (
+          <div className="auth-notice-box" style={{ background: 'rgba(16, 185, 129, 0.08)', borderColor: 'rgba(16, 185, 129, 0.3)' }}>
+            <CheckCircle2 size={24} color="#10B981" />
+            <div>
+              <h4 style={{ color: '#10B981' }}>Успешный вход в систему</h4>
+              <p>Остатки соответствующего склада активированы.</p>
             </div>
           </div>
         ) : (
@@ -71,7 +103,7 @@ export const AuthModal = () => {
               <input
                 type="text"
                 required
-                placeholder="dealer@company.com"
+                placeholder="partner@company.com"
                 value={login}
                 onChange={(e) => setLogin(e.target.value)}
               />
@@ -114,3 +146,4 @@ export const AuthModal = () => {
     </div>
   );
 };
+
