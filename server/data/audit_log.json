@@ -1,5 +1,149 @@
 [
   {
+    "id": "log-1792153047720-jj4lp",
+    "timestamp": "2026-10-16T12:17:27.720Z",
+    "action": "LOGOUT",
+    "actionTitle": "Выход из панели управления",
+    "summary": "Сессия laute_sess_dev_21b7818 завершена",
+    "sessionId": "laute_sess_dev_21b7818"
+  },
+  {
+    "id": "log-1792153040015-0gn8f",
+    "timestamp": "2026-10-16T12:17:20.015Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-A801-AER",
+    "summary": "Товар \"Аэратор водосберегающий поворотный LAUTE Neoperl Swivel M24\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_21b7818",
+    "backupId": "catalog_2026-10-16T12-17-20-011Z"
+  },
+  {
+    "id": "log-1792153038556-5501c",
+    "timestamp": "2026-10-16T12:17:18.556Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-C701-35M",
+    "summary": "Товар \"Оригинальный керамический картридж LAUTE Keram 35 мм\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_21b7818",
+    "backupId": "catalog_2026-10-16T12-17-18-552Z"
+  },
+  {
+    "id": "log-1792153037033-abkh3",
+    "timestamp": "2026-10-16T12:17:17.033Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-H601-BID",
+    "summary": "Товар \"Встраиваемый гигиенический душ LAUTE Compact Bidet H-10\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_21b7818",
+    "backupId": "catalog_2026-10-16T12-17-17-024Z"
+  },
+  {
+    "id": "log-1792153035374-ykpdx",
+    "timestamp": "2026-10-16T12:17:15.374Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-W501-SNK",
+    "summary": "Товар \"Кухонная мойка нержавеющая сталь LAUTE Steel Pro W-60\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_21b7818",
+    "backupId": "catalog_2026-10-16T12-17-15-369Z"
+  },
+  {
+    "id": "log-1792153033363-gl9nd",
+    "timestamp": "2026-10-16T12:17:13.363Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-S401-COL",
+    "summary": "Товар \"Душевая система с тропическим душем LAUTE Rain Tower S-40\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_21b7818",
+    "backupId": "catalog_2026-10-16T12-17-13-354Z"
+  },
+  {
+    "id": "log-1792153031832-0kt46",
+    "timestamp": "2026-10-16T12:17:11.832Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-U302-LNG",
+    "summary": "Товар \"Универсальный смеситель для ванны и раковины LAUTE Grand 350 U-30\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_21b7818",
+    "backupId": "catalog_2026-10-16T12-17-11-812Z"
+  },
+  {
+    "id": "log-1792153030271-uck4j",
+    "timestamp": "2026-10-16T12:17:10.271Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-V301-SHT",
+    "summary": "Товар \"Смеситель для ванны LAUTE Pure Bath V-20\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_21b7818",
+    "backupId": "catalog_2026-10-16T12-17-10-267Z"
+  },
+  {
+    "id": "log-1792153028440-2ubaj",
+    "timestamp": "2026-10-16T12:17:08.440Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-B202-HGH",
+    "summary": "Товар \"Высокий смеситель для накладных чаш LAUTE High Tower B-05\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_21b7818",
+    "backupId": "catalog_2026-10-16T12-17-08-435Z"
+  },
+  {
+    "id": "log-1792153027083-au8ez",
+    "timestamp": "2026-10-16T12:17:07.083Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-B201-SLM",
+    "summary": "Товар \"Смеситель для раковины LAUTE Line Basin B-01\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_21b7818",
+    "backupId": "catalog_2026-10-16T12-17-07-078Z"
+  },
+  {
+    "id": "log-1792153025567-qezwz",
+    "timestamp": "2026-10-16T12:17:05.567Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-K103-FLX",
+    "summary": "Товар \"Смеситель для кухни LAUTE Flexi Pro K-15 (с гибким изливом)\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_21b7818",
+    "backupId": "catalog_2026-10-16T12-17-05-563Z"
+  },
+  {
+    "id": "log-1792153024080-89jg0",
+    "timestamp": "2026-10-16T12:17:04.080Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-K102-FLT",
+    "summary": "Товар \"Смеситель для кухни LAUTE Quadro Filter Q-12 (под фильтр)\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_21b7818",
+    "backupId": "catalog_2026-10-16T12-17-04-075Z"
+  },
+  {
+    "id": "log-1792153022545-wfz3f",
+    "timestamp": "2026-10-16T12:17:02.545Z",
+    "action": "PRODUCT_DELETE",
+    "actionTitle": "Удален товар LT-K101-CHR",
+    "summary": "Товар \"Смеситель для кухни LAUTE Prime K-10\" удален из базы каталога",
+    "sessionId": "laute_sess_dev_21b7818",
+    "backupId": "catalog_2026-10-16T12-17-02-541Z"
+  },
+  {
+    "id": "log-1792153003016-pjjx4",
+    "timestamp": "2026-10-16T12:16:43.016Z",
+    "action": "EXCEL_IMPORT",
+    "actionTitle": "Успешный импорт Excel-каталога",
+    "summary": "Добавлено: +4, Обновлено: 0, Скрыто: 0, Удалено: 0. Всего: 16",
+    "details": "Создана точка отката: catalog_2026-10-16T12-16-43-008Z",
+    "sessionId": "laute_sess_dev_21b7818",
+    "backupId": "catalog_2026-10-16T12-16-43-008Z"
+  },
+  {
+    "id": "log-1792152983491-p58md",
+    "timestamp": "2026-10-16T12:16:23.491Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_21b7818",
+    "sessionId": "laute_sess_dev_21b7818",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
+    "id": "log-1792152983476-yymzo",
+    "timestamp": "2026-10-16T12:16:23.476Z",
+    "action": "DEV_LOGIN",
+    "actionTitle": "Локальный вход сотрудника (без пароля)",
+    "summary": "Авторизована локальная сессия разработки laute_sess_dev_ed979e8",
+    "sessionId": "laute_sess_dev_ed979e8",
+    "details": "IP: ::1, Host: localhost:5173"
+  },
+  {
     "id": "log-1792076183858-3s6k9",
     "timestamp": "2026-10-15T14:56:23.858Z",
     "action": "LOGOUT",
