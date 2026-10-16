@@ -79,9 +79,10 @@ export const AppProvider = ({ children }) => {
   const [products, setProducts] = useState(() => {
     try {
       const saved = localStorage.getItem('laute_products');
-      if (saved) {
+      const wasLoaded = localStorage.getItem('laute_products_loaded_from_backend');
+      if (saved && wasLoaded) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       }
     } catch {
       // fallback
@@ -182,9 +183,10 @@ export const AppProvider = ({ children }) => {
   const reloadProducts = useCallback(async () => {
     try {
       const live = await fetchProducts(true);
-      if (Array.isArray(live) && live.length > 0) {
+      if (Array.isArray(live)) {
         setProducts(live);
         localStorage.setItem('laute_products', JSON.stringify(live));
+        localStorage.setItem('laute_products_loaded_from_backend', 'true');
       }
     } catch {
       // fallback

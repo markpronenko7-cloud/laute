@@ -230,7 +230,9 @@ export const ExcelManagerModal = () => {
             </div>
             <ul className="error-list">
               {validationResult.errors.map((err, idx) => (
-                <li key={idx} className="error-item">{err}</li>
+                <li key={idx} className="error-item">
+                  {typeof err === 'string' ? err : `Строка ${err.row || '?'}: [${err.article || '—'}] ${err.field ? `${err.field} — ` : ''}${err.message}`}
+                </li>
               ))}
             </ul>
             <p className="error-tip">

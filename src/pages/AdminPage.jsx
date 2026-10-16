@@ -76,6 +76,7 @@ import {
   updateProduct,
   toggleProductStatus,
   deleteProduct,
+  deleteProductsBatch,
   fetchMediaList,
   uploadMediaFiles,
   uploadSingleImage,
@@ -249,6 +250,8 @@ export const AdminPage = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [isAddingNewProduct, setIsAddingNewProduct] = useState(false);
   const [isSavingProduct, setIsSavingProduct] = useState(false);
+  const [selectedCatalogSkus, setSelectedCatalogSkus] = useState(new Set());
+  const [isBatchDeletingProducts, setIsBatchDeletingProducts] = useState(false);
 
   // Catalog Inline Editing & Product Modal Tabs State
   const [inlineEditingArticle, setInlineEditingArticle] = useState(null);
@@ -423,7 +426,7 @@ export const AdminPage = () => {
     setIsLoadingProducts(true);
     try {
       const prods = await fetchProducts(true);
-      if (Array.isArray(prods) && prods.length > 0) {
+      if (Array.isArray(prods)) {
         setCatalogList(prods);
         updateProducts(prods);
       }
@@ -800,6 +803,30 @@ export const AdminPage = () => {
       showNotice(err.message || 'Ошибка сохранения товара', 'error');
     } finally {
       setIsInlineSaving(false);
+    }
+  };
+
+  const handleBatchDeleteProducts = async () => {
+    if (isDemoMode) {
+      showNotice('В демонстрационном режиме удаление товаров заблокировано.');
+      return;
+    }
+    const count = selectedCatalogSkus.size;
+    if (count === 0) return;
+
+    if (window.confirm(`Вы уверены, что хотите удалить ${count} выбранных товаров из каталога?`)) {
+      setIsBatchDeletingProducts(true);
+      try {
+        const skusToDelete = Array.from(selectedCatalogSkus);
+        await deleteProductsBatch(skusToDelete);
+        setSelectedCatalogSkus(new Set());
+        await loadCatalogData();
+        showNotice(`Успешно удалено товаров: ${count}`);
+      } catch (err) {
+        showNotice(err.message || 'Ошибка массового удаления', 'error');
+      } finally {
+        setIsBatchDeletingProducts(false);
+      }
     }
   };
 
@@ -2759,6 +2786,19 @@ export const AdminPage = () => {
                   <p className="view-subtitle">Управление позициями номенклатуры, ценами, описаниями, фотографиями и статусами</p>
                 </div>
                 <div className="header-actions">
+                  {selectedCatalogSkus.size > 0 && (
+                    <button 
+                      type="button" 
+                      className="admin-btn admin-btn-danger admin-btn-sm"
+                      onClick={handleBatchDeleteProducts}
+                      disabled={isBatchDeletingProducts}
+                      style={{ background: '#EF4444', color: '#fff', border: 'none' }}
+                      title={`Удалить ${selectedCatalogSkus.size} выбранных товаров`}
+                    >
+                      <Trash2 size={14} />
+                      <span>{isBatchDeletingProducts ? 'Удаление...' : `Удалить выбранные (${selectedCatalogSkus.size})`}</span>
+                    </button>
+                  )}
                   <button 
                     type="button" 
                     className="admin-btn admin-btn-primary admin-btn-sm"
@@ -2858,6 +2898,21 @@ export const AdminPage = () => {
                     <table className="admin-table">
                       <thead>
                         <tr>
+                          <th style={{ width: 40, textAlign: 'center' }}>
+                            <input
+                              type="checkbox"
+                              checked={filtered.length > 0 && filtered.every(p => selectedCatalogSkus.has(p.article))}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedCatalogSkus(new Set(filtered.map(p => p.article)));
+                                } else {
+                                  setSelectedCatalogSkus(new Set());
+                                }
+                              }}
+                              title="Выбрать все товары на экране"
+                              style={{ cursor: 'pointer', width: 16, height: 16 }}
+                            />
+                          </th>
                           <th style={{ width: 60 }}>Фото</th>
                           <th>Артикул (SKU)</th>
                           <th>Название товара</th>
@@ -2875,6 +2930,22 @@ export const AdminPage = () => {
 
                           return (
                             <tr key={prod.article} className={isHidden ? 'row-muted' : (isInline ? 'row-editing' : '')}>
+                              <td style={{ textAlign: 'center' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedCatalogSkus.has(prod.article)}
+                                  onChange={(e) => {
+                                    const next = new Set(selectedCatalogSkus);
+                                    if (e.target.checked) {
+                                      next.add(prod.article);
+                                    } else {
+                                      next.delete(prod.article);
+                                    }
+                                    setSelectedCatalogSkus(next);
+                                  }}
+                                  style={{ cursor: 'pointer', width: 16, height: 16 }}
+                                />
+                              </td>
                               <td>
                                 <div className="table-thumb-frame">
                                   {prod.photo1 ? (
@@ -3030,9 +3101,18 @@ export const AdminPage = () => {
                                           return;
                                         }
                                         if (window.confirm(`Вы уверены, что хотите удалить товар ${prod.article} (${prod.name}) из каталога?`)) {
-                                          await deleteProduct(prod.article);
-                                          loadCatalogData();
-                                          showNotice(`Товар ${prod.article} удалён`);
+                                          try {
+                                            await deleteProduct(prod.article);
+                                            setSelectedCatalogSkus(prev => {
+                                              const next = new Set(prev);
+                                              next.delete(prod.article);
+                                              return next;
+                                            });
+                                            await loadCatalogData();
+                                            showNotice(`Товар ${prod.article} успешно удалён`);
+                                          } catch (err) {
+                                            showNotice(err.message || 'Ошибка удаления товара', 'error');
+                                          }
                                         }
                                       }}
                                       title="Удалить товар"
@@ -4369,11 +4449,11 @@ export const AdminPage = () => {
                   {validationResult.errors && validationResult.errors.length > 0 && (
                     <div className="excel-errors-card">
                       <div className="errors-header-row">
-                        <h4>Обнаружены ошибки в строках Excel:</h4>
+                        <h4>Обнаружены ошибки в строках Excel ({validationResult.errors.length}):</h4>
                         <button 
                           type="button" 
                           className="admin-btn admin-btn-outline admin-btn-sm"
-                          onClick={downloadErrorReport}
+                          onClick={() => downloadErrorReport(validationResult.errors)}
                         >
                           <Download size={13} />
                           <span>Скачать отчёт об ошибках</span>
@@ -4385,7 +4465,7 @@ export const AdminPage = () => {
                           <div key={eIdx} className="error-row-item">
                             <span className="row-num">Строка {err.row}:</span>
                             <span className="row-sku">[{err.article}]</span>
-                            <span className="row-msg">{err.message}</span>
+                            <span className="row-msg">{err.field ? `${err.field}: ` : ''}{err.message}</span>
                           </div>
                         ))}
                       </div>

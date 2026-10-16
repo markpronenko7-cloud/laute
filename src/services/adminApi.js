@@ -10,9 +10,10 @@ import {
   exportCurrentCatalogToExcel as clientExportCatalog,
   parseAndValidateExcelFile as clientValidateExcel,
   applyExcelImport as clientApplyExcelImport,
+  downloadErrorReport as clientDownloadErrorReport,
   downloadStockTemplateExcel as clientDownloadStockTemplate,
   parseStockExcelClient as clientParseStockExcel
-} from '../utils/excelManager';
+} from '../utils/excelManager.js';
 
 // ==========================================
 // 0. SUPABASE CONFIGURATION
@@ -69,13 +70,13 @@ async function callSupabaseRpc(fnName, args = {}) {
 
 // Supabase REST Query Helper (for public RLS reads)
 async function querySupabase(endpoint) {
-  const separator = endpoint.includes('?') ? '&' : '?';
-  const url = `${SUPABASE_CONFIG.url}/rest/v1/${endpoint}${separator}t=${Date.now()}`;
+  const url = `${SUPABASE_CONFIG.url}/rest/v1/${endpoint}`;
   const res = await fetch(url, {
     method: 'GET',
     headers: {
       'apikey': SUPABASE_CONFIG.anonKey,
-      'Accept': 'application/json'
+      'Accept': 'application/json',
+      'Cache-Control': 'no-cache, no-store'
     }
   });
 
@@ -505,10 +506,11 @@ export const fetchProducts = async (includeHidden = true) => {
     const filter = includeHidden ? 'select=*&order=updated_at.desc' : 'status=neq.СКРЫТ&select=*&order=updated_at.desc';
     const records = await querySupabase(`laute_products?${filter}`);
 
-    if (Array.isArray(records) && records.length > 0) {
+    if (Array.isArray(records)) {
       const normalized = records.map(normalizeProduct);
       if (typeof window !== 'undefined') {
         localStorage.setItem('laute_products', JSON.stringify(normalized));
+        localStorage.setItem('laute_products_loaded_from_backend', 'true');
       }
       return normalized;
     }
@@ -516,12 +518,13 @@ export const fetchProducts = async (includeHidden = true) => {
     console.warn('Ошибка загрузки товаров из Supabase, используем резервную копию:', err);
   }
 
-  // Fallback to localStorage or static catalog.json
+  // Fallback to localStorage or static catalog.json only on network error
   try {
     const saved = localStorage.getItem('laute_products');
-    if (saved) {
+    const wasLoaded = localStorage.getItem('laute_products_loaded_from_backend');
+    if (saved && wasLoaded) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     }
 
     const staticRes = await fetch(`${import.meta.env.BASE_URL}data/catalog.json?t=${Date.now()}`);
@@ -588,6 +591,50 @@ export const deleteProduct = async (sku) => {
 
   if (!result || !result.success) {
     throw new Error(result?.error || 'Ошибка удаления товара из Supabase');
+  }
+
+  // Обновляем локальный кэш, чтобы товар не воскресал
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('laute_products');
+    if (saved) {
+      try {
+        const prods = JSON.parse(saved);
+        const filtered = prods.filter(p => p.article?.toUpperCase() !== sku.toUpperCase());
+        localStorage.setItem('laute_products', JSON.stringify(filtered));
+        localStorage.setItem('laute_products_loaded_from_backend', 'true');
+      } catch (e) {}
+    }
+  }
+
+  return result;
+};
+
+export const deleteProductsBatch = async (skuList) => {
+  const token = getAuthToken();
+  if (!token) throw new Error('Требуется авторизация администратора');
+  if (!Array.isArray(skuList) || skuList.length === 0) return { success: true, count: 0 };
+
+  const result = await callSupabaseRpc('laute_delete_products_batch', {
+    p_token: token,
+    p_skus: skuList
+  });
+
+  if (!result || !result.success) {
+    throw new Error(result?.error || 'Ошибка массового удаления товаров из Supabase');
+  }
+
+  // Обновляем локальный кэш
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('laute_products');
+    if (saved) {
+      try {
+        const skuSet = new Set(skuList.map(s => s.toUpperCase()));
+        const prods = JSON.parse(saved);
+        const filtered = prods.filter(p => !skuSet.has(p.article?.toUpperCase()));
+        localStorage.setItem('laute_products', JSON.stringify(filtered));
+        localStorage.setItem('laute_products_loaded_from_backend', 'true');
+      } catch (e) {}
+    }
   }
 
   return result;
@@ -719,8 +766,27 @@ export const commitExcelImport = async (validRows) => {
   if (!token) throw new Error('Требуется авторизация администратора');
 
   const currentProducts = await fetchProducts(true);
+
+  // 1. Обрабатываем строки с явным статусом УДАЛИТЬ через Supabase
+  const deletedSkus = validRows
+    .filter(r => r.actionStatus === 'УДАЛИТЬ')
+    .map(r => r.article);
+
+  if (deletedSkus.length > 0) {
+    try {
+      await callSupabaseRpc('laute_delete_products_batch', {
+        p_token: token,
+        p_skus: deletedSkus
+      });
+    } catch (err) {
+      console.warn('Ошибка удаления позиций в Supabase:', err);
+    }
+  }
+
+  // 2. Применяем изменения (товары, отсутствующие в Excel, НЕ удаляются)
   const updatedProducts = clientApplyExcelImport(currentProducts, validRows);
 
+  // 3. Сохраняем пакет товаров в Supabase
   const result = await callSupabaseRpc('laute_save_products_batch', {
     p_token: token,
     p_products: updatedProducts,
@@ -731,15 +797,50 @@ export const commitExcelImport = async (validRows) => {
     throw new Error(result?.error || 'Ошибка сохранения импорта в Supabase');
   }
 
+  // 4. Подсчёт точной статистики для интерфейса админки
+  let added = 0;
+  let updated = 0;
+  let hidden = 0;
+
+  const currentMap = new Map();
+  currentProducts.forEach(p => currentMap.set(p.article.trim().toUpperCase(), p));
+
+  validRows.forEach(r => {
+    if (r.actionStatus === 'УДАЛИТЬ') return;
+    const key = r.article.trim().toUpperCase();
+    if (r.actionStatus === 'СКРЫТ' || r.status === 'СКРЫТ') {
+      hidden++;
+    } else if (currentMap.has(key)) {
+      updated++;
+    } else {
+      added++;
+    }
+  });
+
+  const stats = {
+    added,
+    updated,
+    hidden,
+    deleted: deletedSkus.length,
+    total: updatedProducts.length
+  };
+
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('laute_products', JSON.stringify(updatedProducts));
+    localStorage.setItem('laute_products_loaded_from_backend', 'true');
+  }
+
   return {
     success: true,
-    count: result.count,
+    stats,
+    count: updatedProducts.length,
     backupId: result.backupId,
     products: updatedProducts
   };
 };
 
-export const downloadErrorReport = async () => {
+export const downloadErrorReport = async (errors) => {
+  clientDownloadErrorReport(errors);
   return true;
 };
 

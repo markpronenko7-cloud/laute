@@ -1,30 +1,39 @@
 import * as XLSX from 'xlsx';
 import { CATEGORY_NAMES, AVAILABLE_CITIES } from '../data/catalogData.js';
 
+// Официальные колонки каталога LAUTE (полное соответствие LAUTE_Catalog.xlsx)
 export const EXCEL_COLUMNS = [
-  'Артикул',
-  'Название',
-  'Категория',
-  'Цена',
-  'Валюта',
+  'Артикул (SKU) *',
+  'Название товара *',
+  'Категория *',
+  'Подкатегория',
+  'Коллекция',
+  'Бренд',
   'Описание',
-  'Размер',
+  'Цена *',
+  'Валюта',
+  'Материал',
+  'Цвет',
+  'Покрытие',
+  'Тип установки',
+  'Назначение',
+  'Размеры',
   'Вес',
   'Объём',
-  'Характеристики',
-  'Фотография 1',
-  'Фотография 2',
-  'Фотография 3',
-  'Город',
-  'Наличие',
-  'Статус действия'
+  'Технические характеристики',
+  'Фотографии (пути / ссылки)',
+  'Статус товара',
+  'SEO-заголовок',
+  'SEO-описание',
+  'URL товара',
+  'Статус действия',
+  'Дополнительные характеристики'
 ];
 
 /**
  * Скачивает официальный Excel-шаблон LAUTE_Catalog.xlsx со всеми справочниками и стилями
  */
 export const downloadExcelTemplate = () => {
-  // Проверяем доступность через API или статический файл в public
   const staticPath = window.location.pathname.includes('/laute') ? '/laute/LAUTE_Catalog.xlsx' : '/LAUTE_Catalog.xlsx';
   const link = document.createElement('a');
   link.href = staticPath;
@@ -35,46 +44,101 @@ export const downloadExcelTemplate = () => {
 };
 
 /**
- * Скачивает текущую актуальную номенклатуру каталога в формате Excel (.xlsx)
+ * Скачивает текущую актуальную номенклатуру каталога в формате Excel (.xlsx),
+ * полностью совместимом с повторным импортом (лист "Товары" и стандартные заголовки).
  */
 export const exportCurrentCatalogToExcel = (products) => {
-  const exportData = products.map((p) => {
-    // Формируем сводку наличия
-    const cityEntries = Object.entries(p.cityStock || {});
-    const mainCity = cityEntries.length > 0 ? cityEntries[0][0] : 'Алматы';
-    const mainStock = cityEntries.length > 0 ? cityEntries[0][1] : 0;
+  const exportData = (products || []).map((p) => {
+    const photos = [p.photo1, p.photo2, p.photo3].filter(Boolean).join(', ');
 
     return {
-      'Артикул': p.article,
-      'Название': p.name,
-      'Категория': p.category,
-      'Цена': p.price,
-      'Валюта': p.currency || '₸',
+      'Артикул (SKU) *': p.article,
+      'Название товара *': p.name || '',
+      'Категория *': p.category || '',
+      'Подкатегория': p.subcategory || '',
+      'Коллекция': p.collection || '',
+      'Бренд': p.brand || 'LAUTE',
       'Описание': p.description || '',
-      'Размер': p.dimensions || '',
+      'Цена *': p.price || 0,
+      'Валюта': p.currency || '₸',
+      'Материал': p.material || '',
+      'Цвет': p.color || '',
+      'Покрытие': p.finish || '',
+      'Тип установки': p.installType || '',
+      'Назначение': p.purpose || '',
+      'Размеры': p.dimensions || '',
       'Вес': p.weight || '',
       'Объём': p.volume || '',
-      'Характеристики': p.specs || '',
-      'Фотография 1': p.photo1 || '',
-      'Фотография 2': p.photo2 || '',
-      'Фотография 3': p.photo3 || '',
-      'Город': mainCity,
-      'Наличие': mainStock,
-      'Статус действия': p.status === 'СКРЫТ' ? 'СКРЫТ' : 'ОБНОВИТЬ'
+      'Технические характеристики': p.specs || '',
+      'Фотографии (пути / ссылки)': photos,
+      'Статус товара': p.status || 'АКТИВЕН',
+      'SEO-заголовок': p.seoTitle || '',
+      'SEO-описание': p.seoDesc || '',
+      'URL товара': p.url || `/catalog#${p.article}`,
+      'Статус действия': p.status === 'СКРЫТ' ? 'СКРЫТ' : 'ОБНОВИТЬ',
+      'Дополнительные характеристики': p.extraSpecs || ''
     };
   });
 
-  const ws = XLSX.utils.json_to_sheet(exportData, { header: EXCEL_COLUMNS });
+  const ws = XLSX.utils.json_to_sheet(exportData);
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Каталог LAUTE');
+  XLSX.utils.book_append_sheet(wb, ws, 'Товары');
   XLSX.writeFile(wb, `LAUTE_Каталог_Экспорт_${new Date().toISOString().slice(0, 10)}.xlsx`);
 };
 
 /**
- * Парсит загруженный файл и производит строгую построчную валидацию
- * Возвращает { success, errors, rows, stats, preview }
+ * Скачивает файл с отчётом об ошибках валидации Excel
  */
-export const parseAndValidateExcelFile = async (file, currentProducts) => {
+export const downloadErrorReport = (errors) => {
+  if (!errors || errors.length === 0) return;
+  const rows = errors.map(e => ({
+    'Номер строки': e.row,
+    'Артикул (SKU)': e.article || '—',
+    'Колонка': e.field || '—',
+    'Текст ошибки': e.message,
+    'Рекомендация': 'Исправьте значение в строке файла Excel и загрузите повторно'
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Ошибки импорта');
+  XLSX.writeFile(wb, `LAUTE_Ошибки_Импорта_${new Date().toISOString().slice(0, 10)}.xlsx`);
+};
+
+/**
+ * Нормализует ключ столбца для нечувствительного к регистру, пробелам и спецсимволам поиска
+ */
+function normalizeColumnKey(str) {
+  return String(str || '')
+    .toLowerCase()
+    .replace(/[*()]/g, '')
+    .replace(/[\s_\-\/]+/g, '')
+    .trim();
+}
+
+/**
+ * Извлекает значение из строки таблицы по списку возможных синонимов названий колонок
+ */
+function getColumnValue(cleanRow, aliases) {
+  for (const alias of aliases) {
+    const norm = normalizeColumnKey(alias);
+    for (const [k, v] of Object.entries(cleanRow)) {
+      if (k === norm || k.startsWith(norm) || norm.startsWith(k)) {
+        if (v !== undefined && v !== null && String(v).trim() !== '') {
+          return String(v).trim();
+        }
+      }
+    }
+  }
+  return '';
+}
+
+/**
+ * Парсит загруженный файл Excel и производит строгую построчную валидацию.
+ * Автоматически находит нужный лист каталога ("Товары" / "Каталог" / лист с артикулами).
+ * Возвращает { success, errors, validRows, rows, summary, stats }
+ */
+export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
   return new Promise((resolve) => {
     const reader = new FileReader();
 
@@ -82,16 +146,102 @@ export const parseAndValidateExcelFile = async (file, currentProducts) => {
       try {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
 
-        const rawRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+        if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+          resolve({
+            success: false,
+            errors: [{ row: 1, article: '—', field: 'Файл', message: 'Книга Excel не содержит ни одного листа.' }],
+            validRows: [],
+            rows: [],
+            summary: { toAdd: 0, toUpdate: 0, unchanged: 0, toHide: 0, toDelete: 0, errorsCount: 1 },
+            stats: null
+          });
+          return;
+        }
+
+        // 1. Умный поиск целевого листа с товарами
+        let targetSheetName = null;
+
+        // Приоритет A: поиск по названию листа
+        for (const name of workbook.SheetNames) {
+          const lower = name.toLowerCase();
+          if (lower === 'товары' || lower === 'каталог' || lower === 'products' || lower === 'каталог laute' || lower === 'товары laute') {
+            targetSheetName = name;
+            break;
+          }
+        }
+
+        // Приоритет B: поиск по вхождению "товар" или "каталог" в названии
+        if (!targetSheetName) {
+          for (const name of workbook.SheetNames) {
+            const lower = name.toLowerCase();
+            if (lower.includes('товар') || lower.includes('каталог') || lower.includes('product')) {
+              targetSheetName = name;
+              break;
+            }
+          }
+        }
+
+        // Приоритет C: сканирование содержимого листов на наличие заголовков "артикул" / "sku"
+        if (!targetSheetName) {
+          for (const name of workbook.SheetNames) {
+            const ws = workbook.Sheets[name];
+            if (!ws) continue;
+            const previewRows = XLSX.utils.sheet_to_json(ws, { header: 1, range: 0 });
+            const hasSkuHeader = previewRows.slice(0, 10).some(row => 
+              Array.isArray(row) && row.some(cell => {
+                const c = String(cell || '').toLowerCase();
+                return c.includes('артикул') || c.includes('sku');
+              })
+            );
+            if (hasSkuHeader) {
+              targetSheetName = name;
+              break;
+            }
+          }
+        }
+
+        // Fallback: первый лист
+        if (!targetSheetName) {
+          targetSheetName = workbook.SheetNames[0];
+        }
+
+        const worksheet = workbook.Sheets[targetSheetName];
+        if (!worksheet) {
+          resolve({
+            success: false,
+            errors: [{ row: 1, article: '—', field: 'Лист', message: `Лист "${targetSheetName}" пуст или не найден.` }],
+            validRows: [],
+            rows: [],
+            summary: { toAdd: 0, toUpdate: 0, unchanged: 0, toHide: 0, toDelete: 0, errorsCount: 1 },
+            stats: null
+          });
+          return;
+        }
+
+        // Определяем строку с заголовками (на случай вступительного текста или пустых строк)
+        const rawSheetArray = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+        let headerRowOffset = 0;
+        for (let i = 0; i < Math.min(15, rawSheetArray.length); i++) {
+          const rowArr = rawSheetArray[i];
+          if (Array.isArray(rowArr) && rowArr.some(cell => {
+            const c = String(cell || '').toLowerCase();
+            return c.includes('артикул') || c.includes('sku') || c.includes('название');
+          })) {
+            headerRowOffset = i;
+            break;
+          }
+        }
+
+        const rawRows = XLSX.utils.sheet_to_json(worksheet, { range: headerRowOffset, defval: '' });
 
         if (!rawRows || rawRows.length === 0) {
           resolve({
             success: false,
-            errors: ['Файл пуст или лист не содержит строк с данными.'],
+            errors: [{ row: 1, article: '—', field: 'Лист', message: `Лист "${targetSheetName}" не содержит строк с данными товаров.` }],
+            validRows: [],
             rows: [],
+            summary: { toAdd: 0, toUpdate: 0, unchanged: 0, toHide: 0, toDelete: 0, errorsCount: 1 },
             stats: null
           });
           return;
@@ -99,137 +249,257 @@ export const parseAndValidateExcelFile = async (file, currentProducts) => {
 
         const errors = [];
         const validRows = [];
-        const existingArticles = new Set(currentProducts.map(p => p.article.trim().toUpperCase()));
+        
+        // Карта существующих товаров
+        const existingMap = new Map();
+        (currentProducts || []).forEach(p => {
+          if (p && p.article) {
+            existingMap.set(p.article.trim().toUpperCase(), p);
+          }
+        });
 
-        // Построчная проверка
+        const seenArticles = new Set();
+
         rawRows.forEach((row, index) => {
-          const rowNum = index + 2; // Учитываем заголовок в строке 1
-          
-          // Нормализуем ключи строки на случай пробелов
+          const rowNum = index + headerRowOffset + 2; // +1 за 0-индекс, +1 за строку заголовка
+
+          // Нормализуем ключи текущей строки
           const cleanRow = {};
           Object.keys(row).forEach((k) => {
-            cleanRow[k.trim()] = String(row[k]).trim();
+            cleanRow[normalizeColumnKey(k)] = row[k];
           });
 
-          const article = cleanRow['Артикул'] || cleanRow['артикул'] || cleanRow['Article'] || cleanRow['SKU'];
-          const name = cleanRow['Название'] || cleanRow['название'] || cleanRow['Name'];
-          const category = cleanRow['Категория'] || cleanRow['категория'] || cleanRow['Category'];
-          const priceRaw = cleanRow['Цена'] || cleanRow['цена'] || cleanRow['Price'];
-          const statusRaw = cleanRow['Статус действия'] || cleanRow['Статус'] || cleanRow['статус'] || cleanRow['Действие'] || cleanRow['Action'];
+          // Пропускаем полностью пустые строки (например, пустые форматированные строки внизу шаблона)
+          const hasAnyData = Object.values(cleanRow).some(v => v !== undefined && v !== null && String(v).trim() !== '');
+          if (!hasAnyData) {
+            return;
+          }
+
+          const article = getColumnValue(cleanRow, ['артикул', 'sku', 'article', 'код']);
+          const name = getColumnValue(cleanRow, ['названиетовара', 'название', 'наименование', 'name', 'title']);
+          const category = getColumnValue(cleanRow, ['категория', 'category']);
+          const priceRaw = getColumnValue(cleanRow, ['цена', 'стоимость', 'price']);
+          const actionRaw = getColumnValue(cleanRow, ['статусдействия', 'действие', 'action', 'статус', 'status']);
+          const productStatusRaw = getColumnValue(cleanRow, ['статустовара', 'productstatus']);
+
+          // Если в строке нет ни артикула, ни названия, ни цены — это пустая строка, пропускаем
+          if (!article && !name && !priceRaw) {
+            return;
+          }
 
           // 1. Проверка артикула
           if (!article) {
-            errors.push(`Строка ${rowNum} — ошибка: не указан артикул.`);
-            return;
-          }
-
-          const upperArticle = article.toUpperCase();
-
-          // 2. Проверка статуса действия
-          const status = (statusRaw || 'ОБНОВИТЬ').toUpperCase();
-          const allowedStatuses = ['ДОБАВИТЬ', 'ОБНОВИТЬ', 'СКРЫТЬ', 'УДАЛИТЬ'];
-          if (!allowedStatuses.includes(status)) {
-            errors.push(`Строка ${rowNum} — ошибка: неверный статус действия "${statusRaw}". Допустимо: ДОБАВИТЬ, ОБНОВИТЬ, СКРЫТЬ, УДАЛИТЬ.`);
-            return;
-          }
-
-          // Для удаления товара достаточно только артикула со статусом УДАЛИТЬ
-          if (status === 'УДАЛИТЬ') {
-            validRows.push({
-              rowNum,
-              article,
-              status: 'УДАЛИТЬ',
-              isDelete: true
+            errors.push({
+              row: rowNum,
+              article: '—',
+              field: 'Артикул (SKU)',
+              message: 'Артикул (SKU) отсутствует или пуст в строке'
             });
             return;
           }
 
-          // 3. Проверка названия
+          const upperArticle = article.toUpperCase();
+          if (seenArticles.has(upperArticle)) {
+            errors.push({
+              row: rowNum,
+              article,
+              field: 'Артикул (SKU)',
+              message: `Дублирующийся артикул ${article} внутри загружаемого файла Excel`
+            });
+            return;
+          }
+          seenArticles.add(upperArticle);
+
+          // 2. Проверка статуса действия
+          let actionStatus = (actionRaw || 'ОБНОВИТЬ').toUpperCase();
+          if (actionStatus === 'ADD') actionStatus = 'ДОБАВИТЬ';
+          if (actionStatus === 'UPDATE') actionStatus = 'ОБНОВИТЬ';
+          if (actionStatus === 'HIDE') actionStatus = 'СКРЫТ';
+          if (actionStatus === 'DELETE') actionStatus = 'УДАЛИТЬ';
+
+          const allowedActions = ['ДОБАВИТЬ', 'ОБНОВИТЬ', 'СКРЫТЬ', 'УДАЛИТЬ'];
+          if (!allowedActions.includes(actionStatus)) {
+            errors.push({
+              row: rowNum,
+              article,
+              field: 'Статус действия',
+              message: `Недопустимый статус действия "${actionRaw}". Допустимо: ДОБАВИТЬ, ОБНОВИТЬ, СКРЫТЬ, УДАЛИТЬ`
+            });
+            return;
+          }
+
+          // Для операции явного удаления достаточно только артикула
+          if (actionStatus === 'УДАЛИТЬ') {
+            validRows.push({
+              rowNum,
+              article,
+              actionStatus: 'УДАЛИТЬ',
+              status: 'УДАЛИТЬ',
+              isDelete: true,
+              isExisting: existingMap.has(upperArticle),
+              isChanged: true
+            });
+            return;
+          }
+
+          // 3. Проверка названия товара
           if (!name) {
-            errors.push(`Строка ${rowNum} — ошибка: не указано название товара для артикула ${article}.`);
+            errors.push({
+              row: rowNum,
+              article,
+              field: 'Название товара',
+              message: 'Название товара обязательно, но не заполнено'
+            });
             return;
           }
 
           // 4. Проверка цены
-          const parsedPrice = parseFloat(priceRaw.replace(/[^\d.]/g, ''));
+          const cleanPriceStr = String(priceRaw || '').replace(/\s+/g, '').replace(',', '.');
+          const parsedPrice = parseFloat(cleanPriceStr.replace(/[^\d.]/g, ''));
           if (isNaN(parsedPrice) || parsedPrice <= 0) {
-            errors.push(`Строка ${rowNum} — ошибка: неверная цена "${priceRaw}". Должно быть положительное число.`);
+            errors.push({
+              row: rowNum,
+              article,
+              field: 'Цена',
+              message: `Некорректная цена "${priceRaw}". Должно быть положительное число`
+            });
             return;
           }
 
           // 5. Проверка категории
           if (!category) {
-            errors.push(`Строка ${rowNum} — ошибка: не указана категория для артикула ${article}.`);
+            errors.push({
+              row: rowNum,
+              article,
+              field: 'Категория',
+              message: 'Категория товара обязательна, но не заполнена'
+            });
             return;
           }
 
-          // Формируем проверенную запись
-          const city = cleanRow['Город'] || 'Алматы';
-          const stockNum = parseInt(cleanRow['Наличие'] || '0', 10);
+          // Фотографии: поддержка объединённого поля и отдельных колонок
+          const photoCombined = getColumnValue(cleanRow, ['фотографиипутиссылки', 'фотографиипути/ссылки', 'фотографии', 'photos', 'фото']);
+          const photoParts = photoCombined ? photoCombined.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean) : [];
+          const photo1 = getColumnValue(cleanRow, ['фотография1', 'photo1']) || photoParts[0] || '';
+          const photo2 = getColumnValue(cleanRow, ['фотография2', 'photo2']) || photoParts[1] || '';
+          const photo3 = getColumnValue(cleanRow, ['фотография3', 'photo3']) || photoParts[2] || '';
+
+          const stockRaw = getColumnValue(cleanRow, ['наличие', 'остаток', 'количество', 'stock', 'qty']);
+          const stockNum = parseInt(stockRaw, 10);
           const safeStock = isNaN(stockNum) ? 0 : Math.max(0, stockNum);
+
+          const existingProd = existingMap.get(upperArticle);
+          const isExisting = Boolean(existingProd);
+
+          // Проверяем, изменились ли данные по сравнению с текущей базой
+          let isChanged = !isExisting;
+          if (isExisting && existingProd) {
+            if (
+              existingProd.name !== name ||
+              Number(existingProd.price) !== parsedPrice ||
+              existingProd.category !== category ||
+              (actionStatus === 'СКРЫТ' && existingProd.status !== 'СКРЫТ') ||
+              (actionStatus !== 'СКРЫТ' && existingProd.status === 'СКРЫТ')
+            ) {
+              isChanged = true;
+            }
+          }
 
           validRows.push({
             rowNum,
             article: article.trim(),
             name: name.trim(),
             category: category.trim(),
+            subcategory: getColumnValue(cleanRow, ['подкатегория', 'subcategory']),
+            collection: getColumnValue(cleanRow, ['коллекция', 'collection']),
+            brand: getColumnValue(cleanRow, ['бренд', 'brand']) || 'LAUTE',
+            description: getColumnValue(cleanRow, ['описание', 'description']),
             price: parsedPrice,
-            currency: cleanRow['Валюта'] || '₸',
-            description: cleanRow['Описание'] || '',
-            dimensions: cleanRow['Размер'] || '',
-            weight: cleanRow['Вес'] || '',
-            volume: cleanRow['Объём'] || '',
-            specs: cleanRow['Характеристики'] || '',
-            photo1: cleanRow['Фотография 1'] || 'images/cat_laute_brand.jpg',
-            photo2: cleanRow['Фотография 2'] || '',
-            photo3: cleanRow['Фотография 3'] || '',
-            city,
+            currency: getColumnValue(cleanRow, ['валюта', 'currency']) || '₸',
+            material: getColumnValue(cleanRow, ['материал', 'material']),
+            color: getColumnValue(cleanRow, ['цвет', 'color']),
+            finish: getColumnValue(cleanRow, ['покрытие', 'finish']),
+            installType: getColumnValue(cleanRow, ['типустановки', 'installtype']),
+            purpose: getColumnValue(cleanRow, ['назначение', 'purpose']),
+            dimensions: getColumnValue(cleanRow, ['размеры', 'размер', 'dimensions']),
+            weight: getColumnValue(cleanRow, ['вес', 'weight']),
+            volume: getColumnValue(cleanRow, ['объём', 'объем', 'volume']),
+            specs: getColumnValue(cleanRow, ['техническиехарактеристики', 'характеристики', 'specs']),
+            extraSpecs: getColumnValue(cleanRow, ['дополнительныехарактеристики', 'extraspecs']),
+            photo1: photo1 || (isExisting ? existingProd?.photo1 : 'images/cat_laute_brand.jpg') || 'images/cat_laute_brand.jpg',
+            photo2: photo2 || (isExisting ? existingProd?.photo2 : '') || '',
+            photo3: photo3 || (isExisting ? existingProd?.photo3 : '') || '',
+            city: getColumnValue(cleanRow, ['город', 'city']) || 'Алматы',
             stock: safeStock,
-            status: status === 'СКРЫТ' ? 'СКРЫТ' : 'АКТИВЕН',
-            actionStatus: status,
-            isExisting: existingArticles.has(upperArticle)
+            status: (actionStatus === 'СКРЫТ' || productStatusRaw === 'СКРЫТ') ? 'СКРЫТ' : 'АКТИВЕН',
+            actionStatus,
+            seoTitle: getColumnValue(cleanRow, ['seoзаголовок', 'seotitle']),
+            seoDesc: getColumnValue(cleanRow, ['seoописание', 'seodesc']),
+            url: getColumnValue(cleanRow, ['urlтовара', 'url']) || `/catalog#${article.trim()}`,
+            isExisting,
+            isChanged
           });
         });
 
-        // Подсчёт статистики для предварительного просмотра
-        let newCount = 0;
-        let updateCount = 0;
-        let hideCount = 0;
-        let deleteCount = 0;
+        // Подсчёт статистики для предпросмотра
+        let toAdd = 0;
+        let toUpdate = 0;
+        let unchanged = 0;
+        let toHide = 0;
+        let toDelete = 0;
 
         validRows.forEach((r) => {
-          if (r.actionStatus === 'ДОБАВИТЬ' || (!r.isExisting && r.actionStatus !== 'УДАЛИТЬ')) {
-            newCount++;
-          } else if (r.actionStatus === 'УДАЛИТЬ') {
-            deleteCount++;
-          } else if (r.actionStatus === 'СКРЫТ') {
-            hideCount++;
+          if (r.actionStatus === 'УДАЛИТЬ') {
+            toDelete++;
+          } else if (r.actionStatus === 'СКРЫТ' || r.status === 'СКРЫТ') {
+            toHide++;
+          } else if (!r.isExisting || r.actionStatus === 'ДОБАВИТЬ') {
+            toAdd++;
+          } else if (r.isChanged) {
+            toUpdate++;
           } else {
-            updateCount++;
+            unchanged++;
           }
         });
+
+        const summary = {
+          toAdd,
+          toUpdate,
+          unchanged,
+          toHide,
+          toDelete,
+          errorsCount: errors.length
+        };
 
         const stats = {
           totalRows: rawRows.length,
           validCount: validRows.length,
           errorCount: errors.length,
-          newCount,
-          updateCount,
-          hideCount,
-          deleteCount
+          newCount: toAdd,
+          updateCount: toUpdate,
+          unchangedCount: unchanged,
+          hideCount: toHide,
+          deleteCount: toDelete,
+          added: toAdd,
+          updated: toUpdate,
+          hidden: toHide
         };
 
         resolve({
           success: errors.length === 0,
+          summary,
+          stats,
           errors,
-          rows: validRows,
-          stats
+          validRows,
+          rows: validRows
         });
       } catch (err) {
         resolve({
           success: false,
-          errors: [`Критическая ошибка чтения Excel файла: ${err.message}`],
+          errors: [{ row: 1, article: '—', field: 'Файл', message: `Критическая ошибка чтения Excel: ${err.message}` }],
+          validRows: [],
           rows: [],
+          summary: { toAdd: 0, toUpdate: 0, unchanged: 0, toHide: 0, toDelete: 0, errorsCount: 1 },
           stats: null
         });
       }
@@ -238,8 +508,10 @@ export const parseAndValidateExcelFile = async (file, currentProducts) => {
     reader.onerror = () => {
       resolve({
         success: false,
-        errors: ['Не удалось прочитать загруженный файл.'],
+        errors: [{ row: 1, article: '—', field: 'Файл', message: 'Не удалось прочитать загруженный файл Excel.' }],
+        validRows: [],
         rows: [],
+        summary: { toAdd: 0, toUpdate: 0, unchanged: 0, toHide: 0, toDelete: 0, errorsCount: 1 },
         stats: null
       });
     };
@@ -251,16 +523,19 @@ export const parseAndValidateExcelFile = async (file, currentProducts) => {
 /**
  * Применяет проверенные строки импорта к существующему каталогу.
  * КРИТИЧЕСКОЕ ПРАВИЛО БЕЗОПАСНОСТИ:
- * Если товар отсутствует в новом Excel, он НЕ удаляется!
- * Удаление происходит ТОЛЬКО если указано действие УДАЛИТЬ.
+ * Товары, отсутствующие в Excel, НИКОГДА НЕ удаляются!
+ * Удаление производится ИСКЛЮЧИТЕЛЬНО при явном статусе "УДАЛИТЬ".
  */
-export const applyExcelImport = (currentProducts, validatedRows) => {
+export const applyExcelImport = (currentProducts = [], validatedRows = []) => {
   const productMap = new Map();
-  currentProducts.forEach(p => {
-    productMap.set(p.article.trim().toUpperCase(), { ...p });
+  (currentProducts || []).forEach(p => {
+    if (p && p.article) {
+      productMap.set(p.article.trim().toUpperCase(), { ...p });
+    }
   });
 
-  validatedRows.forEach((row) => {
+  (validatedRows || []).forEach((row) => {
+    if (!row || !row.article) return;
     const key = row.article.trim().toUpperCase();
 
     // 1. Явное удаление
@@ -281,48 +556,68 @@ export const applyExcelImport = (currentProducts, validatedRows) => {
         ...existing,
         name: row.name || existing.name,
         category: row.category || existing.category,
-        price: row.price || existing.price,
-        currency: row.currency || existing.currency,
-        description: row.description || existing.description,
-        dimensions: row.dimensions || existing.dimensions,
-        weight: row.weight || existing.weight,
-        volume: row.volume || existing.volume,
-        specs: row.specs || existing.specs,
+        subcategory: row.subcategory !== undefined && row.subcategory !== '' ? row.subcategory : existing.subcategory,
+        collection: row.collection !== undefined && row.collection !== '' ? row.collection : existing.collection,
+        brand: row.brand || existing.brand || 'LAUTE',
+        description: row.description !== undefined && row.description !== '' ? row.description : existing.description,
+        price: row.price !== undefined ? row.price : existing.price,
+        currency: row.currency || existing.currency || '₸',
+        material: row.material !== undefined && row.material !== '' ? row.material : existing.material,
+        color: row.color !== undefined && row.color !== '' ? row.color : existing.color,
+        finish: row.finish !== undefined && row.finish !== '' ? row.finish : existing.finish,
+        installType: row.installType !== undefined && row.installType !== '' ? row.installType : existing.installType,
+        purpose: row.purpose !== undefined && row.purpose !== '' ? row.purpose : existing.purpose,
+        dimensions: row.dimensions !== undefined && row.dimensions !== '' ? row.dimensions : existing.dimensions,
+        weight: row.weight !== undefined && row.weight !== '' ? row.weight : existing.weight,
+        volume: row.volume !== undefined && row.volume !== '' ? row.volume : existing.volume,
+        specs: row.specs !== undefined && row.specs !== '' ? row.specs : existing.specs,
+        extraSpecs: row.extraSpecs !== undefined && row.extraSpecs !== '' ? row.extraSpecs : existing.extraSpecs,
         photo1: row.photo1 || existing.photo1,
         photo2: row.photo2 || existing.photo2,
         photo3: row.photo3 || existing.photo3,
         cityStock: updatedCityStock,
-        status: row.actionStatus === 'СКРЫТ' ? 'СКРЫТ' : 'АКТИВЕН'
+        status: (row.actionStatus === 'СКРЫТ' || row.status === 'СКРЫТ') ? 'СКРЫТ' : 'АКТИВЕН',
+        seoTitle: row.seoTitle || existing.seoTitle,
+        seoDesc: row.seoDesc || existing.seoDesc,
+        url: row.url || existing.url,
+        updatedAt: new Date().toISOString()
       });
     } else {
       // 3. Новый товар — добавляем
       const newCityStock = {};
       if (row.city) {
         newCityStock[row.city] = row.stock;
-      } else {
-        newCityStock['Алматы'] = row.stock || 10;
       }
 
       productMap.set(key, {
-        article: row.article,
+        article: row.article.trim(),
         name: row.name,
         category: row.category,
+        subcategory: row.subcategory || '',
+        collection: row.collection || '',
+        brand: row.brand || 'LAUTE',
+        description: row.description || '',
         price: row.price,
         currency: row.currency || '₸',
-        description: row.description,
-        dimensions: row.dimensions,
-        weight: row.weight,
-        volume: row.volume,
-        specs: row.specs,
+        material: row.material || '',
+        color: row.color || '',
+        finish: row.finish || '',
+        installType: row.installType || '',
+        purpose: row.purpose || '',
+        dimensions: row.dimensions || '',
+        weight: row.weight || '',
+        volume: row.volume || '',
+        specs: row.specs || '',
+        extraSpecs: row.extraSpecs || '',
         photo1: row.photo1 || 'images/cat_laute_brand.jpg',
         photo2: row.photo2 || '',
         photo3: row.photo3 || '',
         cityStock: newCityStock,
-        status: row.actionStatus === 'СКРЫТ' ? 'СКРЫТ' : 'АКТИВЕН',
-        isPopular: false,
-        salesRank: 99,
-        viewsCount: 1,
-        tags: [row.category.toLowerCase()]
+        status: (row.actionStatus === 'СКРЫТ' || row.status === 'СКРЫТ') ? 'СКРЫТ' : 'АКТИВЕН',
+        seoTitle: row.seoTitle || '',
+        seoDesc: row.seoDesc || '',
+        url: row.url || `/catalog#${row.article.trim()}`,
+        updatedAt: new Date().toISOString()
       });
     }
   });
@@ -606,4 +901,3 @@ export const parseStockExcelClient = async (file, warehouse, currentProducts, cu
     reader.readAsArrayBuffer(file);
   });
 };
-
