@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { X, Scale, Check, ArrowRight, ShieldCheck, MapPin } from 'lucide-react';
+import { classifyProductImages, formatProductDisplay } from '../../utils/imageHelper';
 
 export const ProductComparisonModal = () => {
   const { comparisonItems, closeComparisonModal, openProductModal, openPartnerModal } = useApp();
@@ -69,20 +70,44 @@ export const ProductComparisonModal = () => {
               <tr>
                 <th style={{ width: '24%' }}>Параметр</th>
                 <th style={{ width: '38%' }}>
-                  <div className="compare-header-product">
-                    <img src={getImgUrl(itemA.photo1)} alt={itemA.name} className="compare-th-img" />
-                    <span className="compare-th-art">{itemA.article}</span>
-                    <strong className="compare-th-title">{itemA.name}</strong>
-                    <div className="compare-th-price">{itemA.price?.toLocaleString('ru-RU')} {itemA.currency || '₸'}</div>
-                  </div>
+                  {(() => {
+                    const dispA = formatProductDisplay(itemA);
+                    const imgA = classifyProductImages(itemA, baseUrl);
+                    return (
+                      <div className="compare-header-product">
+                        <img 
+                          src={imgA.mainPhoto} 
+                          alt={dispA.title} 
+                          className="compare-th-img" 
+                          onError={(e) => { e.target.src = `${baseUrl}images/cat_laute_brand.jpg`; }}
+                        />
+                        <span className="compare-th-art">Арт. {itemA.article}</span>
+                        <strong className="compare-th-title">{dispA.title}</strong>
+                        {dispA.subtitle && <span className="compare-th-sub">{dispA.subtitle}</span>}
+                        <div className="compare-th-price">{itemA.price ? `${itemA.price.toLocaleString('ru-RU')} ${itemA.currency || '₸'}` : 'По запросу'}</div>
+                      </div>
+                    );
+                  })()}
                 </th>
                 <th style={{ width: '38%' }}>
-                  <div className="compare-header-product">
-                    <img src={getImgUrl(itemB.photo1)} alt={itemB.name} className="compare-th-img" />
-                    <span className="compare-th-art">{itemB.article}</span>
-                    <strong className="compare-th-title">{itemB.name}</strong>
-                    <div className="compare-th-price">{itemB.price?.toLocaleString('ru-RU')} {itemB.currency || '₸'}</div>
-                  </div>
+                  {(() => {
+                    const dispB = formatProductDisplay(itemB);
+                    const imgB = classifyProductImages(itemB, baseUrl);
+                    return (
+                      <div className="compare-header-product">
+                        <img 
+                          src={imgB.mainPhoto} 
+                          alt={dispB.title} 
+                          className="compare-th-img" 
+                          onError={(e) => { e.target.src = `${baseUrl}images/cat_laute_brand.jpg`; }}
+                        />
+                        <span className="compare-th-art">Арт. {itemB.article}</span>
+                        <strong className="compare-th-title">{dispB.title}</strong>
+                        {dispB.subtitle && <span className="compare-th-sub">{dispB.subtitle}</span>}
+                        <div className="compare-th-price">{itemB.price ? `${itemB.price.toLocaleString('ru-RU')} ${itemB.currency || '₸'}` : 'По запросу'}</div>
+                      </div>
+                    );
+                  })()}
                 </th>
               </tr>
             </thead>

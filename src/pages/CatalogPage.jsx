@@ -12,8 +12,10 @@ import {
   Sparkles, 
   Layers,
   CheckCircle2,
-  Warehouse
+  Warehouse,
+  Ruler
 } from 'lucide-react';
+import { classifyProductImages, formatProductDisplay } from '../utils/imageHelper';
 
 export const CatalogPage = () => {
   const { 
@@ -403,17 +405,6 @@ export const CatalogPage = () => {
                   <span>{cat.authBtn || 'Проверить остатки (B2B кабинет)'}</span>
                 </button>
               )}
-
-              {/* Employee Excel Mass Update Button */}
-              <button 
-                type="button" 
-                className="btn btn-outline btn-excel-manager-trigger"
-                onClick={openExcelModal}
-                title="Массовое обновление каталога через Excel"
-              >
-                <FileSpreadsheet size={16} color="#10B981" />
-                <span>Управление каталогом (Excel)</span>
-              </button>
             </div>
           </div>
         </div>
@@ -546,109 +537,137 @@ export const CatalogPage = () => {
           {/* VIEW 1: LIVE PRODUCTS GRID (Synced with Excel & AI) */}
           {catalogView === 'products' && (
             <div className="live-products-grid">
-              {filteredProducts.map((p) => (
-                <div key={p.article} className="product-sku-card">
-                  <div className="sku-card-media">
-                    <img 
-                      src={getImgUrl(p.photo1)} 
-                      alt={p.name} 
-                      className="sku-product-img"
-                      onError={(e) => { e.target.src = `${baseUrl}images/cat_laute_brand.jpg`; }}
-                    />
-                    <span className="sku-art-badge">Арт. {p.article}</span>
-                    {p.isPopular && <span className="sku-pop-badge">Лидер продаж</span>}
-                  </div>
+              {filteredProducts.map((p) => {
+                const displayInfo = formatProductDisplay(p);
+                const imgInfo = classifyProductImages(p, baseUrl);
+                const mainPhotoSrc = imgInfo.mainPhoto || getImgUrl(p.photo1);
 
-                  <div className="sku-card-content">
-                    <div className="sku-category-tag">{p.category}</div>
-                    <h3 className="sku-card-title">{p.name}</h3>
-                    <p className="sku-card-desc">{p.description}</p>
-
-                    <div className="sku-price-row">
-                      <div className="sku-price">
-                        {p.price?.toLocaleString('ru-RU')} {p.currency || '₸'}
-                      </div>
-                      <span className="sku-price-label">Базовая цена</span>
-                    </div>
-
-                    <div className="sku-stock-summary">
-                      {isB2BAuthorized || adminSession ? (() => {
-                        const stock = getStockForSku(p.article);
-                        if (stock.status === 'in_stock') {
-                          return (
-                            <>
-                              <MapPin size={13} color="#10B981" />
-                              <span style={{ color: '#10B981', fontWeight: 600 }}>
-                                {stock.warehouseName}: {stock.label}
-                              </span>
-                            </>
-                          );
-                        } else if (stock.status === 'out_of_stock') {
-                          return (
-                            <>
-                              <MapPin size={13} color="#F59E0B" />
-                              <span style={{ color: '#F59E0B', fontWeight: 600 }}>
-                                {stock.warehouseName}: 0 шт. (под заказ)
-                              </span>
-                            </>
-                          );
-                        } else if (stock.status === 'no_warehouse') {
-                          return (
-                            <>
-                              <MapPin size={13} color="#94A3B8" />
-                              <span style={{ color: '#94A3B8' }}>Склад не выбран</span>
-                            </>
-                          );
-                        } else {
-                          return (
-                            <>
-                              <MapPin size={13} color="#94A3B8" />
-                              <span style={{ color: '#94A3B8' }}>{stock.warehouseName}: Нет данных</span>
-                            </>
-                          );
-                        }
-                      })() : (
-                        <>
-                          <MapPin size={13} color="#94A3B8" />
-                          <span style={{ color: '#94A3B8' }}>Складские остатки: в B2B кабинете</span>
-                        </>
+                return (
+                  <div key={p.article} className="product-sku-card">
+                    <div className="sku-card-media">
+                      <img 
+                        src={mainPhotoSrc} 
+                        alt={displayInfo.title} 
+                        className="sku-product-img"
+                        onError={(e) => { e.target.src = `${baseUrl}images/cat_laute_brand.jpg`; }}
+                      />
+                      <span className="sku-art-badge">Арт. {p.article}</span>
+                      {p.isPopular && <span className="sku-pop-badge">Лидер продаж</span>}
+                      {imgInfo.drawingPhotos.length > 0 && (
+                        <span className="sku-drawing-indicator" title="В подробной карточке доступен инженерный чертёж">
+                          <Ruler size={11} />
+                          <span>Чертёж</span>
+                        </span>
                       )}
                     </div>
 
-                    <div className="sku-card-actions">
-                      <button 
-                        type="button" 
-                        className="btn btn-outline btn-sm sku-action-detail"
-                        onClick={() => openProductModal(p)}
-                      >
-                        <Eye size={14} />
-                        <span>Подробнее</span>
-                      </button>
+                    <div className="sku-card-content">
+                      <div className="sku-meta-line">
+                        <span className="sku-category-tag">{p.category}</span>
+                      </div>
 
-                      <button 
-                        type="button" 
-                        className="btn btn-outline btn-sm sku-action-compare"
-                        onClick={() => {
-                          const other = activeProducts.find(item => item.category === p.category && item.article !== p.article) || activeProducts.find(item => item.article !== p.article);
-                          if (other) startComparison(p, other);
-                        }}
-                        title="Сравнить с другой моделью"
-                      >
-                        <Scale size={14} />
-                        <span>Сравнить</span>
-                      </button>
+                      <h3 className="sku-card-title">{displayInfo.title}</h3>
 
-                      <button 
-                        type="button" 
-                        className="btn btn-primary btn-sm sku-action-order"
-                        onClick={openPartnerModal}
-                      >
-                        <span>Запросить счёт</span>
-                      </button>
+                      {displayInfo.subtitle && (
+                        <div className="sku-card-subtitle">
+                          <span className="sku-subtitle-badge">{displayInfo.subtitle}</span>
+                        </div>
+                      )}
+
+                      {displayInfo.cleanSpecs.length > 0 && (
+                        <div className="sku-specs-chips">
+                          {displayInfo.cleanSpecs.slice(0, 3).map((spec, sIdx) => (
+                            <span key={sIdx} className="sku-spec-chip">{spec}</span>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="sku-price-row">
+                        <div className="sku-price">
+                          {p.price ? `${p.price?.toLocaleString('ru-RU')} ${p.currency || '₸'}` : 'По запросу'}
+                        </div>
+                        <span className="sku-price-label">Базовая цена</span>
+                      </div>
+
+                      <div className="sku-stock-summary">
+                        {isB2BAuthorized || adminSession ? (() => {
+                          const stock = getStockForSku(p.article);
+                          if (stock.status === 'in_stock') {
+                            return (
+                              <>
+                                <MapPin size={13} color="#10B981" />
+                                <span style={{ color: '#10B981', fontWeight: 600 }}>
+                                  {stock.warehouseName}: {stock.label}
+                                </span>
+                              </>
+                            );
+                          } else if (stock.status === 'out_of_stock') {
+                            return (
+                              <>
+                                <MapPin size={13} color="#F59E0B" />
+                                <span style={{ color: '#F59E0B', fontWeight: 600 }}>
+                                  {stock.warehouseName}: 0 шт. (под заказ)
+                                </span>
+                              </>
+                            );
+                          } else if (stock.status === 'no_warehouse') {
+                            return (
+                              <>
+                                <MapPin size={13} color="#94A3B8" />
+                                <span style={{ color: '#94A3B8' }}>Склад не выбран</span>
+                              </>
+                            );
+                          } else {
+                            return (
+                              <>
+                                <MapPin size={13} color="#94A3B8" />
+                                <span style={{ color: '#94A3B8' }}>{stock.warehouseName}: Нет данных</span>
+                              </>
+                            );
+                          }
+                        })() : (
+                          <>
+                            <MapPin size={13} color="#94A3B8" />
+                            <span style={{ color: '#94A3B8' }}>Складские остатки: в B2B кабинете</span>
+                          </>
+                        )}
+                      </div>
+
+                      <div className="sku-card-actions">
+                        <button 
+                          type="button" 
+                          className="btn btn-outline btn-sm sku-action-detail"
+                          onClick={() => openProductModal(p)}
+                        >
+                          <Eye size={14} />
+                          <span>Подробнее</span>
+                        </button>
+
+                        <button 
+                          type="button" 
+                          className="btn btn-outline btn-sm sku-action-compare"
+                          onClick={() => {
+                            const other = activeProducts.find(item => item.category === p.category && item.article !== p.article) || activeProducts.find(item => item.article !== p.article);
+                            if (other) startComparison(p, other);
+                          }}
+                          title="Сравнить характеристики с другой моделью"
+                        >
+                          <Scale size={14} />
+                          <span>Сравнить</span>
+                        </button>
+
+                        <button 
+                          type="button" 
+                          className="btn btn-primary btn-sm sku-action-order"
+                          onClick={openPartnerModal}
+                        >
+                          <span>Запросить счёт</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {filteredProducts.length === 0 && (
                 <div className="empty-catalog-state" style={{ gridColumn: '1 / -1' }}>

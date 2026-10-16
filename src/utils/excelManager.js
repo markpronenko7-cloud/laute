@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import { CATEGORY_NAMES, AVAILABLE_CITIES } from '../data/catalogData.js';
+import { classifyProductImages, normalizeImageUrl, detectImageType } from './imageHelper.js';
 
 // Официальные колонки каталога LAUTE (полное соответствие LAUTE_Catalog.xlsx)
 export const EXCEL_COLUMNS = [
@@ -140,11 +141,9 @@ function getColumnValue(cleanRow, aliases) {
  */
 export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
   return new Promise((resolve) => {
-    const reader = new FileReader();
-
-    reader.onload = (e) => {
+    const parseWorkbookData = (rawArrayBuffer) => {
       try {
-        const data = new Uint8Array(e.target.result);
+        const data = rawArrayBuffer instanceof Uint8Array ? rawArrayBuffer : new Uint8Array(rawArrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
 
         if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
@@ -377,19 +376,38 @@ export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
             return;
           }
 
-          // Фотографии: поддержка объединённого поля и отдельных колонок
+          // Фотографии: поддержка объединённого поля и специализированных колонок LAUTE
           const photoCombined = getColumnValue(cleanRow, ['фотографиипутиссылки', 'фотографиипути/ссылки', 'фотографии', 'photos', 'фото']);
           const photoParts = photoCombined ? photoCombined.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean) : [];
-          const photo1 = getColumnValue(cleanRow, ['фотография1', 'photo1']) || photoParts[0] || '';
-          const photo2 = getColumnValue(cleanRow, ['фотография2', 'photo2']) || photoParts[1] || '';
-          const photo3 = getColumnValue(cleanRow, ['фотография3', 'photo3']) || photoParts[2] || '';
+          
+          const rawMainPhoto = getColumnValue(cleanRow, ['основноефотосмеситель', 'основноефото', 'фотосмесителя', 'фотография1', 'photo1', 'mainphoto']) || photoParts[0] || '';
+          const rawDrawing = getColumnValue(cleanRow, ['чертёжразмеры', 'чертежразмеры', 'чертёж', 'чертеж', 'схемаразмеров', 'размерыичертежи', 'drawing', 'blueprint']) || '';
+          const rawBox = getColumnValue(cleanRow, ['упаковкакоробка', 'упаковка', 'коробка', 'box', 'packaging']) || '';
+          const rawPhoto2 = getColumnValue(cleanRow, ['дополнительныефото', 'фотография2', 'photo2']) || photoParts[1] || '';
+          const rawPhoto3 = getColumnValue(cleanRow, ['фотография3', 'photo3']) || photoParts[2] || '';
+
+          const existingProd = existingMap.get(upperArticle);
+          const isExisting = Boolean(existingProd);
 
           const stockRaw = getColumnValue(cleanRow, ['наличие', 'остаток', 'количество', 'stock', 'qty']);
           const stockNum = parseInt(stockRaw, 10);
           const safeStock = isNaN(stockNum) ? 0 : Math.max(0, stockNum);
 
-          const existingProd = existingMap.get(upperArticle);
-          const isExisting = Boolean(existingProd);
+          // Классифицируем и нормализуем изображения (смеситель, чертёж, упаковка)
+          const classified = classifyProductImages({
+            article: article.trim(),
+            photo1: rawMainPhoto,
+            photo2: rawPhoto2,
+            photo3: rawPhoto3,
+            drawingUrl: rawDrawing,
+            boxUrl: rawBox
+          });
+
+          const finalPhoto1 = classified.mainPhoto || (isExisting ? existingProd?.photo1 : 'images/cat_laute_brand.jpg') || 'images/cat_laute_brand.jpg';
+          const finalPhoto2 = classified.additionalPhotos[0] || (isExisting ? existingProd?.photo2 : '') || '';
+          const finalPhoto3 = classified.additionalPhotos[1] || (isExisting ? existingProd?.photo3 : '') || '';
+          const finalDrawing = classified.drawingPhotos[0] || rawDrawing || (isExisting ? (existingProd?.drawingUrl || existingProd?.raw_data?.drawingUrl) : '') || '';
+          const finalBox = classified.boxPhotos[0] || rawBox || (isExisting ? (existingProd?.boxUrl || existingProd?.raw_data?.boxUrl) : '') || '';
 
           // Проверяем, изменились ли данные по сравнению с текущей базой
           let isChanged = !isExisting;
@@ -399,7 +417,8 @@ export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
               Number(existingProd.price) !== parsedPrice ||
               existingProd.category !== category ||
               (actionStatus === 'СКРЫТ' && existingProd.status !== 'СКРЫТ') ||
-              (actionStatus !== 'СКРЫТ' && existingProd.status === 'СКРЫТ')
+              (actionStatus !== 'СКРЫТ' && existingProd.status === 'СКРЫТ') ||
+              existingProd.photo1 !== finalPhoto1
             ) {
               isChanged = true;
             }
@@ -426,9 +445,11 @@ export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
             volume: getColumnValue(cleanRow, ['объём', 'объем', 'volume']),
             specs: getColumnValue(cleanRow, ['техническиехарактеристики', 'характеристики', 'specs']),
             extraSpecs: getColumnValue(cleanRow, ['дополнительныехарактеристики', 'extraspecs']),
-            photo1: photo1 || (isExisting ? existingProd?.photo1 : 'images/cat_laute_brand.jpg') || 'images/cat_laute_brand.jpg',
-            photo2: photo2 || (isExisting ? existingProd?.photo2 : '') || '',
-            photo3: photo3 || (isExisting ? existingProd?.photo3 : '') || '',
+            photo1: finalPhoto1,
+            photo2: finalPhoto2,
+            photo3: finalPhoto3,
+            drawingUrl: finalDrawing,
+            boxUrl: finalBox,
             city: getColumnValue(cleanRow, ['город', 'city']) || 'Алматы',
             stock: safeStock,
             status: (actionStatus === 'СКРЫТ' || productStatusRaw === 'СКРЫТ') ? 'СКРЫТ' : 'АКТИВЕН',
@@ -505,18 +526,30 @@ export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
       }
     };
 
-    reader.onerror = () => {
-      resolve({
-        success: false,
-        errors: [{ row: 1, article: '—', field: 'Файл', message: 'Не удалось прочитать загруженный файл Excel.' }],
-        validRows: [],
-        rows: [],
-        summary: { toAdd: 0, toUpdate: 0, unchanged: 0, toHide: 0, toDelete: 0, errorsCount: 1 },
-        stats: null
-      });
-    };
+    // Если передан готовый буфер (ArrayBuffer / Uint8Array / Node Buffer)
+    if (file instanceof ArrayBuffer || file instanceof Uint8Array || (typeof Buffer !== 'undefined' && Buffer.isBuffer(file))) {
+      parseWorkbookData(file);
+      return;
+    }
 
-    reader.readAsArrayBuffer(file);
+    // Иначе читаем через FileReader (в браузере для File / Blob)
+    if (typeof FileReader !== 'undefined') {
+      const reader = new FileReader();
+      reader.onload = (e) => parseWorkbookData(e.target.result);
+      reader.onerror = () => {
+        resolve({
+          success: false,
+          errors: [{ row: 1, article: '—', field: 'Файл', message: 'Не удалось прочитать загруженный файл Excel.' }],
+          validRows: [],
+          rows: [],
+          summary: { toAdd: 0, toUpdate: 0, unchanged: 0, toHide: 0, toDelete: 0, errorsCount: 1 },
+          stats: null
+        });
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      parseWorkbookData(file);
+    }
   });
 };
 

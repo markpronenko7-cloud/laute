@@ -14,6 +14,7 @@ import {
   downloadStockTemplateExcel as clientDownloadStockTemplate,
   parseStockExcelClient as clientParseStockExcel
 } from '../utils/excelManager.js';
+import { classifyProductImages } from '../utils/imageHelper.js';
 
 // ==========================================
 // 0. SUPABASE CONFIGURATION
@@ -468,9 +469,22 @@ export const saveCategories = async (categories) => {
 
 function normalizeProduct(p) {
   const raw = p.raw_data || {};
+  const article = p.article || raw.article || '';
+  
+  // Классифицируем фотографии: гарантируем, что главное фото — это смеситель,
+  // а чертёж выделяется для раздела "Размеры и чертежи"
+  const classified = classifyProductImages({
+    article,
+    photo1: p.photo1 || raw.photo1,
+    photo2: p.photo2 || raw.photo2,
+    photo3: p.photo3 || raw.photo3,
+    drawingUrl: p.drawingUrl || raw.drawingUrl || p.drawing_url,
+    boxUrl: p.boxUrl || raw.boxUrl || p.box_url
+  });
+
   return {
     ...raw,
-    article: p.article,
+    article,
     name: p.name || raw.name || '',
     category: p.category || raw.category || '',
     subcategory: p.subcategory || raw.subcategory || '',
@@ -489,9 +503,14 @@ function normalizeProduct(p) {
     volume: p.volume || raw.volume || '',
     specs: p.specs || raw.specs || '',
     extraSpecs: p.extra_specs || raw.extraSpecs || raw.extra_specs || '',
-    photo1: p.photo1 || raw.photo1 || '',
-    photo2: p.photo2 || raw.photo2 || '',
-    photo3: p.photo3 || raw.photo3 || '',
+    photo1: classified.mainPhoto || p.photo1 || raw.photo1 || '',
+    photo2: classified.additionalPhotos[0] || p.photo2 || raw.photo2 || '',
+    photo3: classified.additionalPhotos[1] || p.photo3 || raw.photo3 || '',
+    drawingUrl: classified.drawingPhotos[0] || p.drawingUrl || raw.drawingUrl || '',
+    boxUrl: classified.boxPhotos[0] || p.boxUrl || raw.boxUrl || '',
+    additionalPhotos: classified.additionalPhotos,
+    drawingPhotos: classified.drawingPhotos,
+    allPhotos: classified.allPhotos,
     cityStock: p.city_stock || raw.cityStock || raw.city_stock || {},
     status: p.status || raw.status || 'АКТИВЕН',
     seoTitle: p.seo_title || raw.seoTitle || raw.seo_title || '',
