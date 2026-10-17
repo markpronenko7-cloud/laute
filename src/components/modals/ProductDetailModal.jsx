@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
   X, 
@@ -15,7 +15,9 @@ import {
   FileText,
   ShoppingBag,
   Plus,
-  Minus
+  Minus,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { classifyProductImages, formatProductDisplay } from '../../utils/imageHelper';
 
@@ -39,7 +41,8 @@ export const ProductDetailModal = () => {
   } = useApp();
   const [selectedPhoto, setSelectedPhoto] = useState(0);
   const [activeTab, setActiveTab] = useState('specs'); // 'specs' | 'drawings' | 'stock'
-  const [lightboxImg, setLightboxImg] = useState(null);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+  const touchStartRef = useRef(null);
 
   if (!selectedProduct) return null;
 
@@ -52,6 +55,113 @@ export const ProductDetailModal = () => {
   // Фотографии галереи (смеситель + дополнительные фото + упаковка)
   const galleryPhotos = imgInfo.allPhotos;
   const activePhotoSrc = galleryPhotos[selectedPhoto] || imgInfo.mainPhoto;
+
+  // Сбор всех медиа-файлов строго ЭТОГО товара (фотографии + чертежи)
+  const productMediaList = useMemo(() => {
+    if (!selectedProduct) return [];
+    const list = [];
+    const seen = new Set();
+
+    // 1. Фотографии изделия (главное фото, дополнительные фото, упаковка)
+    if (imgInfo.allPhotos && imgInfo.allPhotos.length > 0) {
+      imgInfo.allPhotos.forEach((url, i) => {
+        if (url && !seen.has(url)) {
+          seen.add(url);
+          list.push({
+            url,
+            type: 'photo',
+            title: i === 0 ? 'Основной смеситель' : `Фото #${i + 1}`
+          });
+        }
+      });
+    }
+
+    // 2. Инженерные чертежи изделия
+    if (imgInfo.drawingPhotos && imgInfo.drawingPhotos.length > 0) {
+      imgInfo.drawingPhotos.forEach((url, i) => {
+        if (url && !seen.has(url)) {
+          seen.add(url);
+          list.push({
+            url,
+            type: 'drawing',
+            title: imgInfo.drawingPhotos.length > 1 ? `Чертёж #${i + 1}` : 'Чертёж и размеры'
+          });
+        }
+      });
+    }
+
+    return list;
+  }, [selectedProduct?.article, imgInfo]);
+
+  // Сброс индекса при смене товара
+  useEffect(() => {
+    setLightboxIndex(null);
+  }, [selectedProduct?.article]);
+
+  const openLightbox = (targetUrl) => {
+    if (!targetUrl || productMediaList.length === 0) return;
+    const foundIdx = productMediaList.findIndex(m => m.url === targetUrl);
+    setLightboxIndex(foundIdx >= 0 ? foundIdx : 0);
+  };
+
+  const closeLightbox = () => {
+    setLightboxIndex(null);
+  };
+
+  const handlePrevImage = (e) => {
+    if (e) e.stopPropagation();
+    if (productMediaList.length <= 1) return;
+    setLightboxIndex(prev => (prev === null ? 0 : (prev - 1 + productMediaList.length) % productMediaList.length));
+  };
+
+  const handleNextImage = (e) => {
+    if (e) e.stopPropagation();
+    if (productMediaList.length <= 1) return;
+    setLightboxIndex(prev => (prev === null ? 0 : (prev + 1) % productMediaList.length));
+  };
+
+  // Переключение клавишами ← и →, закрытие по Esc
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        closeLightbox();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handlePrevImage();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleNextImage();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxIndex, productMediaList.length]);
+
+  // Поддержка свайпов на телефонах и планшетах
+  const handleTouchStart = (e) => {
+    if (e.touches && e.touches.length > 0) {
+      touchStartRef.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY
+      };
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!touchStartRef.current || !e.changedTouches || e.changedTouches.length === 0) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartRef.current.x;
+    const deltaY = e.changedTouches[0].clientY - touchStartRef.current.y;
+    touchStartRef.current = null;
+
+    if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+      if (deltaX < 0) {
+        handleNextImage();
+      } else {
+        handlePrevImage();
+      }
+    }
+  };
 
   const handleCompareClick = () => {
     const candidate = products.find(p => p.category === selectedProduct.category && p.article !== selectedProduct.article);
@@ -80,6 +190,8 @@ export const ProductDetailModal = () => {
                 src={activePhotoSrc} 
                 alt={displayInfo.title} 
                 className="main-product-img"
+                style={{ cursor: 'pointer' }}
+                onClick={() => openLightbox(activePhotoSrc)}
                 onError={(e) => {
                   e.target.src = `${baseUrl}images/cat_laute_brand.jpg`;
                 }}
@@ -95,7 +207,7 @@ export const ProductDetailModal = () => {
               <button 
                 type="button" 
                 className="img-enlarge-btn"
-                onClick={() => setLightboxImg(activePhotoSrc)}
+                onClick={() => openLightbox(activePhotoSrc)}
                 title="Увеличить изображение"
               >
                 <Maximize2 size={14} />
@@ -291,12 +403,12 @@ export const ProductDetailModal = () => {
                         src={imgInfo.drawingPhotos[0]} 
                         alt={`Чертёж ${displayInfo.title}`} 
                         className="blueprint-img"
-                        onClick={() => setLightboxImg(imgInfo.drawingPhotos[0])}
+                        onClick={() => openLightbox(imgInfo.drawingPhotos[0])}
                       />
                       <button 
                         type="button" 
                         className="blueprint-zoom-btn"
-                        onClick={() => setLightboxImg(imgInfo.drawingPhotos[0])}
+                        onClick={() => openLightbox(imgInfo.drawingPhotos[0])}
                       >
                         <Maximize2 size={13} />
                         <span>Открыть в полном размере</span>
@@ -463,20 +575,78 @@ export const ProductDetailModal = () => {
           </div>
         </div>
 
-        {/* Fullscreen Lightbox for Drawing or Photo */}
-        {lightboxImg && (
-          <div className="product-lightbox-overlay" onClick={() => setLightboxImg(null)}>
-            <div className="product-lightbox-content" onClick={(e) => e.stopPropagation()}>
-              <button 
-                type="button" 
-                className="lightbox-close-btn" 
-                onClick={() => setLightboxImg(null)}
-                aria-label="Закрыть увеличение"
+        {/* Fullscreen Lightbox for Drawing or Photo with Next/Prev Arrows */}
+        {lightboxIndex !== null && productMediaList[lightboxIndex] && (
+          <div 
+            className="product-lightbox-overlay" 
+            onClick={closeLightbox}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Просмотр изображений товара"
+          >
+            {/* Close button */}
+            <button 
+              type="button" 
+              className="lightbox-close-btn" 
+              onClick={(e) => { e.stopPropagation(); closeLightbox(); }}
+              aria-label="Закрыть увеличение"
+              title="Закрыть (Esc)"
+            >
+              <X size={22} />
+            </button>
+
+            {/* Left Arrow (Previous) */}
+            {productMediaList.length > 1 && (
+              <button
+                type="button"
+                className="lightbox-nav-btn lightbox-prev-btn"
+                onClick={handlePrevImage}
+                aria-label="Предыдущее изображение"
+                title="Предыдущее (←)"
               >
-                <X size={24} />
+                <ChevronLeft size={30} />
               </button>
-              <img src={lightboxImg} alt="Увеличенное изображение" className="lightbox-img" />
+            )}
+
+            {/* Lightbox Content Container with Touch Swipe */}
+            <div 
+              className="product-lightbox-content" 
+              onClick={(e) => e.stopPropagation()}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              <img 
+                key={productMediaList[lightboxIndex].url}
+                src={productMediaList[lightboxIndex].url} 
+                alt={`${displayInfo.title} — ${productMediaList[lightboxIndex].title}`} 
+                className="lightbox-img" 
+              />
+
+              {/* Counter and Type Badge */}
+              <div className="lightbox-caption-badge">
+                <span className="lightbox-badge-type">
+                  {productMediaList[lightboxIndex].type === 'drawing' ? 'Инженерный чертёж' : 'Фотография изделия'}
+                </span>
+                {productMediaList.length > 1 && (
+                  <span className="lightbox-badge-counter">
+                    {lightboxIndex + 1} / {productMediaList.length}
+                  </span>
+                )}
+              </div>
             </div>
+
+            {/* Right Arrow (Next) */}
+            {productMediaList.length > 1 && (
+              <button
+                type="button"
+                className="lightbox-nav-btn lightbox-next-btn"
+                onClick={handleNextImage}
+                aria-label="Следующее изображение"
+                title="Следующее (→)"
+              >
+                <ChevronRight size={30} />
+              </button>
+            )}
           </div>
         )}
       </div>

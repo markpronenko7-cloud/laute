@@ -16,8 +16,8 @@ export const Header = () => {
   const measureRef = useRef(null);
 
   const [isDesktopNavVisible, setIsDesktopNavVisible] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.innerWidth >= 1680;
+    if (typeof window === 'undefined') return true;
+    return window.innerWidth >= 1080;
   });
 
   useEffect(() => {
@@ -98,10 +98,26 @@ export const Header = () => {
 
   useEffect(() => {
     const checkHeaderFit = () => {
-      if (!measureRef.current || !containerRef.current) return;
-      const needed = measureRef.current.scrollWidth + 36;
-      const available = containerRef.current.clientWidth || window.innerWidth;
-      setIsDesktopNavVisible(available >= needed);
+      if (typeof window === 'undefined') return;
+      const width = window.innerWidth;
+      // All MacBooks and desktop monitors (1160px and wider) have plenty of room for all 3 languages (RU, KZ, EN)
+      if (width >= 1160) {
+        setIsDesktopNavVisible(true);
+        return;
+      }
+      // Compact / tablet mode below 1000px
+      if (width < 1000) {
+        setIsDesktopNavVisible(false);
+        return;
+      }
+      // Intermediate transition zone (1000px - 1159px)
+      if (measureRef.current && containerRef.current) {
+        const needed = measureRef.current.scrollWidth + 16;
+        const available = containerRef.current.clientWidth || width;
+        setIsDesktopNavVisible(available >= needed);
+      } else {
+        setIsDesktopNavVisible(width >= 1080);
+      }
     };
 
     checkHeaderFit();
@@ -495,26 +511,26 @@ export const Header = () => {
           pointerEvents: 'none',
           display: 'flex',
           alignItems: 'center',
-          gap: '24px',
+          gap: '12px',
           whiteSpace: 'nowrap',
           zIndex: -100
         }}
       >
-        <div style={{ width: 110, height: 40 }} />
-        <ul className="nav-links" style={{ display: 'flex', gap: '16px' }}>
-          <li className="nav-link">{t.nav?.home || 'Главная'}</li>
-          <li className="nav-link">{t.nav?.catalog || t.nav?.products || 'Каталог'}</li>
-          <li className="nav-link">{t.nav?.about || t.nav?.company || 'О LAUTE'}</li>
-          <li className="nav-link">{t.nav?.partners || 'Партнёрам'}</li>
-          <li className="nav-link">{t.nav?.whereToBuy || 'Где купить'}</li>
-          <li className="nav-link">{t.nav?.service || 'Первый цифровой сервис'}</li>
-          <li className="nav-link">{t.nav?.contacts || 'Контакты'}</li>
+        <div style={{ width: 110, height: 38 }} />
+        <ul className="nav-links" style={{ display: 'flex', gap: '8px' }}>
+          <li className="nav-link" style={{ fontSize: '0.82rem', padding: '6px 6px' }}>{t.nav?.home || 'Главная'}</li>
+          <li className="nav-link" style={{ fontSize: '0.82rem', padding: '6px 6px' }}>{t.nav?.catalog || t.nav?.products || 'Каталог'}</li>
+          <li className="nav-link" style={{ fontSize: '0.82rem', padding: '6px 6px' }}>{t.nav?.about || t.nav?.company || 'О LAUTE'}</li>
+          <li className="nav-link" style={{ fontSize: '0.82rem', padding: '6px 6px' }}>{t.nav?.partners || 'Партнёрам'}</li>
+          <li className="nav-link" style={{ fontSize: '0.82rem', padding: '6px 6px' }}>{t.nav?.whereToBuy || 'Где купить'}</li>
+          <li className="nav-link" style={{ fontSize: '0.82rem', padding: '6px 6px' }}>{t.nav?.service || 'Первый цифровой сервис'}</li>
+          <li className="nav-link" style={{ fontSize: '0.82rem', padding: '6px 6px' }}>{t.nav?.contacts || 'Контакты'}</li>
         </ul>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <div className="select-trigger"><Globe size={15} /> <span>{lang === 'ru' ? 'РУС' : lang === 'kz' ? 'КАЗ' : 'ENG'}</span></div>
-          <div className="select-trigger"><MapPin size={15} /> <span>{currentRegionLabel}</span></div>
-          <div className="cabinet-btn" style={{ display: 'inline-flex' }}><User size={15} /> <span>{t.nav?.clientCabinet || 'Кабинет партнёра'}</span></div>
-          <div className="btn-partner-cta" style={{ display: 'inline-flex' }}><span>{t.nav?.requestQuote || 'Стать партнёром'}</span></div>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div className="select-trigger" style={{ padding: '6px 8px', fontSize: '0.8rem' }}><Globe size={15} /> <span>{lang === 'ru' ? 'РУС' : lang === 'kz' ? 'КАЗ' : 'ENG'}</span></div>
+          <div className="select-trigger" style={{ padding: '6px 8px', fontSize: '0.8rem' }}><MapPin size={15} /> <span style={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentRegionLabel}</span></div>
+          <div className="cabinet-btn" style={{ display: 'inline-flex', padding: '6px 10px', fontSize: '0.8rem' }}><User size={15} /> <span>{t.nav?.clientCabinet || 'Кабинет партнёра'}</span></div>
+          <div className="btn-partner-cta" style={{ display: 'inline-flex', padding: '7px 12px', fontSize: '0.82rem' }}><span>{t.nav?.requestQuote || 'Стать партнёром'}</span></div>
         </div>
       </div>
     </header>
