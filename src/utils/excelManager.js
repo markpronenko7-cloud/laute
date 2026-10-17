@@ -313,16 +313,16 @@ export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
           let actionStatus = (actionRaw || 'ОБНОВИТЬ').toUpperCase();
           if (actionStatus === 'ADD') actionStatus = 'ДОБАВИТЬ';
           if (actionStatus === 'UPDATE') actionStatus = 'ОБНОВИТЬ';
-          if (actionStatus === 'HIDE') actionStatus = 'СКРЫТ';
+          if (actionStatus === 'HIDE' || actionStatus === 'СКРЫТЬ') actionStatus = 'СКРЫТ';
           if (actionStatus === 'DELETE') actionStatus = 'УДАЛИТЬ';
 
-          const allowedActions = ['ДОБАВИТЬ', 'ОБНОВИТЬ', 'СКРЫТЬ', 'УДАЛИТЬ'];
+          const allowedActions = ['ДОБАВИТЬ', 'ОБНОВИТЬ', 'СКРЫТ', 'СКРЫТЬ', 'УДАЛИТЬ'];
           if (!allowedActions.includes(actionStatus)) {
             errors.push({
               row: rowNum,
               article,
               field: 'Статус действия',
-              message: `Недопустимый статус действия "${actionRaw}". Допустимо: ДОБАВИТЬ, ОБНОВИТЬ, СКРЫТЬ, УДАЛИТЬ`
+              message: `Недопустимый статус действия "${actionRaw}". Допустимо: ДОБАВИТЬ, ОБНОВИТЬ, СКРЫТ, УДАЛИТЬ`
             });
             return;
           }
@@ -609,7 +609,7 @@ export const applyExcelImport = (currentProducts = [], validatedRows = []) => {
         photo2: row.photo2 || existing.photo2,
         photo3: row.photo3 || existing.photo3,
         cityStock: updatedCityStock,
-        status: (row.actionStatus === 'СКРЫТ' || row.status === 'СКРЫТ') ? 'СКРЫТ' : 'АКТИВЕН',
+        status: (row.actionStatus === 'СКРЫТ' || row.actionStatus === 'СКРЫТЬ' || row.status === 'СКРЫТ') ? 'СКРЫТ' : 'АКТИВЕН',
         seoTitle: row.seoTitle || existing.seoTitle,
         seoDesc: row.seoDesc || existing.seoDesc,
         url: row.url || existing.url,
@@ -646,7 +646,7 @@ export const applyExcelImport = (currentProducts = [], validatedRows = []) => {
         photo2: row.photo2 || '',
         photo3: row.photo3 || '',
         cityStock: newCityStock,
-        status: (row.actionStatus === 'СКРЫТ' || row.status === 'СКРЫТ') ? 'СКРЫТ' : 'АКТИВЕН',
+        status: (row.actionStatus === 'СКРЫТ' || row.actionStatus === 'СКРЫТЬ' || row.status === 'СКРЫТ') ? 'СКРЫТ' : 'АКТИВЕН',
         seoTitle: row.seoTitle || '',
         seoDesc: row.seoDesc || '',
         url: row.url || `/catalog#${row.article.trim()}`,
@@ -724,7 +724,7 @@ export const downloadStockTemplateExcel = (warehouse, products = [], currentStoc
   // Режим A — Конкретный выбранный склад
   const whObj = typeof warehouse === 'object' && warehouse !== null 
     ? warehouse 
-    : { id: String(warehouse), name: String(warehouse) };
+    : ((allWarehouses || []).find(w => w.id === String(warehouse)) || { id: String(warehouse), name: String(warehouse) });
 
   const stockMap = new Map();
   (currentStock || []).forEach(s => {
@@ -797,9 +797,18 @@ export const parseStockExcelClient = async (file, warehouse, currentProducts, cu
           stockMap.set(`${s.warehouseId}::${s.sku}`, s.quantity);
         });
 
+        const whList = (Array.isArray(allWarehouses) && allWarehouses.length > 0)
+          ? allWarehouses
+          : [
+              { id: 'almaty', name: 'Алматы' },
+              { id: 'novosibirsk', name: 'Новосибирск' },
+              { id: 'moscow', name: 'Москва' },
+              { id: 'china', name: 'Китай' }
+            ];
+
         // Проверяем, есть ли колонки нескольких складов (Режим B)
         const whColumns = [];
-        (allWarehouses || []).forEach(wh => {
+        whList.forEach(wh => {
           const colIdx = headers.findIndex(h => 
             h.includes(wh.name.toLowerCase()) || 
             h.includes(wh.id.toLowerCase())
@@ -811,7 +820,9 @@ export const parseStockExcelClient = async (file, warehouse, currentProducts, cu
 
         const isMultiWh = whColumns.length > 0;
         let singleQtyIdx = -1;
-        let singleWh = warehouse || (allWarehouses && allWarehouses[0]) || { id: 'almaty', name: 'Алматы' };
+        let singleWh = (typeof warehouse === 'object' && warehouse !== null)
+          ? warehouse
+          : (whList.find(w => w.id === String(warehouse)) || whList[0] || { id: 'almaty', name: 'Алматы' });
 
         if (!isMultiWh) {
           singleQtyIdx = headers.findIndex(h => 

@@ -80,9 +80,9 @@ app.use((req, res, next) => {
   } else if (req.url === '/laute/api') {
     req.url = '/api';
   }
-  if (req.url.startsWith('/laute/images/')) {
-    req.url = req.url.replace('/laute/images/', '/images/');
-  }
+  // Примечание: /laute/images/* НЕ переписываем — объект запроса общий с Vite,
+  // и переписанный URL ломал раздачу всех статических изображений из public/.
+  // Загруженные файлы доступны через явные маршруты /laute/images/catalog и /laute/images/uploads ниже.
   next();
 });
 

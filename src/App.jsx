@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -16,14 +16,19 @@ import { AuthModal } from './components/modals/AuthModal';
 import { ProductDetailModal } from './components/modals/ProductDetailModal';
 import { ProductComparisonModal } from './components/modals/ProductComparisonModal';
 import { ExcelManagerModal } from './components/modals/ExcelManagerModal';
-import { AdminPage } from './pages/AdminPage';
 import { CustomPageRenderer } from './components/builder/CustomPageRenderer';
+
+const AdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
 
 export const AppContent = () => {
   const { currentRoute, pagesList = [] } = useApp();
 
   if (currentRoute === 'admin') {
-    return <AdminPage />;
+    return (
+      <Suspense fallback={<div style={{ minHeight: '100vh', background: '#07090D', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Загрузка панели управления LAUTE...</div>}>
+        <AdminPage />
+      </Suspense>
+    );
   }
 
   const renderCurrentPage = () => {

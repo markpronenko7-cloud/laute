@@ -18,6 +18,7 @@ import {
 import { HeroCarousel } from '../components/HeroCarousel';
 import { CollectionsSection } from '../components/CollectionsSection';
 import { withBrandWord } from '../utils/brandFormatter';
+import { submitLeadInquiry } from '../services/adminApi';
 
 export const HomePage = () => {
   const { navigateTo, openPartnerModal, openServiceModal, startAIPartnerAnalysis, t, siteContent, lang } = useApp();
@@ -52,8 +53,16 @@ export const HomePage = () => {
     return () => observer.disconnect();
   }, []);
 
-  const handleLeadSubmit = (e) => {
+  const handleLeadSubmit = async (e) => {
     e.preventDefault();
+    try {
+      await submitLeadInquiry({
+        source: 'home_b2b_lead',
+        ...leadForm
+      });
+    } catch {
+      // ignore
+    }
     setLeadSubmitted(true);
   };
 

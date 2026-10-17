@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { X, Send, CheckCircle2 } from 'lucide-react';
+import { submitLeadInquiry } from '../../services/adminApi';
 
 export const PartnerModal = () => {
   const { isPartnerModalOpen, closePartnerModal, t } = useApp();
@@ -17,11 +18,18 @@ export const PartnerModal = () => {
 
   if (!isPartnerModalOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    try {
+      await submitLeadInquiry({
+        source: 'partner_modal',
+        ...formData
+      });
+    } catch {
+      // ignore
+    }
     setSubmitted(true);
     setTimeout(() => {
-      // Auto close after 3s
       setTimeout(() => {
         setSubmitted(false);
         closePartnerModal();

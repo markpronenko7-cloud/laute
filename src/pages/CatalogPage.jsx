@@ -364,14 +364,16 @@ export const CatalogPage = () => {
 
   // Filter Live Products
   const activeProducts = products.filter(p => p.status !== 'СКРЫТ');
+  const productCategories = Array.from(new Set(activeProducts.map(p => p.category).filter(Boolean)));
   const filteredProducts = activeProducts.filter(p => {
+    const matchesCat = selectedCategory === 'all' || p.category === selectedCategory;
     const matchesSearch = searchQuery === '' ||
       p.article.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (p.specs && p.specs.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesSearch;
+    return matchesCat && matchesSearch;
   });
 
   return (
@@ -465,7 +467,7 @@ export const CatalogPage = () => {
               <button 
                 type="button" 
                 className={`view-toggle-btn ${catalogView === 'products' ? 'active' : ''}`}
-                onClick={() => setCatalogView('products')}
+                onClick={() => { setCatalogView('products'); setSelectedCategory('all'); }}
               >
                 <Sparkles size={15} />
                 <span>Номенклатура изделий ({activeProducts.length} позиций)</span>
@@ -474,7 +476,7 @@ export const CatalogPage = () => {
               <button 
                 type="button" 
                 className={`view-toggle-btn ${catalogView === 'categories' ? 'active' : ''}`}
-                onClick={() => setCatalogView('categories')}
+                onClick={() => { setCatalogView('categories'); setSelectedCategory('all'); }}
               >
                 <Layers size={15} />
                 <span>Обзор 14 категорий</span>
@@ -495,6 +497,32 @@ export const CatalogPage = () => {
                 className="search-input"
               />
             </div>
+
+            {/* Category Filter (for products view) */}
+            {catalogView === 'products' && productCategories.length > 0 && (
+              <div className="mounting-filter-group">
+                <span className="filter-label">{lang === 'kz' ? 'Санат:' : lang === 'en' ? 'Category:' : 'Категория:'}</span>
+                <div className="filter-chips">
+                  <button
+                    type="button"
+                    className={`chip-btn ${selectedCategory === 'all' ? 'active' : ''}`}
+                    onClick={() => setSelectedCategory('all')}
+                  >
+                    {lang === 'kz' ? 'Барлығы' : lang === 'en' ? 'All' : 'Все'}
+                  </button>
+                  {productCategories.map((cName) => (
+                    <button
+                      key={cName}
+                      type="button"
+                      className={`chip-btn ${selectedCategory === cName ? 'active' : ''}`}
+                      onClick={() => setSelectedCategory(cName)}
+                    >
+                      {cName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Mounting Filter (for categories) */}
             {catalogView === 'categories' && (

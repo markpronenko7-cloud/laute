@@ -17,7 +17,20 @@ import {
 import { classifyProductImages, formatProductDisplay } from '../../utils/imageHelper';
 
 export const ProductDetailModal = () => {
-  const { selectedProduct, closeProductModal, openPartnerModal, startComparison, products, adminSession, t, lang } = useApp();
+  const {
+    selectedProduct,
+    closeProductModal,
+    openPartnerModal,
+    openAuthModal,
+    startComparison,
+    products,
+    adminSession,
+    isB2BAuthorized,
+    warehousesList = [],
+    getStockForSku,
+    t,
+    lang
+  } = useApp();
   const [selectedPhoto, setSelectedPhoto] = useState(0);
   const [activeTab, setActiveTab] = useState('specs'); // 'specs' | 'drawings' | 'stock'
   const [lightboxImg, setLightboxImg] = useState(null);
@@ -325,20 +338,54 @@ export const ProductDetailModal = () => {
                     <span>{pm.stockInCities || 'Наличие по филиалам LAUTE:'}</span>
                   </div>
                   <div className="stock-cities-list">
-                    {Object.entries(selectedProduct.cityStock || {}).map(([city, count]) => {
-                      const isStaffOrPartner = Boolean(adminSession) || Boolean(localStorage.getItem('laute_partner_token'));
-                      return (
-                        <div key={city} className="city-stock-row">
-                          <span className="city-name">{city}</span>
-                          <span className={`city-count ${count > 0 ? 'in-stock' : 'out-of-stock'}`}>
-                            {isStaffOrPartner 
-                              ? (count > 0 ? (pm.inStockWithCount || 'В наличии ({count} шт.)').replace('{count}', count) : (pm.onOrderShort || 'Под заказ'))
-                              : (count > 0 ? (pm.inStock || 'В наличии') : (pm.onOrder || 'Под заказ от завода'))}
-                          </span>
-                        </div>
-                      );
-                    })}
+                    {warehousesList.length > 0 ? (
+                      warehousesList.map((wh) => {
+                        const isStaffOrPartner = Boolean(adminSession) || Boolean(isB2BAuthorized);
+                        const stockInfo = getStockForSku ? getStockForSku(selectedProduct.article, wh.id) : null;
+                        const count = stockInfo && stockInfo.quantity !== null ? stockInfo.quantity : (selectedProduct.cityStock?.[wh.name] ?? null);
+                        const isAvailable = count !== null && count > 0;
+                        return (
+                          <div key={wh.id} className="city-stock-row">
+                            <span className="city-name">{wh.name}</span>
+                            <span className={`city-count ${isAvailable ? 'in-stock' : 'out-of-stock'}`}>
+                              {isStaffOrPartner
+                                ? (count === null ? 'Нет данных' : count > 0 ? (pm.inStockWithCount || 'В наличии ({count} шт.)').replace('{count}', count) : (pm.onOrderShort || '0 шт. (под заказ)'))
+                                : (isAvailable ? (pm.inStock || 'В наличии') : (pm.onOrder || 'Под заказ от завода'))}
+                            </span>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      Object.entries(selectedProduct.cityStock || {}).map(([city, count]) => {
+                        const isStaffOrPartner = Boolean(adminSession) || Boolean(isB2BAuthorized);
+                        return (
+                          <div key={city} className="city-stock-row">
+                            <span className="city-name">{city}</span>
+                            <span className={`city-count ${count > 0 ? 'in-stock' : 'out-of-stock'}`}>
+                              {isStaffOrPartner 
+                                ? (count > 0 ? (pm.inStockWithCount || 'В наличии ({count} шт.)').replace('{count}', count) : (pm.onOrderShort || 'Под заказ'))
+                                : (count > 0 ? (pm.inStock || 'В наличии') : (pm.onOrder || 'Под заказ от завода'))}
+                            </span>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
+                  {!adminSession && !isB2BAuthorized && (
+                    <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '0.78rem', color: '#94A3B8' }}>Точные остатки в штуках доступны партнёрам:</span>
+                      <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        onClick={() => {
+                          closeProductModal();
+                          if (openAuthModal) openAuthModal();
+                        }}
+                      >
+                        Войти в B2B кабинет
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

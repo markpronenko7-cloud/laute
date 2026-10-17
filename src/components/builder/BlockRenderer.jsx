@@ -19,6 +19,7 @@ import {
   Plus
 } from 'lucide-react';
 import { withBrandWord } from '../../utils/brandFormatter';
+import { submitLeadInquiry } from '../../services/adminApi';
 
 export const BlockRenderer = ({
   block,
@@ -40,7 +41,7 @@ export const BlockRenderer = ({
   const [openFaqIndices, setOpenFaqIndices] = useState([0]);
 
   if (!block) return null;
-  if (!block.isVisible && !isEditor) return null;
+  if (block.isVisible === false && !isEditor) return null;
 
   const baseUrl = import.meta.env.BASE_URL;
 
@@ -52,8 +53,37 @@ export const BlockRenderer = ({
     return `${baseUrl}${clean}`;
   };
 
-  const handleFormSubmit = (e) => {
+  const handleLinkClick = (e, link) => {
+    if (isEditor) {
+      e.preventDefault();
+      return;
+    }
+    if (!link) return;
+    if (link.startsWith('#')) {
+      e.preventDefault();
+      const targetId = link.slice(1);
+      const el = document.getElementById(targetId) || document.getElementById('lead-form') || document.querySelector('.builder-form-block');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      return;
+    }
+    if (link.startsWith('/')) {
+      e.preventDefault();
+      navigateTo(link.replace('/', '') || 'home');
+    }
+  };
+
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
+    try {
+      await submitLeadInquiry({
+        source: block.formType || 'page_form',
+        ...formData
+      });
+    } catch {
+      // ignore
+    }
     setFormSubmitted(true);
   };
 
@@ -103,13 +133,7 @@ export const BlockRenderer = ({
                 <a
                   href={block.buttonLink || '#'}
                   className={`btn ${block.buttonType === 'primary' ? 'btn-primary' : (block.buttonType === 'gold' ? 'btn-gold' : 'btn-outline')}`}
-                  onClick={(e) => {
-                    if (isEditor) { e.preventDefault(); return; }
-                    if (block.buttonLink?.startsWith('/')) {
-                      e.preventDefault();
-                      navigateTo(block.buttonLink.replace('/', '') || 'home');
-                    }
-                  }}
+                  onClick={(e) => handleLinkClick(e, block.buttonLink)}
                 >
                   <span>{block.buttonText}</span>
                   <ArrowRight size={16} />
@@ -176,13 +200,7 @@ export const BlockRenderer = ({
                 <a
                   href={block.buttonLink || '#'}
                   className="btn btn-outline"
-                  onClick={(e) => {
-                    if (isEditor) { e.preventDefault(); return; }
-                    if (block.buttonLink?.startsWith('/')) {
-                      e.preventDefault();
-                      navigateTo(block.buttonLink.replace('/', '') || 'home');
-                    }
-                  }}
+                  onClick={(e) => handleLinkClick(e, block.buttonLink)}
                 >
                   <span>{block.buttonText}</span>
                   <ArrowRight size={15} />
@@ -300,6 +318,12 @@ export const BlockRenderer = ({
                         <a href={`tel:${hub.phone.replace(/[^0-9+]/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }}>{hub.phone}</a>
                       </div>
                     )}
+                    {hub.altPhone && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#FFFFFF' }}>
+                        <Phone size={14} style={{ color: 'var(--adm-accent-blue)' }} />
+                        <a href={`tel:${hub.altPhone.replace(/[^0-9+]/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }}>{hub.altPhone}</a>
+                      </div>
+                    )}
                     {hub.email && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#FFFFFF' }}>
                         <Mail size={14} style={{ color: 'var(--adm-accent-blue)' }} />
@@ -326,9 +350,11 @@ export const BlockRenderer = ({
         );
 
       // 9. FORM BLOCK
-      case 'form_lead':
+      case 'form_lead': {
+        const formAnchorId = block.anchorId || (block.formType === 'service' ? 'service-form' : block.formType === 'contact' ? 'feedback-form' : 'lead-form');
         return (
           <div className="builder-form-block" id="lead-form" style={{ maxWidth: 640, margin: '0 auto', background: 'rgba(255,255,255,0.02)', padding: '36px 30px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)' }}>
+            {formAnchorId !== 'lead-form' && <div id={formAnchorId} style={{ position: 'relative', top: -80 }} />}
             <div style={{ textAlign: 'center', marginBottom: 24 }}>
               {block.badge && <span className="section-badge" style={{ marginBottom: 8, display: 'inline-block' }}>{block.badge}</span>}
               <h2 className="section-title" style={{ fontSize: 24, marginBottom: 8 }}>{withBrandWord(block.title || 'Оставить заявку')}</h2>
@@ -385,6 +411,7 @@ export const BlockRenderer = ({
             )}
           </div>
         );
+      }
 
       // 10. FAQ BLOCK
       case 'faq':
@@ -430,22 +457,26 @@ export const BlockRenderer = ({
               {block.subtitle && <p className="section-desc" style={{ maxWidth: 700, margin: align === 'center' ? '0 auto' : '0' }}>{block.subtitle}</p>}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
-              {prods.map((prod, idx) => (
-                <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: 16, borderRadius: 12, border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.2)', borderRadius: 8, marginBottom: 12, overflow: 'hidden' }}>
-                    {prod.photo1 ? (
-                      <img src={getImgSrc(prod.photo1)} alt={prod.name} style={{ maxHeight: '90%', maxWidth: '90%', objectFit: 'contain' }} />
-                    ) : (
-                      <span style={{ fontSize: 12, color: 'var(--adm-text-muted)' }}>Фото отсутствует</span>
-                    )}
+              {prods.map((prod, idx) => {
+                const priceVal = prod.price || prod.priceRRC;
+                const curr = prod.currency || '₸';
+                return (
+                  <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: 16, borderRadius: 12, border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.2)', borderRadius: 8, marginBottom: 12, overflow: 'hidden' }}>
+                      {prod.photo1 ? (
+                        <img src={getImgSrc(prod.photo1)} alt={prod.name} style={{ maxHeight: '90%', maxWidth: '90%', objectFit: 'contain' }} />
+                      ) : (
+                        <span style={{ fontSize: 12, color: 'var(--adm-text-muted)' }}>Фото отсутствует</span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#D4AF37', fontWeight: 600, marginBottom: 4 }}>{prod.article}</div>
+                    <h4 style={{ margin: '0 0 6px 0', fontSize: 14, color: '#FFFFFF', flex: 1 }}>{prod.name}</h4>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#FFFFFF', marginTop: 8 }}>
+                      {priceVal ? `${Number(priceVal).toLocaleString('ru-RU')} ${curr}` : 'По запросу'}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 11, color: '#D4AF37', fontWeight: 600, marginBottom: 4 }}>{prod.article}</div>
-                  <h4 style={{ margin: '0 0 6px 0', fontSize: 14, color: '#FFFFFF', flex: 1 }}>{prod.name}</h4>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#FFFFFF', marginTop: 8 }}>
-                    {prod.priceRRC ? `${Number(prod.priceRRC).toLocaleString('ru-RU')} ₽` : 'Цена по запросу'}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         );
@@ -462,13 +493,7 @@ export const BlockRenderer = ({
               <a
                 href={block.buttonLink || '#'}
                 className="btn btn-gold"
-                onClick={(e) => {
-                  if (isEditor) { e.preventDefault(); return; }
-                  if (block.buttonLink?.startsWith('/')) {
-                    e.preventDefault();
-                    navigateTo(block.buttonLink.replace('/', '') || 'home');
-                  }
-                }}
+                onClick={(e) => handleLinkClick(e, block.buttonLink)}
               >
                 <span>{block.buttonText}</span>
                 <ArrowRight size={16} />

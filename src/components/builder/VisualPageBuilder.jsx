@@ -220,7 +220,8 @@ export const VisualPageBuilder = ({
     if (!window.confirm(`Восстановить версию ${backupId}? Текущие несохраненные правки будут заменены.`)) return;
     try {
       const restoredPages = await rollbackPagesVersion(backupId);
-      const myPage = restoredPages.find(p => p.id === currentPage.id);
+      const list = Array.isArray(restoredPages) ? restoredPages : [];
+      const myPage = list.find(p => p.id === currentPage.id);
       if (myPage) {
         setCurrentPage(myPage);
         setBlocks(myPage.blocks || []);
@@ -232,7 +233,7 @@ export const VisualPageBuilder = ({
       setIsHistoryModalOpen(false);
       setHasUnsavedChanges(false);
       showNotice('Версия успешно восстановлена!');
-      if (onSaveSuccess) onSaveSuccess(myPage);
+      if (onSaveSuccess && myPage) onSaveSuccess(myPage);
     } catch (err) {
       showNotice(err.message || 'Ошибка восстановления версии', 'error');
     }

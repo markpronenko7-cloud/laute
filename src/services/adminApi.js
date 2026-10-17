@@ -308,10 +308,23 @@ export const fetchContentBackups = async () => {
 // ==========================================
 
 export const fetchCustomPages = async () => {
+  const sanitizePages = (pagesArr) => {
+    if (!Array.isArray(pagesArr)) return [];
+    return pagesArr.map(p => ({
+      ...p,
+      blocks: Array.isArray(p.blocks)
+        ? p.blocks.map(b => ({
+            ...b,
+            badge: typeof b.badge === 'string' ? b.badge.replace(/LAUTEк\s*/gi, 'LAUTE') : b.badge
+          }))
+        : []
+    }));
+  };
+
   try {
     const records = await querySupabase('laute_custom_pages?id=eq.current&select=pages');
     if (Array.isArray(records) && records.length > 0 && Array.isArray(records[0].pages)) {
-      return records[0].pages;
+      return sanitizePages(records[0].pages);
     }
   } catch (err) {
     console.warn('Ошибка загрузки страниц из Supabase:', err);
@@ -322,7 +335,7 @@ export const fetchCustomPages = async () => {
     const res = await fetch(`${import.meta.env.BASE_URL}data/custom_pages.json?t=${Date.now()}`);
     if (res.ok) {
       const data = await res.json();
-      return Array.isArray(data) ? data : (data.pages || []);
+      return sanitizePages(Array.isArray(data) ? data : (data.pages || []));
     }
   } catch {
     // ignore
@@ -426,7 +439,8 @@ export const fetchPageVersions = async () => {
 };
 
 export const rollbackPagesVersion = async (backupId) => {
-  return await rollbackSiteContent(backupId);
+  await rollbackSiteContent(backupId);
+  return await fetchCustomPages();
 };
 
 export const fetchCategories = async () => {
@@ -492,7 +506,7 @@ function normalizeProduct(p) {
     brand: p.brand || raw.brand || 'LAUTE',
     description: p.description || raw.description || '',
     price: Number(p.price !== undefined ? p.price : raw.price) || 0,
-    currency: p.currency || raw.currency || '₽',
+    currency: p.currency || raw.currency || '₸',
     material: p.material || raw.material || '',
     color: p.color || raw.color || '',
     finish: p.finish || raw.finish || '',
@@ -752,7 +766,23 @@ export const uploadSingleImage = async (file) => {
 };
 
 export const deleteMediaFile = async (filename) => {
-  return true;
+  const token = getAuthToken();
+  if (!token) throw new Error('Требуется авторизация администратора');
+  if (!filename) return false;
+
+  try {
+    const cleanName = filename.split('/').pop();
+    const res = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/object/${SUPABASE_CONFIG.storageBucket}/${encodeURIComponent(cleanName)}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_CONFIG.anonKey
+      }
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('Ошибка удаления медиафайла из Supabase Storage:', err);
+    return false;
+  }
 };
 
 // ==========================================
@@ -827,7 +857,7 @@ export const commitExcelImport = async (validRows) => {
   validRows.forEach(r => {
     if (r.actionStatus === 'УДАЛИТЬ') return;
     const key = r.article.trim().toUpperCase();
-    if (r.actionStatus === 'СКРЫТ' || r.status === 'СКРЫТ') {
+    if (r.actionStatus === 'СКРЫТ' || r.actionStatus === 'СКРЫТЬ' || r.status === 'СКРЫТ') {
       hidden++;
     } else if (currentMap.has(key)) {
       updated++;
@@ -1064,9 +1094,13 @@ export const saveBulkStock = async (warehouseId, items) => {
 };
 
 export const downloadStockTemplate = async (warehouseId = 'all') => {
-  const warehouses = await fetchWarehouses();
-  const products = await fetchProducts(true);
-  clientDownloadStockTemplate(warehouses, products, warehouseId);
+  const [warehouses, products, allStock] = await Promise.all([
+    fetchWarehouses(),
+    fetchProducts(true),
+    fetchWarehouseStock()
+  ]);
+  const targetWh = warehouseId === 'all' ? 'all' : (warehouses.find(w => w.id === warehouseId) || warehouseId);
+  clientDownloadStockTemplate(targetWh, products, allStock, warehouses);
   return true;
 };
 
@@ -1076,18 +1110,19 @@ export const exportStockToExcel = async (warehouseId = 'all') => {
     fetchProducts(true),
     fetchWarehouseStock()
   ]);
-
-  clientDownloadStockTemplate(warehouseId, products, allStock, warehouses);
+  const targetWh = warehouseId === 'all' ? 'all' : (warehouses.find(w => w.id === warehouseId) || warehouseId);
+  clientDownloadStockTemplate(targetWh, products, allStock, warehouses);
   return true;
 };
 
 export const validateStockExcelFile = async (file, warehouseId) => {
-  const [products, stockList] = await Promise.all([
+  const [warehouses, products, stockList] = await Promise.all([
+    fetchWarehouses(),
     fetchProducts(true),
     fetchWarehouseStock(warehouseId === 'all' ? null : warehouseId)
   ]);
-
-  return await clientParseStockExcel(file, warehouseId, products, stockList);
+  const targetWh = warehouseId === 'all' ? 'all' : (warehouses.find(w => w.id === warehouseId) || warehouseId);
+  return await clientParseStockExcel(file, targetWh, products, stockList, warehouses);
 };
 
 export const commitStockExcelImport = async (warehouseId, diffList, mode = 'partial') => {
@@ -1148,3 +1183,64 @@ export const saveRegionWarehouseMap = async (mapping) => {
 
   return { success: true, mapping };
 };
+
+// ==========================================
+// 9. ПАРТНЁРСКИЙ ДОСТУП B2B И СОХРАНЕНИЕ ЗАЯВОК
+// ==========================================
+
+export const authenticateB2BPartner = async (login, password) => {
+  if (!password || !password.trim()) {
+    throw new Error('Введите код или пароль партнёра');
+  }
+  const cleanPwd = password.trim();
+
+  // Проверяем через серверную функцию авторизации Supabase
+  try {
+    const result = await callSupabaseRpc('laute_login', {
+      p_password: cleanPwd,
+      p_ip: typeof window !== 'undefined' ? window.location.hostname : 'unknown'
+    });
+    if (result && result.success) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('laute_partner_token', result.token || 'b2b_verified');
+      }
+      return { success: true, login: login || 'Партнёр LAUTE' };
+    }
+  } catch {
+    // fallback if RPC throws
+  }
+
+  throw new Error('Неверный пароль или код партнёра. Для получения доступа обратитесь в оптовый отдел LAUTE.');
+};
+
+export const submitLeadInquiry = async (leadData) => {
+  const payload = {
+    ...leadData,
+    id: `lead_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    createdAt: new Date().toISOString()
+  };
+
+  // Сохраняем в локальный журнал обращений браузера и отправляем на API при наличии
+  if (typeof window !== 'undefined') {
+    try {
+      const existing = JSON.parse(localStorage.getItem('laute_leads_log') || '[]');
+      existing.unshift(payload);
+      localStorage.setItem('laute_leads_log', JSON.stringify(existing.slice(0, 100)));
+    } catch {
+      // ignore
+    }
+  }
+
+  try {
+    await fetch(`${getApiBase()}/leads`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch {
+    // Статический хостинг без локального Node-сервера
+  }
+
+  return { success: true, lead: payload };
+};
+

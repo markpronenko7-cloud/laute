@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Clock, CheckCircle2, Phone, Mail } from 'lucide-react';
+import { submitLeadInquiry } from '../services/adminApi';
 
 export const ServicePage = () => {
   const { region, lang, t } = useApp();
@@ -23,8 +24,16 @@ export const ServicePage = () => {
 
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    try {
+      await submitLeadInquiry({
+        source: 'service_page',
+        ...formData
+      });
+    } catch {
+      // ignore
+    }
     setIsSubmitted(true);
   };
 
@@ -71,7 +80,7 @@ export const ServicePage = () => {
 
             <div className="service-sla-banner">
               <Clock size={20} className="sla-icon" />
-              <span className="sla-phrase">«{sp.slaTitle || 'Регламент рассмотрения — 36 часов в рабочие дни'}»</span>
+              <span className="sla-phrase">«{sp.slaTitle || 'Ответ будет дан в течение 36 часов в рабочие дни'}»</span>
             </div>
           </div>
         </div>

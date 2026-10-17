@@ -416,6 +416,7 @@ export const AppProvider = ({ children }) => {
     closeAuthModal: () => setIsAuthModalOpen(false),
     isExcelModalOpen,
     openExcelModal: () => setIsExcelModalOpen(true),
+    closeExcelModal: () => setIsExcelModalOpen(false),
     currentUser: adminSession,
     setCurrentUser: setAdminSession,
     // Warehouse & Regional Stocks Synchronization

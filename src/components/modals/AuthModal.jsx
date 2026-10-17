@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { X, Lock, ArrowRight, Info, CheckCircle2, LogOut, Warehouse } from 'lucide-react';
+import { authenticateB2BPartner } from '../../services/adminApi';
 
 export const AuthModal = () => {
   const { 
@@ -16,21 +17,35 @@ export const AuthModal = () => {
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [successNotice, setSuccessNotice] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!isAuthModalOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!password) return;
-    setIsB2BAuthorized(true);
-    setSuccessNotice(true);
-    setTimeout(() => {
-      setSuccessNotice(false);
-      closeAuthModal();
-    }, 1200);
+    setAuthError('');
+    setIsLoading(true);
+    try {
+      await authenticateB2BPartner(login, password);
+      setIsB2BAuthorized(true);
+      setSuccessNotice(true);
+      setTimeout(() => {
+        setSuccessNotice(false);
+        closeAuthModal();
+      }, 1200);
+    } catch (err) {
+      setAuthError(err.message || 'Неверный пароль партнёра');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('laute_partner_token');
+    }
     setIsB2BAuthorized(false);
     closeAuthModal();
   };
@@ -116,12 +131,21 @@ export const AuthModal = () => {
                 required
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (authError) setAuthError('');
+                }}
               />
             </div>
 
-            <button type="submit" className="btn btn-primary btn-full">
-              <span>{lang === 'kz' ? 'Жеке кабинетке кіру' : lang === 'en' ? 'Log in to Portal' : 'Войти в личный кабинет'}</span>
+            {authError && (
+              <div style={{ marginBottom: '12px', padding: '10px 12px', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.35)', color: '#FCA5A5', fontSize: '0.82rem' }}>
+                {authError}
+              </div>
+            )}
+
+            <button type="submit" className="btn btn-primary btn-full" disabled={isLoading}>
+              <span>{isLoading ? 'Проверка...' : (lang === 'kz' ? 'Жеке кабинетке кіру' : lang === 'en' ? 'Log in to Portal' : 'Войти в личный кабинет')}</span>
               <ArrowRight size={16} />
             </button>
 

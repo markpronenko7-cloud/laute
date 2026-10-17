@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Store, Building2, ShoppingBag, Phone, Mail, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { submitLeadInquiry } from '../services/adminApi';
 
 export const WhereToBuyPage = () => {
   const { openPartnerModal, lang, t } = useApp();
@@ -10,8 +11,16 @@ export const WhereToBuyPage = () => {
 
   const wp = t.whereToBuyPage || {};
 
-  const handleInquirySubmit = (e) => {
+  const handleInquirySubmit = async (e) => {
     e.preventDefault();
+    try {
+      await submitLeadInquiry({
+        source: 'where_to_buy_city_inquiry',
+        city: cityQuery
+      });
+    } catch {
+      // ignore
+    }
     setInquirySent(true);
   };
 

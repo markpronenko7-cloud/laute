@@ -2,9 +2,8 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { X, Scale, Check, ArrowRight, ShieldCheck, MapPin } from 'lucide-react';
 import { classifyProductImages, formatProductDisplay } from '../../utils/imageHelper';
-
 export const ProductComparisonModal = () => {
-  const { comparisonItems, closeComparisonModal, openProductModal, openPartnerModal } = useApp();
+  const { comparisonItems, closeComparisonModal, openProductModal, openPartnerModal, getStockForSku, activeWarehouse } = useApp();
 
   if (!comparisonItems || comparisonItems.length < 2) return null;
 
@@ -38,6 +37,24 @@ export const ProductComparisonModal = () => {
     }
     return 'Увеличенный вылет излива, комфорт для глубоких моек и габаритной посуды';
   };
+
+  const stockA = getStockForSku ? getStockForSku(itemA.article) : null;
+  const stockB = getStockForSku ? getStockForSku(itemB.article) : null;
+
+  const getStockDisplay = (item, stock) => {
+    if (stock && stock.status === 'in_stock') {
+      return { inStock: true, text: `${stock.quantity} шт.` };
+    }
+    const citiesWithStock = Object.entries(item.cityStock || {}).filter(([_, q]) => q > 0);
+    if (citiesWithStock.length > 0) {
+      const [cityName, qty] = citiesWithStock[0];
+      return { inStock: true, text: `${qty} шт. (${cityName})` };
+    }
+    return { inStock: false, text: 'Под заказ' };
+  };
+
+  const dispStockA = getStockDisplay(itemA, stockA);
+  const dispStockB = getStockDisplay(itemB, stockB);
 
   return (
     <div className="modal-overlay" onClick={closeComparisonModal}>
@@ -138,15 +155,15 @@ export const ProductComparisonModal = () => {
                 <td>{itemB.specs}</td>
               </tr>
               <tr>
-                <td className="cmp-label">Наличие (Алматы)</td>
+                <td className="cmp-label">{activeWarehouse ? `Наличие (${activeWarehouse.name})` : 'Наличие на складе'}</td>
                 <td>
-                  <span className={`stock-badge ${itemA.cityStock?.['Алматы'] > 0 ? 'in' : 'out'}`}>
-                    {itemA.cityStock?.['Алматы'] > 0 ? `${itemA.cityStock['Алматы']} шт.` : 'Под заказ'}
+                  <span className={`stock-badge ${dispStockA.inStock ? 'in' : 'out'}`}>
+                    {dispStockA.text}
                   </span>
                 </td>
                 <td>
-                  <span className={`stock-badge ${itemB.cityStock?.['Алматы'] > 0 ? 'in' : 'out'}`}>
-                    {itemB.cityStock?.['Алматы'] > 0 ? `${itemB.cityStock['Алматы']} шт.` : 'Под заказ'}
+                  <span className={`stock-badge ${dispStockB.inStock ? 'in' : 'out'}`}>
+                    {dispStockB.text}
                   </span>
                 </td>
               </tr>

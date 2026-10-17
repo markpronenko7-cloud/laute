@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { X, Send, Clock, CheckCircle2 } from 'lucide-react';
+import { submitLeadInquiry } from '../../services/adminApi';
 
 export const ServiceModal = () => {
   const { isServiceModalOpen, closeServiceModal, t } = useApp();
@@ -17,10 +18,19 @@ export const ServiceModal = () => {
 
   if (!isServiceModalOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const generatedTicket = 'LT-SRV-' + Math.floor(100000 + Math.random() * 900000);
     setTicketId(generatedTicket);
+    try {
+      await submitLeadInquiry({
+        source: 'service_modal',
+        ticketId: generatedTicket,
+        ...formData
+      });
+    } catch {
+      // ignore
+    }
     setSubmitted(true);
   };
 
