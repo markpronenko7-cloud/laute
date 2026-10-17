@@ -21,10 +21,8 @@ import {
 } from 'lucide-react';
 import { classifyProductImages, formatProductDisplay } from '../../utils/imageHelper';
 
-export const ProductDetailModal = () => {
+export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) => {
   const {
-    selectedProduct,
-    closeProductModal,
     openAuthModal,
     startComparison,
     addToCart,
@@ -44,17 +42,49 @@ export const ProductDetailModal = () => {
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const touchStartRef = useRef(null);
 
-  if (!selectedProduct) return null;
-
   const baseUrl = import.meta.env.BASE_URL;
-  const pm = t.productModal || {};
+  const pm = t?.productModal || {};
+
+  // If product is flagged as not found
+  if (selectedProduct?.notFound) {
+    return (
+      <div className="modal-overlay" onClick={closeProductModal}>
+        <div
+          className="modal-content product-detail-modal"
+          onClick={(e) => e.stopPropagation()}
+          style={{ maxWidth: '480px', width: '92%', padding: '36px 28px', textAlign: 'center' }}
+        >
+          <button className="modal-close-btn" onClick={closeProductModal} aria-label="Закрыть">
+            <X size={20} />
+          </button>
+          <div style={{ marginBottom: 16, display: 'inline-flex', padding: 16, borderRadius: '50%', background: 'rgba(234, 88, 12, 0.12)', color: '#EA580C' }}>
+            <Package size={36} />
+          </div>
+          <h3 style={{ color: '#FFFFFF', fontSize: '1.35rem', marginBottom: 10, fontWeight: 700 }}>
+            Товар не найден
+          </h3>
+          <p style={{ color: '#94A3B8', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: 24 }}>
+            Запрошенный артикул <strong>{selectedProduct.article}</strong> отсутствует в каталоге или был удалён.
+          </p>
+          <button
+            type="button"
+            className="btn btn-primary"
+            style={{ width: '100%', justifyContent: 'center' }}
+            onClick={closeProductModal}
+          >
+            Вернуться в каталог
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const displayInfo = formatProductDisplay(selectedProduct);
   const imgInfo = classifyProductImages(selectedProduct, baseUrl);
 
   // Фотографии галереи (смеситель + дополнительные фото + упаковка)
-  const galleryPhotos = imgInfo.allPhotos;
-  const activePhotoSrc = galleryPhotos[selectedPhoto] || imgInfo.mainPhoto;
+  const galleryPhotos = imgInfo?.allPhotos || [];
+  const activePhotoSrc = galleryPhotos[selectedPhoto] || imgInfo?.mainPhoto || `${baseUrl}images/cat_laute_brand.jpg`;
 
   // Сбор всех медиа-файлов строго ЭТОГО товара (фотографии + чертежи)
   const productMediaList = useMemo(() => {
@@ -651,6 +681,56 @@ export const ProductDetailModal = () => {
         )}
       </div>
     </div>
+  );
+};
+
+class ProductModalErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error, info) {
+    console.error('ProductDetailModal crashed:', error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="modal-overlay" onClick={this.props.onClose}>
+          <div
+            className="modal-content product-detail-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '480px', width: '92%', padding: '36px 24px', textAlign: 'center' }}
+          >
+            <h3 style={{ color: '#FFFFFF', marginBottom: 12 }}>Не удалось открыть товар</h3>
+            <p style={{ color: '#94A3B8', fontSize: '0.9rem', marginBottom: 20 }}>
+              Произошла непредвиденная ошибка при отображении карточки. Пожалуйста, попробуйте снова.
+            </p>
+            <button type="button" className="btn btn-primary" onClick={this.props.onClose}>
+              Закрыть
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export const ProductDetailModal = () => {
+  const { selectedProduct, closeProductModal } = useApp();
+  if (!selectedProduct) return null;
+
+  return (
+    <ProductModalErrorBoundary onClose={closeProductModal}>
+      <ProductDetailModalInner
+        key={selectedProduct.article || 'product-modal'}
+        selectedProduct={selectedProduct}
+        closeProductModal={closeProductModal}
+      />
+    </ProductModalErrorBoundary>
   );
 };
 

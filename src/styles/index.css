@@ -455,12 +455,12 @@ img {
   z-index: 1000;
   height: calc(var(--header-height) + var(--sat, 0px));
   padding-top: var(--sat, 0px);
-  background: rgba(11, 15, 25, calc(0.78 + var(--header-scroll-ratio, 0) * 0.18));
+  background: rgba(11, 14, 22, calc(0.25 + var(--header-scroll-ratio, 0) * 0.62));
   color: #FFFFFF;
-  border-bottom: 1px solid rgba(255, 255, 255, calc(0.10 + var(--header-scroll-ratio, 0) * 0.08));
-  backdrop-filter: blur(calc(12px + var(--header-scroll-ratio, 0) * 12px));
-  -webkit-backdrop-filter: blur(calc(12px + var(--header-scroll-ratio, 0) * 12px));
-  box-shadow: 0 4px calc(8px + var(--header-scroll-ratio, 0) * 20px) rgba(0, 0, 0, calc(0.20 + var(--header-scroll-ratio, 0) * 0.25));
+  border-bottom: 1px solid rgba(255, 255, 255, calc(0.08 + var(--header-scroll-ratio, 0) * 0.08));
+  backdrop-filter: blur(calc(8px + var(--header-scroll-ratio, 0) * 12px));
+  -webkit-backdrop-filter: blur(calc(8px + var(--header-scroll-ratio, 0) * 12px));
+  box-shadow: 0 4px calc(8px + var(--header-scroll-ratio, 0) * 20px) rgba(0, 0, 0, calc(var(--header-scroll-ratio, 0) * 0.35));
   transition: background 0.25s ease,
     border-color 0.25s ease,
     box-shadow 0.25s ease;
@@ -592,8 +592,8 @@ img {
   align-items: center;
   gap: clamp(8px, 1.2vw, 22px);
   min-width: 0;
-  flex: 1 1 auto;
-  overflow: visible;
+  flex: 0 1 auto;
+  overflow: hidden;
 }
 
 @media (max-width: 768px) {
@@ -609,11 +609,15 @@ img {
 
 /* In desktop mode, display desktop nav */
 .header-desktop-mode .nav-desktop {
-  display: block;
+  display: block !important;
 }
 
-/* Pure CSS desktop navigation: active on all screens >= 1080px (covering all MacBooks and laptops) */
-@media (min-width: 1080px) {
+.header-compact-mode .nav-desktop {
+  display: none !important;
+}
+
+/* Pure CSS fallback: desktop navigation active on screens >= 1680px where all languages are guaranteed to fit without collision */
+@media (min-width: 1680px) {
   .header:not(.header-compact-mode) .nav-desktop {
     display: block;
   }
@@ -956,8 +960,12 @@ img {
   display: none !important;
 }
 
-@media (min-width: 1140px) {
-  .mobile-toggle {
+.header-compact-mode .mobile-toggle {
+  display: inline-flex !important;
+}
+
+@media (min-width: 1680px) {
+  .header:not(.header-compact-mode) .mobile-toggle {
     display: none !important;
   }
 }

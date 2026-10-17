@@ -238,11 +238,90 @@ export const AppProvider = ({ children }) => {
 
   const openProductModal = useCallback((prod) => {
     setSelectedProduct(prod);
+    if (typeof window !== 'undefined' && prod?.article) {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('product', prod.article);
+        window.history.replaceState({}, '', url.toString());
+      } catch {
+        // ignore
+      }
+    }
   }, []);
 
   const closeProductModal = useCallback(() => {
     setSelectedProduct(null);
+    if (typeof window !== 'undefined') {
+      try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('product') || url.searchParams.has('sku')) {
+          url.searchParams.delete('product');
+          url.searchParams.delete('sku');
+          window.history.replaceState({}, '', url.toString());
+        }
+      } catch {
+        // ignore
+      }
+    }
   }, []);
+
+  // Support direct URL opening (?product=SKU or #product/SKU or /product/SKU) and page refresh
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const syncProductFromUrl = () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        let sku = params.get('product') || params.get('sku');
+
+        if (!sku) {
+          const hash = window.location.hash.replace(/^#\/?/, '');
+          if (hash.startsWith('product/')) {
+            sku = hash.split('/')[1];
+          } else if (hash.includes('product=')) {
+            const m = hash.match(/product=([^&]+)/);
+            if (m) sku = decodeURIComponent(m[1]);
+          }
+        }
+
+        if (!sku) {
+          const path = window.location.pathname.replace(/\/laute\/?/, '').replace(/^\//, '');
+          if (path.startsWith('product/')) {
+            sku = path.split('/')[1];
+          }
+        }
+
+        if (!sku && window.location.search.startsWith('?/product/')) {
+          const seg = window.location.search.slice(10).split('&')[0];
+          if (seg) sku = decodeURIComponent(seg);
+        }
+
+        if (sku && products && products.length > 0) {
+          const cleanSku = String(sku).trim().toLowerCase();
+          const found = products.find(p => p.article && p.article.toLowerCase() === cleanSku);
+          if (found) {
+            setSelectedProduct(found);
+          } else {
+            setSelectedProduct({
+              article: sku,
+              name: `Товар ${sku}`,
+              notFound: true
+            });
+          }
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    syncProductFromUrl();
+    window.addEventListener('popstate', syncProductFromUrl);
+    window.addEventListener('hashchange', syncProductFromUrl);
+    return () => {
+      window.removeEventListener('popstate', syncProductFromUrl);
+      window.removeEventListener('hashchange', syncProductFromUrl);
+    };
+  }, [products]);
 
   const startComparison = useCallback((itemA, itemB) => {
     setComparisonItems([itemA, itemB]);
