@@ -60,8 +60,9 @@ export const HomePage = () => {
         source: 'home_b2b_lead',
         ...leadForm
       });
-    } catch {
-      // ignore
+    } catch (err) {
+      window.alert(err.message || 'Не удалось отправить заявку. Попробуйте ещё раз.');
+      return;
     }
     setLeadSubmitted(true);
   };

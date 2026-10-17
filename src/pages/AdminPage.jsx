@@ -253,18 +253,6 @@ export const AdminPage = () => {
   const [initialPasswordInput, setInitialPasswordInput] = useState('');
   const [initialPasswordConfirm, setInitialPasswordConfirm] = useState('');
 
-  const handleEnterDemoMode = () => {
-    setIsDemoMode(true);
-    setIsAuthenticated(true);
-    setAdminSession({
-      id: 'demo_session',
-      role: 'demo_inspector',
-      isDemo: true,
-      name: 'Ознакомительный просмотр'
-    });
-    showNotice('Включён ознакомительный режим. Доступен полный просмотр всех разделов.');
-  };
-
   // Active Tab: 1 to 13
   const [activeTab, setActiveTab] = useState('dashboard');
   const [notice, setNotice] = useState(null);
@@ -1580,24 +1568,6 @@ export const AdminPage = () => {
               </button>
             </form>
           )}
-
-          {/* Demonstration Inspection Mode for testing and review */}
-          <div className="admin-demo-access-block">
-            <div className="admin-demo-divider">
-              <span>или</span>
-            </div>
-            <button
-              type="button"
-              className="admin-btn admin-btn-outline admin-btn-full admin-btn-demo"
-              onClick={handleEnterDemoMode}
-            >
-              <Eye size={15} />
-              <span>Ознакомительный демо-режим</span>
-            </button>
-            <p className="admin-demo-access-hint">
-              Полный просмотр разделов каталога, цен и настроек панели сотрудников LAUTE
-            </p>
-          </div>
 
           <div className="admin-login-footer">
             <button
@@ -5672,7 +5642,7 @@ export const AdminPage = () => {
                 <h3 className="card-section-title">Смена пароля доступа к панели управления</h3>
                 <p className="section-desc">
                   Доступ ко всей административной панели осуществляется по единственному безопасному мастер-паролю.
-                  Пароль шифруется на сервере алгоритмом <strong>scrypt</strong> с уникальной криптографической солью.
+                  Пароль проверяется сервером. Сессия требуется для изменения данных.
                 </p>
 
                 {passwordChangeMsg && (
@@ -5762,26 +5732,26 @@ export const AdminPage = () => {
                 <div className="sys-params-grid">
                   <div className="param-item">
                     <span className="param-label">База данных PostgreSQL:</span>
-                    <span className="param-val" style={{ color: diagnosticsResult?.postgres?.connected ? 'var(--admin-success, #10b981)' : 'var(--admin-danger, #ef4444)', fontWeight: 600 }}>
-                      {diagnosticsResult ? (diagnosticsResult.postgres.connected ? `✓ Подключено (${diagnosticsResult.postgres.responseTimeMs} мс)` : `✕ Ошибка: ${diagnosticsResult.postgres.error || 'Недоступно'}`) : 'Проверка выполняется...'}
+                    <span className="param-val" style={{ color: diagnosticsResult?.database?.status === 'connected' ? 'var(--admin-success, #10b981)' : 'var(--admin-danger, #ef4444)', fontWeight: 600 }}>
+                      {diagnosticsResult ? (diagnosticsResult.database?.status === 'connected' ? `✓ Подключено (${diagnosticsResult.database.latencyMs} мс)` : `✕ ${diagnosticsResult.database?.details || 'Недоступно'}`) : 'Проверка выполняется...'}
                     </span>
                   </div>
                   <div className="param-item">
                     <span className="param-label">Облачное хранилище (Storage):</span>
-                    <span className="param-val" style={{ color: diagnosticsResult?.storage?.connected ? 'var(--admin-success, #10b981)' : 'var(--admin-danger, #ef4444)', fontWeight: 600 }}>
-                      {diagnosticsResult ? (diagnosticsResult.storage.connected ? `✓ Подключено (Bucket: ${diagnosticsResult.storage.bucket}, ${diagnosticsResult.storage.responseTimeMs} мс)` : `✕ Ошибка: ${diagnosticsResult.storage.error || 'Недоступно'}`) : 'Проверка выполняется...'}
+                    <span className="param-val" style={{ color: diagnosticsResult?.storage?.status === 'connected' ? 'var(--admin-success, #10b981)' : 'var(--admin-danger, #ef4444)', fontWeight: 600 }}>
+                      {diagnosticsResult ? (diagnosticsResult.storage?.status === 'connected' ? `✓ Подключено (${diagnosticsResult.storage.latencyMs} мс)` : `✕ ${diagnosticsResult.storage?.details || 'Недоступно'}`) : 'Проверка выполняется...'}
                     </span>
                   </div>
                   <div className="param-item">
                     <span className="param-label">Хостинг и Backend API:</span>
                     <span className="param-val" style={{ color: 'var(--admin-text, #1e293b)' }}>
-                      {diagnosticsResult ? (diagnosticsResult.backendApi?.hasBackend ? `✓ Backend API активен (${diagnosticsResult.backendApi.backendUrl})` : `Режим GitHub Pages (статический хостинг, прямая работа с Supabase)`) : 'GitHub Pages / Node.js'}
+                      {diagnosticsResult ? (diagnosticsResult.backend?.status === 'connected' ? `✓ ${diagnosticsResult.backend.details}` : 'GitHub Pages: серверный API недоступен') : 'Проверка выполняется...'}
                     </span>
                   </div>
                   <div className="param-item">
                     <span className="param-label">Безопасность и авторизация:</span>
                     <span className="param-val" style={{ color: 'var(--admin-success, #10b981)', fontWeight: 600 }}>
-                      ✓ Активна (scrypt + rate limiting)
+                      Авторизация через Supabase; параметры защиты проверяются на сервере
                     </span>
                   </div>
                 </div>

@@ -18,8 +18,9 @@ export const WhereToBuyPage = () => {
         source: 'where_to_buy_city_inquiry',
         city: cityQuery
       });
-    } catch {
-      // ignore
+    } catch (err) {
+      window.alert(err.message || 'Не удалось отправить запрос. Попробуйте ещё раз.');
+      return;
     }
     setInquirySent(true);
   };

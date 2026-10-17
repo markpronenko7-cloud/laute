@@ -31,8 +31,9 @@ export const ServicePage = () => {
         source: 'service_page',
         ...formData
       });
-    } catch {
-      // ignore
+    } catch (err) {
+      window.alert(err.message || 'Не удалось отправить обращение. Попробуйте ещё раз.');
+      return;
     }
     setIsSubmitted(true);
   };

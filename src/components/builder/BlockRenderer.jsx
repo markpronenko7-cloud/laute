@@ -81,8 +81,9 @@ export const BlockRenderer = ({
         source: block.formType || 'page_form',
         ...formData
       });
-    } catch {
-      // ignore
+    } catch (err) {
+      window.alert(err.message || 'Не удалось отправить заявку. Попробуйте ещё раз.');
+      return;
     }
     setFormSubmitted(true);
   };

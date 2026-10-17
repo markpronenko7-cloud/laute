@@ -136,8 +136,8 @@ function triggerBlobDownload(blob, filename) {
 export const checkAuthStatus = async () => {
   return {
     isInitialized: true,
-    authMode: 'supabase_pgcrypto_bcrypt',
-    rateLimitEnabled: true
+    authMode: 'supabase',
+    rateLimitEnabled: null
   };
 };
 
@@ -1423,6 +1423,41 @@ export const authenticateB2BPartner = async (login, password) => {
   throw new Error('Неверный пароль или код партнёра. Для получения доступа обратитесь в оптовый отдел LAUTE.');
 };
 
+const MAIL_INBOX = 'opt@laute.ltd';
+
+async function sendInquiryEmail(subject, message, customerName, customerEmail, managerEmail = null) {
+  const payload = {
+    _subject: subject,
+    name: customerName || 'Посетитель сайта LAUTE',
+    message,
+    _url: typeof window !== 'undefined' ? window.location.href : 'https://markpronenko7-cloud.github.io/laute/'
+  };
+  if (customerEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
+    payload.email = customerEmail;
+  }
+  if (managerEmail && managerEmail !== MAIL_INBOX && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(managerEmail)) {
+    payload._cc = managerEmail;
+  }
+
+  let response;
+  try {
+    response = await fetch(`https://formsubmit.co/ajax/${MAIL_INBOX}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(15000)
+    });
+  } catch {
+    throw new Error('Не удалось отправить заявку по электронной почте. Попробуйте ещё раз или напишите на opt@laute.ltd.');
+  }
+
+  const result = await response.json().catch(() => null);
+  if (!response.ok || (result?.success !== true && result?.success !== 'true')) {
+    throw new Error('Почтовый сервис не подтвердил приём заявки. Попробуйте ещё раз или напишите на opt@laute.ltd.');
+  }
+  return true;
+}
+
 export const submitLeadInquiry = async (leadData) => {
   const payload = {
     ...leadData,
@@ -1430,7 +1465,17 @@ export const submitLeadInquiry = async (leadData) => {
     createdAt: new Date().toISOString()
   };
 
-  // Сохраняем в локальный журнал обращений браузера и отправляем на API при наличии
+  const details = Object.entries(payload)
+    .map(([key, value]) => `${key}: ${typeof value === 'object' ? JSON.stringify(value) : value}`)
+    .join('\n');
+  await sendInquiryEmail(
+    `Обращение с сайта LAUTE — ${payload.source || 'форма'}`,
+    details,
+    payload.name || payload.fullName || payload.contactPerson,
+    payload.email
+  );
+
+  // Локальная копия сохраняется только после подтверждения приёма почтовым сервисом.
   if (typeof window !== 'undefined') {
     try {
       const existing = JSON.parse(localStorage.getItem('laute_leads_log') || '[]');
@@ -1439,16 +1484,6 @@ export const submitLeadInquiry = async (leadData) => {
     } catch {
       // ignore
     }
-  }
-
-  try {
-    await fetch(`${getApiBase()}/leads`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-  } catch {
-    // Статический хостинг без локального Node-сервера
   }
 
   return { success: true, lead: payload };
@@ -1842,26 +1877,62 @@ export const submitCartOrderInquiry = async ({
     }
   };
 
-  // 7. Отправка на защищённый серверный endpoint /api/orders (база данных + почтовый сервис)
+  // 7. Локальный сервер может сохранить заказ и отправить письмо, если он запущен.
   let serverSaved = false;
-  try {
-    const response = await fetch(`${getApiBase()}/orders`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orderRecord)
-    });
+  let emailAccepted = false;
+  if (typeof window === 'undefined' || !window.location.hostname.endsWith('github.io')) {
+    try {
+      const response = await fetch(`${getApiBase()}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderRecord)
+      });
 
-    if (response.ok) {
-      const serverResult = await response.json();
-      if (serverResult && serverResult.success) {
-        serverSaved = true;
-        if (serverResult.order?.emailNotification) {
-          orderRecord.emailNotification = serverResult.order.emailNotification;
+      if (response.ok) {
+        const serverResult = await response.json();
+        if (serverResult && serverResult.success) {
+          serverSaved = true;
+          if (serverResult.order?.emailNotification) {
+            orderRecord.emailNotification = serverResult.order.emailNotification;
+            emailAccepted = serverResult.order.emailNotification.sent === true;
+          }
         }
       }
+    } catch {
+      // Локальный Node.js API может быть не запущен.
     }
-  } catch {
-    // На статическом хостинге GitHub Pages локальный Node-сервер недоступен
+  }
+
+  if (!emailAccepted) {
+    const lines = [
+      `Заявка: ${orderRecord.inquiryNumber}`,
+      `Дата: ${orderRecord.createdAt}`,
+      `Имя: ${cleanName}`,
+      `Контакт: ${cleanContact}`,
+      `Город: ${cleanCity}`,
+      `Комментарий: ${cleanComment || 'Без комментария'}`,
+      `Менеджер: ${routing.managerName || 'Не назначен'}`,
+      `Территория: ${routing.territoryName || 'Не определена'}`,
+      '',
+      ...normalizedItems.map((item, index) => `${index + 1}. ${item.article} — ${item.title} — ${item.quantity} шт. — ${item.lineSubtotal == null ? 'Цена по запросу' : `${item.lineSubtotal} ₽`}`),
+      '',
+      `Итого по известным ценам: ${totalKnownAmount} ₽`
+    ];
+    await sendInquiryEmail(
+      `Заявка ${orderRecord.inquiryNumber} — ${cleanCity}`,
+      lines.join('\n'),
+      cleanName,
+      cleanContact,
+      routing.managerEmail
+    );
+    emailAccepted = true;
+    orderRecord.emailNotification = {
+      sent: false,
+      status: 'accepted_by_email_service',
+      recipientEmail: MAIL_INBOX,
+      copyTo: routing.managerEmail || null,
+      dispatchedAt: null
+    };
   }
 
   // 8. Попытка записи через Supabase RPC (если настроен публичный приём заявок)
@@ -1876,7 +1947,7 @@ export const submitCartOrderInquiry = async ({
     // RPC не развёрнут или ключ не активен
   }
 
-  // 9. Надёжное сохранение в защищённом хранилище служебного интерфейса (недоступно для публичного чтения на сайте, читается только в закрытой админ-панели /admin)
+  // 9. Локальная копия для восстановления в браузере отправителя.
   if (typeof window !== 'undefined') {
     try {
       const existingOrders = JSON.parse(localStorage.getItem(ORDER_INQUIRIES_STORAGE_KEY) || '[]');
@@ -1893,6 +1964,7 @@ export const submitCartOrderInquiry = async ({
 
   return {
     success: true,
+    emailAccepted,
     serverSaved,
     order: orderRecord
   };

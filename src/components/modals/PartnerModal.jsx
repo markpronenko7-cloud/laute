@@ -25,8 +25,9 @@ export const PartnerModal = () => {
         source: 'partner_modal',
         ...formData
       });
-    } catch {
-      // ignore
+    } catch (err) {
+      window.alert(err.message || 'Не удалось отправить заявку. Попробуйте ещё раз.');
+      return;
     }
     setSubmitted(true);
     setTimeout(() => {

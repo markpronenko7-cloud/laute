@@ -28,8 +28,9 @@ export const ServiceModal = () => {
         ticketId: generatedTicket,
         ...formData
       });
-    } catch {
-      // ignore
+    } catch (err) {
+      window.alert(err.message || 'Не удалось отправить обращение. Попробуйте ещё раз.');
+      return;
     }
     setSubmitted(true);
   };

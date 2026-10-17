@@ -206,7 +206,7 @@ const CartModal = () => {
                 {step === 'form'
                   ? ct.inquiryFormTitle || 'Отправка заявки региональному менеджеру'
                   : step === 'success'
-                  ? ct.inquirySuccessTitle || 'Заявка принята в обработку'
+                  ? 'Заявка передана почтовому сервису'
                   : ct.cartTitle || 'Корзина заявки'}
               </h2>
               <p className="laute-cart-subtitle">
@@ -591,7 +591,7 @@ const CartModal = () => {
             </div>
 
             <h3 className="laute-inquiry-success-title">
-              {ct.inquirySuccessTitle || 'Заявка принята в обработку'}
+              Заявка передана почтовому сервису
             </h3>
 
             <div className="laute-inquiry-number-card">
@@ -637,13 +637,11 @@ const CartModal = () => {
               )}
 
               <p className="laute-inquiry-status-note">
-                {ct.inquirySavedNotice ||
-                  'Заявка сохранена в системе LAUTE и доступна в служебном интерфейсе.'}{' '}
                 {submittedOrder.emailNotification?.sent
-                  ? ct.inquiryEmailSentNotice ||
-                    'Уведомление с полным составом заявки передано на почту ответственного менеджера.'
-                  : ct.inquiryEmailQueuedNotice ||
-                    'Заявка зафиксирована в реестре управления территориальным менеджером.'}
+                  ? `Письмо отправлено на ${submittedOrder.emailNotification.recipientEmail}.`
+                  : 'Почтовый сервис принял заявку для отправки на opt@laute.ltd.'}
+                {submittedOrder.emailNotification?.copyTo &&
+                  ` Копия передана для отправки на ${submittedOrder.emailNotification.copyTo}.`}
               </p>
             </div>
 

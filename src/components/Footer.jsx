@@ -268,9 +268,9 @@ export const Footer = () => {
               e.preventDefault();
               navigateTo('admin');
             }}
-            title="Панель сотрудников"
+            title="Управление"
           >
-            Панель сотрудников
+            Управление
           </a>
         </div>
       </div>
