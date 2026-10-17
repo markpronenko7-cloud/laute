@@ -137,7 +137,7 @@ export const checkAuthStatus = async () => {
   return {
     isInitialized: true,
     authMode: 'supabase',
-    rateLimitEnabled: null
+    rateLimitEnabled: true
   };
 };
 
@@ -153,7 +153,7 @@ export const loginWithPassword = async (password) => {
   try {
     const result = await callSupabaseRpc('laute_login', {
       p_password: password.trim(),
-      p_ip: typeof window !== 'undefined' ? window.location.hostname : 'unknown'
+      p_ip: null
     });
 
     if (!result || !result.success) {
