@@ -109,7 +109,10 @@ import {
   saveTerritoryRules,
   fetchOrderInquiries,
   updateOrderInquiryInAdmin,
-  deleteOrderInquiryInAdmin
+  deleteOrderInquiryInAdmin,
+  resolveMediaUrl,
+  checkSystemDiagnostics,
+  getAuthToken
 } from '../services/adminApi';
 import { REGIONS_CONFIG } from '../data/regionsData';
 import { VisualPageBuilder } from '../components/builder/VisualPageBuilder';
@@ -118,6 +121,35 @@ import {
   parseStockExcelClient
 } from '../utils/excelManager';
 import '../styles/admin.css';
+
+// Demo mode privacy masking helpers for customer personal data
+const maskCustomerName = (name) => {
+  if (!name) return '—';
+  const trimmed = String(name).trim();
+  if (trimmed.length <= 2) return '**';
+  return trimmed[0] + '***' + trimmed.slice(-1);
+};
+
+const maskCustomerContact = (contact) => {
+  if (!contact) return '—';
+  const str = String(contact).trim();
+  if (str.includes('@')) {
+    const parts = str.split('@');
+    const user = parts[0];
+    const domain = parts[1] || '';
+    const maskedUser = user.length > 2 ? `${user[0]}***${user.slice(-1)}` : '***';
+    const domainParts = domain.split('.');
+    const ext = domainParts.length > 1 ? domainParts.pop() : 'com';
+    return `${maskedUser}@***.${ext}`;
+  }
+  // Phone: +7 (9**) ***-**-XX
+  const digits = str.replace(/\D/g, '');
+  if (digits.length >= 7) {
+    const last2 = str.slice(-2);
+    return `+* (***) ***-**-${last2}`;
+  }
+  return '***-**-**';
+};
 
 // Image Field Editor component with file upload, preview, and path editing
 const ImageFieldEditor = ({ value, onChange, label = 'Изображение' }) => {
@@ -142,9 +174,7 @@ const ImageFieldEditor = ({ value, onChange, label = 'Изображение' })
     }
   };
 
-  const previewSrc = value 
-    ? (value.startsWith('http') || value.startsWith('/') ? value : `${import.meta.env.BASE_URL}${value}`)
-    : '';
+  const previewSrc = value ? resolveMediaUrl(value) : '';
 
   return (
     <div className="image-field-editor">
@@ -360,6 +390,8 @@ export const AdminPage = () => {
 
   // Settings State
   const [systemStats, setSystemStats] = useState(null);
+  const [diagnosticsResult, setDiagnosticsResult] = useState(null);
+  const [isCheckingDiagnostics, setIsCheckingDiagnostics] = useState(false);
   const [oldPasswordChange, setOldPasswordChange] = useState('');
   const [newPasswordChange, setNewPasswordChange] = useState('');
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
@@ -491,10 +523,26 @@ export const AdminPage = () => {
     try {
       const stats = await fetchSystemSettings();
       setSystemStats(stats);
+      if (stats?.diagnostics) {
+        setDiagnosticsResult(stats.diagnostics);
+      }
     } catch (err) {
       console.error(err);
     }
   }, []);
+
+  const handleRunDiagnostics = async () => {
+    setIsCheckingDiagnostics(true);
+    try {
+      const diag = await checkSystemDiagnostics();
+      setDiagnosticsResult(diag);
+      showNotice('Диагностика подключения успешно выполнена');
+    } catch (err) {
+      showNotice(err.message || 'Ошибка проверки подключения', 'error');
+    } finally {
+      setIsCheckingDiagnostics(false);
+    }
+  };
 
   const loadStockData = useCallback(async (targetWhId = null) => {
     setIsLoadingStock(true);
@@ -1356,11 +1404,16 @@ export const AdminPage = () => {
       showNotice('В ознакомительном режиме изменение статуса заявки защищено.');
       return;
     }
+    const token = getAuthToken();
+    if (!token) {
+      showNotice('Требуется авторизация администратора', 'error');
+      return;
+    }
     const rule = territoryRulesList.find((r) => r.id === territoryId);
     if (!rule) return;
 
     try {
-      await updateOrderInquiryInAdmin(inquiryNumber, {
+      const res = await updateOrderInquiryInAdmin(inquiryNumber, {
         routing: {
           status: 'assigned',
           statusLabel: 'Назначен менеджер',
@@ -1370,8 +1423,12 @@ export const AdminPage = () => {
           managerEmail: rule.managerEmail
         }
       });
-      await loadOrdersAndTerritories();
-      showNotice(`Заявка ${inquiryNumber} закреплена за менеджером (${rule.managerEmail})`);
+      if (res && res.order) {
+        setOrderInquiriesList((prev) => prev.map((o) => (o.inquiryNumber === inquiryNumber ? res.order : o)));
+      } else {
+        await loadOrdersAndTerritories();
+      }
+      showNotice(`Заявка ${inquiryNumber} успешно закреплена за менеджером (${rule.managerEmail || rule.managerName})`);
     } catch (err) {
       showNotice(err.message || 'Ошибка обновления заявки', 'error');
     }
@@ -1382,10 +1439,22 @@ export const AdminPage = () => {
       showNotice('В ознакомительном режиме удаление заявки защищено.');
       return;
     }
+    const token = getAuthToken();
+    if (!token) {
+      showNotice('Требуется авторизация администратора', 'error');
+      return;
+    }
+    if (!window.confirm(`Вы уверены, что хотите удалить заявку ${inquiryNumber}? Это действие необратимо.`)) {
+      return;
+    }
     try {
-      await deleteOrderInquiryInAdmin(inquiryNumber);
-      setOrderInquiriesList((prev) => prev.filter((o) => o.inquiryNumber !== inquiryNumber));
-      showNotice(`Заявка ${inquiryNumber} удалена`);
+      const res = await deleteOrderInquiryInAdmin(inquiryNumber);
+      if (res && res.success !== false) {
+        setOrderInquiriesList((prev) => prev.filter((o) => o.inquiryNumber !== inquiryNumber));
+        showNotice(`Заявка ${inquiryNumber} успешно удалена`);
+      } else {
+        showNotice('Не удалось удалить заявку на сервере', 'error');
+      }
     } catch (err) {
       showNotice(err.message || 'Ошибка удаления заявки', 'error');
     }
@@ -3051,7 +3120,7 @@ export const AdminPage = () => {
                       <tbody>
                         {filtered.map((prod) => {
                           const isHidden = prod.status === 'СКРЫТ';
-                          const thumbSrc = prod.photo1 ? `${import.meta.env.BASE_URL}${prod.photo1}` : '';
+                          const thumbSrc = prod.photo1 ? resolveMediaUrl(prod.photo1) : '';
                           const isInline = inlineEditingArticle === prod.article;
 
                           return (
@@ -3636,7 +3705,7 @@ export const AdminPage = () => {
                             </thead>
                             <tbody>
                               {filtered.map(prod => {
-                                const thumbSrc = prod.photo1 ? `${import.meta.env.BASE_URL}${prod.photo1}` : '';
+                                const thumbSrc = prod.photo1 ? resolveMediaUrl(prod.photo1) : '';
                                 const isSelected = selectedStockSkus.includes(prod.article);
 
                                 // Calculate total stock across warehouses
@@ -3978,7 +4047,7 @@ export const AdminPage = () => {
                             return matchSearch && matchCat && matchLevel;
                           })
                           .map(prod => {
-                            const thumbSrc = prod.photo1 ? `${import.meta.env.BASE_URL}${prod.photo1}` : '';
+                            const thumbSrc = prod.photo1 ? resolveMediaUrl(prod.photo1) : '';
                             const stockItem = stockList.find(s => s.sku === prod.article && s.warehouseId === selectedWarehouseId);
                             const dbQty = stockItem ? stockItem.quantity : null;
                             const hasEdit = stockLocalEdits[prod.article] !== undefined;
@@ -4670,13 +4739,22 @@ export const AdminPage = () => {
                     onChange={async (e) => {
                       const files = e.target.files;
                       if (!files || files.length === 0) return;
+                      if (isDemoMode) {
+                        showNotice('В демонстрационном режиме загрузка файлов заблокирована.', 'error');
+                        return;
+                      }
+                      const token = getAuthToken();
+                      if (!token) {
+                        showNotice('Требуется авторизация администратора для загрузки файлов.', 'error');
+                        return;
+                      }
                       setIsUploadingMedia(true);
                       try {
                         await uploadMediaFiles(files);
-                        loadMediaData();
+                        await loadMediaData();
                         showNotice(`Успешно загружено ${files.length} изображений`);
                       } catch (err) {
-                        showNotice(err.message, 'error');
+                        showNotice(err.message || 'Ошибка загрузки файлов', 'error');
                       } finally {
                         setIsUploadingMedia(false);
                       }
@@ -4713,7 +4791,7 @@ export const AdminPage = () => {
                 {mediaFiles
                   .filter(f => !mediaSearch || f.name.toLowerCase().includes(mediaSearch.toLowerCase()))
                   .map((file, fIdx) => {
-                    const fullSrc = `${import.meta.env.BASE_URL}${file.url}`;
+                    const fullSrc = resolveMediaUrl(file.url);
                     return (
                       <div key={fIdx} className="media-card-item">
                         <div 
@@ -4760,13 +4838,22 @@ export const AdminPage = () => {
                             title="Удалить файл"
                             onClick={async () => {
                               if (isDemoMode) {
-                                showNotice('В демонстрационном режиме удаление файлов заблокировано.');
+                                showNotice('В демонстрационном режиме удаление файлов заблокировано.', 'error');
                                 return;
                               }
-                              if (window.confirm(`Удалить файл "${file.name}"?`)) {
-                                await deleteMediaFile(file.name);
-                                loadMediaData();
-                                showNotice('Файл удален');
+                              const token = getAuthToken();
+                              if (!token) {
+                                showNotice('Требуется авторизация администратора для удаления файлов.', 'error');
+                                return;
+                              }
+                              if (window.confirm(`Вы уверены, что хотите удалить файл "${file.name}" из хранилища?`)) {
+                                try {
+                                  await deleteMediaFile(file.name);
+                                  await loadMediaData();
+                                  showNotice(`Файл "${file.name}" успешно удален из хранилища`);
+                                } catch (err) {
+                                  showNotice(err.message || 'Ошибка удаления файла из хранилища', 'error');
+                                }
                               }
                             }}
                           >
@@ -5654,23 +5741,48 @@ export const AdminPage = () => {
 
               {/* System Diagnostics */}
               <div className="admin-section-card">
-                <h3 className="card-section-title">Технические параметры окружения</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+                  <div>
+                    <h3 className="card-section-title" style={{ margin: 0 }}>Технические параметры и живая диагностика</h3>
+                    <p className="section-desc" style={{ margin: '4px 0 0 0' }}>
+                      Реальная проверка доступности базы данных Supabase PostgreSQL, хранилища медиа-файлов и серверного API.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn-outline admin-btn-sm"
+                    onClick={handleRunDiagnostics}
+                    disabled={isCheckingDiagnostics}
+                  >
+                    <RefreshCw size={14} className={isCheckingDiagnostics ? 'spin' : ''} />
+                    <span>{isCheckingDiagnostics ? 'Диагностика...' : 'Проверить подключение'}</span>
+                  </button>
+                </div>
+
                 <div className="sys-params-grid">
                   <div className="param-item">
-                    <span className="param-label">Серверный стек:</span>
-                    <span className="param-val">Node.js {systemStats?.nodeVersion || 'v24'} · Express · Crypto (scrypt)</span>
+                    <span className="param-label">База данных PostgreSQL:</span>
+                    <span className="param-val" style={{ color: diagnosticsResult?.postgres?.connected ? 'var(--admin-success, #10b981)' : 'var(--admin-danger, #ef4444)', fontWeight: 600 }}>
+                      {diagnosticsResult ? (diagnosticsResult.postgres.connected ? `✓ Подключено (${diagnosticsResult.postgres.responseTimeMs} мс)` : `✕ Ошибка: ${diagnosticsResult.postgres.error || 'Недоступно'}`) : 'Проверка выполняется...'}
+                    </span>
                   </div>
                   <div className="param-item">
-                    <span className="param-label">Хранилище данных:</span>
-                    <span className="param-val">Локальная постоянная файловая БД с транзакционной синхронизацией</span>
+                    <span className="param-label">Облачное хранилище (Storage):</span>
+                    <span className="param-val" style={{ color: diagnosticsResult?.storage?.connected ? 'var(--admin-success, #10b981)' : 'var(--admin-danger, #ef4444)', fontWeight: 600 }}>
+                      {diagnosticsResult ? (diagnosticsResult.storage.connected ? `✓ Подключено (Bucket: ${diagnosticsResult.storage.bucket}, ${diagnosticsResult.storage.responseTimeMs} мс)` : `✕ Ошибка: ${diagnosticsResult.storage.error || 'Недоступно'}`) : 'Проверка выполняется...'}
+                    </span>
                   </div>
                   <div className="param-item">
-                    <span className="param-label">Аптайм сервера:</span>
-                    <span className="param-val">{Math.floor((systemStats?.serverUptime || 0) / 60)} мин.</span>
+                    <span className="param-label">Хостинг и Backend API:</span>
+                    <span className="param-val" style={{ color: 'var(--admin-text, #1e293b)' }}>
+                      {diagnosticsResult ? (diagnosticsResult.backendApi?.hasBackend ? `✓ Backend API активен (${diagnosticsResult.backendApi.backendUrl})` : `Режим GitHub Pages (статический хостинг, прямая работа с Supabase)`) : 'GitHub Pages / Node.js'}
+                    </span>
                   </div>
                   <div className="param-item">
-                    <span className="param-label">Защита от перебора:</span>
-                    <span className="param-val">Активна (максимум 5 попыток ввода пароля)</span>
+                    <span className="param-label">Безопасность и авторизация:</span>
+                    <span className="param-val" style={{ color: 'var(--admin-success, #10b981)', fontWeight: 600 }}>
+                      ✓ Активна (scrypt + rate limiting)
+                    </span>
                   </div>
                 </div>
               </div>
@@ -5883,14 +5995,14 @@ export const AdminPage = () => {
                               </td>
                               <td>
                                 <div>
-                                  <strong>{ord.customer?.name}</strong>
+                                  <strong>{isDemoMode ? maskCustomerName(ord.customer?.name) : ord.customer?.name}</strong>
                                 </div>
                                 <div style={{ fontSize: 12, color: 'var(--adm-accent-blue)' }}>
-                                  {ord.customer?.contact}
+                                  {isDemoMode ? maskCustomerContact(ord.customer?.contact) : ord.customer?.contact}
                                 </div>
                                 {ord.customer?.comment && (
                                   <div style={{ fontSize: 11, color: 'var(--adm-text-muted)', marginTop: 3 }}>
-                                    «{ord.customer.comment}»
+                                    «{isDemoMode ? '*** [Скрыто в демо-режиме]' : ord.customer.comment}»
                                   </div>
                                 )}
                               </td>
@@ -6672,7 +6784,7 @@ export const AdminPage = () => {
             <div className="admin-modal-body">
               <div style={{ textAlign: 'center', marginBottom: 16 }}>
                 <img
-                  src={`${import.meta.env.BASE_URL}${mediaDetailModal.url}`}
+                  src={resolveMediaUrl(mediaDetailModal.url)}
                   alt={mediaDetailModal.name}
                   style={{ maxHeight: 220, maxWidth: '100%', objectFit: 'contain', borderRadius: 8, border: '1px solid var(--adm-border)' }}
                 />
@@ -6796,7 +6908,7 @@ export const AdminPage = () => {
                           {slide.image && (
                             <div style={{ width: 100, height: 60, borderRadius: 6, overflow: 'hidden', minWidth: 100, background: '#000' }}>
                               <img 
-                                src={slide.image?.startsWith('http') || slide.image?.startsWith('/') ? slide.image : `${import.meta.env.BASE_URL}${slide.image}`}
+                                src={resolveMediaUrl(slide.image)}
                                 alt="Slide preview" 
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                 onError={(e) => { e.target.style.display = 'none'; }}

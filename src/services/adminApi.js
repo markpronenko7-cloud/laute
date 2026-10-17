@@ -42,6 +42,37 @@ export const getApiBase = () => {
   return '/api';
 };
 
+export const getHeaders = () => {
+  const token = getAuthToken();
+  const headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+};
+
+export const resolveMediaUrl = (url) => {
+  if (!url || typeof url !== 'string') return '';
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  if (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('//') ||
+    trimmed.startsWith('data:') ||
+    trimmed.startsWith('blob:')
+  ) {
+    return trimmed;
+  }
+  const baseUrl = import.meta.env.BASE_URL || '/';
+  const cleanBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+  const cleanPath = trimmed.startsWith('/') ? trimmed.slice(1) : trimmed;
+  return `${cleanBase}${cleanPath}`;
+};
+
 // Supabase RPC Helper
 async function callSupabaseRpc(fnName, args = {}) {
   const res = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/rpc/${fnName}`, {
@@ -678,56 +709,79 @@ export const deleteProductsBatch = async (skuList) => {
 // ==========================================
 
 export const fetchMediaList = async () => {
+  const token = getAuthToken();
+  const headers = {
+    'apikey': SUPABASE_CONFIG.anonKey,
+    'Authorization': `Bearer ${token || SUPABASE_CONFIG.anonKey}`,
+    'Content-Type': 'application/json'
+  };
+
+  let storageItems = [];
   try {
     const res = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/object/list/${SUPABASE_CONFIG.storageBucket}`, {
       method: 'POST',
-      headers: {
-        'apikey': SUPABASE_CONFIG.anonKey,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ prefix: '', limit: 100 })
+      headers,
+      body: JSON.stringify({ prefix: '', limit: 200 })
     });
 
     if (res.ok) {
       const objects = await res.json();
-      if (Array.isArray(objects) && objects.length > 0) {
-        return objects.map(o => ({
+      if (Array.isArray(objects)) {
+        storageItems = objects.map(o => ({
           name: o.name,
           url: `${SUPABASE_CONFIG.url}/storage/v1/object/public/${SUPABASE_CONFIG.storageBucket}/${o.name}`,
           size: o.metadata?.size || 0,
-          modified: o.updated_at || new Date().toISOString()
+          modified: o.updated_at || o.created_at || new Date().toISOString(),
+          isStorage: true
         }));
       }
+    } else {
+      console.warn(`Supabase storage list returned HTTP ${res.status}`);
     }
   } catch (err) {
     console.warn('Supabase storage list error:', err);
   }
 
-  // Фирменные фотографии LAUTE
-  return [
-    { name: 'hero-slide-1.jpg', url: 'images/hero/hero-slide-1.jpg', size: 654841, modified: new Date().toISOString() },
-    { name: 'hero-slide-2.jpg', url: 'images/hero/hero-slide-2.jpg', size: 767215, modified: new Date().toISOString() },
-    { name: 'hero-slide-3.jpg', url: 'images/hero/hero-slide-3.jpg', size: 713731, modified: new Date().toISOString() },
-    { name: 'hero-slide-4.jpg', url: 'images/hero/hero-slide-4.jpg', size: 840681, modified: new Date().toISOString() },
-    { name: 'hero-slide-5.jpg', url: 'images/hero/hero-slide-5.jpg', size: 735010, modified: new Date().toISOString() },
-    { name: 'hero-slide-6.jpg', url: 'images/hero/hero-slide-6.jpg', size: 673763, modified: new Date().toISOString() },
-    { name: 'cat_kitchen.png', url: 'images/cat_kitchen.png', size: 1791211, modified: new Date().toISOString() },
-    { name: 'cat_bath.png', url: 'images/cat_bath.png', size: 1385357, modified: new Date().toISOString() },
-    { name: 'cat_shower.png', url: 'images/cat_shower.png', size: 1943322, modified: new Date().toISOString() },
-    { name: 'cat_german_line.png', url: 'images/cat_german_line.png', size: 1636480, modified: new Date().toISOString() },
-    { name: 'cat_sinks.png', url: 'images/cat_sinks.png', size: 349649, modified: new Date().toISOString() },
-    { name: 'cat_accessories.png', url: 'images/cat_accessories.png', size: 936940, modified: new Date().toISOString() },
-    { name: 'cat_laute_brand.jpg', url: 'images/cat_laute_brand.jpg', size: 100295, modified: new Date().toISOString() },
-    { name: 'brass_eccentric_macro.jpg', url: 'images/brass_eccentric_macro.jpg', size: 773262, modified: new Date().toISOString() },
-    { name: 'eco_aluminum_macro.jpg', url: 'images/eco_aluminum_macro.jpg', size: 579528, modified: new Date().toISOString() },
-    { name: 'sus304_steel_macro.jpg', url: 'images/sus304_steel_macro.jpg', size: 778383, modified: new Date().toISOString() },
-    { name: 'sedal_cartridge_macro.jpg', url: 'images/sedal_cartridge_macro.jpg', size: 705361, modified: new Date().toISOString() },
-    { name: 'pvd_finish_macro.jpg', url: 'images/pvd_finish_macro.jpg', size: 557617, modified: new Date().toISOString() }
+  // Фирменные фотографии LAUTE из базового репозитория
+  const brandAssets = [
+    { name: 'hero-slide-1.jpg', url: 'images/hero/hero-slide-1.jpg', size: 654841, modified: '2026-03-01T00:00:00Z', isBrand: true },
+    { name: 'hero-slide-2.jpg', url: 'images/hero/hero-slide-2.jpg', size: 767215, modified: '2026-03-01T00:00:00Z', isBrand: true },
+    { name: 'hero-slide-3.jpg', url: 'images/hero/hero-slide-3.jpg', size: 713731, modified: '2026-03-01T00:00:00Z', isBrand: true },
+    { name: 'hero-slide-4.jpg', url: 'images/hero/hero-slide-4.jpg', size: 840681, modified: '2026-03-01T00:00:00Z', isBrand: true },
+    { name: 'hero-slide-5.jpg', url: 'images/hero/hero-slide-5.jpg', size: 735010, modified: '2026-03-01T00:00:00Z', isBrand: true },
+    { name: 'hero-slide-6.jpg', url: 'images/hero/hero-slide-6.jpg', size: 673763, modified: '2026-03-01T00:00:00Z', isBrand: true },
+    { name: 'cat_kitchen.png', url: 'images/cat_kitchen.png', size: 1791211, modified: '2026-03-01T00:00:00Z', isBrand: true },
+    { name: 'cat_bath.png', url: 'images/cat_bath.png', size: 1385357, modified: '2026-03-01T00:00:00Z', isBrand: true },
+    { name: 'cat_shower.png', url: 'images/cat_shower.png', size: 1943322, modified: '2026-03-01T00:00:00Z', isBrand: true },
+    { name: 'cat_german_line.png', url: 'images/cat_german_line.png', size: 1636480, modified: '2026-03-01T00:00:00Z', isBrand: true },
+    { name: 'cat_sinks.png', url: 'images/cat_sinks.png', size: 349649, modified: '2026-03-01T00:00:00Z', isBrand: true },
+    { name: 'cat_accessories.png', url: 'images/cat_accessories.png', size: 936940, modified: '2026-03-01T00:00:00Z', isBrand: true },
+    { name: 'cat_laute_brand.jpg', url: 'images/cat_laute_brand.jpg', size: 100295, modified: '2026-03-01T00:00:00Z', isBrand: true },
+    { name: 'brass_eccentric_macro.jpg', url: 'images/brass_eccentric_macro.jpg', size: 773262, modified: '2026-03-01T00:00:00Z', isBrand: true },
+    { name: 'eco_aluminum_macro.jpg', url: 'images/eco_aluminum_macro.jpg', size: 579528, modified: '2026-03-01T00:00:00Z', isBrand: true },
+    { name: 'sus304_steel_macro.jpg', url: 'images/sus304_steel_macro.jpg', size: 778383, modified: '2026-03-01T00:00:00Z', isBrand: true },
+    { name: 'sedal_cartridge_macro.jpg', url: 'images/sedal_cartridge_macro.jpg', size: 705361, modified: '2026-03-01T00:00:00Z', isBrand: true },
+    { name: 'pvd_finish_macro.jpg', url: 'images/pvd_finish_macro.jpg', size: 557617, modified: '2026-03-01T00:00:00Z', isBrand: true }
   ];
+
+  // Сначала настоящие файлы из облачного хранилища, затем базовые фирменные ассеты
+  const combined = [...storageItems];
+  brandAssets.forEach(b => {
+    if (!combined.some(c => c.name === b.name)) {
+      combined.push(b);
+    }
+  });
+
+  return combined;
 };
 
 export const uploadMediaFiles = async (fileList) => {
+  const token = getAuthToken();
+  if (!token) throw new Error('Требуется авторизация администратора');
+  if (!fileList || fileList.length === 0) throw new Error('Не выбраны файлы для загрузки');
+
   const uploaded = [];
+  const errors = [];
 
   for (let i = 0; i < fileList.length; i++) {
     const file = fileList[i];
@@ -735,25 +789,37 @@ export const uploadMediaFiles = async (fileList) => {
     const cleanBase = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_');
     const safeName = `${Date.now()}_${cleanBase}.${ext}`;
 
-    const res = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/object/${SUPABASE_CONFIG.storageBucket}/${safeName}`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_CONFIG.anonKey,
-        'Content-Type': file.type || 'application/octet-stream'
-      },
-      body: file
-    });
-
-    if (res.ok) {
-      const publicUrl = `${SUPABASE_CONFIG.url}/storage/v1/object/public/${SUPABASE_CONFIG.storageBucket}/${safeName}`;
-      uploaded.push({
-        name: safeName,
-        url: publicUrl,
-        size: file.size
+    try {
+      const res = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/object/${SUPABASE_CONFIG.storageBucket}/${safeName}`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_CONFIG.anonKey,
+          'Authorization': `Bearer ${token || SUPABASE_CONFIG.anonKey}`,
+          'Content-Type': file.type || 'application/octet-stream'
+        },
+        body: file
       });
-    } else {
-      console.warn(`Ошибка загрузки ${file.name} в Supabase Storage`);
+
+      if (res.ok) {
+        const publicUrl = `${SUPABASE_CONFIG.url}/storage/v1/object/public/${SUPABASE_CONFIG.storageBucket}/${safeName}`;
+        uploaded.push({
+          name: safeName,
+          url: publicUrl,
+          size: file.size,
+          isStorage: true
+        });
+      } else {
+        const errJson = await res.json().catch(() => null);
+        const errMsg = errJson?.message || errJson?.error || `HTTP ${res.status}`;
+        errors.push(`${file.name}: ${errMsg}`);
+      }
+    } catch (err) {
+      errors.push(`${file.name}: ${err.message}`);
     }
+  }
+
+  if (uploaded.length === 0 && errors.length > 0) {
+    throw new Error(`Ошибка загрузки файлов в хранилище: ${errors.join(', ')}`);
   }
 
   return uploaded;
@@ -768,21 +834,24 @@ export const uploadSingleImage = async (file) => {
 export const deleteMediaFile = async (filename) => {
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
-  if (!filename) return false;
+  if (!filename) throw new Error('Не указано имя файла для удаления');
 
-  try {
-    const cleanName = filename.split('/').pop();
-    const res = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/object/${SUPABASE_CONFIG.storageBucket}/${encodeURIComponent(cleanName)}`, {
-      method: 'DELETE',
-      headers: {
-        'apikey': SUPABASE_CONFIG.anonKey
-      }
-    });
-    return res.ok;
-  } catch (err) {
-    console.warn('Ошибка удаления медиафайла из Supabase Storage:', err);
-    return false;
+  const cleanName = filename.split('/').pop();
+  const res = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/object/${SUPABASE_CONFIG.storageBucket}/${encodeURIComponent(cleanName)}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_CONFIG.anonKey,
+      'Authorization': `Bearer ${token || SUPABASE_CONFIG.anonKey}`
+    }
+  });
+
+  if (!res.ok) {
+    const errJson = await res.json().catch(() => null);
+    const msg = errJson?.message || errJson?.error || `HTTP ${res.status}`;
+    throw new Error(`Ошибка удаления файла из хранилища: ${msg}`);
   }
+
+  return true;
 };
 
 // ==========================================
@@ -917,13 +986,95 @@ export const rollbackToBackup = async (backupId) => {
   return await rollbackSiteContent(backupId);
 };
 
+export const checkSystemDiagnostics = async () => {
+  const token = getAuthToken();
+
+  const results = {
+    checkedAt: new Date().toISOString(),
+    database: { status: 'checking', label: 'Supabase PostgreSQL', latencyMs: null, details: '' },
+    storage: { status: 'checking', label: 'Supabase Storage (laute-media)', latencyMs: null, details: '' },
+    backend: { status: 'checking', label: 'Серверный API', latencyMs: null, details: '' },
+    auth: { status: 'ok', label: 'Авторизация администратора', details: token ? 'Токен активен' : 'Демо / ознакомительный режим' }
+  };
+
+  // 1. Реальная проверка подключения к Supabase PostgreSQL (REST API)
+  try {
+    const dbStart = Date.now();
+    const res = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/laute_site_content?id=eq.published&select=id`, {
+      headers: {
+        'apikey': SUPABASE_CONFIG.anonKey,
+        'Accept': 'application/json'
+      }
+    });
+    results.database.latencyMs = Date.now() - dbStart;
+    if (res.ok) {
+      results.database.status = 'connected';
+      results.database.details = 'PostgreSQL REST RLS (Подключено)';
+    } else {
+      results.database.status = 'unavailable';
+      results.database.details = `Ошибка HTTP ${res.status}`;
+    }
+  } catch (err) {
+    results.database.status = 'unavailable';
+    results.database.details = err.message || 'Сетевая ошибка';
+  }
+
+  // 2. Реальная проверка доступности облачного бакета Supabase Storage
+  try {
+    const stStart = Date.now();
+    const res = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/object/list/${SUPABASE_CONFIG.storageBucket}`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_CONFIG.anonKey,
+        'Authorization': `Bearer ${token || SUPABASE_CONFIG.anonKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ prefix: '', limit: 1 })
+    });
+    results.storage.latencyMs = Date.now() - stStart;
+    if (res.ok) {
+      results.storage.status = 'connected';
+      results.storage.details = 'Облачный бакет laute-media доступен';
+    } else {
+      results.storage.status = 'unavailable';
+      results.storage.details = `Ошибка HTTP ${res.status}`;
+    }
+  } catch (err) {
+    results.storage.status = 'unavailable';
+    results.storage.details = err.message || 'Сетевая ошибка';
+  }
+
+  // 3. Реальная проверка Node.js backend vs статический хостинг (GitHub Pages)
+  try {
+    const beStart = Date.now();
+    const res = await fetch(`${getApiBase()}/health`, { signal: AbortSignal.timeout(2000) });
+    results.backend.latencyMs = Date.now() - beStart;
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      results.backend.status = 'connected';
+      results.backend.details = `Node.js Express сервер активен (аптайм ${Math.floor((data.uptime || 0) / 60)} мин.)`;
+    } else {
+      results.backend.status = 'static_mode';
+      results.backend.details = 'Статический хостинг (GitHub Pages) — прямая синхронизация с Supabase';
+    }
+  } catch {
+    results.backend.status = 'static_mode';
+    results.backend.details = 'Статический хостинг (GitHub Pages) — прямая синхронизация с Supabase';
+  }
+
+  return results;
+};
+
 export const fetchSystemSettings = async () => {
+  const diag = await checkSystemDiagnostics();
   return {
-    status: 'ok',
-    database: 'Supabase PostgreSQL 17.11 (Active & Healthy)',
-    projectRegion: 'eu-west-1 (Frankfurt / Dublin)',
-    security: 'pgcrypto bcrypt hash + Row Level Security (RLS)',
-    storage: 'Supabase Media Storage (Bucket: laute-media)'
+    status: diag.database.status === 'connected' ? 'ok' : 'degraded',
+    database: `Supabase PostgreSQL (${diag.database.status === 'connected' ? 'Подключено' : 'Недоступно'})`,
+    projectRegion: 'eu-west-1 (Frankfurt)',
+    security: 'bcrypt / pgcrypto + Row Level Security (RLS)',
+    storage: `Supabase Media Storage (${diag.storage.status === 'connected' ? 'Подключено' : 'Недоступно'})`,
+    backendMode: diag.backend.status === 'connected' ? 'Локальный Node.js API' : 'Статический хостинг (GitHub Pages)',
+    diagnostics: diag
   };
 };
 
@@ -1128,12 +1279,49 @@ export const validateStockExcelFile = async (file, warehouseId) => {
 export const commitStockExcelImport = async (warehouseId, diffList, mode = 'partial') => {
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
+  if (!Array.isArray(diffList)) throw new Error('Некорректный список изменений остатков');
 
+  // 1. Попытка отправки на локальный/серверный backend API
+  try {
+    const res = await fetch(`${getApiBase()}/stock/excel/commit`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ warehouseId, diffList, mode })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return { success: true, count: diffList.length, mode, ...data };
+    }
+  } catch {
+    // В статическом режиме переходим к прямому сохранению в Supabase
+  }
+
+  // 2. Формируем позиции для сохранения
   const itemsToSave = diffList.map(d => ({
     warehouseId: d.warehouseId || warehouseId,
     sku: d.sku,
-    quantity: d.newQuantity
+    quantity: Math.max(0, parseInt(d.newQuantity, 10) || 0)
   }));
+
+  // При полной замене остатков склада (replace) обнуляем неуказанные артикулы этого склада
+  if (mode === 'replace') {
+    try {
+      const allCurrentStock = await fetchWarehouseStock();
+      const updatedSkus = new Set(diffList.map(d => `${d.warehouseId || warehouseId}::${d.sku}`));
+      allCurrentStock.forEach(s => {
+        const wh = s.warehouseId || warehouseId;
+        if (wh === warehouseId && !updatedSkus.has(`${wh}::${s.sku}`)) {
+          itemsToSave.push({
+            warehouseId: wh,
+            sku: s.sku,
+            quantity: 0
+          });
+        }
+      });
+    } catch {
+      // ignore
+    }
+  }
 
   const result = await callSupabaseRpc('laute_save_stock', {
     p_token: token,
@@ -1144,7 +1332,29 @@ export const commitStockExcelImport = async (warehouseId, diffList, mode = 'part
     throw new Error(result?.error || 'Ошибка сохранения остатков Excel в Supabase');
   }
 
-  return { success: true, count: itemsToSave.length };
+  // Обновляем локальный кэш остатков
+  if (typeof window !== 'undefined') {
+    try {
+      const currentSaved = JSON.parse(localStorage.getItem('laute_warehouse_stock') || '[]');
+      const stockMap = new Map();
+      if (Array.isArray(currentSaved)) {
+        currentSaved.forEach(s => stockMap.set(`${s.warehouseId}::${s.sku}`, s));
+      }
+      itemsToSave.forEach(it => {
+        stockMap.set(`${it.warehouseId}::${it.sku}`, {
+          warehouseId: it.warehouseId,
+          sku: it.sku,
+          quantity: it.quantity,
+          updatedAt: new Date().toISOString()
+        });
+      });
+      localStorage.setItem('laute_warehouse_stock', JSON.stringify(Array.from(stockMap.values())));
+    } catch {
+      // ignore
+    }
+  }
+
+  return { success: true, count: itemsToSave.length, mode };
 };
 
 export const fetchRegionWarehouseMap = async () => {
@@ -1372,27 +1582,40 @@ export const saveTerritoryRules = async (rules) => {
     localStorage.setItem(TERRITORY_RULES_STORAGE_KEY, JSON.stringify(sanitizedRules));
   }
 
-  // Сохраняем на локальном/серверном backend API, если он запущен
+  let serverSaved = false;
+  let serverErrors = [];
+
+  // 1. Сохраняем на локальном/серверном backend API, если он запущен
   try {
-    await fetch(`${getApiBase()}/territories`, {
+    const res = await fetch(`${getApiBase()}/territories`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify({ territories: sanitizedRules })
     });
-  } catch {
-    // Статический режим
-  }
-
-  // Сохраняем в основной объект контента CMS
-  try {
-    const currentDraft = await fetchSiteContent('draft');
-    if (currentDraft && typeof currentDraft === 'object') {
-      const updated = { ...currentDraft, territoryManagers: sanitizedRules };
-      await saveContentDraft(updated);
-      await publishContent(updated);
+    if (res.ok) {
+      serverSaved = true;
+    } else {
+      const errData = await res.json().catch(() => ({}));
+      if (errData?.error) serverErrors.push(`API: ${errData.error}`);
     }
   } catch {
-    // Игнорируем ошибку, если Supabase недоступен
+    // В статическом режиме API недоступен
+  }
+
+  // 2. Сохраняем в основной объект контента CMS (Supabase)
+  try {
+    const currentDraft = (await fetchSiteContent('draft')) || {};
+    const updated = { ...currentDraft, territoryManagers: sanitizedRules };
+    await saveSiteContentDraft(updated);
+    await publishSiteContent();
+    serverSaved = true;
+  } catch (err) {
+    serverErrors.push(`Supabase: ${err.message}`);
+  }
+
+  // Если оба серверных сервиса недоступны и вернули ошибку (и это не просто статический браузер)
+  if (!serverSaved && serverErrors.length > 0 && typeof window !== 'undefined' && !window.location.hostname.includes('github.io')) {
+    throw new Error(`Ошибка сохранения правил территорий на сервере: ${serverErrors.join('; ')}`);
   }
 
   return { success: true, territories: sanitizedRules };
@@ -1696,7 +1919,18 @@ export const fetchOrderInquiries = async () => {
       }
     }
   } catch {
-    // fallback
+    // fallback in static mode
+  }
+
+  // Также проверяем наличие сохранённых заявок в Supabase
+  let supabaseOrders = [];
+  try {
+    const adminData = await callSupabaseRpc('laute_get_admin_data', { p_token: token });
+    if (adminData && adminData.draft && Array.isArray(adminData.draft.order_inquiries)) {
+      supabaseOrders = adminData.draft.order_inquiries;
+    }
+  } catch {
+    // fallback if RPC unavailable
   }
 
   let localOrders = [];
@@ -1713,15 +1947,26 @@ export const fetchOrderInquiries = async () => {
 
   // Объединяем без дублей по inquiryNumber
   const mapByNumber = new Map();
-  [...serverOrders, ...localOrders].forEach((ord) => {
+  [...serverOrders, ...supabaseOrders, ...localOrders].forEach((ord) => {
     if (ord && ord.inquiryNumber && !mapByNumber.has(ord.inquiryNumber)) {
       mapByNumber.set(ord.inquiryNumber, ord);
     }
   });
 
-  return Array.from(mapByNumber.values()).sort(
+  const merged = Array.from(mapByNumber.values()).sort(
     (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
   );
+
+  // Синхронизируем локальный кэш
+  if (typeof window !== 'undefined' && merged.length > 0) {
+    try {
+      localStorage.setItem(ORDER_INQUIRIES_STORAGE_KEY, JSON.stringify(merged.slice(0, 500)));
+    } catch {
+      // ignore
+    }
+  }
+
+  return merged;
 };
 
 /**
@@ -1735,6 +1980,7 @@ export const updateOrderInquiryInAdmin = async (inquiryNumber, patch) => {
 
   let updatedOrder = null;
 
+  // 1. Обновляем в локальном хранилище
   if (typeof window !== 'undefined') {
     try {
       const existing = JSON.parse(localStorage.getItem(ORDER_INQUIRIES_STORAGE_KEY) || '[]');
@@ -1757,6 +2003,7 @@ export const updateOrderInquiryInAdmin = async (inquiryNumber, patch) => {
     }
   }
 
+  // 2. Отправляем на серверный backend API
   try {
     const res = await fetch(`${getApiBase()}/orders/${encodeURIComponent(inquiryNumber)}`, {
       method: 'PATCH',
@@ -1771,6 +2018,23 @@ export const updateOrderInquiryInAdmin = async (inquiryNumber, patch) => {
     // ignore in static mode
   }
 
+  // 3. Синхронизируем с постоянным черновиком Supabase
+  try {
+    const currentDraft = await fetchSiteContent('draft');
+    if (currentDraft && typeof currentDraft === 'object') {
+      const currentOrders = Array.isArray(currentDraft.order_inquiries) ? [...currentDraft.order_inquiries] : [];
+      const ordIdx = currentOrders.findIndex(o => o.inquiryNumber === inquiryNumber);
+      if (ordIdx !== -1 && updatedOrder) {
+        currentOrders[ordIdx] = updatedOrder;
+      } else if (updatedOrder) {
+        currentOrders.unshift(updatedOrder);
+      }
+      await saveSiteContentDraft({ ...currentDraft, order_inquiries: currentOrders });
+    }
+  } catch {
+    // ignore
+  }
+
   return { success: true, order: updatedOrder };
 };
 
@@ -1783,6 +2047,7 @@ export const deleteOrderInquiryInAdmin = async (inquiryNumber) => {
     throw new Error('Требуется авторизация администратора');
   }
 
+  // 1. Удаляем из локального хранилища
   if (typeof window !== 'undefined') {
     try {
       const existing = JSON.parse(localStorage.getItem(ORDER_INQUIRIES_STORAGE_KEY) || '[]');
@@ -1795,13 +2060,32 @@ export const deleteOrderInquiryInAdmin = async (inquiryNumber) => {
     }
   }
 
+  // 2. Отправляем запрос на серверный backend API
   try {
-    await fetch(`${getApiBase()}/orders/${encodeURIComponent(inquiryNumber)}`, {
+    const res = await fetch(`${getApiBase()}/orders/${encodeURIComponent(inquiryNumber)}`, {
       method: 'DELETE',
       headers: getHeaders()
     });
+    if (!res.ok && res.status !== 404) {
+      const errData = await res.json().catch(() => ({}));
+      if (errData?.error) throw new Error(errData.error);
+    }
+  } catch (err) {
+    // На статическом хостинге игнорируем ошибку отсутствия локального маршрута
+    if (typeof window !== 'undefined' && !window.location.hostname.includes('github.io') && err.message) {
+      console.warn('Серверное удаление заявки:', err.message);
+    }
+  }
+
+  // 3. Синхронизируем удаление с постоянным черновиком Supabase
+  try {
+    const currentDraft = await fetchSiteContent('draft');
+    if (currentDraft && Array.isArray(currentDraft.order_inquiries)) {
+      const filtered = currentDraft.order_inquiries.filter(o => o.inquiryNumber !== inquiryNumber);
+      await saveSiteContentDraft({ ...currentDraft, order_inquiries: filtered });
+    }
   } catch {
-    // ignore in static mode
+    // ignore
   }
 
   return { success: true };

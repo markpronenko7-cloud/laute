@@ -182,17 +182,22 @@ export const VisualPageBuilder = ({
   const handleSavePage = async (statusOverride = null) => {
     setIsSaving(true);
     try {
+      const nextStatus = statusOverride !== null ? statusOverride : 'ЧЕРНОВИК';
       const updatedPageData = {
         ...currentPage,
         blocks,
-        status: statusOverride || currentPage.status || 'ОПУБЛИКОВАН',
+        status: nextStatus,
         updatedAt: new Date().toISOString()
       };
 
       await updateCustomPage(currentPage.id, updatedPageData);
       setCurrentPage(updatedPageData);
       setHasUnsavedChanges(false);
-      showNotice(statusOverride === 'ОПУБЛИКОВАН' ? 'Страница успешно опубликована на сайте!' : 'Черновик страницы сохранён');
+      showNotice(
+        nextStatus === 'ОПУБЛИКОВАН'
+          ? 'Страница успешно опубликована на сайте!'
+          : 'Черновик страницы сохранён (статус: Черновик)'
+      );
       if (onSaveSuccess) onSaveSuccess(updatedPageData);
     } catch (err) {
       showNotice(err.message || 'Ошибка сохранения страницы', 'error');
@@ -272,6 +277,12 @@ export const VisualPageBuilder = ({
               <code style={{ fontSize: 11, background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: 4, color: 'var(--adm-accent-blue)' }}>
                 {currentPage.route || `/${currentPage.slug}`}
               </code>
+              <span
+                className={`stat-tag ${currentPage.status === 'ОПУБЛИКОВАН' ? 'success' : 'warning'}`}
+                style={{ fontSize: 11, padding: '2px 8px' }}
+              >
+                {currentPage.status === 'ОПУБЛИКОВАН' ? 'Опубликовано' : 'Черновик'}
+              </span>
               {hasUnsavedChanges && (
                 <span style={{ fontSize: 11, color: 'var(--adm-accent-amber)', display: 'flex', alignItems: 'center', gap: 4 }}>
                   • Не сохранено
@@ -342,7 +353,7 @@ export const VisualPageBuilder = ({
           <button
             type="button"
             className="admin-btn admin-btn-outline admin-btn-sm"
-            onClick={() => handleSavePage()}
+            onClick={() => handleSavePage('ЧЕРНОВИК')}
             disabled={isSaving}
           >
             <Save size={14} />
