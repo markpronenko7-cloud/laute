@@ -104,7 +104,12 @@ import {
   commitStockExcelImport,
   fetchRegionWarehouseMap,
   saveRegionWarehouseMap,
-  duplicateCustomPage
+  duplicateCustomPage,
+  fetchTerritoryRules,
+  saveTerritoryRules,
+  fetchOrderInquiries,
+  updateOrderInquiryInAdmin,
+  deleteOrderInquiryInAdmin
 } from '../services/adminApi';
 import { REGIONS_CONFIG } from '../data/regionsData';
 import { VisualPageBuilder } from '../components/builder/VisualPageBuilder';
@@ -1276,9 +1281,130 @@ export const AdminPage = () => {
     }
   };
 
-  // Navigation Items (14 Sections)
+  // Заявки из корзины без регистрации и распределение территорий менеджеров
+  const [orderInquiriesList, setOrderInquiriesList] = useState([]);
+  const [territoryRulesList, setTerritoryRulesList] = useState([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [isSavingTerritories, setIsSavingTerritories] = useState(false);
+  const [orderFilterStatus, setOrderFilterStatus] = useState('all'); // 'all' | 'assigned' | 'pending_assignment'
+
+  const loadOrdersAndTerritories = useCallback(async () => {
+    setIsLoadingOrders(true);
+    try {
+      const [rules, orders] = await Promise.all([
+        fetchTerritoryRules(),
+        fetchOrderInquiries().catch(() => [])
+      ]);
+      if (Array.isArray(rules)) setTerritoryRulesList(rules);
+      if (Array.isArray(orders)) setOrderInquiriesList(orders);
+    } catch (err) {
+      console.error('Ошибка загрузки заявок и территорий:', err);
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated && (activeTab === 'orders' || activeTab === 'dashboard')) {
+      loadOrdersAndTerritories();
+    }
+  }, [isAuthenticated, activeTab, loadOrdersAndTerritories]);
+
+  const handleAddTerritoryRule = () => {
+    setTerritoryRulesList((prev) => [
+      ...prev,
+      {
+        id: `terr_${Date.now()}`,
+        territoryName: 'Новая территория',
+        cities: [''],
+        managerName: '',
+        managerEmail: '',
+        active: true
+      }
+    ]);
+  };
+
+  const handleUpdateTerritoryField = (ruleId, field, value) => {
+    setTerritoryRulesList((prev) =>
+      prev.map((r) => (r.id === ruleId ? { ...r, [field]: value } : r))
+    );
+  };
+
+  const handleRemoveTerritoryRule = (ruleId) => {
+    setTerritoryRulesList((prev) => prev.filter((r) => r.id !== ruleId));
+  };
+
+  const handleSaveTerritoryRules = async () => {
+    if (isDemoMode) {
+      showNotice('В ознакомительном режиме изменение правил территорий защищено.');
+      return;
+    }
+    setIsSavingTerritories(true);
+    try {
+      const res = await saveTerritoryRules(territoryRulesList);
+      if (res?.territories) setTerritoryRulesList(res.territories);
+      showNotice('Правила «Территория → Ответственный менеджер → Email» успешно сохранены');
+    } catch (err) {
+      showNotice(err.message || 'Ошибка сохранения правил территорий', 'error');
+    } finally {
+      setIsSavingTerritories(false);
+    }
+  };
+
+  const handleAssignOrderTerritory = async (inquiryNumber, territoryId) => {
+    if (isDemoMode) {
+      showNotice('В ознакомительном режиме изменение статуса заявки защищено.');
+      return;
+    }
+    const rule = territoryRulesList.find((r) => r.id === territoryId);
+    if (!rule) return;
+
+    try {
+      await updateOrderInquiryInAdmin(inquiryNumber, {
+        routing: {
+          status: 'assigned',
+          statusLabel: 'Назначен менеджер',
+          territoryId: rule.id,
+          territoryName: rule.territoryName,
+          managerName: rule.managerName,
+          managerEmail: rule.managerEmail
+        }
+      });
+      await loadOrdersAndTerritories();
+      showNotice(`Заявка ${inquiryNumber} закреплена за менеджером (${rule.managerEmail})`);
+    } catch (err) {
+      showNotice(err.message || 'Ошибка обновления заявки', 'error');
+    }
+  };
+
+  const handleDeleteOrderInquiry = async (inquiryNumber) => {
+    if (isDemoMode) {
+      showNotice('В ознакомительном режиме удаление заявки защищено.');
+      return;
+    }
+    try {
+      await deleteOrderInquiryInAdmin(inquiryNumber);
+      setOrderInquiriesList((prev) => prev.filter((o) => o.inquiryNumber !== inquiryNumber));
+      showNotice(`Заявка ${inquiryNumber} удалена`);
+    } catch (err) {
+      showNotice(err.message || 'Ошибка удаления заявки', 'error');
+    }
+  };
+
+  const pendingOrdersCount = orderInquiriesList.filter(
+    (o) => o.routing?.status === 'pending_assignment'
+  ).length;
+
+  // Navigation Items (15 Sections)
   const navItems = [
     { id: 'dashboard', label: 'Главная панель', icon: LayoutDashboard },
+    {
+      id: 'orders',
+      label: 'Заявки и территории',
+      icon: Mail,
+      count: orderInquiriesList.length || undefined,
+      badge: pendingOrdersCount > 0 ? `Ожидают: ${pendingOrdersCount}` : null
+    },
     { id: 'editor', label: 'Редактор сайта', icon: Edit3, badge: draftContent?.hasUnpublishedChanges ? 'Черновик' : null },
     { id: 'pages', label: 'Страницы', icon: FileText },
     { id: 'catalog', label: 'Каталог', icon: Package, count: catalogList.length },
@@ -5547,6 +5673,302 @@ export const AdminPage = () => {
                     <span className="param-val">Активна (максимум 5 попыток ввода пароля)</span>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* -------------------------------------------------------------
+              RENDER: ЗАЯВКИ ИЗ КОРЗИНЫ И ТЕРРИТОРИИ МЕНЕДЖЕРОВ
+          ------------------------------------------------------------- */}
+          {activeTab === 'orders' && (
+            <div className="admin-view">
+              <div className="view-header">
+                <div>
+                  <h2 className="view-title">Заявки из корзины и территории менеджеров</h2>
+                  <p className="view-subtitle">
+                    Настройка правил «Территория → Ответственный менеджер → Email менеджера» и обработка первичных заявок без регистрации
+                  </p>
+                </div>
+                <div className="view-actions">
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn-outline admin-btn-sm"
+                    onClick={loadOrdersAndTerritories}
+                    disabled={isLoadingOrders}
+                  >
+                    <RefreshCw size={14} />
+                    <span>Обновить список</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* БЛОК 1: НАСТРОЙКА РАСПРЕДЕЛЕНИЯ МЕНЕДЖЕРОВ ПО ТЕРРИТОРИЯМ */}
+              <div className="admin-section-card" style={{ marginBottom: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginBottom: 14 }}>
+                  <div>
+                    <h3 className="card-section-title" style={{ marginBottom: 4 }}>
+                      Правила распределения: Территория → Ответственный менеджер → Email
+                    </h3>
+                    <p className="section-desc" style={{ margin: 0 }}>
+                      При отправке заявки из корзины система сопоставляет указанный клиентом город со списком городов территории. Если территория не назначена, заявка сохраняется со статусом «Ожидает назначения».
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn-outline admin-btn-sm"
+                      onClick={handleAddTerritoryRule}
+                    >
+                      <Plus size={14} />
+                      <span>Добавить территорию</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn-primary admin-btn-sm"
+                      onClick={handleSaveTerritoryRules}
+                      disabled={isSavingTerritories}
+                    >
+                      <Save size={14} />
+                      <span>{isSavingTerritories ? 'Сохранение...' : 'Сохранить правила территорий'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="admin-table-wrapper">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '22%' }}>Территория / Федеральный округ</th>
+                        <th style={{ width: '34%' }}>Города территории (через запятую)</th>
+                        <th style={{ width: '22%' }}>Ответственный менеджер / Отдел</th>
+                        <th style={{ width: '16%' }}>Email менеджера</th>
+                        <th style={{ width: '6%' }}>Действие</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {territoryRulesList.map((rule) => (
+                        <tr key={rule.id}>
+                          <td>
+                            <input
+                              type="text"
+                              className="inline-edit-input"
+                              style={{ width: '100%' }}
+                              value={rule.territoryName || ''}
+                              onChange={(e) => handleUpdateTerritoryField(rule.id, 'territoryName', e.target.value)}
+                              placeholder="Название территории..."
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="text"
+                              className="inline-edit-input"
+                              style={{ width: '100%' }}
+                              value={Array.isArray(rule.cities) ? rule.cities.join(', ') : rule.cities || ''}
+                              onChange={(e) =>
+                                handleUpdateTerritoryField(
+                                  rule.id,
+                                  'cities',
+                                  e.target.value.split(',').map((c) => c.trim())
+                                )
+                              }
+                              placeholder="Новосибирск, Омск, Томск..."
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="text"
+                              className="inline-edit-input"
+                              style={{ width: '100%' }}
+                              value={rule.managerName || ''}
+                              onChange={(e) => handleUpdateTerritoryField(rule.id, 'managerName', e.target.value)}
+                              placeholder="ФИО или отдел продаж..."
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="email"
+                              className="inline-edit-input"
+                              style={{ width: '100%' }}
+                              value={rule.managerEmail || ''}
+                              onChange={(e) => handleUpdateTerritoryField(rule.id, 'managerEmail', e.target.value)}
+                              placeholder="manager@laute.ltd"
+                            />
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className="admin-btn admin-btn-ghost admin-btn-xs danger"
+                              onClick={() => handleRemoveTerritoryRule(rule.id)}
+                              title="Удалить территорию"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* БЛОК 2: ЖУРНАЛ ПОСТУПИВШИХ ЗАЯВОК ИЗ КОРЗИНЫ */}
+              <div className="admin-section-card">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginBottom: 16 }}>
+                  <div>
+                    <h3 className="card-section-title" style={{ marginBottom: 4 }}>
+                      Реестр поступивших заявок ({orderInquiriesList.length})
+                    </h3>
+                    <p className="section-desc" style={{ margin: 0 }}>
+                      Заявки, отправленные посетителями без регистрации через публичный каталог
+                    </p>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      type="button"
+                      className={`admin-btn admin-btn-xs ${orderFilterStatus === 'all' ? 'admin-btn-primary' : 'admin-btn-outline'}`}
+                      onClick={() => setOrderFilterStatus('all')}
+                    >
+                      Все ({orderInquiriesList.length})
+                    </button>
+                    <button
+                      type="button"
+                      className={`admin-btn admin-btn-xs ${orderFilterStatus === 'pending_assignment' ? 'admin-btn-primary' : 'admin-btn-outline'}`}
+                      onClick={() => setOrderFilterStatus('pending_assignment')}
+                    >
+                      Ожидают назначения ({pendingOrdersCount})
+                    </button>
+                    <button
+                      type="button"
+                      className={`admin-btn admin-btn-xs ${orderFilterStatus === 'assigned' ? 'admin-btn-primary' : 'admin-btn-outline'}`}
+                      onClick={() => setOrderFilterStatus('assigned')}
+                    >
+                      Назначены ({orderInquiriesList.length - pendingOrdersCount})
+                    </button>
+                  </div>
+                </div>
+
+                {orderInquiriesList.length === 0 ? (
+                  <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--adm-text-secondary)' }}>
+                    Поступивших заявок пока нет.
+                  </div>
+                ) : (
+                  <div className="admin-table-wrapper">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Номер и дата</th>
+                          <th>Клиент и контакты</th>
+                          <th>Город</th>
+                          <th>Территория и менеджер</th>
+                          <th>Состав заявки (SKU)</th>
+                          <th>Сумма</th>
+                          <th>Действия</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {orderInquiriesList
+                          .filter((ord) =>
+                            orderFilterStatus === 'all' ? true : ord.routing?.status === orderFilterStatus
+                          )
+                          .map((ord) => (
+                            <tr key={ord.inquiryNumber}>
+                              <td>
+                                <div>
+                                  <code>{ord.inquiryNumber}</code>
+                                </div>
+                                <small className="cell-muted">
+                                  {ord.createdAt ? new Date(ord.createdAt).toLocaleString('ru-RU') : '—'}
+                                </small>
+                              </td>
+                              <td>
+                                <div>
+                                  <strong>{ord.customer?.name}</strong>
+                                </div>
+                                <div style={{ fontSize: 12, color: 'var(--adm-accent-blue)' }}>
+                                  {ord.customer?.contact}
+                                </div>
+                                {ord.customer?.comment && (
+                                  <div style={{ fontSize: 11, color: 'var(--adm-text-muted)', marginTop: 3 }}>
+                                    «{ord.customer.comment}»
+                                  </div>
+                                )}
+                              </td>
+                              <td>
+                                <strong>{ord.customer?.city}</strong>
+                              </td>
+                              <td>
+                                {ord.routing?.status === 'assigned' ? (
+                                  <div>
+                                    <span className="stat-tag success" style={{ marginBottom: 4, display: 'inline-block' }}>
+                                      Назначен менеджер
+                                    </span>
+                                    <div style={{ fontSize: 12 }}>
+                                      <strong>{ord.routing.territoryName}</strong>
+                                    </div>
+                                    <div style={{ fontSize: 12, color: 'var(--adm-text-secondary)' }}>
+                                      {ord.routing.managerName} ({ord.routing.managerEmail})
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div>
+                                    <span className="stat-tag warning" style={{ marginBottom: 6, display: 'inline-block' }}>
+                                      Ожидает назначения
+                                    </span>
+                                    <div>
+                                      <select
+                                        className="admin-select"
+                                        style={{ fontSize: 12, padding: '4px 8px' }}
+                                        defaultValue=""
+                                        onChange={(e) => {
+                                          if (e.target.value) {
+                                            handleAssignOrderTerritory(ord.inquiryNumber, e.target.value);
+                                          }
+                                        }}
+                                      >
+                                        <option value="">Назначить территорию...</option>
+                                        {territoryRulesList.map((r) => (
+                                          <option key={r.id} value={r.id}>
+                                            {r.territoryName} ({r.managerEmail})
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                  </div>
+                                )}
+                              </td>
+                              <td>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                  {(ord.items || []).map((it, idx) => (
+                                    <div key={idx} style={{ fontSize: 12 }}>
+                                      <code>{it.article}</code> — {it.title} × <strong>{it.quantity} шт.</strong>
+                                    </div>
+                                  ))}
+                                </div>
+                              </td>
+                              <td>
+                                <strong>
+                                  {ord.summary?.totalKnownAmount > 0
+                                    ? `${Number(ord.summary.totalKnownAmount).toLocaleString('ru-RU')} ₽`
+                                    : 'По запросу'}
+                                </strong>
+                              </td>
+                              <td>
+                                <button
+                                  type="button"
+                                  className="admin-btn admin-btn-ghost admin-btn-xs danger"
+                                  onClick={() => handleDeleteOrderInquiry(ord.inquiryNumber)}
+                                  title="Удалить заявку"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
           )}

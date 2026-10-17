@@ -5,7 +5,6 @@ import {
   ArrowRight, 
   PackageCheck, 
   Info, 
-  FileSpreadsheet, 
   Eye, 
   Scale, 
   MapPin, 
@@ -13,28 +12,35 @@ import {
   Layers,
   CheckCircle2,
   Warehouse,
-  Ruler
+  Ruler,
+  ShoppingBag,
+  Plus,
+  Minus,
+  Check
 } from 'lucide-react';
 import { classifyProductImages, formatProductDisplay } from '../utils/imageHelper';
 
 export const CatalogPage = () => {
   const { 
     lang, 
-    region,
     t, 
     openPartnerModal, 
     openAuthModal, 
     products, 
-    openExcelModal, 
     openProductModal, 
     startComparison,
+    addToCart,
+    updateCartQuantity,
+    getCartItemQuantity,
+    openCartModal,
+    cartDistinctCount,
+    cartTotalUnits,
+    cartTotalKnownAmount,
     adminSession,
     isB2BAuthorized,
-    setIsB2BAuthorized,
     warehousesList,
     activeWarehouseId,
     activeWarehouse,
-    clientSelectedWarehouseId,
     setClientSelectedWarehouse,
     getStockForSku
   } = useApp();
@@ -379,32 +385,42 @@ export const CatalogPage = () => {
   return (
     <div className="page-wrapper catalog-page">
       {/* Page Header */}
-      <section className="page-header">
+      <section className="page-header catalog-hero-header">
         <div className="container">
-          <div className="page-header-content">
-            <span className="section-badge">{cat.badge || 'Официальный ассортимент'}</span>
-            <h1 className="page-title">{cat.title || 'Каталог сантехнического оборудования LAUTE'}</h1>
-            <p className="page-subtitle">
-              {cat.subtitle || 'Полный номенклатурный перечень по 14 целевым категориям. Инженерные смесители, душевые системы, кухонные мойки и оригинальные комплектующие для оптовых заказчиков.'}
-            </p>
+          <div className="page-header-content catalog-header-grid">
+            <div className="catalog-header-text">
+              <span className="section-badge">{cat.badge || 'Номенклатура продукции'}</span>
+              <h1 className="page-title">{cat.title || 'Номенклатура продукции LAUTE'}</h1>
+              <p className="page-subtitle">
+                {cat.subtitle || 'Полноразмерный каталог сантехники, сформированный по назначению изделий и архитектурным сериям.'}
+              </p>
+            </div>
 
             <div className="catalog-header-actions">
-              <button type="button" className="btn btn-primary" onClick={openPartnerModal}>
-                <span>{cat.requestQuote || 'Запросить оптовый прайс-лист'}</span>
-                <ArrowRight size={16} />
+              <button
+                type="button"
+                className="btn btn-primary catalog-cart-trigger-btn"
+                onClick={openCartModal}
+              >
+                <ShoppingBag size={17} />
+                <span>{cat.openCartBtn || 'Корзина заявки'}</span>
+                {cartTotalUnits > 0 && (
+                  <span className="catalog-cart-count-pill">
+                    {cartTotalUnits} шт.
+                    {cartTotalKnownAmount > 0 ? ` · ${cartTotalKnownAmount.toLocaleString('ru-RU')} ₽` : ''}
+                  </span>
+                )}
               </button>
-              
+
               {isB2BAuthorized || adminSession ? (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                  <button type="button" className="btn btn-outline" onClick={openAuthModal}>
-                    <CheckCircle2 size={15} color="#10B981" />
-                    <span>Склад: {activeWarehouse?.name || 'Не выбран'}</span>
-                  </button>
-                </div>
+                <button type="button" className="btn btn-outline catalog-b2b-btn" onClick={openAuthModal}>
+                  <CheckCircle2 size={15} color="#10B981" />
+                  <span>Склад: {activeWarehouse?.name || 'Не выбран'}</span>
+                </button>
               ) : (
-                <button type="button" className="btn btn-outline" onClick={openAuthModal}>
+                <button type="button" className="btn btn-outline catalog-b2b-btn" onClick={openAuthModal}>
                   <PackageCheck size={16} />
-                  <span>{cat.authBtn || 'Проверить остатки (B2B кабинет)'}</span>
+                  <span>{cat.authBtn || 'Авторизоваться для просмотра остатков'}</span>
                 </button>
               )}
             </div>
@@ -413,43 +429,46 @@ export const CatalogPage = () => {
       </section>
 
       {/* Stock Notice & Rules */}
-      <section className="stock-notice-bar" style={isB2BAuthorized || adminSession ? { background: 'rgba(16, 185, 129, 0.08)', borderBottom: '1px solid rgba(16, 185, 129, 0.25)' } : {}}>
+      <section className="stock-notice-bar">
         <div className="container">
-          <div className="notice-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {isB2BAuthorized || adminSession ? <Warehouse size={18} color="#10B981" /> : <Info size={18} className="notice-icon" />}
+          <div className="notice-inner">
+            <div className="notice-lead">
+              {isB2BAuthorized || adminSession ? (
+                <Warehouse size={18} color="#0D9488" />
+              ) : (
+                <Info size={18} className="notice-icon" />
+              )}
               <div className="notice-text">
                 {isB2BAuthorized || adminSession ? (
                   <>
-                    <strong>Служебные остатки филиала LAUTE:</strong> {activeWarehouse ? `Показываются фактические остатки склада «${activeWarehouse.name}» (${activeWarehouse.city || activeWarehouse.country}).` : 'Склад по умолчанию для выбранного региона не назначен.'}
+                    <strong>Служебные остатки филиала LAUTE:</strong>{' '}
+                    {activeWarehouse
+                      ? `Показываются фактические остатки склада «${activeWarehouse.name}» (${activeWarehouse.city || activeWarehouse.country}).`
+                      : 'Склад по умолчанию для выбранного региона не назначен.'}
                   </>
                 ) : (
                   <>
-                    <strong>{cat.stockTitle || 'Порядок работы с остатками и ценами:'}</strong> {cat.stockDesc || 'Базовые цены носят ориентировочный характер. Индивидуальные оптовые скидки, наличие по номенклатуре и плановые Excel-выгрузки остатков предоставляются авторизованным дилерам через Личный кабинет партнёра.'}
+                    <strong>{cat.stockTitle || 'Статус складов'}:</strong>{' '}
+                    {cat.stockDesc ||
+                      'Остатки по складам доступны авторизованным дилерам. В публичном каталоге указаны розничные цены для формирования первичной заявки менеджеру без регистрации.'}
                   </>
                 )}
               </div>
             </div>
 
             {(isB2BAuthorized || adminSession) && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.82rem', color: '#94A3B8' }}>Сменить склад:</span>
-                <select 
+              <div className="notice-warehouse-switcher">
+                <span>Сменить склад:</span>
+                <select
                   value={activeWarehouseId || ''}
                   onChange={(e) => setClientSelectedWarehouse(e.target.value || null)}
-                  style={{
-                    background: '#0F172A',
-                    color: '#FFFFFF',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '6px',
-                    padding: '4px 8px',
-                    fontSize: '0.82rem',
-                    fontWeight: 600
-                  }}
+                  className="notice-warehouse-select"
                 >
                   <option value="">(По умолчанию для региона)</option>
-                  {warehousesList.map(w => (
-                    <option key={w.id} value={w.id}>{w.name} ({w.city || w.country})</option>
+                  {warehousesList.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.name} ({w.city || w.country})
+                    </option>
                   ))}
                 </select>
               </div>
@@ -461,47 +480,73 @@ export const CatalogPage = () => {
       {/* Main Catalog Workspace */}
       <section className="catalog-main-section">
         <div className="container">
-          {/* View switcher: Products vs Categories */}
+          {/* View switcher + Cart summary bar */}
           <div className="catalog-view-switcher-bar">
             <div className="view-toggle-group">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className={`view-toggle-btn ${catalogView === 'products' ? 'active' : ''}`}
-                onClick={() => { setCatalogView('products'); setSelectedCategory('all'); }}
+                onClick={() => {
+                  setCatalogView('products');
+                  setSelectedCategory('all');
+                }}
               >
                 <Sparkles size={15} />
-                <span>Номенклатура изделий ({activeProducts.length} позиций)</span>
+                <span>
+                  {cat.allProductsTab || 'Вся номенклатура'} ({activeProducts.length})
+                </span>
               </button>
 
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className={`view-toggle-btn ${catalogView === 'categories' ? 'active' : ''}`}
-                onClick={() => { setCatalogView('categories'); setSelectedCategory('all'); }}
+                onClick={() => {
+                  setCatalogView('categories');
+                  setSelectedCategory('all');
+                }}
               >
                 <Layers size={15} />
-                <span>Обзор 14 категорий</span>
+                <span>{cat.allCategories || 'Все категории (14)'}</span>
+              </button>
+            </div>
+
+            <div className="catalog-toolbar-right">
+              <span className="catalog-found-counter">
+                {catalogView === 'products'
+                  ? `${filteredProducts.length} ${cat.foundModels || 'позиций в номенклатуре'}`
+                  : `${filteredCategories.length} категорий`}
+              </span>
+
+              <button
+                type="button"
+                className={`catalog-inline-cart-btn ${cartDistinctCount > 0 ? 'has-items' : ''}`}
+                onClick={openCartModal}
+              >
+                <ShoppingBag size={16} />
+                <span>{cat.openCartBtn || 'Корзина заявки'}</span>
+                <span className="catalog-inline-cart-badge">{cartTotalUnits}</span>
               </button>
             </div>
           </div>
 
           {/* Controls Bar */}
           <div className="catalog-controls-bar">
-            {/* Search */}
             <div className="search-box">
               <Search size={18} className="search-icon" />
               <input
                 type="text"
-                placeholder={cat.searchPlaceholder || 'Поиск по категории, артикулу или назначению...'}
+                placeholder={cat.searchPlaceholder || 'Поиск по номенклатуре или артикулу...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="search-input"
               />
             </div>
 
-            {/* Category Filter (for products view) */}
             {catalogView === 'products' && productCategories.length > 0 && (
               <div className="mounting-filter-group">
-                <span className="filter-label">{lang === 'kz' ? 'Санат:' : lang === 'en' ? 'Category:' : 'Категория:'}</span>
+                <span className="filter-label">
+                  {lang === 'kz' ? 'Санат:' : lang === 'en' ? 'Category:' : 'Категория:'}
+                </span>
                 <div className="filter-chips">
                   <button
                     type="button"
@@ -524,31 +569,32 @@ export const CatalogPage = () => {
               </div>
             )}
 
-            {/* Mounting Filter (for categories) */}
             {catalogView === 'categories' && (
               <div className="mounting-filter-group">
-                <span className="filter-label">{lang === 'kz' ? 'Орнату түрі:' : lang === 'en' ? 'Mounting type:' : 'Тип монтажа:'}</span>
+                <span className="filter-label">
+                  {lang === 'kz' ? 'Орнату түрі:' : lang === 'en' ? 'Mounting type:' : 'Тип монтажа:'}
+                </span>
                 <div className="filter-chips">
                   <button
                     type="button"
                     className={`chip-btn ${selectedMounting === 'all' ? 'active' : ''}`}
                     onClick={() => setSelectedMounting('all')}
                   >
-                    {cat.allMountings || 'Все типы'}
+                    {cat.allMountings || 'Все типы монтажа'}
                   </button>
                   <button
                     type="button"
                     className={`chip-btn ${selectedMounting === 'deck' ? 'active' : ''}`}
                     onClick={() => setSelectedMounting('deck')}
                   >
-                    {cat.deckMounting || 'На изделие / мойку'}
+                    {cat.deckMounting || 'На борт (раковина / мойка)'}
                   </button>
                   <button
                     type="button"
                     className={`chip-btn ${selectedMounting === 'wall' ? 'active' : ''}`}
                     onClick={() => setSelectedMounting('wall')}
                   >
-                    {cat.wallMounting || 'Настенный / скрытый'}
+                    {cat.wallMounting || 'Настенный монтаж'}
                   </button>
                   <button
                     type="button"
@@ -562,27 +608,47 @@ export const CatalogPage = () => {
             )}
           </div>
 
-          {/* VIEW 1: LIVE PRODUCTS GRID (Synced with Excel & AI) */}
+          {/* VIEW 1: LIVE PRODUCTS GRID */}
           {catalogView === 'products' && (
             <div className="live-products-grid">
               {filteredProducts.map((p) => {
                 const displayInfo = formatProductDisplay(p);
                 const imgInfo = classifyProductImages(p, baseUrl);
+                // Главной фотографией всегда должен быть сам смеситель (imgInfo.mainPhoto отфильтровывает чертежи и коробки)
                 const mainPhotoSrc = imgInfo.mainPhoto || getImgUrl(p.photo1);
+                const qtyInCart = getCartItemQuantity(p.article);
+                const rawPrice = Number(p.price);
+                const hasKnownPrice = Number.isFinite(rawPrice) && rawPrice > 0;
 
                 return (
-                  <div key={p.article} className="product-sku-card">
-                    <div className="sku-card-media">
-                      <img 
-                        src={mainPhotoSrc} 
-                        alt={displayInfo.title} 
+                  <article key={p.article} className="product-sku-card">
+                    <div
+                      className="sku-card-media"
+                      onClick={() => openProductModal(p)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') openProductModal(p);
+                      }}
+                    >
+                      <img
+                        src={mainPhotoSrc}
+                        alt={displayInfo.title}
                         className="sku-product-img"
-                        onError={(e) => { e.target.src = `${baseUrl}images/cat_laute_brand.jpg`; }}
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.src = `${baseUrl}images/cat_laute_brand.jpg`;
+                        }}
                       />
-                      <span className="sku-art-badge">Арт. {p.article}</span>
+                      <span className="sku-art-badge">
+                        {cat.skuLabel || 'АРТ.'} {p.article}
+                      </span>
                       {p.isPopular && <span className="sku-pop-badge">Лидер продаж</span>}
                       {imgInfo.drawingPhotos.length > 0 && (
-                        <span className="sku-drawing-indicator" title="В подробной карточке доступен инженерный чертёж">
+                        <span
+                          className="sku-drawing-indicator"
+                          title="В подробной карточке доступен инженерный чертёж"
+                        >
                           <Ruler size={11} />
                           <span>Чертёж</span>
                         </span>
@@ -592,9 +658,16 @@ export const CatalogPage = () => {
                     <div className="sku-card-content">
                       <div className="sku-meta-line">
                         <span className="sku-category-tag">{p.category}</span>
+                        {p.series && <span className="sku-series-tag">{p.series}</span>}
                       </div>
 
-                      <h3 className="sku-card-title">{displayInfo.title}</h3>
+                      <h3
+                        className="sku-card-title"
+                        onClick={() => openProductModal(p)}
+                        title={displayInfo.title}
+                      >
+                        {displayInfo.title}
+                      </h3>
 
                       {displayInfo.subtitle && (
                         <div className="sku-card-subtitle">
@@ -605,103 +678,162 @@ export const CatalogPage = () => {
                       {displayInfo.cleanSpecs.length > 0 && (
                         <div className="sku-specs-chips">
                           {displayInfo.cleanSpecs.slice(0, 3).map((spec, sIdx) => (
-                            <span key={sIdx} className="sku-spec-chip">{spec}</span>
+                            <span key={sIdx} className="sku-spec-chip">
+                              {spec}
+                            </span>
                           ))}
                         </div>
                       )}
 
-                      <div className="sku-price-row">
-                        <div className="sku-price">
-                          {p.price ? `${p.price?.toLocaleString('ru-RU')} ${p.currency || '₸'}` : 'По запросу'}
+                      <div className="sku-card-bottom-area">
+                        <div className="sku-price-row">
+                          <div className="sku-price-block">
+                            <span className="sku-price-label">
+                              {cat.retailPriceLabel || 'Публичная розничная цена'}
+                            </span>
+                            <div className={`sku-price ${!hasKnownPrice ? 'is-on-request' : ''}`}>
+                              {hasKnownPrice
+                                ? `${rawPrice.toLocaleString('ru-RU')} ${p.currency || '₽'}`
+                                : cat.priceOnRequest || 'Цена по запросу'}
+                            </div>
+                          </div>
                         </div>
-                        <span className="sku-price-label">Базовая цена</span>
-                      </div>
 
-                      <div className="sku-stock-summary">
-                        {isB2BAuthorized || adminSession ? (() => {
-                          const stock = getStockForSku(p.article);
-                          if (stock.status === 'in_stock') {
-                            return (
-                              <>
-                                <MapPin size={13} color="#10B981" />
-                                <span style={{ color: '#10B981', fontWeight: 600 }}>
-                                  {stock.warehouseName}: {stock.label}
+                        <div className="sku-stock-summary">
+                          {isB2BAuthorized || adminSession ? (() => {
+                            const stock = getStockForSku(p.article);
+                            if (stock.status === 'in_stock') {
+                              return (
+                                <>
+                                  <MapPin size={13} color="#0D9488" />
+                                  <span style={{ color: '#0D9488', fontWeight: 600 }}>
+                                    {stock.warehouseName}: {stock.label}
+                                  </span>
+                                </>
+                              );
+                            } else if (stock.status === 'out_of_stock') {
+                              return (
+                                <>
+                                  <MapPin size={13} color="#D97706" />
+                                  <span style={{ color: '#D97706', fontWeight: 600 }}>
+                                    {stock.warehouseName}: 0 шт. (под заказ)
+                                  </span>
+                                </>
+                              );
+                            } else if (stock.status === 'no_warehouse') {
+                              return (
+                                <>
+                                  <MapPin size={13} color="#64748B" />
+                                  <span>Склад не выбран</span>
+                                </>
+                              );
+                            } else {
+                              return (
+                                <>
+                                  <MapPin size={13} color="#64748B" />
+                                  <span>{stock.warehouseName}: Нет данных</span>
+                                </>
+                              );
+                            }
+                          })() : (
+                            <>
+                              <MapPin size={13} color="#64748B" />
+                              <span>Складские остатки: в B2B кабинете</span>
+                            </>
+                          )}
+                        </div>
+
+                        {/* КНОПКИ КАРТОЧКИ: Подробнее + Сравнить (верхний ряд), Добавить в корзину (полноширинная кнопка снизу без обрезания) */}
+                        <div className="sku-card-actions">
+                          <div className="sku-card-secondary-actions">
+                            <button
+                              type="button"
+                              className="sku-btn-secondary sku-action-detail"
+                              onClick={() => openProductModal(p)}
+                            >
+                              <Eye size={14} />
+                              <span>{cat.detailsBtn || 'Подробнее'}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              className="sku-btn-secondary sku-action-compare"
+                              onClick={() => {
+                                const other =
+                                  activeProducts.find(
+                                    (item) => item.category === p.category && item.article !== p.article
+                                  ) || activeProducts.find((item) => item.article !== p.article);
+                                if (other) startComparison(p, other);
+                              }}
+                              title="Сравнить характеристики с другой моделью"
+                            >
+                              <Scale size={14} />
+                              <span>{cat.compareBtn || 'Сравнить'}</span>
+                            </button>
+                          </div>
+
+                          {qtyInCart > 0 ? (
+                            <div className="sku-cart-active-row">
+                              <div className="sku-cart-stepper">
+                                <button
+                                  type="button"
+                                  className="sku-stepper-btn"
+                                  onClick={() => updateCartQuantity(p.article, qtyInCart - 1)}
+                                  aria-label="Уменьшить количество"
+                                >
+                                  <Minus size={14} />
+                                </button>
+                                <span className="sku-stepper-value">
+                                  <Check size={13} />
+                                  <span>{cat.inCartLabel || 'В корзине'}: {qtyInCart}</span>
                                 </span>
-                              </>
-                            );
-                          } else if (stock.status === 'out_of_stock') {
-                            return (
-                              <>
-                                <MapPin size={13} color="#F59E0B" />
-                                <span style={{ color: '#F59E0B', fontWeight: 600 }}>
-                                  {stock.warehouseName}: 0 шт. (под заказ)
-                                </span>
-                              </>
-                            );
-                          } else if (stock.status === 'no_warehouse') {
-                            return (
-                              <>
-                                <MapPin size={13} color="#94A3B8" />
-                                <span style={{ color: '#94A3B8' }}>Склад не выбран</span>
-                              </>
-                            );
-                          } else {
-                            return (
-                              <>
-                                <MapPin size={13} color="#94A3B8" />
-                                <span style={{ color: '#94A3B8' }}>{stock.warehouseName}: Нет данных</span>
-                              </>
-                            );
-                          }
-                        })() : (
-                          <>
-                            <MapPin size={13} color="#94A3B8" />
-                            <span style={{ color: '#94A3B8' }}>Складские остатки: в B2B кабинете</span>
-                          </>
-                        )}
-                      </div>
-
-                      <div className="sku-card-actions">
-                        <button 
-                          type="button" 
-                          className="btn btn-outline btn-sm sku-action-detail"
-                          onClick={() => openProductModal(p)}
-                        >
-                          <Eye size={14} />
-                          <span>Подробнее</span>
-                        </button>
-
-                        <button 
-                          type="button" 
-                          className="btn btn-outline btn-sm sku-action-compare"
-                          onClick={() => {
-                            const other = activeProducts.find(item => item.category === p.category && item.article !== p.article) || activeProducts.find(item => item.article !== p.article);
-                            if (other) startComparison(p, other);
-                          }}
-                          title="Сравнить характеристики с другой моделью"
-                        >
-                          <Scale size={14} />
-                          <span>Сравнить</span>
-                        </button>
-
-                        <button 
-                          type="button" 
-                          className="btn btn-primary btn-sm sku-action-order"
-                          onClick={openPartnerModal}
-                        >
-                          <span>Запросить счёт</span>
-                        </button>
+                                <button
+                                  type="button"
+                                  className="sku-stepper-btn"
+                                  onClick={() => addToCart(p, 1)}
+                                  aria-label="Увеличить количество"
+                                >
+                                  <Plus size={14} />
+                                </button>
+                              </div>
+                              <button
+                                type="button"
+                                className="sku-open-cart-mini"
+                                onClick={openCartModal}
+                                title={cat.openCartBtn || 'Открыть корзину'}
+                              >
+                                <ShoppingBag size={15} />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              className="sku-btn-add-cart"
+                              onClick={() => addToCart(p, 1)}
+                            >
+                              <ShoppingBag size={15} />
+                              <span>{cat.addToCartBtn || 'Добавить в корзину'}</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </article>
                 );
               })}
 
               {filteredProducts.length === 0 && (
                 <div className="empty-catalog-state" style={{ gridColumn: '1 / -1' }}>
                   <p>По вашему поисковому запросу товаров не найдено.</p>
-                  <button type="button" className="btn btn-outline btn-sm" onClick={() => setSearchQuery('')}>
-                    Сбросить поиск
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSelectedCategory('all');
+                    }}
+                  >
+                    {cat.resetFilters || 'Сбросить фильтры'}
                   </button>
                 </div>
               )}
@@ -718,10 +850,11 @@ export const CatalogPage = () => {
                       src={cItem.image}
                       alt={cItem.name}
                       className="card-product-img"
+                      loading="lazy"
                       onError={(e) => {
-                        e.target.src = `${baseUrl}laute-logo.png`;
-                        e.target.style.opacity = '0.3';
-                        e.target.style.padding = '40px';
+                        e.currentTarget.src = `${baseUrl}laute-logo.png`;
+                        e.currentTarget.style.opacity = '0.3';
+                        e.currentTarget.style.padding = '40px';
                       }}
                     />
                     <span className="card-badge">{cItem.badge}</span>
@@ -729,7 +862,11 @@ export const CatalogPage = () => {
 
                   <div className="card-content">
                     <div className="card-cat-number">
-                      {lang === 'kz' ? `Санат #${idx + 1}` : lang === 'en' ? `Category #${idx + 1}` : `Категория #${idx + 1}`}
+                      {lang === 'kz'
+                        ? `Санат #${idx + 1}`
+                        : lang === 'en'
+                        ? `Category #${idx + 1}`
+                        : `Категория #${idx + 1}`}
                     </div>
                     <h3 className="card-title">{cItem.name}</h3>
                     <p className="card-desc">{cItem.desc}</p>
@@ -751,9 +888,19 @@ export const CatalogPage = () => {
                       <button
                         type="button"
                         className="btn btn-outline btn-sm btn-full"
-                        onClick={openPartnerModal}
+                        onClick={() => {
+                          setCatalogView('products');
+                          setSelectedCategory('all');
+                          setSearchQuery(cItem.name.split(' ')[0] || '');
+                        }}
                       >
-                        <span>{lang === 'kz' ? 'Спецификацияны сұрау' : lang === 'en' ? 'Request Specification' : 'Запросить спецификацию'}</span>
+                        <span>
+                          {lang === 'kz'
+                            ? 'Модельдерді көру'
+                            : lang === 'en'
+                            ? 'Browse Models'
+                            : 'Смотреть модели в каталоге'}
+                        </span>
                         <ArrowRight size={14} />
                       </button>
                     </div>
@@ -766,7 +913,13 @@ export const CatalogPage = () => {
           {/* Empty state for categories */}
           {catalogView === 'categories' && filteredCategories.length === 0 && (
             <div className="empty-catalog-state">
-              <p>{lang === 'kz' ? 'Сұранысыңыз бойынша санаттар табылмады. Сүзгілерді тазартып көріңіз.' : lang === 'en' ? 'No categories found matching your criteria. Try resetting filters.' : 'По вашему запросу категорий не найдено. Попробуйте сбросить фильтры.'}</p>
+              <p>
+                {lang === 'kz'
+                  ? 'Сұранысыңыз бойынша санаттар табылмады. Сүзгілерді тазартып көріңіз.'
+                  : lang === 'en'
+                  ? 'No categories found matching your criteria. Try resetting filters.'
+                  : 'По вашему запросу категорий не найдено. Попробуйте сбросить фильтры.'}
+              </p>
               <button
                 type="button"
                 className="btn btn-outline btn-sm"
@@ -776,20 +929,35 @@ export const CatalogPage = () => {
                   setSearchQuery('');
                 }}
               >
-                {lang === 'kz' ? 'Сүзгілерді тазарту' : lang === 'en' ? 'Reset filters' : 'Сбросить фильтры'}
+                {cat.resetFilters || 'Сбросить фильтры'}
               </button>
             </div>
           )}
 
-          {/* B2B Bottom Banner */}
+          {/* Нижний информационный блок каталога */}
           <div className="catalog-bottom-banner">
             <div className="banner-text">
-              <h3>{cat.notFoundTitle || 'Требуется спецификация под строительный объект или дилерский прайс?'}</h3>
-              <p>{cat.notFoundDesc || 'Предоставляем технические листы, размерные чертежи, логистические габариты упаковок и коммерческие условия для оптовых партнёров.'}</p>
+              <span className="catalog-banner-overline">ПРЯМОЕ СОТРУДНИЧЕСТВО С ЗАВОДОМ LAUTE</span>
+              <h3>{cat.notFoundTitle || 'Не нашли нужную позицию?'}</h3>
+              <p>
+                {cat.notFoundDesc ||
+                  'Завод LAUTE производит индивидуальные партии под проектные спецификации застройщиков и оптовых клиентов.'}
+              </p>
             </div>
-            <button type="button" className="btn btn-primary" onClick={openPartnerModal}>
-              {cat.requestObjectBtn || 'Оставить запрос менеджеру'}
-            </button>
+            <div className="catalog-banner-actions">
+              {cartDistinctCount > 0 && (
+                <button type="button" className="btn btn-outline catalog-banner-cart-btn" onClick={openCartModal}>
+                  <ShoppingBag size={16} />
+                  <span>
+                    {cat.openCartBtn || 'Корзина заявки'} ({cartTotalUnits})
+                  </span>
+                </button>
+              )}
+              <button type="button" className="btn btn-primary" onClick={openPartnerModal}>
+                <span>{cat.requestObjectBtn || 'Запросить подбор под объект'}</span>
+                <ArrowRight size={16} />
+              </button>
+            </div>
           </div>
         </div>
       </section>

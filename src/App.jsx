@@ -16,6 +16,7 @@ import { AuthModal } from './components/modals/AuthModal';
 import { ProductDetailModal } from './components/modals/ProductDetailModal';
 import { ProductComparisonModal } from './components/modals/ProductComparisonModal';
 import { ExcelManagerModal } from './components/modals/ExcelManagerModal';
+import CartModal from './components/modals/CartModal';
 import { CustomPageRenderer } from './components/builder/CustomPageRenderer';
 
 const AdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
@@ -73,6 +74,7 @@ export const AppContent = () => {
       <AuthModal />
       <ProductDetailModal />
       <ProductComparisonModal />
+      <CartModal />
       <ExcelManagerModal />
     </div>
   );

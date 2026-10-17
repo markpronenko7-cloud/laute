@@ -12,7 +12,10 @@ import {
   Package,
   Ruler,
   Maximize2,
-  FileText
+  FileText,
+  ShoppingBag,
+  Plus,
+  Minus
 } from 'lucide-react';
 import { classifyProductImages, formatProductDisplay } from '../../utils/imageHelper';
 
@@ -20,9 +23,12 @@ export const ProductDetailModal = () => {
   const {
     selectedProduct,
     closeProductModal,
-    openPartnerModal,
     openAuthModal,
     startComparison,
+    addToCart,
+    updateCartQuantity,
+    getCartItemQuantity,
+    openCartModal,
     products,
     adminSession,
     isB2BAuthorized,
@@ -392,17 +398,58 @@ export const ProductDetailModal = () => {
 
             {/* Modal Actions */}
             <div className="product-actions-footer">
-              <button 
-                type="button" 
-                className="btn btn-primary btn-full"
-                onClick={() => {
-                  closeProductModal();
-                  openPartnerModal();
-                }}
-              >
-                <span>{pm.requestQuote || 'Запросить оптовый счёт / Спецификацию'}</span>
-                <ArrowRight size={16} />
-              </button>
+              {getCartItemQuantity(selectedProduct.article) > 0 ? (
+                <div style={{ display: 'flex', gap: '10px', width: '100%', flexWrap: 'wrap' }}>
+                  <div className="laute-card-qty-stepper" style={{ flex: '0 0 auto' }}>
+                    <button
+                      type="button"
+                      className="laute-card-qty-btn"
+                      onClick={() =>
+                        updateCartQuantity(
+                          selectedProduct.article,
+                          getCartItemQuantity(selectedProduct.article) - 1
+                        )
+                      }
+                      aria-label="Уменьшить количество"
+                    >
+                      <Minus size={14} />
+                    </button>
+                    <span className="laute-card-qty-val">
+                      {getCartItemQuantity(selectedProduct.article)} шт.
+                    </span>
+                    <button
+                      type="button"
+                      className="laute-card-qty-btn"
+                      onClick={() => addToCart(selectedProduct, 1)}
+                      aria-label="Увеличить количество"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{ flex: '1 1 180px' }}
+                    onClick={() => {
+                      closeProductModal();
+                      openCartModal();
+                    }}
+                  >
+                    <ShoppingBag size={16} />
+                    <span>{t?.catalogPage?.openCartBtn || 'Корзина заявки'}</span>
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-primary btn-full"
+                  onClick={() => addToCart(selectedProduct, 1)}
+                >
+                  <ShoppingBag size={16} />
+                  <span>{t?.catalogPage?.addToCartBtn || 'Добавить в корзину'}</span>
+                </button>
+              )}
 
               <button 
                 type="button" 
@@ -410,7 +457,7 @@ export const ProductDetailModal = () => {
                 onClick={handleCompareClick}
               >
                 <Scale size={15} />
-                <span>{pm.compare || 'Сравнить с другой моделью LAUTE'}</span>
+                <span>{pm.compare || t?.catalogPage?.compareBtn || 'Сравнить с другой моделью LAUTE'}</span>
               </button>
             </div>
           </div>

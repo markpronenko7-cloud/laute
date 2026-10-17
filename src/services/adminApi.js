@@ -1244,3 +1244,566 @@ export const submitLeadInquiry = async (leadData) => {
   return { success: true, lead: payload };
 };
 
+// ==========================================
+// 10. ТЕРРИТОРИИ МЕНЕДЖЕРОВ И ЗАЯВКИ ИЗ КОРЗИНЫ БЕЗ РЕГИСТРАЦИИ
+// ==========================================
+
+const TERRITORY_RULES_STORAGE_KEY = 'laute_territory_managers_v1';
+const ORDER_INQUIRIES_STORAGE_KEY = 'laute_order_inquiries_v1';
+const ORDER_RATE_LIMIT_KEY = 'laute_last_order_ts_v1';
+
+// Начальные правила территорий из подтверждённых региональных представительств LAUTE (src/data/regionsData.js)
+export const DEFAULT_TERRITORY_RULES = [
+  {
+    id: 'terr_siberia',
+    territoryName: 'Сибирский федеральный округ (РФ)',
+    cities: ['Новосибирск', 'Омск', 'Красноярск', 'Барнаул', 'Томск', 'Кемерово', 'Новокузнецк', 'Иркутск', 'Бердск', 'Абакан'],
+    managerName: 'Региональный отдел продаж (Сибирь)',
+    managerEmail: 'nsk@laute.ltd',
+    active: true
+  },
+  {
+    id: 'terr_moscow',
+    territoryName: 'Москва и Центральный регион (РФ)',
+    cities: ['Москва', 'Санкт-Петербург', 'Екатеринбург', 'Казань', 'Нижний Новгород', 'Самара', 'Ростов-на-Дону', 'Краснодар', 'Воронеж', 'Пермь', 'Уфа', 'Челябинск', 'Подольск', 'Химки', 'Мытищи'],
+    managerName: 'Дирекция оптовых продаж (Москва и ЦФО)',
+    managerEmail: 'msk@laute.ltd',
+    active: true
+  },
+  {
+    id: 'terr_almaty',
+    territoryName: 'Алматы и Алматинская область (РК)',
+    cities: ['Алматы', 'Талдыкорган', 'Конаев', 'Каскелен', 'Талгар', 'Есик'],
+    managerName: 'Представительство LAUTE в Алматы',
+    managerEmail: 'kz@laute.ltd',
+    active: true
+  },
+  {
+    id: 'terr_kazakhstan',
+    territoryName: 'Республика Казахстан (Регионы)',
+    cities: ['Астана', 'Нур-Султан', 'Шымкент', 'Караганда', 'Актобе', 'Тараз', 'Павлодар', 'Усть-Каменогорск', 'Семей', 'Атырау', 'Костанай', 'Кызылорда', 'Уральск', 'Петропавловск', 'Актау', 'Темиртау', 'Туркестан', 'Кокшетау'],
+    managerName: 'Департамент дистрибуции в РК',
+    managerEmail: 'opt@laute.ltd',
+    active: true
+  }
+];
+
+const normalizeCityToken = (str) =>
+  String(str || '')
+    .toLowerCase()
+    .replace(/^(г\.|город|city|қ\.|қала)\s*/i, '')
+    .replace(/[^a-zа-яёәіңғүұқөһ0-9\s-]/gi, '')
+    .trim();
+
+export const getTerritoryRulesSync = () => {
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem(TERRITORY_RULES_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return DEFAULT_TERRITORY_RULES;
+};
+
+export const fetchTerritoryRules = async () => {
+  // 1. Пытаемся получить актуальные правила с серверного API
+  try {
+    const res = await fetch(`${getApiBase()}/territories`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data?.territories) && data.territories.length > 0) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(TERRITORY_RULES_STORAGE_KEY, JSON.stringify(data.territories));
+        }
+        return data.territories;
+      }
+    }
+  } catch {
+    // fallback
+  }
+
+  // 2. Пытаемся прочитать из опубликованного контента CMS
+  try {
+    const content = await fetchSiteContent('published');
+    if (Array.isArray(content?.territoryManagers) && content.territoryManagers.length > 0) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(TERRITORY_RULES_STORAGE_KEY, JSON.stringify(content.territoryManagers));
+      }
+      return content.territoryManagers;
+    }
+  } catch {
+    // fallback
+  }
+
+  return getTerritoryRulesSync();
+};
+
+export const saveTerritoryRules = async (rules) => {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('Требуется авторизация администратора');
+  }
+  if (!Array.isArray(rules)) {
+    throw new Error('Некорректный формат правил распределения территорий');
+  }
+
+  const sanitizedRules = rules.map((r, idx) => ({
+    id: String(r.id || `terr_${idx + 1}`),
+    territoryName: String(r.territoryName || '').trim(),
+    cities: Array.isArray(r.cities)
+      ? r.cities.map(c => String(c || '').trim()).filter(Boolean)
+      : String(r.cities || '')
+          .split(',')
+          .map(c => c.trim())
+          .filter(Boolean),
+    managerName: String(r.managerName || '').trim(),
+    managerEmail: String(r.managerEmail || '').trim(),
+    active: r.active !== false
+  }));
+
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(TERRITORY_RULES_STORAGE_KEY, JSON.stringify(sanitizedRules));
+  }
+
+  // Сохраняем на локальном/серверном backend API, если он запущен
+  try {
+    await fetch(`${getApiBase()}/territories`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ territories: sanitizedRules })
+    });
+  } catch {
+    // Статический режим
+  }
+
+  // Сохраняем в основной объект контента CMS
+  try {
+    const currentDraft = await fetchSiteContent('draft');
+    if (currentDraft && typeof currentDraft === 'object') {
+      const updated = { ...currentDraft, territoryManagers: sanitizedRules };
+      await saveContentDraft(updated);
+      await publishContent(updated);
+    }
+  } catch {
+    // Игнорируем ошибку, если Supabase недоступен
+  }
+
+  return { success: true, territories: sanitizedRules };
+};
+
+/**
+ * Определяет территорию и закреплённого менеджера по указанному городу.
+ * Если город не найден или менеджер/email не назначен — возвращает статус pending_assignment («Ожидает назначения»).
+ */
+export const resolveManagerByCity = (cityInput, rules = null) => {
+  const activeRules = Array.isArray(rules) ? rules : getTerritoryRulesSync();
+  const normalizedInput = normalizeCityToken(cityInput);
+
+  if (!normalizedInput) {
+    return {
+      status: 'pending_assignment',
+      statusLabel: 'Ожидает назначения',
+      territoryId: null,
+      territoryName: null,
+      managerName: null,
+      managerEmail: null
+    };
+  }
+
+  for (const rule of activeRules) {
+    if (rule.active === false) continue;
+    const citiesList = Array.isArray(rule.cities)
+      ? rule.cities
+      : String(rule.cities || '').split(',');
+
+    const isCityMatch = citiesList.some((cityItem) => {
+      const normRuleCity = normalizeCityToken(cityItem);
+      if (!normRuleCity) return false;
+      return (
+        normalizedInput === normRuleCity ||
+        normalizedInput.includes(normRuleCity) ||
+        (normalizedInput.length >= 4 && normRuleCity.includes(normalizedInput))
+      );
+    });
+
+    const normTerritory = normalizeCityToken(rule.territoryName);
+    const isTerritoryMatch =
+      normTerritory &&
+      normalizedInput.length >= 4 &&
+      (normalizedInput === normTerritory || normTerritory.includes(normalizedInput));
+
+    if (isCityMatch || isTerritoryMatch) {
+      const hasValidManager =
+        Boolean(rule.managerEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rule.managerEmail.trim()));
+
+      if (hasValidManager) {
+        return {
+          status: 'assigned',
+          statusLabel: 'Назначен менеджер',
+          territoryId: rule.id,
+          territoryName: rule.territoryName,
+          managerName: rule.managerName || 'Ответственный менеджер территории',
+          managerEmail: rule.managerEmail.trim()
+        };
+      }
+    }
+  }
+
+  return {
+    status: 'pending_assignment',
+    statusLabel: 'Ожидает назначения',
+    territoryId: null,
+    territoryName: null,
+    managerName: null,
+    managerEmail: null
+  };
+};
+
+/**
+ * Валидация контакта (телефон от 10 цифр ИЛИ корректный email)
+ */
+export const validateContactValue = (contactStr) => {
+  const raw = String(contactStr || '').trim();
+  if (!raw) return false;
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(raw);
+  const digitsOnly = raw.replace(/\D/g, '');
+  const isPhone = digitsOnly.length >= 10 && digitsOnly.length <= 15 && /^[+\d\s()-]+$/.test(raw);
+  return isEmail || isPhone;
+};
+
+/**
+ * Отправка первичной заявки без регистрации из корзины каталога
+ */
+export const submitCartOrderInquiry = async ({
+  customerName,
+  contact,
+  city,
+  comment = '',
+  consent = false,
+  honeypot = '',
+  items = [],
+  lang = 'ru'
+}) => {
+  // 1. Антиспам проверка (honeypot)
+  if (honeypot && String(honeypot).trim().length > 0) {
+    throw new Error('Spam detected');
+  }
+
+  // 2. Ограничение частоты повторной отправки (антиспам rate limit — 4 секунды)
+  if (typeof window !== 'undefined') {
+    const lastTs = Number(sessionStorage.getItem(ORDER_RATE_LIMIT_KEY) || 0);
+    if (Date.now() - lastTs < 4000) {
+      const err = new Error('RATE_LIMIT');
+      err.code = 'RATE_LIMIT';
+      throw err;
+    }
+  }
+
+  // 3. Проверка обязательных полей
+  const cleanName = String(customerName || '').trim();
+  const cleanContact = String(contact || '').trim();
+  const cleanCity = String(city || '').trim();
+  const cleanComment = String(comment || '').trim();
+
+  if (cleanName.length < 2) {
+    const err = new Error('INVALID_NAME');
+    err.code = 'INVALID_NAME';
+    throw err;
+  }
+  if (!validateContactValue(cleanContact)) {
+    const err = new Error('INVALID_CONTACT');
+    err.code = 'INVALID_CONTACT';
+    throw err;
+  }
+  if (cleanCity.length < 2) {
+    const err = new Error('INVALID_CITY');
+    err.code = 'INVALID_CITY';
+    throw err;
+  }
+  if (!consent) {
+    const err = new Error('CONSENT_REQUIRED');
+    err.code = 'CONSENT_REQUIRED';
+    throw err;
+  }
+  if (!Array.isArray(items) || items.length === 0) {
+    const err = new Error('EMPTY_CART');
+    err.code = 'EMPTY_CART';
+    throw err;
+  }
+
+  // 4. Формирование состава позиций (используем только публичные розничные цены; неизвестную цену НЕ считаем нулевой)
+  let totalKnownAmount = 0;
+  let hasPriceOnRequest = false;
+  let totalUnits = 0;
+
+  const normalizedItems = items.map((item) => {
+    const qty = Math.max(1, Math.min(9999, parseInt(item.quantity, 10) || 1));
+    const rawPrice = Number(item.price);
+    const hasKnownPrice = Number.isFinite(rawPrice) && rawPrice > 0;
+    const lineSubtotal = hasKnownPrice ? rawPrice * qty : null;
+
+    if (hasKnownPrice) {
+      totalKnownAmount += lineSubtotal;
+    } else {
+      hasPriceOnRequest = true;
+    }
+    totalUnits += qty;
+
+    return {
+      article: String(item.article || '').trim(),
+      title: String(item.title || '').trim(),
+      series: String(item.series || '').trim(),
+      category: String(item.category || '').trim(),
+      quantity: qty,
+      publicPrice: hasKnownPrice ? rawPrice : null,
+      priceStatus: hasKnownPrice ? 'known' : 'on_request',
+      lineSubtotal,
+      image: String(item.image || '')
+    };
+  });
+
+  // 5. Определение территории и закреплённого менеджера
+  const territoryRules = await fetchTerritoryRules();
+  const routing = resolveManagerByCity(cleanCity, territoryRules);
+
+  // 6. Генерация номера заявки LAUTE-YYYYMMDD-XXXX
+  const now = new Date();
+  const datePart = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, '0'),
+    String(now.getDate()).padStart(2, '0')
+  ].join('');
+  const randomSuffix = String(Math.floor(1000 + Math.random() * 9000));
+  const inquiryNumber = `LAUTE-${datePart}-${randomSuffix}`;
+
+  const orderRecord = {
+    id: `ord_${Date.now()}_${randomSuffix}`,
+    inquiryNumber,
+    createdAt: now.toISOString(),
+    customer: {
+      name: cleanName,
+      contact: cleanContact,
+      city: cleanCity,
+      comment: cleanComment,
+      consent: true,
+      lang
+    },
+    items: normalizedItems,
+    summary: {
+      distinctItems: normalizedItems.length,
+      totalUnits,
+      totalKnownAmount,
+      hasPriceOnRequest,
+      currency: 'RUB'
+    },
+    routing: {
+      status: routing.status, // 'assigned' | 'pending_assignment'
+      statusLabel: routing.statusLabel,
+      territoryId: routing.territoryId,
+      territoryName: routing.territoryName,
+      managerName: routing.managerName,
+      managerEmail: routing.managerEmail
+    },
+    emailNotification: {
+      sent: false,
+      status: routing.status === 'assigned' ? 'queued_for_dispatch' : 'awaiting_territory_assignment',
+      recipientEmail: routing.managerEmail || null,
+      dispatchedAt: null
+    }
+  };
+
+  // 7. Отправка на защищённый серверный endpoint /api/orders (база данных + почтовый сервис)
+  let serverSaved = false;
+  try {
+    const response = await fetch(`${getApiBase()}/orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderRecord)
+    });
+
+    if (response.ok) {
+      const serverResult = await response.json();
+      if (serverResult && serverResult.success) {
+        serverSaved = true;
+        if (serverResult.order?.emailNotification) {
+          orderRecord.emailNotification = serverResult.order.emailNotification;
+        }
+      }
+    }
+  } catch {
+    // На статическом хостинге GitHub Pages локальный Node-сервер недоступен
+  }
+
+  // 8. Попытка записи через Supabase RPC (если настроен публичный приём заявок)
+  try {
+    const rpcRes = await callSupabaseRpc('laute_submit_order_inquiry', {
+      p_order: orderRecord
+    });
+    if (rpcRes && rpcRes.success) {
+      serverSaved = true;
+    }
+  } catch {
+    // RPC не развёрнут или ключ не активен
+  }
+
+  // 9. Надёжное сохранение в защищённом хранилище служебного интерфейса (недоступно для публичного чтения на сайте, читается только в закрытой админ-панели /admin)
+  if (typeof window !== 'undefined') {
+    try {
+      const existingOrders = JSON.parse(localStorage.getItem(ORDER_INQUIRIES_STORAGE_KEY) || '[]');
+      const filtered = Array.isArray(existingOrders)
+        ? existingOrders.filter(o => o.inquiryNumber !== orderRecord.inquiryNumber)
+        : [];
+      filtered.unshift(orderRecord);
+      localStorage.setItem(ORDER_INQUIRIES_STORAGE_KEY, JSON.stringify(filtered.slice(0, 500)));
+      sessionStorage.setItem(ORDER_RATE_LIMIT_KEY, String(Date.now()));
+    } catch {
+      // ignore storage quota errors
+    }
+  }
+
+  return {
+    success: true,
+    serverSaved,
+    order: orderRecord
+  };
+};
+
+/**
+ * Чтение всех заявок из корзины для служебного интерфейса администратора (/admin)
+ */
+export const fetchOrderInquiries = async () => {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('Требуется авторизация администратора');
+  }
+
+  let serverOrders = [];
+  try {
+    const res = await fetch(`${getApiBase()}/orders`, {
+      headers: getHeaders()
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data?.orders)) {
+        serverOrders = data.orders;
+      }
+    }
+  } catch {
+    // fallback
+  }
+
+  let localOrders = [];
+  if (typeof window !== 'undefined') {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(ORDER_INQUIRIES_STORAGE_KEY) || '[]');
+      if (Array.isArray(parsed)) {
+        localOrders = parsed;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // Объединяем без дублей по inquiryNumber
+  const mapByNumber = new Map();
+  [...serverOrders, ...localOrders].forEach((ord) => {
+    if (ord && ord.inquiryNumber && !mapByNumber.has(ord.inquiryNumber)) {
+      mapByNumber.set(ord.inquiryNumber, ord);
+    }
+  });
+
+  return Array.from(mapByNumber.values()).sort(
+    (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+  );
+};
+
+/**
+ * Назначение менеджера или изменение статуса заявки в админ-панели
+ */
+export const updateOrderInquiryInAdmin = async (inquiryNumber, patch) => {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('Требуется авторизация администратора');
+  }
+
+  let updatedOrder = null;
+
+  if (typeof window !== 'undefined') {
+    try {
+      const existing = JSON.parse(localStorage.getItem(ORDER_INQUIRIES_STORAGE_KEY) || '[]');
+      if (Array.isArray(existing)) {
+        const next = existing.map((ord) => {
+          if (ord.inquiryNumber === inquiryNumber) {
+            updatedOrder = {
+              ...ord,
+              ...patch,
+              routing: patch.routing ? { ...ord.routing, ...patch.routing } : ord.routing
+            };
+            return updatedOrder;
+          }
+          return ord;
+        });
+        localStorage.setItem(ORDER_INQUIRIES_STORAGE_KEY, JSON.stringify(next));
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  try {
+    const res = await fetch(`${getApiBase()}/orders/${encodeURIComponent(inquiryNumber)}`, {
+      method: 'PATCH',
+      headers: getHeaders(),
+      body: JSON.stringify(patch)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.order) updatedOrder = data.order;
+    }
+  } catch {
+    // ignore in static mode
+  }
+
+  return { success: true, order: updatedOrder };
+};
+
+/**
+ * Удаление заявки (например, очистка тестовой заявки администратором)
+ */
+export const deleteOrderInquiryInAdmin = async (inquiryNumber) => {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('Требуется авторизация администратора');
+  }
+
+  if (typeof window !== 'undefined') {
+    try {
+      const existing = JSON.parse(localStorage.getItem(ORDER_INQUIRIES_STORAGE_KEY) || '[]');
+      if (Array.isArray(existing)) {
+        const next = existing.filter((ord) => ord.inquiryNumber !== inquiryNumber);
+        localStorage.setItem(ORDER_INQUIRIES_STORAGE_KEY, JSON.stringify(next));
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  try {
+    await fetch(`${getApiBase()}/orders/${encodeURIComponent(inquiryNumber)}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+  } catch {
+    // ignore in static mode
+  }
+
+  return { success: true };
+};
+

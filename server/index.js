@@ -1791,6 +1791,273 @@ app.get('/api/settings/export-all', verifyAuth, (req, res) => {
   res.send(JSON.stringify(fullBackup, null, 2));
 });
 
+// ==========================================
+// 9. ТЕРРИТОРИИ МЕНЕДЖЕРОВ И ЗАЯВКИ БЕЗ РЕГИСТРАЦИИ (/api/territories, /api/orders)
+// ==========================================
+
+const TERRITORIES_FILE = path.join(DATA_DIR, 'territory_managers.json');
+const ORDERS_FILE = path.join(DATA_DIR, 'order_inquiries.json');
+const orderIpRateMap = new Map();
+
+const INITIAL_TERRITORIES = [
+  {
+    id: 'terr_siberia',
+    territoryName: 'Сибирский федеральный округ (РФ)',
+    cities: ['Новосибирск', 'Омск', 'Красноярск', 'Барнаул', 'Томск', 'Кемерово', 'Новокузнецк', 'Иркутск', 'Бердск', 'Абакан'],
+    managerName: 'Региональный отдел продаж (Сибирь)',
+    managerEmail: 'nsk@laute.ltd',
+    active: true
+  },
+  {
+    id: 'terr_moscow',
+    territoryName: 'Москва и Центральный регион (РФ)',
+    cities: ['Москва', 'Санкт-Петербург', 'Екатеринбург', 'Казань', 'Нижний Новгород', 'Самара', 'Ростов-на-Дону', 'Краснодар', 'Воронеж', 'Пермь', 'Уфа', 'Челябинск', 'Подольск', 'Химки', 'Мытищи'],
+    managerName: 'Дирекция оптовых продаж (Москва и ЦФО)',
+    managerEmail: 'msk@laute.ltd',
+    active: true
+  },
+  {
+    id: 'terr_almaty',
+    territoryName: 'Алматы и Алматинская область (РК)',
+    cities: ['Алматы', 'Талдыкорган', 'Конаев', 'Каскелен', 'Талгар', 'Есик'],
+    managerName: 'Представительство LAUTE в Алматы',
+    managerEmail: 'kz@laute.ltd',
+    active: true
+  },
+  {
+    id: 'terr_kazakhstan',
+    territoryName: 'Республика Казахстан (Регионы)',
+    cities: ['Астана', 'Нур-Султан', 'Шымкент', 'Караганда', 'Актобе', 'Тараз', 'Павлодар', 'Усть-Каменогорск', 'Семей', 'Атырау', 'Костанай', 'Кызылорда', 'Уральск', 'Петропавловск', 'Актау', 'Темиртау', 'Туркестан', 'Кокшетау'],
+    managerName: 'Департамент дистрибуции в РК',
+    managerEmail: 'opt@laute.ltd',
+    active: true
+  }
+];
+
+function getTerritoryManagersList() {
+  const list = readJson(TERRITORIES_FILE, null);
+  if (Array.isArray(list) && list.length > 0) return list;
+  writeJson(TERRITORIES_FILE, INITIAL_TERRITORIES);
+  return INITIAL_TERRITORIES;
+}
+
+function formatManagerEmailText(order) {
+  const lines = [
+    `НОВАЯ ЗАЯВКА С САЙТА LAUTE: ${order.inquiryNumber}`,
+    `Дата: ${new Date(order.createdAt).toLocaleString('ru-RU')}`,
+    `Территория: ${order.routing?.territoryName || 'Ожидает назначения'}`,
+    `Ответственный менеджер: ${order.routing?.managerName || 'Не назначен'}`,
+    ``,
+    `ДАННЫЕ КЛИЕНТА:`,
+    `- Имя: ${order.customer?.name || ''}`,
+    `- Контакт (телефон / email): ${order.customer?.contact || ''}`,
+    `- Город: ${order.customer?.city || ''}`,
+    `- Комментарий: ${order.customer?.comment || 'Без комментария'}`,
+    ``,
+    `СОСТАВ ЗАЯВКИ:`
+  ];
+
+  (order.items || []).forEach((it, i) => {
+    const priceStr = it.publicPrice
+      ? `${Number(it.publicPrice).toLocaleString('ru-RU')} ₽`
+      : 'Цена по запросу';
+    const subStr = it.lineSubtotal
+      ? `${Number(it.lineSubtotal).toLocaleString('ru-RU')} ₽`
+      : 'По запросу';
+    lines.push(
+      `${i + 1}. [${it.article}] ${it.title} — ${it.quantity} шт. × ${priceStr} = ${subStr}`
+    );
+  });
+
+  lines.push(``);
+  lines.push(
+    `ИТОГО ПО ИЗВЕСТНЫМ ЦЕНАМ: ${Number(order.summary?.totalKnownAmount || 0).toLocaleString('ru-RU')} ₽`
+  );
+  if (order.summary?.hasPriceOnRequest) {
+    lines.push(`* В заявке присутствуют позиции со статусом «Цена по запросу».`);
+  }
+  return lines.join('\n');
+}
+
+async function dispatchManagerEmailIfConfigured(order) {
+  const recipient = order.routing?.managerEmail;
+  if (!recipient || order.routing?.status !== 'assigned') {
+    return {
+      sent: false,
+      status: 'awaiting_territory_assignment',
+      recipientEmail: null,
+      dispatchedAt: null
+    };
+  }
+
+  const webhookUrl = process.env.LAUTE_MAIL_WEBHOOK_URL;
+  const resendApiKey = process.env.RESEND_API_KEY;
+  const subject = `Заявка ${order.inquiryNumber} — ${order.customer?.city || ''} (${order.customer?.name || ''})`;
+  const textBody = formatManagerEmailText(order);
+
+  // Вариант 1: Почтовый API Resend (если задан секрет RESEND_API_KEY на сервере)
+  if (resendApiKey) {
+    try {
+      const resp = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: process.env.LAUTE_MAIL_FROM || 'LAUTE Platform <noreply@laute.ltd>',
+          to: [recipient],
+          subject,
+          text: textBody
+        })
+      });
+      if (resp.ok) {
+        return {
+          sent: true,
+          status: 'sent',
+          recipientEmail: recipient,
+          dispatchedAt: new Date().toISOString()
+        };
+      }
+    } catch (err) {
+      console.error('Ошибка отправки через Resend:', err.message);
+    }
+  }
+
+  // Вариант 2: Корпоративный почтовый webhook (если задан LAUTE_MAIL_WEBHOOK_URL)
+  if (webhookUrl) {
+    try {
+      const resp = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: recipient, subject, text: textBody, order })
+      });
+      if (resp.ok) {
+        return {
+          sent: true,
+          status: 'sent',
+          recipientEmail: recipient,
+          dispatchedAt: new Date().toISOString()
+        };
+      }
+    } catch (err) {
+      console.error('Ошибка отправки через почтовый webhook:', err.message);
+    }
+  }
+
+  // Честный статус: секреты почтового сервера не заданы, письмо не имитируется
+  return {
+    sent: false,
+    status: 'smtp_not_configured',
+    recipientEmail: recipient,
+    dispatchedAt: null
+  };
+}
+
+// Публичное чтение правил территорий для маршрутизации по городу
+app.get('/api/territories', (req, res) => {
+  res.json({ territories: getTerritoryManagersList() });
+});
+
+// Сохранение правил территорий (только авторизованный администратор)
+app.post('/api/territories', verifyAuth, (req, res) => {
+  const { territories } = req.body || {};
+  if (!Array.isArray(territories)) {
+    return res.status(400).json({ error: 'Некорректный список территорий' });
+  }
+  writeJson(TERRITORIES_FILE, territories);
+  addAuditLog({
+    action: 'TERRITORIES_UPDATE',
+    details: `Обновлены правила распределения менеджеров по территориям (${territories.length} правил)`
+  });
+  res.json({ success: true, territories });
+});
+
+// Публичная отправка первичной заявки из корзины (ЗАПИСЬ разрешена, ЧТЕНИЕ закрыто)
+app.post('/api/orders', async (req, res) => {
+  const ip = getClientIp(req);
+  const lastTs = orderIpRateMap.get(ip) || 0;
+  if (Date.now() - lastTs < 3000) {
+    return res.status(429).json({ error: 'Слишком частая отправка заявок. Подождите несколько секунд.' });
+  }
+
+  const order = req.body;
+  if (
+    !order ||
+    !order.inquiryNumber ||
+    !order.customer?.name ||
+    !order.customer?.contact ||
+    !order.customer?.city ||
+    !Array.isArray(order.items) ||
+    order.items.length === 0
+  ) {
+    return res.status(400).json({ error: 'Не заполнены обязательные поля заявки или корзина пуста' });
+  }
+
+  orderIpRateMap.set(ip, Date.now());
+
+  const emailNotification = await dispatchManagerEmailIfConfigured(order);
+  const savedOrder = {
+    ...order,
+    emailNotification,
+    serverReceivedAt: new Date().toISOString()
+  };
+
+  const orders = readJson(ORDERS_FILE, []);
+  orders.unshift(savedOrder);
+  if (orders.length > 1000) orders.length = 1000;
+  writeJson(ORDERS_FILE, orders);
+
+  addAuditLog({
+    action: 'ORDER_INQUIRY_RECEIVED',
+    details: `Заявка ${savedOrder.inquiryNumber} (${savedOrder.customer.city}) → ${savedOrder.routing?.managerEmail || 'Ожидает назначения'}`
+  });
+
+  res.json({ success: true, order: savedOrder });
+});
+
+// Служебное чтение заявок (ТОЛЬКО для авторизованного администратора)
+app.get('/api/orders', verifyAuth, (req, res) => {
+  const orders = readJson(ORDERS_FILE, []);
+  res.json({ orders });
+});
+
+// Обновление статуса / назначение менеджера для заявки (ТОЛЬКО для авторизованного администратора)
+app.patch('/api/orders/:inquiryNumber', verifyAuth, (req, res) => {
+  const { inquiryNumber } = req.params;
+  const patch = req.body || {};
+  const orders = readJson(ORDERS_FILE, []);
+  let updatedOrder = null;
+
+  const next = orders.map((ord) => {
+    if (ord.inquiryNumber === inquiryNumber) {
+      updatedOrder = {
+        ...ord,
+        ...patch,
+        routing: patch.routing ? { ...ord.routing, ...patch.routing } : ord.routing
+      };
+      return updatedOrder;
+    }
+    return ord;
+  });
+
+  if (!updatedOrder) {
+    return res.status(404).json({ error: 'Заявка не найдена' });
+  }
+
+  writeJson(ORDERS_FILE, next);
+  res.json({ success: true, order: updatedOrder });
+});
+
+// Удаление заявки (ТОЛЬКО для авторизованного администратора)
+app.delete('/api/orders/:inquiryNumber', verifyAuth, (req, res) => {
+  const { inquiryNumber } = req.params;
+  const orders = readJson(ORDERS_FILE, []);
+  const next = orders.filter((ord) => ord.inquiryNumber !== inquiryNumber);
+  writeJson(ORDERS_FILE, next);
+  res.json({ success: true });
+});
+
 export { app };
 
 // Start Express server if run standalone (or explicitly requested)

@@ -76,6 +76,14 @@ export function extractGoogleDriveFolderId(url) {
  * - Ссылка на Tilda страницу -> прямая ссылка на изображение смесителя
  * - Относительные пути -> префикс baseUrl
  */
+export function getAssetPath(rawUrl, baseUrl = import.meta.env?.BASE_URL || '/') {
+  if (!rawUrl || typeof rawUrl !== 'string') return '';
+  const url = rawUrl.trim();
+  // Product images may already include Vite's base path after classification.
+  if (url.startsWith(baseUrl)) return url;
+  return normalizeImageUrl(url, baseUrl);
+}
+
 export function normalizeImageUrl(rawUrl, baseUrl = import.meta.env?.BASE_URL || '/') {
   if (!rawUrl || typeof rawUrl !== 'string') return '';
   const trimmed = rawUrl.trim();

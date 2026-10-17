@@ -252,6 +252,139 @@ export const AppProvider = ({ children }) => {
     setComparisonItems(null);
   }, []);
 
+  // ==========================================
+  // КОРЗИНА ПЕРВИЧНОЙ ЗАЯВКИ БЕЗ РЕГИСТРАЦИИ
+  // ==========================================
+  const CART_STORAGE_KEY = 'laute_cart_items_v1';
+
+  const [cartRawItems, setCartRawItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem(CART_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(it => it && it.article && Number(it.quantity) > 0);
+        }
+      }
+    } catch {
+      // fallback
+    }
+    return [];
+  });
+
+  const [isCartModalOpen, setIsCartModalOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartRawItems));
+    } catch {
+      // ignore storage quota errors
+    }
+  }, [cartRawItems]);
+
+  // Синхронизируем позиции корзины с живой номенклатурой каталога (только публичные розничные цены)
+  const cartItems = useMemo(() => {
+    return cartRawItems.map((entry) => {
+      const liveProd = products.find(p => p.article === entry.article);
+      const rawPrice = liveProd !== undefined ? Number(liveProd.price) : Number(entry.price);
+      const hasKnownPrice = Number.isFinite(rawPrice) && rawPrice > 0;
+      const qty = Math.max(1, Math.min(9999, parseInt(entry.quantity, 10) || 1));
+
+      return {
+        article: entry.article,
+        title: liveProd?.title || entry.title || entry.article,
+        series: liveProd?.series || entry.series || '',
+        category: liveProd?.category || entry.category || '',
+        image: liveProd?.image || entry.image || '',
+        images: liveProd?.images || entry.images || [],
+        price: hasKnownPrice ? rawPrice : null,
+        hasKnownPrice,
+        quantity: qty,
+        lineSubtotal: hasKnownPrice ? rawPrice * qty : null
+      };
+    });
+  }, [cartRawItems, products]);
+
+  const addToCart = useCallback((product, deltaQty = 1) => {
+    if (!product || !product.article) return;
+    const addAmount = Math.max(1, parseInt(deltaQty, 10) || 1);
+
+    setCartRawItems((prev) => {
+      const idx = prev.findIndex(item => item.article === product.article);
+      if (idx > -1) {
+        const updated = [...prev];
+        const nextQty = Math.min(9999, (parseInt(updated[idx].quantity, 10) || 1) + addAmount);
+        updated[idx] = {
+          ...updated[idx],
+          title: product.title || updated[idx].title,
+          price: Number(product.price) > 0 ? Number(product.price) : null,
+          image: product.image || updated[idx].image,
+          images: product.images || updated[idx].images,
+          quantity: nextQty
+        };
+        return updated;
+      }
+
+      return [
+        ...prev,
+        {
+          article: product.article,
+          title: product.title || product.article,
+          series: product.series || '',
+          category: product.category || '',
+          price: Number(product.price) > 0 ? Number(product.price) : null,
+          image: product.image || '',
+          images: Array.isArray(product.images) ? product.images : [],
+          quantity: addAmount
+        }
+      ];
+    });
+  }, []);
+
+  const updateCartQuantity = useCallback((article, newQuantity) => {
+    if (!article) return;
+    const parsed = parseInt(newQuantity, 10);
+    if (isNaN(parsed) || parsed <= 0) {
+      setCartRawItems(prev => prev.filter(item => item.article !== article));
+      return;
+    }
+    const clamped = Math.min(9999, parsed);
+    setCartRawItems(prev =>
+      prev.map(item => (item.article === article ? { ...item, quantity: clamped } : item))
+    );
+  }, []);
+
+  const removeFromCart = useCallback((article) => {
+    if (!article) return;
+    setCartRawItems(prev => prev.filter(item => item.article !== article));
+  }, []);
+
+  const clearCart = useCallback(() => {
+    setCartRawItems([]);
+  }, []);
+
+  const getCartItemQuantity = useCallback(
+    (article) => {
+      const found = cartRawItems.find(it => it.article === article);
+      return found ? found.quantity : 0;
+    },
+    [cartRawItems]
+  );
+
+  const cartDistinctCount = cartItems.length;
+  const cartTotalUnits = useMemo(
+    () => cartItems.reduce((acc, it) => acc + (it.quantity || 0), 0),
+    [cartItems]
+  );
+  const cartTotalKnownAmount = useMemo(
+    () => cartItems.reduce((acc, it) => acc + (it.lineSubtotal || 0), 0),
+    [cartItems]
+  );
+  const cartHasPriceOnRequest = useMemo(
+    () => cartItems.some(it => !it.hasKnownPrice),
+    [cartItems]
+  );
+
   // Navigate to route
   const navigateTo = useCallback((route, anchor) => {
     setCurrentRoute(route);
@@ -392,6 +525,20 @@ export const AppProvider = ({ children }) => {
     comparisonItems,
     startComparison,
     closeComparisonModal,
+    // Корзина первичной заявки без регистрации
+    cartItems,
+    isCartModalOpen,
+    openCartModal: () => setIsCartModalOpen(true),
+    closeCartModal: () => setIsCartModalOpen(false),
+    addToCart,
+    updateCartQuantity,
+    removeFromCart,
+    clearCart,
+    getCartItemQuantity,
+    cartDistinctCount,
+    cartTotalUnits,
+    cartTotalKnownAmount,
+    cartHasPriceOnRequest,
     selectedCity,
     setSelectedCity,
     isPartnerModalOpen,
