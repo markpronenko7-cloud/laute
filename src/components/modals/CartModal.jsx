@@ -639,7 +639,7 @@ const CartModal = () => {
               <p className="laute-inquiry-status-note">
                 {submittedOrder.emailNotification?.sent
                   ? `Письмо отправлено на ${submittedOrder.emailNotification.recipientEmail}.`
-                  : 'Почтовый сервис принял заявку для отправки на opt@laute.ltd.'}
+                  : 'Почтовый сервис принял заявку для отправки на markpronenko7@gmail.com.'}
                 {submittedOrder.emailNotification?.copyTo &&
                   ` Копия передана для отправки на ${submittedOrder.emailNotification.copyTo}.`}
               </p>

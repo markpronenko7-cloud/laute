@@ -1423,9 +1423,9 @@ export const authenticateB2BPartner = async (login, password) => {
   throw new Error('Неверный пароль или код партнёра. Для получения доступа обратитесь в оптовый отдел LAUTE.');
 };
 
-const MAIL_INBOX = 'opt@laute.ltd';
+const MAIL_INBOX = 'markpronenko7@gmail.com';
 
-async function sendInquiryEmail(subject, message, customerName, customerEmail, managerEmail = null) {
+async function sendInquiryEmail(subject, message, customerName, customerEmail) {
   const payload = {
     _subject: subject,
     name: customerName || 'Посетитель сайта LAUTE',
@@ -1435,10 +1435,6 @@ async function sendInquiryEmail(subject, message, customerName, customerEmail, m
   if (customerEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
     payload.email = customerEmail;
   }
-  if (managerEmail && managerEmail !== MAIL_INBOX && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(managerEmail)) {
-    payload._cc = managerEmail;
-  }
-
   let response;
   try {
     response = await fetch(`https://formsubmit.co/ajax/${MAIL_INBOX}`, {
@@ -1448,12 +1444,17 @@ async function sendInquiryEmail(subject, message, customerName, customerEmail, m
       signal: AbortSignal.timeout(15000)
     });
   } catch {
-    throw new Error('Не удалось отправить заявку по электронной почте. Попробуйте ещё раз или напишите на opt@laute.ltd.');
+    throw new Error('Не удалось отправить заявку по электронной почте. Попробуйте ещё раз или напишите на markpronenko7@gmail.com.');
   }
 
   const result = await response.json().catch(() => null);
+  if (result?.success === false || result?.success === 'false') {
+    if (/activat/i.test(result.message || '')) {
+      throw new Error('Для доставки заявок нужно подтвердить письмо FormSubmit в ящике markpronenko7@gmail.com. Заявка пока не отправлена; данные формы сохранены.');
+    }
+  }
   if (!response.ok || (result?.success !== true && result?.success !== 'true')) {
-    throw new Error('Почтовый сервис не подтвердил приём заявки. Попробуйте ещё раз или напишите на opt@laute.ltd.');
+    throw new Error('Почтовый сервис не подтвердил приём заявки. Попробуйте ещё раз или напишите на markpronenko7@gmail.com.');
   }
   return true;
 }
@@ -1922,15 +1923,14 @@ export const submitCartOrderInquiry = async ({
       `Заявка ${orderRecord.inquiryNumber} — ${cleanCity}`,
       lines.join('\n'),
       cleanName,
-      cleanContact,
-      routing.managerEmail
+      cleanContact
     );
     emailAccepted = true;
     orderRecord.emailNotification = {
       sent: false,
       status: 'accepted_by_email_service',
       recipientEmail: MAIL_INBOX,
-      copyTo: routing.managerEmail || null,
+      copyTo: null,
       dispatchedAt: null
     };
   }
