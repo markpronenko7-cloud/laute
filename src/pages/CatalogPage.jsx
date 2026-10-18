@@ -382,7 +382,7 @@ export const CatalogPage = () => {
 
   // Filter Categories
   const filteredCategories = categories.filter(c => {
-    const matchesCat = selectedCategory === 'all' || c.id === selectedCategory;
+    const matchesCat = selectedCategory === 'all' || c.sourceCategory === selectedCategory;
     const matchesMount = selectedMounting === 'all' || c.mounting === selectedMounting;
     const matchesSearch = searchQuery === '' || 
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

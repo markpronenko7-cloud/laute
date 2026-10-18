@@ -202,7 +202,9 @@ export function classifyProductImages(product, baseUrl = import.meta.env?.BASE_U
       const parts = c.url.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
       parts.forEach(part => {
         const norm = normalizeImageUrl(part, baseUrl);
-        if (norm && !rawImages.some(r => r.url === norm)) {
+        const existing = rawImages.find(r => r.url === norm);
+        if (existing && c.defaultType) existing.type = c.defaultType;
+        if (norm && !existing) {
           const type = c.defaultType || detectImageType(part) || detectImageType(norm);
           rawImages.push({ url: norm, type });
         }
@@ -211,16 +213,17 @@ export function classifyProductImages(product, baseUrl = import.meta.env?.BASE_U
   });
 
   // Если для артикула есть известные изображения в справочниках
-  if (product.article === 'ETH103D' && !rawImages.some(r => r.url.includes('12qG6rFNV62T2nnvsoAcRxQ0OLkuY7JZD'))) {
+  const hasProductPhoto = rawImages.some(r => r.type === 'mixer');
+  if (product.article === 'ETH103D' && !hasProductPhoto) {
     rawImages.unshift({ url: 'https://lh3.googleusercontent.com/d/12qG6rFNV62T2nnvsoAcRxQ0OLkuY7JZD', type: 'mixer' });
     rawImages.push({ url: 'https://lh3.googleusercontent.com/d/1LrdsmGJZMUQ3rF1qwItAS5AV_1UOIVHD', type: 'drawing' });
-  } else if (product.article === 'ETH163GQ' && !rawImages.some(r => r.url.includes('1ElOjzr-jtWrng4TKNwOi4t8P_3IoT23v'))) {
+  } else if (product.article === 'ETH163GQ' && !hasProductPhoto) {
     rawImages.unshift({ url: 'https://lh3.googleusercontent.com/d/1ElOjzr-jtWrng4TKNwOi4t8P_3IoT23v', type: 'mixer' });
     rawImages.push({ url: 'https://lh3.googleusercontent.com/d/1dDb1_XDrG1-rjHsABKzgzHzG9WejgMPt', type: 'drawing' });
     rawImages.push({ url: 'https://lh3.googleusercontent.com/d/1rvDE6g3QIfwuzhn51l7h3RL_XHhiPeIR', type: 'mixer' });
-  } else if (product.article === 'A0163' && !rawImages.some(r => r.url.includes('11477791.png'))) {
+  } else if (product.article === 'A0163' && !hasProductPhoto) {
     rawImages.unshift({ url: 'https://static.tildacdn.com/stor3863-3362-4238-a630-396638636635/11477791.png', type: 'mixer' });
-  } else if (product.article === 'R0101F' && !rawImages.some(r => r.url.includes('24108275.png'))) {
+  } else if (product.article === 'R0101F' && !hasProductPhoto) {
     rawImages.unshift({ url: 'https://static.tildacdn.com/stor3133-3664-4664-a531-353734316361/24108275.png', type: 'mixer' });
   }
 
@@ -308,8 +311,12 @@ export function formatProductDisplay(product) {
 
   // 1. Определение чистого типа изделия (Title)
   let title = '';
+  // Явная категория из CMS/Excel имеет приоритет над старым названием и подкатегорией.
+  const productType = rawCat || rawSub || rawName.toLowerCase();
 
-  if (rawCat.includes('раковин') || rawSub.includes('раковин') || rawName.toLowerCase().includes('для раковины') || rawName.toLowerCase().includes('для умывальника')) {
+  if (productType.includes('универсальн') || (productType.includes('ванн') && /раковин|умывальник/.test(productType))) {
+    title = 'Универсальный смеситель (ванна / раковина)';
+  } else if (/смесител/.test(productType) && /раковин|умывальник/.test(productType)) {
     if (rawSub.includes('поворотн') || rawName.toLowerCase().includes('поворотн')) {
       title = 'Смеситель для раковины (поворотный излив)';
     } else if (rawSub.includes('высок') || rawName.toLowerCase().includes('высок')) {
@@ -317,21 +324,21 @@ export function formatProductDisplay(product) {
     } else {
       title = 'Смеситель для раковины';
     }
-  } else if (rawCat.includes('ванн') || rawSub.includes('ванн') || rawName.toLowerCase().includes('для ванны')) {
+  } else if (/смесител/.test(productType) && productType.includes('ванн')) {
     if (rawSub.includes('длинн') || rawName.toLowerCase().includes('длинн') || (product.dimensions && product.dimensions.includes('350'))) {
       title = 'Смеситель для ванны (длинный излив)';
     } else {
       title = 'Смеситель для ванны';
     }
-  } else if (rawCat.includes('кухн') || rawSub.includes('кухн') || rawName.toLowerCase().includes('для кухни') || rawName.toLowerCase().includes('кухонн')) {
+  } else if (/смесител/.test(productType) && /кухн|кухон/.test(productType)) {
     if (rawName.toLowerCase().includes('фильтр') || (product.specs && product.specs.toLowerCase().includes('фильтр'))) {
       title = 'Смеситель для кухни с каналом под фильтр';
     } else {
       title = 'Смеситель для кухни';
     }
-  } else if (rawCat.includes('универсальн')) {
-    title = 'Универсальный смеситель (ванна / раковина)';
-  } else if (rawCat.includes('душ') || rawName.toLowerCase().includes('душ')) {
+  } else if (productType.includes('смесител') && productType.includes('душ')) {
+    title = 'Смеситель для душа';
+  } else if (/душев.*систем|душев.*гарнитур/.test(productType)) {
     title = 'Душевая система';
   } else {
     // Очищаем существующее название от мусорных вставок
@@ -339,7 +346,7 @@ export function formatProductDisplay(product) {
       .replace(/,\s*(?:цвет\s+)?(?:хром|черный|чёрный|матовое\s+золото|брашированное\s+золото)[^,]*/gi, '')
       .replace(/\s*¢?\d+\s*мм\.?/gi, '')
       .replace(/\s*с гайкой/gi, '')
-      .replace(new RegExp(`\\s*${product.article}\\b`, 'gi'), '')
+      .replace(new RegExp(`\\s*${String(product.article || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi'), '')
       .trim();
     if (!title) title = product.category || 'Смеситель LAUTE';
   }

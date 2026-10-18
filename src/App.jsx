@@ -50,7 +50,7 @@ export const AppContent = () => {
         return <HomePage />;
       default: {
         // Dynamic custom pages created through Visual Page Builder
-        const customPage = pagesList.find(p => p.slug === currentRoute || p.route === `/${currentRoute}`);
+        const customPage = pagesList.find(p => p.status !== 'ЧЕРНОВИК' && (p.slug === currentRoute || p.route === `/${currentRoute}`));
         if (customPage) {
           return <CustomPageRenderer page={customPage} />;
         }

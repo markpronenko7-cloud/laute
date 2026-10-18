@@ -28,7 +28,10 @@ export const EXCEL_COLUMNS = [
   'SEO-описание',
   'URL товара',
   'Статус действия',
-  'Дополнительные характеристики'
+  'Дополнительные характеристики',
+  'Чертёж',
+  'Упаковка',
+  'Остатки по городам (JSON)'
 ];
 
 /**
@@ -48,7 +51,7 @@ export const downloadExcelTemplate = () => {
  * Скачивает текущую актуальную номенклатуру каталога в формате Excel (.xlsx),
  * полностью совместимом с повторным импортом (лист "Товары" и стандартные заголовки).
  */
-export const exportCurrentCatalogToExcel = (products) => {
+export const createCatalogWorkbook = (products) => {
   const exportData = (products || []).map((p) => {
     const photos = [p.photo1, p.photo2, p.photo3].filter(Boolean).join(', ');
 
@@ -77,13 +80,21 @@ export const exportCurrentCatalogToExcel = (products) => {
       'SEO-описание': p.seoDesc || '',
       'URL товара': p.url || `/catalog#${p.article}`,
       'Статус действия': p.status === 'СКРЫТ' ? 'СКРЫТ' : 'ОБНОВИТЬ',
-      'Дополнительные характеристики': p.extraSpecs || ''
+      'Дополнительные характеристики': p.extraSpecs || '',
+      'Чертёж': p.drawingUrl || '',
+      'Упаковка': p.boxUrl || '',
+      'Остатки по городам (JSON)': JSON.stringify(p.cityStock || {})
     };
   });
 
   const ws = XLSX.utils.json_to_sheet(exportData);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Товары');
+  return wb;
+};
+
+export const exportCurrentCatalogToExcel = (products) => {
+  const wb = createCatalogWorkbook(products);
   XLSX.writeFile(wb, `LAUTE_Каталог_Экспорт_${new Date().toISOString().slice(0, 10)}.xlsx`);
 };
 
@@ -121,10 +132,16 @@ function normalizeColumnKey(str) {
  * Извлекает значение из строки таблицы по списку возможных синонимов названий колонок
  */
 function getColumnValue(cleanRow, aliases) {
+  // Сначала точное совпадение: «статус» не должен перехватывать «статус товара»,
+  // «описание» — SEO, «размеры» — чертёж, а пустая колонка — любое поле.
+  for (const alias of aliases) {
+    const norm = normalizeColumnKey(alias);
+    if (Object.hasOwn(cleanRow, norm)) return String(cleanRow[norm] ?? '').trim();
+  }
   for (const alias of aliases) {
     const norm = normalizeColumnKey(alias);
     for (const [k, v] of Object.entries(cleanRow)) {
-      if (k === norm || k.startsWith(norm) || norm.startsWith(k)) {
+      if (k && k.startsWith(norm) && /^(артикул|цена|вес|объем|объём|остаток|количество)/.test(norm)) {
         if (v !== undefined && v !== null && String(v).trim() !== '') {
           return String(v).trim();
         }
@@ -279,7 +296,7 @@ export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
           const category = getColumnValue(cleanRow, ['категория', 'category']);
           const priceRaw = getColumnValue(cleanRow, ['цена', 'стоимость', 'price']);
           const actionRaw = getColumnValue(cleanRow, ['статусдействия', 'действие', 'action', 'статус', 'status']);
-          const productStatusRaw = getColumnValue(cleanRow, ['статустовара', 'productstatus']);
+          const productStatusRaw = getColumnValue(cleanRow, ['статустовара', 'productstatus']).toUpperCase();
 
           // Если в строке нет ни артикула, ни названия, ни цены — это пустая строка, пропускаем
           if (!article && !name && !priceRaw) {
@@ -354,7 +371,7 @@ export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
 
           // 4. Проверка цены
           const cleanPriceStr = String(priceRaw || '').replace(/\s+/g, '').replace(',', '.');
-          const parsedPrice = parseFloat(cleanPriceStr.replace(/[^\d.]/g, ''));
+          const parsedPrice = /^\d+(\.\d+)?$/.test(cleanPriceStr) ? Number(cleanPriceStr) : NaN;
           if (isNaN(parsedPrice) || parsedPrice <= 0) {
             errors.push({
               row: rowNum,
@@ -390,7 +407,11 @@ export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
           const isExisting = Boolean(existingProd);
 
           const stockRaw = getColumnValue(cleanRow, ['наличие', 'остаток', 'количество', 'stock', 'qty']);
-          const stockNum = parseInt(stockRaw, 10);
+          const stockNum = Number(stockRaw);
+          if (stockRaw !== '' && (!Number.isInteger(stockNum) || stockNum < 0)) {
+            errors.push({ row: rowNum, article, field: 'Остаток', message: 'Остаток должен быть неотрицательным целым числом' });
+            return;
+          }
           const safeStock = isNaN(stockNum) ? 0 : Math.max(0, stockNum);
 
           // Классифицируем и нормализуем изображения (смеситель, чертёж, упаковка)
@@ -403,7 +424,7 @@ export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
             boxUrl: rawBox
           });
 
-          const finalPhoto1 = classified.mainPhoto || (isExisting ? existingProd?.photo1 : 'images/cat_laute_brand.jpg') || 'images/cat_laute_brand.jpg';
+          const finalPhoto1 = (!rawMainPhoto && existingProd?.photo1) || classified.mainPhoto || 'images/cat_laute_brand.jpg';
           const finalPhoto2 = classified.additionalPhotos[0] || (isExisting ? existingProd?.photo2 : '') || '';
           const finalPhoto3 = classified.additionalPhotos[1] || (isExisting ? existingProd?.photo3 : '') || '';
           const finalDrawing = classified.drawingPhotos[0] || rawDrawing || (isExisting ? (existingProd?.drawingUrl || existingProd?.raw_data?.drawingUrl) : '') || '';
@@ -424,17 +445,28 @@ export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
             }
           }
 
-          validRows.push({
+          let cityStock;
+          const cityStockRaw = getColumnValue(cleanRow, ['остаткипогородамjson']);
+          if (cityStockRaw) {
+            try {
+              cityStock = JSON.parse(cityStockRaw);
+              if (!cityStock || Array.isArray(cityStock) || typeof cityStock !== 'object' || Object.values(cityStock).some(q => !Number.isInteger(q) || q < 0)) throw new Error();
+            } catch {
+              errors.push({ row: rowNum, article, field: 'Остатки по городам', message: 'Ожидается JSON-объект с неотрицательными целыми остатками' });
+              return;
+            }
+          }
+          const validatedRow = {
             rowNum,
             article: article.trim(),
             name: name.trim(),
             category: category.trim(),
             subcategory: getColumnValue(cleanRow, ['подкатегория', 'subcategory']),
             collection: getColumnValue(cleanRow, ['коллекция', 'collection']),
-            brand: getColumnValue(cleanRow, ['бренд', 'brand']) || 'LAUTE',
+            brand: getColumnValue(cleanRow, ['бренд', 'brand']) || existingProd?.brand || 'LAUTE',
             description: getColumnValue(cleanRow, ['описание', 'description']),
             price: parsedPrice,
-            currency: getColumnValue(cleanRow, ['валюта', 'currency']) || '₸',
+            currency: getColumnValue(cleanRow, ['валюта', 'currency']) || existingProd?.currency || '₸',
             material: getColumnValue(cleanRow, ['материал', 'material']),
             color: getColumnValue(cleanRow, ['цвет', 'color']),
             finish: getColumnValue(cleanRow, ['покрытие', 'finish']),
@@ -450,16 +482,22 @@ export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
             photo3: finalPhoto3,
             drawingUrl: finalDrawing,
             boxUrl: finalBox,
-            city: getColumnValue(cleanRow, ['город', 'city']) || 'Алматы',
-            stock: safeStock,
+            city: stockRaw !== '' ? (getColumnValue(cleanRow, ['город', 'city']) || 'Алматы') : '',
+            stock: stockRaw !== '' ? safeStock : undefined,
+            cityStock,
             status: (actionStatus === 'СКРЫТ' || productStatusRaw === 'СКРЫТ') ? 'СКРЫТ' : 'АКТИВЕН',
             actionStatus,
             seoTitle: getColumnValue(cleanRow, ['seoзаголовок', 'seotitle']),
             seoDesc: getColumnValue(cleanRow, ['seoописание', 'seodesc']),
-            url: getColumnValue(cleanRow, ['urlтовара', 'url']) || `/catalog#${article.trim()}`,
+            url: getColumnValue(cleanRow, ['urlтовара', 'url']) || existingProd?.url || `/catalog#${article.trim()}`,
             isExisting,
             isChanged
-          });
+          };
+          if (isExisting) {
+            const applied = applyExcelImport([existingProd], [validatedRow])[0];
+            validatedRow.isChanged = Object.keys(applied).some(key => key !== 'updatedAt' && JSON.stringify(applied[key] ?? '') !== JSON.stringify(existingProd[key] ?? ''));
+          }
+          validRows.push(validatedRow);
         });
 
         // Подсчёт статистики для предпросмотра
@@ -580,7 +618,7 @@ export const applyExcelImport = (currentProducts = [], validatedRows = []) => {
     // 2. Существующий товар — обновляем
     if (productMap.has(key)) {
       const existing = productMap.get(key);
-      const updatedCityStock = { ...(existing.cityStock || {}) };
+      const updatedCityStock = { ...(existing.cityStock || {}), ...(row.cityStock || {}) };
       if (row.city) {
         updatedCityStock[row.city] = row.stock;
       }
@@ -608,6 +646,8 @@ export const applyExcelImport = (currentProducts = [], validatedRows = []) => {
         photo1: row.photo1 || existing.photo1,
         photo2: row.photo2 || existing.photo2,
         photo3: row.photo3 || existing.photo3,
+        drawingUrl: row.drawingUrl || existing.drawingUrl || '',
+        boxUrl: row.boxUrl || existing.boxUrl || '',
         cityStock: updatedCityStock,
         status: (row.actionStatus === 'СКРЫТ' || row.actionStatus === 'СКРЫТЬ' || row.status === 'СКРЫТ') ? 'СКРЫТ' : 'АКТИВЕН',
         seoTitle: row.seoTitle || existing.seoTitle,
@@ -617,7 +657,7 @@ export const applyExcelImport = (currentProducts = [], validatedRows = []) => {
       });
     } else {
       // 3. Новый товар — добавляем
-      const newCityStock = {};
+      const newCityStock = { ...(row.cityStock || {}) };
       if (row.city) {
         newCityStock[row.city] = row.stock;
       }
@@ -645,6 +685,8 @@ export const applyExcelImport = (currentProducts = [], validatedRows = []) => {
         photo1: row.photo1 || 'images/cat_laute_brand.jpg',
         photo2: row.photo2 || '',
         photo3: row.photo3 || '',
+        drawingUrl: row.drawingUrl || '',
+        boxUrl: row.boxUrl || '',
         cityStock: newCityStock,
         status: (row.actionStatus === 'СКРЫТ' || row.actionStatus === 'СКРЫТЬ' || row.status === 'СКРЫТ') ? 'СКРЫТ' : 'АКТИВЕН',
         seoTitle: row.seoTitle || '',

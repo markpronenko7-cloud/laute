@@ -3085,3 +3085,13 @@
   padding: 14px;
   background: rgba(15, 23, 42, 0.6);
 }
+/* Employee workspace navigation and save guidance; isolated from public pages. */
+.admin-nav-search { display: flex; align-items: center; gap: 8px; margin: 8px 10px 16px; padding: 10px; border: 1px solid var(--adm-border); border-radius: 8px; color: var(--adm-text-muted); }
+.admin-nav-search input { width: 100%; min-width: 0; background: transparent; color: inherit; border: 0; outline: 0; font: inherit; font-size: 13px; }
+.admin-nav-search:focus-within { border-color: var(--adm-accent-blue); }
+.admin-workflow-guide { display: flex; flex-direction: column; gap: 6px; padding: 16px 20px; margin-bottom: 24px; border: 1px solid var(--adm-border); border-left: 3px solid var(--adm-accent-blue); border-radius: 10px; background: var(--adm-bg-card, #131b28); }
+.admin-workflow-guide strong { color: var(--adm-text, #fff); font-size: 14px; }
+.admin-workflow-guide span { color: var(--adm-text-muted); font-size: 13px; line-height: 1.6; }
+.admin-nav-group { margin-bottom: 18px; }
+.admin-nav-group h2 { margin: 0 16px 8px; color: var(--adm-text-muted); font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; }
+.admin-nav-empty { padding: 16px; color: var(--adm-text-muted); font-size: 13px; }

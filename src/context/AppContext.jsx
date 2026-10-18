@@ -171,7 +171,7 @@ export const AppProvider = ({ children }) => {
         fetchRegionWarehouseMap(),
         fetchWarehouseStock(null)
       ]);
-      if (Array.isArray(whs) && whs.length > 0) setWarehousesList(whs);
+      if (Array.isArray(whs)) setWarehousesList(whs);
       if (map && typeof map === 'object') setRegionWarehouseMap(map);
       if (Array.isArray(stocks)) setStockList(stocks);
     } catch (err) {
@@ -197,7 +197,7 @@ export const AppProvider = ({ children }) => {
   const reloadPages = useCallback(async () => {
     try {
       const pages = await fetchCustomPages();
-      if (Array.isArray(pages) && pages.length > 0) {
+      if (Array.isArray(pages)) {
         setPagesList(pages);
       }
     } catch (err) {

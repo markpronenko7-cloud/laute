@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { CATEGORY_NAMES } from '../data/catalogData';
 import { useApp } from '../context/AppContext';
 import {
   LayoutDashboard,
@@ -255,6 +256,7 @@ export const AdminPage = () => {
 
   // Active Tab: 1 to 13
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [navSearch, setNavSearch] = useState('');
   const [notice, setNotice] = useState(null);
 
   // Content Draft State
@@ -439,9 +441,9 @@ export const AdminPage = () => {
     setIsLoadingContent(true);
     try {
       const draft = await fetchSiteContent(true);
-      if (draft) setDraftContent(draft);
+      if (draft) setDraftContent(current => current || draft);
     } catch (err) {
-      console.error(err);
+      showNotice(err.message || 'Не удалось загрузить черновик', 'error');
     } finally {
       setIsLoadingContent(false);
     }
@@ -464,8 +466,13 @@ export const AdminPage = () => {
 
   const loadCategoriesData = useCallback(async () => {
     try {
-      const cats = await fetchCategories();
-      setCategoriesList(cats);
+      const [cats, prods] = await Promise.all([fetchCategories(), fetchProducts(true)]);
+      const names = new Set(cats.map(c => c.name));
+      const all = [...cats];
+      [...CATEGORY_NAMES, ...prods.map(p => p.category)].filter(Boolean).forEach(name => {
+        if (!names.has(name)) { all.push({ id: name, name }); names.add(name); }
+      });
+      setCategoriesList(all);
     } catch (err) {
       console.error(err);
     }
@@ -577,6 +584,9 @@ export const AdminPage = () => {
       loadStockData();
     } else if (activeTab === 'categories') {
       loadCategoriesData();
+      loadCatalogData();
+    } else if (activeTab === 'excel') {
+      loadCatalogData();
     } else if (activeTab === 'pages') {
       loadPagesData();
     } else if (activeTab === 'media') {
@@ -710,6 +720,15 @@ export const AdminPage = () => {
   };
 
   // Save Draft Handler
+  const saveCurrentDraft = async () => {
+    const latest = await fetchSiteContent(true);
+    // Заявки и территории редактируются отдельно: не перезаписываем их старой копией редактора.
+    const updates = { ...draftContent };
+    delete updates.order_inquiries;
+    delete updates.territoryManagers;
+    return saveSiteContentDraft({ ...latest, ...updates });
+  };
+
   const handleSaveDraft = async () => {
     if (isDemoMode) {
       showNotice('В ознакомительном демо-режиме изменение реальных данных заблокировано. Для сохранения требуется авторизация с мастер-паролем.');
@@ -718,7 +737,7 @@ export const AdminPage = () => {
     if (!draftContent) return;
     setIsSavingDraft(true);
     try {
-      const saved = await saveSiteContentDraft(draftContent);
+      const saved = await saveCurrentDraft();
       setDraftContent(saved);
       showNotice('Изменения сохранены');
     } catch (err) {
@@ -736,6 +755,7 @@ export const AdminPage = () => {
     }
     setIsPublishing(true);
     try {
+      if (draftContent) await saveCurrentDraft();
       const res = await publishSiteContent();
       setDraftContent(res.content);
       setSiteContent(res.content);
@@ -1684,25 +1704,32 @@ export const AdminPage = () => {
         {/* Sidebar Navigation */}
         <aside className="admin-sidebar">
           <div className="admin-sidebar-menu">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setActiveTab(item.id)}
-                  className={`admin-nav-item ${isActive ? 'active' : ''}`}
-                >
-                  <div className="admin-nav-item-left">
-                    <Icon size={17} className="nav-icon" />
-                    <span>{item.label}</span>
-                  </div>
-                  {item.badge && <span className="admin-nav-badge warning">{item.badge}</span>}
-                  {item.count !== undefined && <span className="admin-nav-badge count">{item.count}</span>}
-                </button>
-              );
+            <label className="admin-nav-search">
+              <Search size={15} />
+              <input aria-label="Найти раздел" placeholder="Найти раздел…" value={navSearch} onChange={e => setNavSearch(e.target.value)} />
+            </label>
+            {[
+              { label: 'Рабочий день', ids: ['dashboard', 'orders'] },
+              { label: 'Товары и склад', ids: ['catalog', 'excel', 'stock', 'categories', 'media'] },
+              { label: 'Сайт и публикация', ids: ['editor', 'pages', 'menu', 'languages', 'seo', 'drafts'] },
+              { label: 'Система', ids: ['history', 'settings'] }
+            ].map(group => {
+              const items = group.ids.map(id => navItems.find(item => item.id === id)).filter(item => item && item.label.toLowerCase().includes(navSearch.toLowerCase()));
+              if (!items.length) return null;
+              return <section className="admin-nav-group" key={group.label} aria-label={group.label}>
+                <h2>{group.label}</h2>
+                {items.map(item => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  return <button key={item.id} type="button" onClick={() => setActiveTab(item.id)} className={'admin-nav-item ' + (isActive ? 'active' : '')} aria-current={isActive ? 'page' : undefined}>
+                    <div className="admin-nav-item-left"><Icon size={17} className="nav-icon" /><span>{item.label}</span></div>
+                    {item.badge && <span className="admin-nav-badge warning">{item.badge}</span>}
+                    {item.count !== undefined && <span className="admin-nav-badge count">{item.count}</span>}
+                  </button>;
+                })}
+              </section>;
             })}
+            {!navItems.some(item => item.label.toLowerCase().includes(navSearch.toLowerCase())) && <p className="admin-nav-empty">Раздел не найден. Измени запрос.</p>}
           </div>
 
           <div className="admin-sidebar-footer">
@@ -1718,8 +1745,20 @@ export const AdminPage = () => {
 
         {/* Content Viewport */}
         <main className="admin-main-viewport">
+          <div className="admin-workflow-guide">
+            <strong>{navItems.find(item => item.id === activeTab)?.label}</strong>
+            <span>{['editor', 'menu', 'languages', 'seo', 'drafts'].includes(activeTab)
+              ? 'Сохрани черновик, чтобы продолжить позже. «Опубликовать» сохраняет текущие правки и выводит их на сайт.'
+              : activeTab === 'excel'
+                ? '1. Выгрузи каталог → 2. Заполни Excel → 3. Проверь строки → 4. Примени импорт. Категория берётся из твоего файла.'
+                : activeTab === 'pages'
+                  ? 'Редактируй страницу в конструкторе. Черновик скрыт на сайте; кнопка «Опубликовать» делает страницу доступной.'
+                  : activeTab === 'orders'
+                    ? 'Назначения заявок сохраняются сразу. Правила территорий сохраняются в черновик и применяются после публикации.'
+                    : 'Каталог, склады и остатки сохраняются сразу после подтверждения операции. Для текстов сайта используй черновик и публикацию.'}</span>
+          </div>
           {notice && (
-            <div className={`admin-floating-notice ${notice.type}`}>
+            <div role={notice.type === 'error' ? 'alert' : 'status'} className={`admin-floating-notice ${notice.type}`}>
               {notice.type === 'error' ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />}
               <span>{notice.message}</span>
             </div>
@@ -4454,7 +4493,7 @@ export const AdminPage = () => {
                           <td>#{cat.order || idx + 1}</td>
                           <td><strong>{cat.name}</strong></td>
                           <td>
-                            <span className="stat-tag success">Отображается</span>
+                            <span className="stat-tag">{catalogList.some(p => p.category === cat.name && p.status !== 'СКРЫТ') ? 'Есть на витрине' : 'Без активных товаров'}</span>
                           </td>
                           <td>{catalogList.filter(p => p.category === cat.name).length} позиций</td>
                         </tr>

@@ -8,6 +8,7 @@
     "server": "node server/index.js",
     "generate-excel": "node scripts/generate_excel_catalog.js",
     "setup-password": "node scripts/setup_admin_password.js",
+    "test:admin": "node --test scripts/verify_admin_regressions.js",
     "build": "vite build",
     "preview": "vite preview"
   },

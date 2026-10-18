@@ -97,6 +97,9 @@ async function callSupabaseRpc(fnName, args = {}) {
     err.status = res.status;
     throw err;
   }
+  if (data?.success === false) {
+    throw new Error(data.error || data.message || `Операция ${fnName} отклонена сервером`);
+  }
   return data;
 }
 
@@ -225,15 +228,11 @@ export const fetchSiteContent = async (isDraft = false) => {
   const token = getAuthToken();
 
   // Если запрашивается черновик авторизованным администратором
-  if (isDraft && token) {
-    try {
-      const adminData = await callSupabaseRpc('laute_get_admin_data', { p_token: token });
-      if (adminData && adminData.draft) {
-        return adminData.draft;
-      }
-    } catch (err) {
-      console.warn('Ошибка загрузки черновика из Supabase:', err);
-    }
+  if (isDraft === true || isDraft === 'draft') {
+    if (!token) throw new Error('Требуется авторизация администратора');
+    const adminData = await callSupabaseRpc('laute_get_admin_data', { p_token: token });
+    if (adminData && adminData.draft) return adminData.draft;
+    throw new Error('Не удалось загрузить сохранённый черновик');
   }
 
   // Публичный контент (чтение опубликованного снимка через RLS)
@@ -338,7 +337,7 @@ export const fetchContentBackups = async () => {
 // 3. СТРАНИЦЫ И КАТЕГОРИИ
 // ==========================================
 
-export const fetchCustomPages = async () => {
+export const fetchCustomPages = async (strict = false) => {
   const sanitizePages = (pagesArr) => {
     if (!Array.isArray(pagesArr)) return [];
     return pagesArr.map(p => ({
@@ -358,6 +357,7 @@ export const fetchCustomPages = async () => {
       return sanitizePages(records[0].pages);
     }
   } catch (err) {
+    if (strict) throw err;
     console.warn('Ошибка загрузки страниц из Supabase:', err);
   }
 
@@ -378,8 +378,9 @@ export const createCustomPage = async (pageData) => {
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
 
-  const pages = await fetchCustomPages();
+  const pages = await fetchCustomPages(true);
   const cleanSlug = (pageData.slug || '').toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+  if (!cleanSlug || !pageData.title?.trim()) throw new Error('Заполни название и адрес страницы');
 
   if (pages.some(p => p.slug === cleanSlug)) {
     throw new Error(`Страница с адресом "${cleanSlug}" уже существует`);
@@ -409,7 +410,7 @@ export const updateCustomPage = async (id, pageData) => {
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
 
-  const pages = await fetchCustomPages();
+  const pages = await fetchCustomPages(true);
   const idx = pages.findIndex(p => p.id === id);
   if (idx === -1) throw new Error('Страница не найдена');
 
@@ -427,7 +428,7 @@ export const deleteCustomPage = async (id) => {
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
 
-  const pages = await fetchCustomPages();
+  const pages = await fetchCustomPages(true);
   const filtered = pages.filter(p => p.id !== id);
   await callSupabaseRpc('laute_save_custom_pages', { p_token: token, p_pages: filtered });
   return true;
@@ -437,7 +438,7 @@ export const duplicateCustomPage = async (id) => {
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
 
-  const pages = await fetchCustomPages();
+  const pages = await fetchCustomPages(true);
   const source = pages.find(p => p.id === id);
   if (!source) throw new Error('Исходная страница не найдена');
 
@@ -565,10 +566,16 @@ function normalizeProduct(p) {
   };
 }
 
-export const fetchProducts = async (includeHidden = true) => {
+export const fetchProducts = async (includeHidden = true, strict = false) => {
   try {
-    const filter = includeHidden ? 'select=*&order=updated_at.desc' : 'status=neq.СКРЫТ&select=*&order=updated_at.desc';
-    const records = await querySupabase(`laute_products?${filter}`);
+    const filter = includeHidden ? '' : 'status=neq.СКРЫТ&';
+    const records = [];
+    for (let offset = 0; ; offset += 1000) {
+      const page = await querySupabase(`laute_products?${filter}select=*&order=updated_at.desc,article.asc&limit=1000&offset=${offset}`);
+      if (!Array.isArray(page)) throw new Error('Некорректный ответ каталога');
+      records.push(...page);
+      if (page.length < 1000) break;
+    }
 
     if (Array.isArray(records)) {
       const normalized = records.map(normalizeProduct);
@@ -579,6 +586,7 @@ export const fetchProducts = async (includeHidden = true) => {
       return normalized;
     }
   } catch (err) {
+    if (strict) throw err;
     console.warn('Ошибка загрузки товаров из Supabase, используем резервную копию:', err);
   }
 
@@ -623,7 +631,10 @@ export const updateProduct = async (sku, updates) => {
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
 
+  const existing = (await fetchProducts(true, true)).find(p => p.article === sku);
+  if (!existing) throw new Error('Товар не найден. Обнови каталог перед сохранением.');
   const productToSave = {
+    ...existing,
     ...updates,
     article: sku
   };
@@ -883,7 +894,7 @@ export const commitExcelImport = async (validRows) => {
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
 
-  const currentProducts = await fetchProducts(true);
+  const currentProducts = await fetchProducts(true, true);
 
   // 1. Обрабатываем строки с явным статусом УДАЛИТЬ через Supabase
   const deletedSkus = validRows
@@ -891,14 +902,10 @@ export const commitExcelImport = async (validRows) => {
     .map(r => r.article);
 
   if (deletedSkus.length > 0) {
-    try {
-      await callSupabaseRpc('laute_delete_products_batch', {
-        p_token: token,
-        p_skus: deletedSkus
-      });
-    } catch (err) {
-      console.warn('Ошибка удаления позиций в Supabase:', err);
-    }
+    await callSupabaseRpc('laute_delete_products_batch', {
+      p_token: token,
+      p_skus: deletedSkus
+    });
   }
 
   // 2. Применяем изменения (товары, отсутствующие в Excel, НЕ удаляются)
@@ -1108,10 +1115,10 @@ export const downloadFullSystemBackup = async () => {
 // 8. УПРАВЛЕНИЕ СКЛАДАМИ И ОСТАТКАМИ (WAREHOUSES & STOCK)
 // ==========================================
 
-export const fetchWarehouses = async () => {
+export const fetchWarehouses = async (strict = false) => {
   try {
     const records = await querySupabase('laute_warehouses?select=*&order=priority.asc');
-    if (Array.isArray(records) && records.length > 0) {
+    if (Array.isArray(records)) {
       return records.map(w => ({
         id: w.id,
         name: w.name,
@@ -1124,6 +1131,7 @@ export const fetchWarehouses = async () => {
       }));
     }
   } catch (err) {
+    if (strict) throw err;
     console.warn('Ошибка загрузки складов из Supabase:', err);
   }
 
@@ -1140,10 +1148,10 @@ export const createWarehouse = async (warehouseData) => {
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
 
-  const current = await fetchWarehouses();
+  const current = await fetchWarehouses(true);
   const newWh = {
     ...warehouseData,
-    id: warehouseData.id || warehouseData.city.toLowerCase().replace(/[^a-z0-9]/g, '_')
+    id: warehouseData.id || `wh-${crypto.randomUUID()}`
   };
 
   const updated = [...current, newWh];
@@ -1155,7 +1163,7 @@ export const updateWarehouse = async (id, warehouseData) => {
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
 
-  const current = await fetchWarehouses();
+  const current = await fetchWarehouses(true);
   const updated = current.map(w => w.id === id ? { ...w, ...warehouseData } : w);
   await callSupabaseRpc('laute_save_warehouses', { p_token: token, p_warehouses: updated });
   return { success: true, warehouse: warehouseData };
@@ -1165,7 +1173,7 @@ export const deleteWarehouse = async (id) => {
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
 
-  const current = await fetchWarehouses();
+  const current = await fetchWarehouses(true);
   const updated = current.filter(w => w.id !== id);
   await callSupabaseRpc('laute_save_warehouses', { p_token: token, p_warehouses: updated });
   return { success: true };
@@ -1178,7 +1186,7 @@ export const fetchWarehouseStock = async (warehouseId = null, sku = null) => {
     if (sku) query += `&sku=eq.${encodeURIComponent(sku.toUpperCase())}`;
 
     const records = await querySupabase(query);
-    if (Array.isArray(records) && records.length > 0) {
+    if (Array.isArray(records)) {
       return records.map(s => ({
         id: s.id,
         sku: s.sku,
@@ -1226,6 +1234,11 @@ export const saveBulkStock = async (warehouseId, items) => {
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
 
+  if (Array.isArray(warehouseId)) {
+    items = warehouseId;
+    warehouseId = null;
+  }
+  if (!Array.isArray(items)) throw new Error('Некорректный список остатков');
   const formatted = items.map(i => ({
     warehouseId: i.warehouseId || warehouseId,
     sku: i.sku,
@@ -1614,44 +1627,10 @@ export const saveTerritoryRules = async (rules) => {
     active: r.active !== false
   }));
 
+  const currentDraft = await fetchSiteContent('draft');
+  await saveSiteContentDraft({ ...currentDraft, territoryManagers: sanitizedRules });
   if (typeof window !== 'undefined') {
     localStorage.setItem(TERRITORY_RULES_STORAGE_KEY, JSON.stringify(sanitizedRules));
-  }
-
-  let serverSaved = false;
-  let serverErrors = [];
-
-  // 1. Сохраняем на локальном/серверном backend API, если он запущен
-  try {
-    const res = await fetch(`${getApiBase()}/territories`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({ territories: sanitizedRules })
-    });
-    if (res.ok) {
-      serverSaved = true;
-    } else {
-      const errData = await res.json().catch(() => ({}));
-      if (errData?.error) serverErrors.push(`API: ${errData.error}`);
-    }
-  } catch {
-    // В статическом режиме API недоступен
-  }
-
-  // 2. Сохраняем в основной объект контента CMS (Supabase)
-  try {
-    const currentDraft = (await fetchSiteContent('draft')) || {};
-    const updated = { ...currentDraft, territoryManagers: sanitizedRules };
-    await saveSiteContentDraft(updated);
-    await publishSiteContent();
-    serverSaved = true;
-  } catch (err) {
-    serverErrors.push(`Supabase: ${err.message}`);
-  }
-
-  // Если оба серверных сервиса недоступны и вернули ошибку (и это не просто статический браузер)
-  if (!serverSaved && serverErrors.length > 0 && typeof window !== 'undefined' && !window.location.hostname.includes('github.io')) {
-    throw new Error(`Ошибка сохранения правил территорий на сервере: ${serverErrors.join('; ')}`);
   }
 
   return { success: true, territories: sanitizedRules };
@@ -2050,62 +2029,18 @@ export const updateOrderInquiryInAdmin = async (inquiryNumber, patch) => {
     throw new Error('Требуется авторизация администратора');
   }
 
-  let updatedOrder = null;
-
-  // 1. Обновляем в локальном хранилище
-  if (typeof window !== 'undefined') {
-    try {
-      const existing = JSON.parse(localStorage.getItem(ORDER_INQUIRIES_STORAGE_KEY) || '[]');
-      if (Array.isArray(existing)) {
-        const next = existing.map((ord) => {
-          if (ord.inquiryNumber === inquiryNumber) {
-            updatedOrder = {
-              ...ord,
-              ...patch,
-              routing: patch.routing ? { ...ord.routing, ...patch.routing } : ord.routing
-            };
-            return updatedOrder;
-          }
-          return ord;
-        });
-        localStorage.setItem(ORDER_INQUIRIES_STORAGE_KEY, JSON.stringify(next));
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  // 2. Отправляем на серверный backend API
-  try {
-    const res = await fetch(`${getApiBase()}/orders/${encodeURIComponent(inquiryNumber)}`, {
-      method: 'PATCH',
-      headers: getHeaders(),
-      body: JSON.stringify(patch)
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data?.order) updatedOrder = data.order;
-    }
-  } catch {
-    // ignore in static mode
-  }
-
-  // 3. Синхронизируем с постоянным черновиком Supabase
-  try {
-    const currentDraft = await fetchSiteContent('draft');
-    if (currentDraft && typeof currentDraft === 'object') {
-      const currentOrders = Array.isArray(currentDraft.order_inquiries) ? [...currentDraft.order_inquiries] : [];
-      const ordIdx = currentOrders.findIndex(o => o.inquiryNumber === inquiryNumber);
-      if (ordIdx !== -1 && updatedOrder) {
-        currentOrders[ordIdx] = updatedOrder;
-      } else if (updatedOrder) {
-        currentOrders.unshift(updatedOrder);
-      }
-      await saveSiteContentDraft({ ...currentDraft, order_inquiries: currentOrders });
-    }
-  } catch {
-    // ignore
-  }
+  const currentDraft = await fetchSiteContent('draft');
+  const orders = Array.isArray(currentDraft.order_inquiries) ? currentDraft.order_inquiries : [];
+  const source = orders.find(o => o.inquiryNumber === inquiryNumber)
+    || (await fetchOrderInquiries()).find(o => o.inquiryNumber === inquiryNumber);
+  if (!source) throw new Error('Заявка не найдена');
+  const updatedOrder = {
+    ...source, ...patch,
+    routing: patch.routing ? { ...source.routing, ...patch.routing } : source.routing
+  };
+  const nextOrders = [updatedOrder, ...orders.filter(o => o.inquiryNumber !== inquiryNumber)];
+  await saveSiteContentDraft({ ...currentDraft, order_inquiries: nextOrders });
+  try { localStorage.setItem(ORDER_INQUIRIES_STORAGE_KEY, JSON.stringify(nextOrders)); } catch { /* cache only */ }
 
   return { success: true, order: updatedOrder };
 };
@@ -2119,46 +2054,11 @@ export const deleteOrderInquiryInAdmin = async (inquiryNumber) => {
     throw new Error('Требуется авторизация администратора');
   }
 
-  // 1. Удаляем из локального хранилища
-  if (typeof window !== 'undefined') {
-    try {
-      const existing = JSON.parse(localStorage.getItem(ORDER_INQUIRIES_STORAGE_KEY) || '[]');
-      if (Array.isArray(existing)) {
-        const next = existing.filter((ord) => ord.inquiryNumber !== inquiryNumber);
-        localStorage.setItem(ORDER_INQUIRIES_STORAGE_KEY, JSON.stringify(next));
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  // 2. Отправляем запрос на серверный backend API
-  try {
-    const res = await fetch(`${getApiBase()}/orders/${encodeURIComponent(inquiryNumber)}`, {
-      method: 'DELETE',
-      headers: getHeaders()
-    });
-    if (!res.ok && res.status !== 404) {
-      const errData = await res.json().catch(() => ({}));
-      if (errData?.error) throw new Error(errData.error);
-    }
-  } catch (err) {
-    // На статическом хостинге игнорируем ошибку отсутствия локального маршрута
-    if (typeof window !== 'undefined' && !window.location.hostname.includes('github.io') && err.message) {
-      console.warn('Серверное удаление заявки:', err.message);
-    }
-  }
-
-  // 3. Синхронизируем удаление с постоянным черновиком Supabase
-  try {
-    const currentDraft = await fetchSiteContent('draft');
-    if (currentDraft && Array.isArray(currentDraft.order_inquiries)) {
-      const filtered = currentDraft.order_inquiries.filter(o => o.inquiryNumber !== inquiryNumber);
-      await saveSiteContentDraft({ ...currentDraft, order_inquiries: filtered });
-    }
-  } catch {
-    // ignore
-  }
+  const currentDraft = await fetchSiteContent('draft');
+  const orders = Array.isArray(currentDraft.order_inquiries) ? currentDraft.order_inquiries : [];
+  const filtered = orders.filter(o => o.inquiryNumber !== inquiryNumber);
+  await saveSiteContentDraft({ ...currentDraft, order_inquiries: filtered });
+  try { localStorage.setItem(ORDER_INQUIRIES_STORAGE_KEY, JSON.stringify(filtered)); } catch { /* cache only */ }
 
   return { success: true };
 };
