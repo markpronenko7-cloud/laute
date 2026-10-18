@@ -56,6 +56,11 @@
   --shadow-flame: 0 4px 14px rgba(15, 23, 42, 0.08);
   --shadow-flame-hover: 0 6px 20px rgba(15, 23, 42, 0.12);
 
+  /* Button colors are separate from the warm text and decorative accents. */
+  --button-blue: #1D4ED8;
+  --button-blue-hover: #1E40AF;
+  --button-blue-edge: #93C5FD;
+
   /* LAUTE Cool Water Ribbon Spectrum (Cold water / Hydraulic flow dynamic) */
   --water-sky: #38BDF8;
   --water-cyan: #0EA5E9;
@@ -401,15 +406,15 @@ img {
 }
 
 .btn-primary {
-  background: var(--gradient-flame);
+  background: var(--button-blue);
   color: #FFFFFF;
   border: 1px solid transparent;
-  box-shadow: var(--shadow-flame);
+  box-shadow: inset 0 0 0 1px var(--button-blue-edge), 0 4px 14px rgba(15, 23, 42, 0.12);
 }
 
 .btn-primary:hover {
-  background: var(--gradient-flame-hover);
-  box-shadow: var(--shadow-flame-hover);
+  background: var(--button-blue-hover);
+  box-shadow: inset 0 0 0 1px var(--button-blue-edge), 0 4px 14px rgba(15, 23, 42, 0.12);
   transform: translateY(-1px);
   color: #FFFFFF;
 }
@@ -933,7 +938,7 @@ img {
 
 .btn-partner-cta {
   display: none;
-  background: var(--gradient-flame) !important;
+  background: var(--button-blue) !important;
   color: #FFFFFF !important;
   border: none !important;
   font-weight: 700;
@@ -942,15 +947,15 @@ img {
   min-height: 36px;
   border-radius: var(--radius-sm);
   white-space: nowrap;
-  box-shadow: var(--shadow-flame);
+  box-shadow: inset 0 0 0 1px var(--button-blue-edge), 0 4px 14px rgba(15, 23, 42, 0.12);
   transition: all 0.2s ease;
   cursor: pointer;
   flex-shrink: 0;
 }
 
 .btn-partner-cta:hover {
-  background: var(--gradient-flame-hover) !important;
-  box-shadow: var(--shadow-flame-hover);
+  background: var(--button-blue-hover) !important;
+  box-shadow: inset 0 0 0 1px var(--button-blue-edge), 0 4px 14px rgba(15, 23, 42, 0.12);
   transform: translateY(-1px);
 }
 
@@ -1075,10 +1080,10 @@ img {
 
 .lang-btn.active,
 .region-chip.active {
-  background: var(--gradient-flame);
+  background: var(--button-blue);
   border-color: transparent;
   color: #FFFFFF;
-  box-shadow: var(--shadow-flame);
+  box-shadow: inset 0 0 0 1px var(--button-blue-edge), 0 4px 14px rgba(15, 23, 42, 0.12);
 }
 
 .mobile-selectors {
@@ -1462,16 +1467,16 @@ img {
 .btn-hero-primary {
   padding: 14px 30px;
   font-size: 1.05rem;
-  background: var(--gradient-flame);
+  background: var(--button-blue);
   color: #FFFFFF;
   border: none;
-  box-shadow: var(--shadow-flame);
+  box-shadow: inset 0 0 0 1px var(--button-blue-edge), 0 4px 14px rgba(15, 23, 42, 0.12);
   border-radius: var(--radius-sm);
 }
 
 .btn-hero-primary:hover {
-  background: var(--gradient-flame-hover);
-  box-shadow: var(--shadow-flame-hover);
+  background: var(--button-blue-hover);
+  box-shadow: inset 0 0 0 1px var(--button-blue-edge), 0 4px 14px rgba(15, 23, 42, 0.12);
   transform: translateY(-1px);
   color: #FFFFFF;
 }
@@ -4097,9 +4102,10 @@ img {
 }
 
 .footer-pill-btn.active {
-  background: var(--gradient-flame);
+  background: var(--button-blue);
   border-color: transparent;
   color: #FFFFFF;
+  box-shadow: inset 0 0 0 1px var(--button-blue-edge);
 }
 
 .footer-region-select {
@@ -6133,16 +6139,17 @@ img {
   padding: 12px 20px;
   font-weight: 700;
   border-radius: 10px;
-  background: #EA580C !important;
+  background: var(--button-blue) !important;
   color: #FFFFFF !important;
   border: none !important;
-  box-shadow: 0 8px 20px rgba(234, 88, 12, 0.28);
+  box-shadow: inset 0 0 0 1px var(--button-blue-edge), 0 4px 14px rgba(15, 23, 42, 0.12);
   white-space: nowrap;
 }
 
 .catalog-cart-trigger-btn:hover {
-  background: #D9460F !important;
+  background: var(--button-blue-hover) !important;
   transform: translateY(-1px);
+  box-shadow: inset 0 0 0 1px var(--button-blue-edge);
 }
 
 .catalog-cart-count-pill {
@@ -6621,9 +6628,10 @@ img {
 }
 
 .sku-btn-add-cart:hover {
-  background: #EA580C !important;
-  border-color: #EA580C !important;
+  background: var(--button-blue-hover) !important;
+  border-color: var(--button-blue-hover) !important;
   color: #FFFFFF !important;
+  box-shadow: inset 0 0 0 1px var(--button-blue-edge);
 }
 
 .sku-cart-active-row {
@@ -6688,7 +6696,8 @@ img {
 }
 
 .sku-open-cart-mini:hover {
-  background: #EA580C;
+  background: var(--button-blue-hover);
+  box-shadow: inset 0 0 0 1px var(--button-blue-edge);
 }
 
 /* Нижний информационный блок каталога */
@@ -6782,11 +6791,12 @@ img {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: #EA580C;
+  background: var(--button-blue);
   color: #FFFFFF;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-shadow: inset 0 0 0 1px var(--button-blue-edge);
 }
 
 .laute-floating-cart-badge {
@@ -7208,7 +7218,8 @@ img {
 }
 
 .laute-cart-primary-btn:hover:not(:disabled) {
-  background: #EA580C;
+  background: var(--button-blue-hover);
+  box-shadow: inset 0 0 0 1px var(--button-blue-edge);
 }
 
 .laute-cart-primary-btn:disabled {
@@ -7809,7 +7820,7 @@ img {
 
 .modal-tab-btn.active {
   color: #0F172A;
-  border-bottom-color: #EA580C;
+  border-bottom-color: var(--button-blue);
 }
 
 .tab-pill {
@@ -8118,10 +8129,10 @@ img {
 
 .lightbox-nav-btn:hover {
   background: #0F172A;
-  border-color: #EA580C;
+  border-color: var(--button-blue-edge);
   color: #FFFFFF;
   transform: translateY(-50%) scale(1.1);
-  box-shadow: 0 10px 28px rgba(234, 88, 12, 0.35);
+  box-shadow: 0 10px 28px rgba(29, 78, 216, 0.35);
 }
 
 .lightbox-nav-btn:active {
@@ -8891,4 +8902,13 @@ img {
     width: 100%;
     justify-content: center;
   }
+}
+
+/* Keyboard focus for the recolored buttons; inset edges keep their size unchanged. */
+:is(.btn-primary, .btn-hero-primary, .lang-btn.active, .region-chip.active,
+    .footer-pill-btn.active, .catalog-cart-trigger-btn, .sku-btn-add-cart,
+    .sku-open-cart-mini, .laute-cart-primary-btn, .modal-tab-btn, .lightbox-nav-btn):focus-visible {
+  outline: 2px solid var(--button-blue-edge);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--graphite-900);
 }
