@@ -329,12 +329,16 @@ export const CatalogPage = () => {
     }
   };
 
-  // 14 Categories strictly following Section 3 of the Protocol
-  const categories = [
+  const normalizeCategory = (value) => String(value || '').trim().replace(/\s+/g, ' ');
+  const activeProducts = products.filter(p => p.status !== 'СКРЫТ');
+  const productCategories = Array.from(new Set(activeProducts.map(p => normalizeCategory(p.category)).filter(Boolean)));
+
+  // Show only categories that actually contain products in the current catalog.
+  const categoryDefinitions = [
     { id: 'kitchen-mixers', image: `${baseUrl}images/cat_kitchen.png`, mounting: 'deck' },
-    { id: 'basin-mixers', image: `${baseUrl}images/cat_bath.png`, mounting: 'deck' },
-    { id: 'bath-mixers', image: `${baseUrl}images/cat_bath.png`, mounting: 'wall' },
-    { id: 'universal-mixers', image: `${baseUrl}images/cat_bath.png`, mounting: 'wall' },
+    { id: 'basin-mixers', image: `${baseUrl}images/category-basin-v2.png`, mounting: 'deck' },
+    { id: 'bath-mixers', image: `${baseUrl}images/category-bath-v2.png`, mounting: 'wall' },
+    { id: 'universal-mixers', image: `${baseUrl}images/category-universal-v2.png`, mounting: 'wall' },
     { id: 'shower-mixers', image: `${baseUrl}images/cat_shower.png`, mounting: 'wall' },
     { id: 'bidet-hygiene', image: `${baseUrl}images/cat_shower.png`, mounting: 'wall' },
     { id: 'sinks', image: `${baseUrl}images/cat_sinks.png`, mounting: 'deck' },
@@ -345,10 +349,24 @@ export const CatalogPage = () => {
     { id: 'spouts', image: `${baseUrl}images/cat_components.png`, mounting: 'internal' },
     { id: 'diverters-fittings', image: `${baseUrl}images/cat_components.png`, mounting: 'internal' },
     { id: 'shower-cabins', image: `${baseUrl}images/cat_laute_brand.jpg`, mounting: 'cabin' }
-  ].map((item) => {
+  ];
+  const categories = productCategories.map((sourceCategory) => {
+    const item = categoryDefinitions.find((candidate) => categoryTranslations[candidate.id]?.name?.ru === sourceCategory);
+    if (!item) {
+      return {
+        id: sourceCategory,
+        sourceCategory,
+        name: sourceCategory,
+        image: null,
+        mounting: 'other',
+        count: activeProducts.filter(p => normalizeCategory(p.category) === sourceCategory).length
+      };
+    }
     const tr = categoryTranslations[item.id] || {};
     return {
       ...item,
+      sourceCategory,
+      count: activeProducts.filter(p => normalizeCategory(p.category) === sourceCategory).length,
       name: tr.name?.[lang] || tr.name?.ru || item.id,
       badge: tr.badge?.[lang] || tr.badge?.ru || '',
       desc: tr.desc?.[lang] || tr.desc?.ru || '',
@@ -363,16 +381,13 @@ export const CatalogPage = () => {
     const matchesMount = selectedMounting === 'all' || c.mounting === selectedMounting;
     const matchesSearch = searchQuery === '' || 
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.desc.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.filters.toLowerCase().includes(searchQuery.toLowerCase());
+      (c.desc || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCat && matchesMount && matchesSearch;
   });
 
   // Filter Live Products
-  const activeProducts = products.filter(p => p.status !== 'СКРЫТ');
-  const productCategories = Array.from(new Set(activeProducts.map(p => p.category).filter(Boolean)));
   const filteredProducts = activeProducts.filter(p => {
-    const matchesCat = selectedCategory === 'all' || p.category === selectedCategory;
+    const matchesCat = selectedCategory === 'all' || normalizeCategory(p.category) === selectedCategory;
     const matchesSearch = searchQuery === '' ||
       p.article.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -489,6 +504,7 @@ export const CatalogPage = () => {
                 onClick={() => {
                   setCatalogView('products');
                   setSelectedCategory('all');
+                  setSearchQuery('');
                 }}
               >
                 <Sparkles size={15} />
@@ -503,10 +519,12 @@ export const CatalogPage = () => {
                 onClick={() => {
                   setCatalogView('categories');
                   setSelectedCategory('all');
+                  setSelectedMounting('all');
+                  setSearchQuery('');
                 }}
               >
                 <Layers size={15} />
-                <span>{cat.allCategories || 'Все категории (14)'}</span>
+                <span>{(cat.allCategories || 'Все категории').replace(/\s*\(\d+\)\s*$/, '')} ({categories.length})</span>
               </button>
             </div>
 
@@ -840,24 +858,16 @@ export const CatalogPage = () => {
             </div>
           )}
 
-          {/* VIEW 2: CATEGORIES GRID (14 Protocol Categories) */}
+          {/* VIEW 2: CATEGORIES WITH CURRENT PRODUCTS */}
           {catalogView === 'categories' && (
             <div className="catalog-grid">
               {filteredCategories.map((cItem, idx) => (
                 <div key={cItem.id} className="catalog-card">
-                  <div className="card-media">
-                    <img
-                      src={cItem.image}
-                      alt={cItem.name}
-                      className="card-product-img"
-                      loading="lazy"
-                      onError={(e) => {
-                        e.currentTarget.src = `${baseUrl}laute-logo.png`;
-                        e.currentTarget.style.opacity = '0.3';
-                        e.currentTarget.style.padding = '40px';
-                      }}
-                    />
-                    <span className="card-badge">{cItem.badge}</span>
+                  <div className={`card-media ${cItem.image ? '' : 'card-media-empty'}`}>
+                    {cItem.image && <img src={cItem.image} alt="" className="card-product-img" loading="lazy" />}
+                    <span className="card-badge">
+                      {cItem.count} {lang === 'en' ? 'models' : lang === 'kz' ? 'модель' : 'мод.'}
+                    </span>
                   </div>
 
                   <div className="card-content">
@@ -869,20 +879,7 @@ export const CatalogPage = () => {
                         : `Категория #${idx + 1}`}
                     </div>
                     <h3 className="card-title">{cItem.name}</h3>
-                    <p className="card-desc">{cItem.desc}</p>
-
-                    <div className="card-tags">
-                      <span className="card-filter-summary">{cItem.filters}</span>
-                    </div>
-
-                    <div className="card-specs-list">
-                      {cItem.specs.map((s, i) => (
-                        <div key={i} className="spec-bullet">
-                          <span className="bullet-dot">•</span>
-                          <span>{s}</span>
-                        </div>
-                      ))}
-                    </div>
+                    {cItem.image && <span className="card-image-note">{lang === 'en' ? 'Category illustration' : lang === 'kz' ? 'Санат иллюстрациясы' : 'Иллюстрация категории'}</span>}
 
                     <div className="card-footer">
                       <button
@@ -890,8 +887,8 @@ export const CatalogPage = () => {
                         className="btn btn-outline btn-sm btn-full"
                         onClick={() => {
                           setCatalogView('products');
-                          setSelectedCategory('all');
-                          setSearchQuery(cItem.name.split(' ')[0] || '');
+                          setSelectedCategory(cItem.sourceCategory);
+                          setSearchQuery('');
                         }}
                       >
                         <span>

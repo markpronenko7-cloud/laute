@@ -2829,6 +2829,67 @@ img {
   margin-top: auto;
 }
 
+.catalog-page .catalog-grid {
+  gap: clamp(18px, 2.4vw, 28px);
+}
+
+.catalog-page .catalog-card {
+  border-radius: 22px;
+  border-color: #e4e9ed;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
+}
+
+.catalog-page .catalog-card:hover {
+  border-color: #b5c4c5;
+  box-shadow: 0 22px 46px rgba(15, 23, 42, 0.13);
+}
+
+.catalog-page .card-media {
+  height: auto;
+  aspect-ratio: 1.3;
+  padding: 0;
+  overflow: hidden;
+  background: linear-gradient(135deg, #e9e4dd, #f5f2ee);
+}
+
+.catalog-page .card-product-img {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  object-fit: cover;
+}
+
+.catalog-page .card-badge {
+  top: 16px;
+  right: 16px;
+  padding: 7px 12px;
+  background: rgba(255, 255, 255, 0.93);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  color: #173638;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+}
+
+.catalog-page .card-content {
+  padding: 24px;
+  gap: 10px;
+}
+
+.catalog-page .card-title {
+  font-size: clamp(1.18rem, 1.6vw, 1.45rem);
+  line-height: 1.28;
+  margin-bottom: 0;
+}
+
+.catalog-page .card-image-note {
+  color: #75838b;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+}
+
+.catalog-page .card-footer {
+  padding-top: 12px;
+}
+
 .catalog-bottom-banner {
   margin-top: clamp(32px, 4.5vw, 48px);
   background-color: var(--bg-surface);
