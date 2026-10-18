@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { translations } from '../i18n/translations';
+import { getPageSeo } from '../utils/contentSettings';
 import { DEFAULT_PRODUCTS } from '../data/catalogData';
 import {
   fetchProducts,
@@ -550,12 +551,31 @@ export const AppProvider = ({ children }) => {
       pageTitle = conTitles[lang] || conTitles.ru;
     }
 
+    const savedSeo = getPageSeo(siteContent, currentRoute);
+    const customPage = pagesList.find(p => p.slug === currentRoute || p.route === `/${currentRoute}`);
+    pageTitle = savedSeo.title || customPage?.seoTitle || customPage?.title || pageTitle;
+    pageDesc = savedSeo.description || customPage?.seoDescription || customPage?.description || pageDesc;
     document.title = pageTitle;
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc && pageDesc) {
       metaDesc.setAttribute('content', pageDesc);
     }
-  }, [lang, currentRoute]);
+    const setMeta = (selector, attribute, value) => {
+      let element = document.querySelector(selector);
+      if (!element) {
+        element = document.createElement(attribute === 'href' ? 'link' : 'meta');
+        if (attribute === 'href') element.rel = 'canonical';
+        else element.name = 'robots';
+        document.head.appendChild(element);
+      }
+      element.setAttribute(attribute, value);
+    };
+    setMeta('meta[name="robots"]', 'content', currentRoute === 'admin' ? 'noindex, nofollow' : savedSeo.robots || (savedSeo.indexing === false ? 'noindex, follow' : siteContent?.seo?.global?.robots || 'index, follow'));
+    const canonical = savedSeo.canonical || savedSeo.canonicalUrl || `${siteContent?.seo?.global?.canonicalUrl || 'https://laute.ltd'}/${currentRoute === 'home' ? '' : currentRoute}`;
+    setMeta('link[rel="canonical"]', 'href', canonical);
+    document.querySelector('meta[property="og:title"]')?.setAttribute('content', pageTitle);
+    document.querySelector('meta[property="og:description"]')?.setAttribute('content', pageDesc);
+  }, [lang, currentRoute, siteContent, pagesList]);
 
   useEffect(() => {
     localStorage.setItem('laute_region', region);

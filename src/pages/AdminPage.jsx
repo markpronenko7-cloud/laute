@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { CATEGORY_NAMES } from '../data/catalogData';
+import { getNavTranslation, getPageSeo, navigationKey } from '../utils/contentSettings';
 import { useApp } from '../context/AppContext';
 import {
   LayoutDashboard,
@@ -241,7 +242,8 @@ export const AdminPage = () => {
     reloadSiteContent,
     adminSession,
     setAdminSession,
-    reloadStockData
+    reloadStockData,
+    reloadPages
   } = useApp();
 
   // Authentication State
@@ -482,10 +484,11 @@ export const AdminPage = () => {
     try {
       const pages = await fetchCustomPages();
       setPagesList(pages);
+      await reloadPages();
     } catch (err) {
       console.error(err);
     }
-  }, []);
+  }, [reloadPages]);
 
   const loadMediaData = useCallback(async () => {
     setIsLoadingMedia(true);
@@ -591,6 +594,7 @@ export const AdminPage = () => {
       loadPagesData();
     } else if (activeTab === 'media') {
       loadMediaData();
+      loadCatalogData();
     } else if (activeTab === 'history') {
       loadHistoryData();
     } else if (activeTab === 'settings') {
@@ -2470,7 +2474,7 @@ export const AdminPage = () => {
                         value={draftContent.footer.phones?.[0]?.number || ''}
                         onChange={(e) => {
                           const phones = [...(draftContent.footer.phones || [{ number: '', tel: '' }])];
-                          phones[0].number = e.target.value;
+                          phones[0] = { ...phones[0], number: e.target.value, tel: e.target.value.replace(/[^0-9+]/g, '') };
                           setDraftContent({
                             ...draftContent,
                             hasUnpublishedChanges: true,
@@ -4844,8 +4848,10 @@ export const AdminPage = () => {
                           <button
                             type="button"
                             className="media-mini-btn danger"
-                            title="Удалить файл"
+                            title={file.isStorage ? 'Удалить файл' : 'Фирменный файл сайта'}
+                            disabled={!file.isStorage}
                             onClick={async () => {
+                              if (!file.isStorage) return;
                               if (isDemoMode) {
                                 showNotice('В демонстрационном режиме удаление файлов заблокировано.', 'error');
                                 return;
@@ -5087,7 +5093,7 @@ export const AdminPage = () => {
                       <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--adm-success)' }}>100%</span>
                     </div>
                     <div className="lang-meta" style={{ marginTop: 12 }}>
-                      <span>Заполнено: <strong>48 / 48</strong> полей</span>
+                      <span>Заполнено: <strong>{draftContent?.navigation?.filter(item => item.label?.trim()).length || 0} / {draftContent?.navigation?.length || 0}</strong> пунктов меню</span>
                       <span>Незаполненных: <strong>0</strong></span>
                     </div>
                   </div>
@@ -5101,9 +5107,9 @@ export const AdminPage = () => {
                     <h4>Қазақ тілі</h4>
                     <p className="lang-desc">Региональная версия для партнёров и заказчиков в Республике Казахстан. Локализация навигации и сервиса.</p>
                     {(() => {
-                      const kzFilled = draftContent?.translations?.kk ? Object.keys(draftContent.translations.kk).length : 32;
-                      const kzTotal = 48;
-                      const kzPct = Math.round((kzFilled / kzTotal) * 100);
+                      const kzFilled = (draftContent?.navigation || []).filter(item => getNavTranslation(draftContent, 'kz', item).trim()).length;
+                      const kzTotal = draftContent?.navigation?.length || 0;
+                      const kzPct = kzTotal ? Math.round((kzFilled / kzTotal) * 100) : 0;
                       const kzMissing = kzTotal - kzFilled;
 
                       return (
@@ -5132,9 +5138,9 @@ export const AdminPage = () => {
                     <h4>English</h4>
                     <p className="lang-desc">Международная версия для экспортных контрактов, международных дистрибьюторов и B2B каталога.</p>
                     {(() => {
-                      const enFilled = draftContent?.translations?.en ? Object.keys(draftContent.translations.en).length : 36;
-                      const enTotal = 48;
-                      const enPct = Math.round((enFilled / enTotal) * 100);
+                      const enFilled = (draftContent?.navigation || []).filter(item => getNavTranslation(draftContent, 'en', item).trim()).length;
+                      const enTotal = draftContent?.navigation?.length || 0;
+                      const enPct = enTotal ? Math.round((enFilled / enTotal) * 100) : 0;
                       const enMissing = enTotal - enFilled;
 
                       return (
@@ -5175,8 +5181,8 @@ export const AdminPage = () => {
                     </thead>
                     <tbody>
                       {draftContent?.navigation?.map((navItem, nIdx) => {
-                        const kzVal = draftContent?.translations?.kk?.[`nav_${navItem.id}`] || '';
-                        const enVal = draftContent?.translations?.en?.[`nav_${navItem.id}`] || '';
+                        const kzVal = getNavTranslation(draftContent, 'kz', navItem);
+                        const enVal = getNavTranslation(draftContent, 'en', navItem);
 
                         return (
                           <tr key={navItem.id || nIdx}>
@@ -5191,9 +5197,9 @@ export const AdminPage = () => {
                                 onChange={(e) => {
                                   const updatedTranslations = {
                                     ...(draftContent.translations || {}),
-                                    kk: {
-                                      ...(draftContent.translations?.kk || {}),
-                                      [`nav_${navItem.id}`]: e.target.value
+                                    kz: {
+                                      ...(draftContent.translations?.kz || {}),
+                                      nav: { ...(draftContent.translations?.kz?.nav || {}), [navigationKey(navItem.route)]: e.target.value }
                                     }
                                   };
                                   setDraftContent({
@@ -5215,7 +5221,10 @@ export const AdminPage = () => {
                                     ...(draftContent.translations || {}),
                                     en: {
                                       ...(draftContent.translations?.en || {}),
-                                      [`nav_${navItem.id}`]: e.target.value
+                                      nav: {
+                                        ...(draftContent.translations?.en?.nav || {}),
+                                        [navigationKey(navItem.route)]: e.target.value
+                                      }
                                     }
                                   };
                                   setDraftContent({
@@ -5267,37 +5276,9 @@ export const AdminPage = () => {
               </div>
 
               {/* SEO Health Audit Banner */}
-              <div className="seo-health-banner">
-                <div className="seo-health-score">
-                  <div className="seo-score-circle excellent">
-                    98%
-                  </div>
-                  <div>
-                    <h3 style={{ margin: '0 0 4px 0', fontSize: 16, color: '#FFFFFF' }}>SEO-здоровье сайта: Отлично</h3>
-                    <p style={{ margin: 0, fontSize: 13, color: 'var(--adm-text-secondary)' }}>
-                      Критических ошибок индексации не обнаружено. Метатеги страниц и каталога оптимизированы.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="seo-audit-list">
-                  <div className="seo-audit-item pass">
-                    <CheckCircle2 size={14} />
-                    <span>Базовый Title (48 симв. - оптимально)</span>
-                  </div>
-                  <div className="seo-audit-item pass">
-                    <CheckCircle2 size={14} />
-                    <span>Meta Description (142 симв. - оптимально)</span>
-                  </div>
-                  <div className="seo-audit-item pass">
-                    <CheckCircle2 size={14} />
-                    <span>Служебный раздел /admin защищён (noindex)</span>
-                  </div>
-                  <div className="seo-audit-item pass">
-                    <CheckCircle2 size={14} />
-                    <span>Канонический домен https://laute.ltd</span>
-                  </div>
-                </div>
+              <div className="admin-section-card">
+                <h3 className="card-section-title">Заполнение метаданных</h3>
+                <p>Title: {(getPageSeo(draftContent, seoActivePage).title || '').length} символов. Description: {(getPageSeo(draftContent, seoActivePage).description || '').length} символов.</p>
               </div>
 
               {/* SEO Page Selector Tabs */}
@@ -5338,12 +5319,12 @@ export const AdminPage = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <label>Title (Заголовок в поисковой выдаче и вкладке браузера):</label>
                     <small style={{ color: 'var(--adm-text-muted)' }}>
-                      {(draftContent?.seo?.[seoActivePage]?.title || draftContent?.seo?.global?.defaultTitle || '').length} / 60 симв.
+                      {(getPageSeo(draftContent, seoActivePage).title || draftContent?.seo?.global?.defaultTitle || '').length} / 60 симв.
                     </small>
                   </div>
                   <input
                     type="text"
-                    value={draftContent?.seo?.[seoActivePage]?.title || (seoActivePage === 'home' ? (draftContent?.seo?.global?.defaultTitle || 'LAUTE — Премиальная сантехника и смесители') : '')}
+                    value={getPageSeo(draftContent, seoActivePage).title || (seoActivePage === 'home' ? (draftContent?.seo?.global?.defaultTitle || 'LAUTE — Премиальная сантехника и смесители') : '')}
                     onChange={(e) => {
                       const updatedSeo = {
                         ...(draftContent.seo || {}),
@@ -5369,12 +5350,12 @@ export const AdminPage = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <label>Meta Description (Краткое описание для сниппета):</label>
                     <small style={{ color: 'var(--adm-text-muted)' }}>
-                      {(draftContent?.seo?.[seoActivePage]?.description || draftContent?.seo?.global?.defaultDescription || '').length} / 160 симв.
+                      {(getPageSeo(draftContent, seoActivePage).description || draftContent?.seo?.global?.defaultDescription || '').length} / 160 симв.
                     </small>
                   </div>
                   <textarea
                     rows={2}
-                    value={draftContent?.seo?.[seoActivePage]?.description || (seoActivePage === 'home' ? (draftContent?.seo?.global?.defaultDescription || '') : '')}
+                    value={getPageSeo(draftContent, seoActivePage).description || (seoActivePage === 'home' ? (draftContent?.seo?.global?.defaultDescription || '') : '')}
                     onChange={(e) => {
                       const updatedSeo = {
                         ...(draftContent.seo || {}),
@@ -5401,7 +5382,7 @@ export const AdminPage = () => {
                     <label>Канонический URL (Canonical):</label>
                     <input
                       type="text"
-                      value={draftContent?.seo?.[seoActivePage]?.canonical || `https://laute.ltd/${seoActivePage === 'home' ? '' : seoActivePage}`}
+                      value={getPageSeo(draftContent, seoActivePage).canonical || `https://laute.ltd/${seoActivePage === 'home' ? '' : seoActivePage}`}
                       onChange={(e) => {
                         const updatedSeo = {
                           ...(draftContent.seo || {}),
@@ -5423,7 +5404,7 @@ export const AdminPage = () => {
                     <label>Директива индексирования (Robots):</label>
                     <select
                       className="admin-select"
-                      value={draftContent?.seo?.[seoActivePage]?.robots || 'index, follow'}
+                      value={getPageSeo(draftContent, seoActivePage).robots || 'index, follow'}
                       onChange={(e) => {
                         const updatedSeo = {
                           ...(draftContent.seo || {}),
@@ -5454,10 +5435,10 @@ export const AdminPage = () => {
                       https://laute.ltd{seoActivePage === 'home' ? '' : `/${seoActivePage}`}
                     </span>
                     <h4 className="serp-title">
-                      {draftContent?.seo?.[seoActivePage]?.title || draftContent?.seo?.global?.defaultTitle || 'LAUTE — Премиальная сантехника'}
+                      {getPageSeo(draftContent, seoActivePage).title || draftContent?.seo?.global?.defaultTitle || 'LAUTE — Премиальная сантехника'}
                     </h4>
                     <p className="serp-desc">
-                      {draftContent?.seo?.[seoActivePage]?.description || draftContent?.seo?.global?.defaultDescription || 'Официальный производитель сантехники LAUTE.'}
+                      {getPageSeo(draftContent, seoActivePage).description || draftContent?.seo?.global?.defaultDescription || 'Официальный производитель сантехники LAUTE.'}
                     </p>
                   </div>
                 </div>

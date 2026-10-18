@@ -6,6 +6,7 @@ import { build, transform } from 'esbuild';
 import { createRequire } from 'node:module';
 import { parseAndValidateExcelFile, applyExcelImport, createCatalogWorkbook } from '../src/utils/excelManager.js';
 import { formatProductDisplay, classifyProductImages } from '../src/utils/imageHelper.js';
+import { getNavigation, getNavTranslation, getPageSeo } from '../src/utils/contentSettings.js';
 
 const workbook = rows => {
   const wb = XLSX.utils.book_new();
@@ -13,6 +14,21 @@ const workbook = rows => {
   return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 };
 const headings = ['Артикул (SKU) *', 'Название товара *', 'Категория *', 'Цена *'];
+
+test('CMS: подписи, видимость, локализация меню и обе схемы SEO', () => {
+  const content = {
+    navigation: [{ id: 'nav-catalog', route: 'catalog', label: 'Наш каталог', isVisible: false }, { id: 'nav-company', route: 'company', label: 'О нас' }],
+    translations: { kz: { nav: { about: 'Біз туралы' } }, kk: { 'nav_nav-catalog': 'Каталог KZ' }, en: { nav: { about: 'About us' } } },
+    seo: { pages: { company: { title: 'Прежний SEO', description: 'Описание' } }, about: { title: 'Сохранённый SEO' } }
+  };
+  assert.equal(getNavigation(content, 'ru', {}).find(p => p.route === 'company').label, 'О нас');
+  assert.ok(!getNavigation(content, 'ru', {}).some(p => p.route === 'catalog'));
+  assert.equal(getNavigation(content, 'kz', {}).find(p => p.route === 'company').label, 'Біз туралы');
+  assert.equal(getNavTranslation(content, 'kz', content.navigation[0]), 'Каталог KZ');
+  assert.equal(getPageSeo(content, 'company').title, 'Сохранённый SEO');
+  assert.equal(getPageSeo(content, 'about').description, 'Описание');
+  assert.equal(getNavigation({}, 'ru', {}).length, 7);
+});
 
 test('Категория Excel управляет типом изделия независимо от старого названия', async () => {
   const cases = [
@@ -110,9 +126,11 @@ test('CMS: серверные отказы, частичное обновлен�
   let draft = { hero: { title: 'Сохранённый текст' }, order_inquiries: [] };
   let published = { hero: { title: 'Публичный текст' } };
   let products = [{ article: 'X', name: 'Изделие', category: 'Картриджи', price: 100, raw_data: { description: 'Описание', specs: 'Характеристики' } }];
+  let stocks = [];
   const calls = [];
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url, options = {}) => {
+    if (String(url).startsWith('/api/')) return new Response('{}', { status: 404, headers: { 'content-type': 'application/json' } });
     const endpoint = String(url).split('/rest/v1/')[1];
     const args = options.body ? JSON.parse(options.body) : {};
     calls.push({ endpoint, args });
@@ -126,6 +144,7 @@ test('CMS: серверные отказы, частичное обновлен�
       else if (fn === 'laute_save_product') { products = [{ ...args.p_product }]; data = { success: true }; }
       else data = { success: true };
     } else if (endpoint?.startsWith('laute_products?')) data = products;
+    else if (endpoint?.startsWith('laute_warehouse_stock?')) data = stocks;
     else if (endpoint?.startsWith('laute_site_content?')) data = [{ data: structuredClone(published) }];
     else data = [];
     return new Response(JSON.stringify(data), { headers: { 'content-type': 'application/json' } });
@@ -146,6 +165,12 @@ test('CMS: серверные отказы, частичное обновлен�
     assert.equal(products[0].specs, 'Характеристики');
     await api.saveBulkStock([{ warehouseId: 'almaty', sku: 'X', quantity: 7 }]);
     assert.deepEqual(calls.at(-1).args.p_stocks, [{ warehouseId: 'almaty', sku: 'X', quantity: 7 }]);
+    await assert.rejects(api.saveStockItem('almaty', 'X', -2), /целым/);
+    stocks = [{ warehouse_id: 'almaty', sku: 'X', quantity: 7 }, { warehouse_id: 'moscow', sku: 'Y', quantity: 8 }];
+    await api.commitStockExcelImport('all', [{ warehouseId: 'almaty', sku: 'X', newQuantity: 9 }], 'replace');
+    assert.deepEqual(calls.at(-1).args.p_stocks, [{ warehouseId: 'almaty', sku: 'X', quantity: 9 }, { warehouseId: 'moscow', sku: 'Y', quantity: 0 }]);
+    await api.commitStockExcelImport('almaty', [{ sku: 'X', newQuantity: 9 }], 'replace');
+    assert.deepEqual(calls.at(-1).args.p_stocks, [{ warehouseId: 'almaty', sku: 'X', quantity: 9 }]);
     reject = true;
     await assert.rejects(api.createCustomPage({ title: 'Тест', slug: 'test' }), /Сессия истекла/);
     await assert.rejects(api.createWarehouse({ name: 'Склад', city: 'Алматы' }), /Сессия истекла/);

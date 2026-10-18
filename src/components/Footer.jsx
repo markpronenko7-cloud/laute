@@ -1,3 +1,4 @@
+import { getNavigation } from '../utils/contentSettings';
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { Globe, MapPin, Phone, Mail, ArrowUp } from 'lucide-react';
@@ -139,41 +140,9 @@ export const Footer = () => {
           <div className="footer-col">
             <h4 className="footer-col-title">{f.navCol || 'Навигация'}</h4>
             <ul className="footer-links">
-              <li>
-                <button type="button" className="footer-link-btn" onClick={() => navigateTo('home')}>
-                  {t.nav.home || 'Главная'}
-                </button>
-              </li>
-              <li>
-                <button type="button" className="footer-link-btn" onClick={() => navigateTo('catalog')}>
-                  {t.nav.products || t.nav.catalog || 'Продукция'}
-                </button>
-              </li>
-              <li>
-                <button type="button" className="footer-link-btn" onClick={() => navigateTo('company')}>
-                  {t.nav.about || t.nav.company || t.nav.production || 'О LAUTE'}
-                </button>
-              </li>
-              <li>
-                <button type="button" className="footer-link-btn" onClick={() => navigateTo('partners')}>
-                  {t.nav.partners || 'Партнёрам'}
-                </button>
-              </li>
-              <li>
-                <button type="button" className="footer-link-btn" onClick={() => navigateTo('where-to-buy')}>
-                  {t.nav.whereToBuy || 'Где купить'}
-                </button>
-              </li>
-              <li>
-                <button type="button" className="footer-link-btn" onClick={() => navigateTo('service')}>
-                  {t.nav.service || 'Сервис и гарантия'}
-                </button>
-              </li>
-              <li>
-                <button type="button" className="footer-link-btn" onClick={() => navigateTo('contacts')}>
-                  {t.nav.contacts || 'Контакты'}
-                </button>
-              </li>
+              {getNavigation(siteContent, lang, t).map(item => <li key={item.route}>
+                <button type="button" className="footer-link-btn" onClick={() => navigateTo(item.route)}>{item.label}</button>
+              </li>)}
             </ul>
           </div>
 
@@ -242,7 +211,7 @@ export const Footer = () => {
               © {new Date().getFullYear()} LAUTE LTD. {f.rights || 'Все права защищены.'}
             </p>
             <div className="footer-legal-links">
-              <span>{f.legal || 'Политика конфиденциальности • Пользовательское соглашение'}</span>
+              <span>{siteContent?.footer?.legalText || f.legal || 'Политика конфиденциальности • Пользовательское соглашение'}</span>
             </div>
           </div>
 

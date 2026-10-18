@@ -2,13 +2,16 @@ import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Globe, MapPin, User, Menu, X, ChevronDown } from 'lucide-react';
 import { REGIONS_CONFIG } from '../data/regionsData';
+import { getNavigation } from '../utils/contentSettings';
 
 export const Header = () => {
-  const { lang, setLang, region, setRegion, currentRoute, navigateTo, t, openPartnerModal, openAuthModal } = useApp();
+  const { lang, setLang, region, setRegion, currentRoute, navigateTo, t, siteContent, openPartnerModal, openAuthModal } = useApp();
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isRegionOpen, setIsRegionOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  const navigation = getNavigation(siteContent, lang, t);
 
   const langRef = useRef(null);
   const regionRef = useRef(null);
@@ -126,7 +129,7 @@ export const Header = () => {
       document.fonts?.removeEventListener('loadingdone', scheduleCheck);
       window.removeEventListener('resize', scheduleCheck);
     };
-  }, [lang, region, currentRoute, currentRegionLabel, t]);
+  }, [lang, region, currentRoute, currentRegionLabel, t, siteContent]);
 
   useEffect(() => {
     if (isDesktopNavVisible && isMobileMenuOpen) {
@@ -162,69 +165,11 @@ export const Header = () => {
 
           <nav className="nav-desktop" aria-label="Основная навигация">
             <ul className="nav-links">
-              <li>
-                <button 
-                  type="button" 
-                  className={`nav-link ${currentRoute === 'home' ? 'active' : ''}`} 
-                  onClick={() => handleNavClick('home')}
-                >
-                  {t.nav.home || 'Главная'}
+              {navigation.map(item => <li key={item.route}>
+                <button type="button" className={'nav-link ' + (currentRoute === item.route ? 'active' : '')} onClick={() => handleNavClick(item.route)}>
+                  {item.route === 'service' ? <span>{item.label}</span> : item.label}
                 </button>
-              </li>
-              <li>
-                <button 
-                  type="button" 
-                  className={`nav-link ${currentRoute === 'catalog' ? 'active' : ''}`} 
-                  onClick={() => handleNavClick('catalog')}
-                >
-                  {t.nav.catalog || t.nav.products || 'Каталог'}
-                </button>
-              </li>
-              <li>
-                <button 
-                  type="button" 
-                  className={`nav-link ${currentRoute === 'company' ? 'active' : ''}`} 
-                  onClick={() => handleNavClick('company')}
-                >
-                  {t.nav.about || t.nav.company || 'О LAUTE'}
-                </button>
-              </li>
-              <li>
-                <button 
-                  type="button" 
-                  className={`nav-link ${currentRoute === 'partners' ? 'active' : ''}`} 
-                  onClick={() => handleNavClick('partners')}
-                >
-                  {t.nav.partners || 'Партнёрам'}
-                </button>
-              </li>
-              <li>
-                <button 
-                  type="button" 
-                  className={`nav-link ${currentRoute === 'where-to-buy' ? 'active' : ''}`} 
-                  onClick={() => handleNavClick('where-to-buy')}
-                >
-                  {t.nav.whereToBuy || 'Где купить'}
-                </button>
-              </li>
-              <li>
-                <button 
-                  type="button" 
-                  className={`nav-link ${currentRoute === 'service' ? 'active' : ''}`} 
-                  onClick={() => handleNavClick('service')}
-                >
-                  <span>{t.nav.service || 'Первый цифровой сервис'}</span>
-                </button>
-              </li>
-              <li>
-                <button 
-                  type="button" 
-                  className={`nav-link ${currentRoute === 'contacts' ? 'active' : ''}`} 
-                  onClick={() => handleNavClick('contacts')}
-                >
-                  {t.nav.contacts || 'Контакты'}
-                </button>
-              </li>
+              </li>)}
             </ul>
           </nav>
         </div>
@@ -360,69 +305,11 @@ export const Header = () => {
       {isMobileMenuOpen && (
         <div id="mobile-navigation" className="mobile-nav-drawer" role="dialog" aria-label="Меню" aria-modal="true">
           <ul className="mobile-nav-links">
-            <li>
-              <button
-                type="button"
-                className={`mobile-nav-link ${currentRoute === 'home' ? 'active' : ''}`}
-                onClick={() => handleNavClick('home')}
-              >
-                {t.nav.home || 'Главная'}
+            {navigation.map(item => <li key={item.route}>
+              <button type="button" className={'mobile-nav-link ' + (currentRoute === item.route ? 'active' : '')} onClick={() => handleNavClick(item.route)}>
+                {item.label}
               </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={`mobile-nav-link ${currentRoute === 'catalog' ? 'active' : ''}`}
-                onClick={() => handleNavClick('catalog')}
-              >
-                {t.nav.catalog || t.nav.products || 'Каталог'}
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={`mobile-nav-link ${currentRoute === 'company' ? 'active' : ''}`}
-                onClick={() => handleNavClick('company')}
-              >
-                {t.nav.about || t.nav.company || 'О LAUTE'}
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={`mobile-nav-link ${currentRoute === 'partners' ? 'active' : ''}`}
-                onClick={() => handleNavClick('partners')}
-              >
-                {t.nav.partners || 'Партнёрам'}
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={`mobile-nav-link ${currentRoute === 'where-to-buy' ? 'active' : ''}`}
-                onClick={() => handleNavClick('where-to-buy')}
-              >
-                {t.nav.whereToBuy || 'Где купить'}
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={`mobile-nav-link ${currentRoute === 'service' ? 'active' : ''}`}
-                onClick={() => handleNavClick('service')}
-              >
-                {t.nav.service || 'Первый цифровой сервис'}
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={`mobile-nav-link ${currentRoute === 'contacts' ? 'active' : ''}`}
-                onClick={() => handleNavClick('contacts')}
-              >
-                {t.nav.contacts || 'Контакты'}
-              </button>
-            </li>
+            </li>)}
           </ul>
 
           <div className="mobile-drawer-footer">

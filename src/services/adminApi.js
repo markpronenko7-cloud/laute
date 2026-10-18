@@ -417,9 +417,15 @@ export const updateCustomPage = async (id, pageData) => {
   const idx = pages.findIndex(p => p.id === id);
   if (idx === -1) throw new Error('Страница не найдена');
 
+  const cleanSlug = (pageData.slug ?? pages[idx].slug ?? '').toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+  if (!cleanSlug || !(pageData.title ?? pages[idx].title)?.trim()) throw new Error('Заполни название и адрес страницы');
+  if (pages.some(p => p.id !== id && p.slug === cleanSlug)) throw new Error(`Страница с адресом "${cleanSlug}" уже существует`);
+
   pages[idx] = {
     ...pages[idx],
     ...pageData,
+    slug: cleanSlug,
+    route: `/${cleanSlug}`,
     updatedAt: new Date().toISOString()
   };
 
@@ -1146,13 +1152,19 @@ export const deleteWarehouse = async (id) => {
   return { success: true };
 };
 
-export const fetchWarehouseStock = async (warehouseId = null, sku = null) => {
+export const fetchWarehouseStock = async (warehouseId = null, sku = null, strict = false) => {
   try {
     let query = 'laute_warehouse_stock?select=*';
     if (warehouseId) query += `&warehouse_id=eq.${encodeURIComponent(warehouseId)}`;
     if (sku) query += `&sku=eq.${encodeURIComponent(sku.toUpperCase())}`;
 
-    const records = await querySupabase(query);
+    const records = [];
+    for (let offset = 0; ; offset += 1000) {
+      const page = await querySupabase(`${query}&order=warehouse_id.asc,sku.asc&limit=1000&offset=${offset}`);
+      if (!Array.isArray(page)) throw new Error('Некорректный ответ остатков');
+      records.push(...page);
+      if (page.length < 1000) break;
+    }
     if (Array.isArray(records)) {
       return records.map(s => ({
         id: s.id,
@@ -1163,6 +1175,7 @@ export const fetchWarehouseStock = async (warehouseId = null, sku = null) => {
       }));
     }
   } catch (err) {
+    if (strict) throw err;
     console.warn('Ошибка загрузки остатков из Supabase:', err);
   }
 
@@ -1171,8 +1184,7 @@ export const fetchWarehouseStock = async (warehouseId = null, sku = null) => {
     const staticRes = await fetch(`${import.meta.env.BASE_URL}data/warehouse_stock.json?t=${Date.now()}`);
     if (staticRes.ok) {
       const allStock = await staticRes.json();
-      if (warehouseId) return allStock.filter(s => s.warehouseId === warehouseId);
-      return allStock;
+      return allStock.filter(s => (!warehouseId || s.warehouseId === warehouseId) && (!sku || s.sku?.toUpperCase() === sku.toUpperCase()));
     }
   } catch {
     // fallback
@@ -1181,13 +1193,19 @@ export const fetchWarehouseStock = async (warehouseId = null, sku = null) => {
   return [];
 };
 
+const stockQuantity = (quantity) => {
+  const value = Number(quantity);
+  if (!Number.isInteger(value) || value < 0 || value > 2147483647) throw new Error('Остаток должен быть неотрицательным целым числом');
+  return value;
+};
+
 export const saveStockItem = async (warehouseId, sku, quantity) => {
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
 
   const result = await callSupabaseRpc('laute_save_stock', {
     p_token: token,
-    p_stocks: [{ warehouseId, sku, quantity: Number(quantity) || 0 }]
+    p_stocks: [{ warehouseId, sku, quantity: stockQuantity(quantity) }]
   });
 
   if (!result || !result.success) {
@@ -1209,8 +1227,9 @@ export const saveBulkStock = async (warehouseId, items) => {
   const formatted = items.map(i => ({
     warehouseId: i.warehouseId || warehouseId,
     sku: i.sku,
-    quantity: Number(i.quantity) || 0
+    quantity: stockQuantity(i.quantity)
   }));
+  if (formatted.some(i => !i.warehouseId || !i.sku)) throw new Error('Укажи склад и артикул для каждого остатка');
 
   const result = await callSupabaseRpc('laute_save_stock', {
     p_token: token,
@@ -1280,17 +1299,16 @@ export const commitStockExcelImport = async (warehouseId, diffList, mode = 'part
   const itemsToSave = diffList.map(d => ({
     warehouseId: d.warehouseId || warehouseId,
     sku: d.sku,
-    quantity: Math.max(0, parseInt(d.newQuantity, 10) || 0)
+    quantity: stockQuantity(d.newQuantity)
   }));
 
   // При полной замене остатков склада (replace) обнуляем неуказанные артикулы этого склада
   if (mode === 'replace') {
-    try {
-      const allCurrentStock = await fetchWarehouseStock();
+      const allCurrentStock = await fetchWarehouseStock(null, null, true);
       const updatedSkus = new Set(diffList.map(d => `${d.warehouseId || warehouseId}::${d.sku}`));
       allCurrentStock.forEach(s => {
         const wh = s.warehouseId || warehouseId;
-        if (wh === warehouseId && !updatedSkus.has(`${wh}::${s.sku}`)) {
+        if ((warehouseId === 'all' || wh === warehouseId) && !updatedSkus.has(`${wh}::${s.sku}`)) {
           itemsToSave.push({
             warehouseId: wh,
             sku: s.sku,
@@ -1298,9 +1316,6 @@ export const commitStockExcelImport = async (warehouseId, diffList, mode = 'part
           });
         }
       });
-    } catch {
-      // ignore
-    }
   }
 
   const result = await callSupabaseRpc('laute_save_stock', {
