@@ -320,6 +320,7 @@ export const Header = () => {
               className="btn btn-outline btn-sm cabinet-btn"
               onClick={openAuthModal}
               title={t.nav.clientCabinet || 'Кабинет партнера'}
+              aria-label={t.nav.clientCabinet || 'Кабинет партнера'}
             >
               <User size={15} />
               <span className="cabinet-btn-label">{t.nav.clientCabinet || 'Кабинет партнёра'}</span>

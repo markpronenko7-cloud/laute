@@ -2,12 +2,37 @@
 const pw=require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
 const assert=require('assert/strict');const fs=require('fs');
 fs.mkdirSync('.temp', {recursive:true});
+async function assertDesktopMenu(page, scenario) {
+ await page.waitForFunction(()=>{
+  const nav=document.querySelector('header > .header-container .nav-desktop');
+  return nav && getComputedStyle(nav).display!=='none';
+ },null,{timeout:3000}).catch(()=>{throw Error(`${scenario}: desktop navigation is missing`)});
+ const buttons=page.locator('header > .header-container .nav-link');
+ assert.equal(await buttons.count(),7,scenario);
+ for(const button of await buttons.all()){
+  assert(await button.isVisible(),scenario);
+  assert(await button.evaluate(e=>{
+   const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+   return r.left>=0&&r.right<=innerWidth&&e.contains(hit);
+  }),`${scenario}: navigation is obscured`);
+ }
+ assert(!(await page.locator('header > .header-container .mobile-toggle').isVisible()),scenario);
+}
 (async()=>{
  const engine=process.argv[2]||'chrome',base=process.argv[3]||'http://127.0.0.1:4173/laute/';
  const browser=engine==='webkit'?await pw.webkit.launch():await pw.chromium.launch({channel:'chrome'});
  const page=await browser.newPage({viewport:{width:1920,height:1080},reducedMotion:'reduce'});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto(base);await page.evaluate(()=>document.fonts.ready);await page.locator('.btn-ai-minimize').click();
+ await page.goto(base);await page.waitForLoadState('networkidle');await page.evaluate(()=>document.fonts.ready);await page.locator('.btn-ai-minimize').click();
+ // Independent acceptance criterion: a wide Kazakh desktop must show seven usable links.
+ // A fit formula agreeing with itself cannot establish that the desktop menu is useful.
+ await page.evaluate(()=>localStorage.setItem('laute_lang','kz'));await page.reload();
+ await page.setViewportSize({width:2539,height:1200});
+ await page.waitForFunction(()=>document.querySelector('header > .header-container .header-lang-dropdown .select-val')?.textContent==='КАЗ');
+ await page.evaluate(async()=>{await document.fonts.load('600 14px Inter','Басты бет Қайдан сатып алуға болады');await document.fonts.ready});
+ await page.waitForTimeout(200);
+ await assertDesktopMenu(page,'KZ screenshot regression, 2539px');
+ await page.locator('.btn-ai-minimize').click();
  const samples=[];
  for(const lang of ['ru','kz','en']){
   await page.locator('header > .header-container .header-lang-dropdown .select-trigger').click();
@@ -16,7 +41,7 @@ fs.mkdirSync('.temp', {recursive:true});
    await page.setViewportSize({width:1920,height:1080});
    await page.locator('header > .header-container .header-region-dropdown .select-trigger').click();await page.locator('.region-panel .dropdown-option').nth(region).click();
    let threshold=await page.locator('.header-measure').evaluate(e=>Math.ceil(e.getBoundingClientRect().width)+2);
-   const widths=[959,960,961,1079,1080,1280,1366,1439,1440,1512,1559,1560,1679,1680,1820,1920,2560,threshold-1,threshold,threshold+1];
+   const widths=[959,960,961,1079,1080,1280,1366,1439,1440,1512,1559,1560,1679,1680,1799,1800,1820,1920,2031,2539,2560,threshold-1,threshold,threshold+1];
    for(const width of [...new Set(widths)].filter(w=>w>=320&&w<=2560)){
     await page.setViewportSize({width,height:982});
     await page.waitForFunction(()=>{
@@ -28,11 +53,10 @@ fs.mkdirSync('.temp', {recursive:true});
     const sample=await page.evaluate(()=>{
      const h=document.querySelector('header > .header-container'),l=h.querySelector('.header-left').getBoundingClientRect(),r=h.querySelector('.header-right').getBoundingClientRect();
      const c=h.getBoundingClientRect(),s=getComputedStyle(h);
-     const needed=document.querySelector('.header-measure').getBoundingClientRect().width;
-     return {mode:document.querySelector('header').className,overlap:l.right>r.left-2,outside:r.right>c.right-parseFloat(s.paddingRight)+1,shouldDesktop:innerWidth>960&&c.width>=Math.ceil(needed)+2};
+     return {mode:document.querySelector('header').className,overlap:l.right>r.left-2,outside:r.right>c.right-parseFloat(s.paddingRight)+1};
     });
     assert(!sample.overlap&&!sample.outside,JSON.stringify({lang,region,width,...sample}));
-    assert.equal(sample.mode.includes('header-desktop-mode'),sample.shouldDesktop,JSON.stringify({lang,region,width,...sample}));
+    if(width>=1512) await assertDesktopMenu(page,`${lang}, region ${region}, ${width}px`);
     samples.push({lang,region,width,mode:sample.mode});
    }
   }
@@ -104,7 +128,64 @@ fs.mkdirSync('.temp', {recursive:true});
  assert(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
  await mobile.screenshot({path:`.temp/${engine}-device-profile.png`});
  await mobileContext.close();assert.deepEqual(errors,[]);
- const result={engine,base,profile,headerSamples:samples.length,drawer,heroHeights,mutations,errors,status:'passed'};
+ const coldLoads=[];
+ for(const lang of ['ru','kz','en']){
+  const cold=await browser.newContext({viewport:{width:2539,height:1200},reducedMotion:'reduce'});
+  await cold.addInitScript(lang=>{localStorage.setItem('laute_lang',lang);localStorage.setItem('laute_region','siberia')},lang);
+  await cold.route(/https:\/\/fonts\.(googleapis|gstatic)\.com\//,async route=>{await new Promise(r=>setTimeout(r,250));await route.continue()});
+  const tab=await cold.newPage();tab.on('pageerror',e=>errors.push(e.message));
+  await tab.goto(base,{waitUntil:'domcontentloaded'});
+  await assertDesktopMenu(tab,`${lang} cold load, pending fonts`);
+  await tab.evaluate(()=>document.fonts.ready);
+  for(const width of [1512,1799,1800,1920,2539,3200]){
+   await tab.setViewportSize({width,height:1100});
+   await assertDesktopMenu(tab,`${lang} cold load, ${width}px`);
+  }
+  for(let i=0;i<7;i++){
+   await tab.locator('header > .header-container .nav-link').nth(i).click();
+   await assertDesktopMenu(tab,`${lang} route ${i}`);
+   assert(await tab.locator('header > .header-container .nav-link').nth(i).evaluate(e=>e.classList.contains('active')));
+  }
+  const stable=await tab.locator('header').evaluate(async e=>{
+   const modes=new Set();for(let i=0;i<30;i++){modes.add(e.classList.contains('header-desktop-mode'));await new Promise(r=>requestAnimationFrame(r));}return [...modes];
+  });assert.deepEqual(stable,[true],`${lang}: header oscillates after fonts or navigation`);
+  await tab.reload();await tab.evaluate(()=>document.fonts.ready);await assertDesktopMenu(tab,`${lang} saved-language reload`);
+  await tab.locator('.btn-ai-minimize').click();await tab.screenshot({path:`.temp/${engine}-${lang}-wide-header.png`});
+  coldLoads.push({lang,stable});await cold.close();
+ }
+ // Chrome's own page zoom in isolated, disposable profiles; never touch a personal profile.
+ const zoom=[];
+ if(engine==='chrome'){
+  const path=require('path'),tempRoot=path.resolve('.temp');
+  for(const factor of [0.8,1,1.1,1.25,1.5,1.75,2]){
+   const root=fs.mkdtempSync(path.join(tempRoot,'header-zoom-'));
+   fs.mkdirSync(path.join(root,'Default'));
+   const level=Math.log(factor)/Math.log(1.2);
+   fs.writeFileSync(path.join(root,'Default','Preferences'),JSON.stringify({partition:{default_zoom_level:{x:level,'0':level}}}));
+   const context=await pw.chromium.launchPersistentContext(root,{channel:'chrome',viewport:{width:2539,height:1200},reducedMotion:'reduce'});
+   try{
+    await context.addInitScript(()=>{localStorage.setItem('laute_lang','kz');localStorage.setItem('laute_region','siberia')});
+    const tab=await context.newPage();tab.on('pageerror',e=>errors.push(e.message));
+    await tab.goto(base);await tab.locator('.btn-ai-minimize').click();await tab.evaluate(()=>document.fonts.ready);
+    const metrics=await tab.evaluate(()=>({width:innerWidth,dpr:devicePixelRatio,scale:visualViewport.scale}));
+    assert(Math.abs(metrics.dpr-factor)<0.01,`Chrome zoom ${factor} not applied`);
+    assert.equal(metrics.scale,1,'Page zoom must not be substituted with pinch zoom');
+    if(metrics.width>=1512) await assertDesktopMenu(tab,`Chrome page zoom ${factor}`);
+    else if(await tab.locator('header > .header-container .mobile-toggle').isVisible()){
+     await tab.locator('header > .header-container .mobile-toggle').click();
+     assert.equal(await tab.locator('.mobile-nav-link').count(),7);
+     await tab.locator('.mobile-nav-link').nth(1).click();await tab.locator('.catalog-page').waitFor();
+    }
+    assert(await tab.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));zoom.push({factor,...metrics});
+   }finally{
+    await context.close();
+    if(path.dirname(path.resolve(root))!==tempRoot||!path.basename(root).startsWith('header-zoom-'))throw Error('Unsafe QA cleanup path');
+    fs.rmSync(root,{recursive:true,force:true});
+   }
+  }
+ }
+ assert.deepEqual(errors,[]);
+ const result={engine,base,profile,headerSamples:samples.length,drawer,heroHeights,mutations,coldLoads,zoom,errors,status:'passed'};
  fs.writeFileSync(`.temp/interactions-${engine}.json`,JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));
  await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});

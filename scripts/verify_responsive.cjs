@@ -8,9 +8,10 @@ const routes=['home','catalog','company','partners','where-to-buy','service','co
  const browser=engine === 'webkit' ? await webkit.launch({headless:true}) : await chromium.launch({channel:'chrome',headless:true});
  const page=await browser.newPage(); const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(process.argv[3] || 'http://127.0.0.1:4173/laute/');
+ await page.waitForLoadState('networkidle');
  const findings=[];
  for(const lang of ['ru','kz','en']) {
-  await page.evaluate(lang=>localStorage.setItem('laute_lang',lang),lang);await page.reload();
+  await page.evaluate(lang=>localStorage.setItem('laute_lang',lang),lang);await page.reload();await page.waitForLoadState('networkidle');
   await page.evaluate(()=>document.fonts.ready); await page.locator('.btn-ai-minimize').click();
   for(const route of routes){
    await page.evaluate(route=>{history.pushState({},'',`/laute/${route==='home'?'':route}`);dispatchEvent(new PopStateEvent('popstate'));},route);

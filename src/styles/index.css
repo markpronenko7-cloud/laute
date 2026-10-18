@@ -480,13 +480,13 @@ img {
 
 .header-container {
   height: 100%;
-  max-width: min(1820px, 100%);
+  max-width: min(1920px, 100%);
   margin: 0 auto;
   padding: 0 max(clamp(16px, 2vw, 36px), var(--sar, 0px)) 0 max(clamp(16px, 2vw, 36px), var(--sal, 0px));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: clamp(10px, 1.2vw, 20px);
+  gap: clamp(10px, 0.8vw, 16px);
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
@@ -588,7 +588,7 @@ img {
 .header-left {
   display: flex;
   align-items: center;
-  gap: clamp(8px, 1.2vw, 22px);
+  gap: clamp(8px, 0.8vw, 16px);
   min-width: 0;
   flex: 0 0 auto;
 }
@@ -658,31 +658,19 @@ img {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: clamp(2px, 0.55vw, 12px);
+  gap: clamp(4px, 0.5vw, 10px);
   list-style: none;
   white-space: nowrap;
   margin: 0;
   padding: 0;
 }
 
-@media (min-width: 1440px) {
-  .nav-links {
-    gap: clamp(6px, 0.75vw, 16px);
-  }
-}
-
-@media (min-width: 1680px) {
-  .nav-links {
-    gap: 12px;
-  }
-}
-
 .nav-link {
-  font-size: clamp(0.78rem, 0.82vw, 0.92rem);
+  font-size: clamp(0.78rem, 0.82vw, 0.875rem);
   font-weight: 600;
   color: #FFFFFF;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-  padding: 6px clamp(4px, 0.45vw, 9px);
+  padding: 6px clamp(4px, 0.35vw, 7px);
   position: relative;
   white-space: nowrap;
   letter-spacing: -0.01em;
@@ -932,6 +920,14 @@ img {
   }
   .cabinet-btn-label {
     display: inline !important;
+  }
+}
+
+/* Keep the sections visible before giving space to the secondary action label.
+   The measurement copy uses this same rule, so its width stays representative. */
+@media (max-width: 1799px) {
+  .header .cabinet-btn .cabinet-btn-label {
+    display: none !important;
   }
 }
 
