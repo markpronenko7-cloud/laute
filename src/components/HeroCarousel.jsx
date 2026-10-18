@@ -9,8 +9,29 @@ export const HeroCarousel = () => {
 
   const [activeSlide, setActiveSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
+  const touchStart = useRef(null);
+  const touchEnd = useRef(null);
+  const sectionRef = useRef(null);
+  const [isInView, setIsInView] = useState(true);
+  const [isDocumentVisible, setIsDocumentVisible] = useState(() => !document.hidden);
+  const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => setIsInView(entry.isIntersecting));
+    observer.observe(sectionRef.current);
+    const onVisibilityChange = () => setIsDocumentVisible(!document.hidden);
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const onMotionChange = () => setReducedMotion(media.matches);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    media.addEventListener('change', onMotionChange);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      media.removeEventListener('change', onMotionChange);
+    };
+  }, []);
+
+  const autoplayPaused = isPaused || !isInView || !isDocumentVisible || reducedMotion;
 
   const SLIDE_DURATION = 3000; // Exactly 3000ms per requirement
 
@@ -128,44 +149,34 @@ export const HeroCarousel = () => {
 
   // Autoplay timer
   useEffect(() => {
-    if (isPaused) return;
+    if (autoplayPaused) return;
 
     const timer = setInterval(() => {
       nextSlide();
     }, SLIDE_DURATION);
 
     return () => clearInterval(timer);
-  }, [isPaused, nextSlide, activeSlide]);
-
-  // Preload slides after component mounts for instant transitions without initial lag
-  useEffect(() => {
-    const preloadImages = () => {
-      slidesData.slice(1).forEach((slide) => {
-        const img = new Image();
-        img.src = slide.image;
-      });
-    };
-    if (typeof window !== 'undefined') {
-      const id = setTimeout(preloadImages, 400);
-      return () => clearTimeout(id);
-    }
-  }, []);
+  }, [autoplayPaused, nextSlide, activeSlide]);
 
   // Touch handlers for mobile swipe
   const minSwipeDistance = 50;
 
   const onTouchStart = (e) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
+    touchEnd.current = null;
+    touchStart.current = { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY };
   };
 
   const onTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    touchEnd.current = { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY };
   };
 
   const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
+    if (!touchStart.current || !touchEnd.current) return;
+    const distance = touchStart.current.x - touchEnd.current.x;
+    const verticalDistance = touchStart.current.y - touchEnd.current.y;
+    touchStart.current = null;
+    touchEnd.current = null;
+    if (Math.abs(verticalDistance) >= Math.abs(distance)) return;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
 
@@ -179,11 +190,14 @@ export const HeroCarousel = () => {
   return (
     <section 
       className="hero-carousel-section"
+      ref={sectionRef}
+      data-autoplay-paused={autoplayPaused}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
+      onTouchCancel={() => { touchStart.current = null; touchEnd.current = null; }}
       aria-label="LAUTE Hero Презентация"
     >
       {/* Background Slides */}
@@ -218,6 +232,7 @@ export const HeroCarousel = () => {
                 key={`content-${slide.id}`} 
                 className={`hero-slide-caption ${isActive ? 'is-active' : 'is-inactive'}`}
                 aria-hidden={!isActive}
+                inert={isActive ? undefined : ''}
               >
                 {/* Slide 1 & 5 prominent authentic LAUTE branding */}
                 {slide.showLargeLogo ? (
@@ -290,7 +305,7 @@ export const HeroCarousel = () => {
                   <span className="indicator-num">0{index + 1}</span>
                   <span className="indicator-bar-track">
                     <span 
-                      className={`indicator-bar-fill ${isActive && !isPaused ? 'is-animating' : ''}`}
+                      className={`indicator-bar-fill ${isActive && !autoplayPaused ? 'is-animating' : ''}`}
                       style={{ animationDuration: `${SLIDE_DURATION}ms` }}
                     ></span>
                   </span>

@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { Globe, MapPin, User, Menu, X, ChevronDown, Sparkles } from 'lucide-react';
+import { Globe, MapPin, User, Menu, X, ChevronDown } from 'lucide-react';
 import { REGIONS_CONFIG } from '../data/regionsData';
 
 export const Header = () => {
@@ -15,28 +15,29 @@ export const Header = () => {
   const containerRef = useRef(null);
   const measureRef = useRef(null);
 
-  const [isDesktopNavVisible, setIsDesktopNavVisible] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    return window.innerWidth >= 1680;
-  });
+  // Start compact; measure the exact desktop markup before the first paint.
+  const [isDesktopNavVisible, setIsDesktopNavVisible] = useState(false);
 
   useEffect(() => {
-    let ticking = false;
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const top = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
-          setIsScrolled(top > 20);
-          const ratio = Math.min(Math.max(top / 160, 0), 1);
-          document.documentElement.style.setProperty('--header-scroll-ratio', ratio.toFixed(3));
-          ticking = false;
-        });
-        ticking = true;
+    let frame = 0;
+    let previousScrolled;
+    const updateScrolled = () => {
+      frame = 0;
+      const scrolled = window.scrollY > 20;
+      if (scrolled !== previousScrolled) {
+        previousScrolled = scrolled;
+        setIsScrolled(scrolled);
       }
     };
-    handleScroll();
+    const handleScroll = () => {
+      if (!frame) frame = requestAnimationFrame(updateScrolled);
+    };
+    updateScrolled();
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      cancelAnimationFrame(frame);
+    };
   }, []);
 
   useEffect(() => {
@@ -96,47 +97,36 @@ export const Header = () => {
     navigateTo(route);
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    let frame = 0;
+    let disposed = false;
     const checkHeaderFit = () => {
-      if (typeof window === 'undefined') return;
-      const width = window.innerWidth;
-
-      // Mobile and small tablet screens always use compact navigation
-      if (width < 960) {
-        setIsDesktopNavVisible(false);
-        return;
-      }
-
-      // Check whether off-screen measurement node fits within available container width without any overlap
-      if (measureRef.current && containerRef.current) {
-        const needed = measureRef.current.scrollWidth + 28;
-        const available = containerRef.current.clientWidth || width;
-        setIsDesktopNavVisible(available >= needed);
-      } else {
-        // Fallback: KZ has longer translations, needs wider threshold
-        const threshold = lang === 'kz' ? 1680 : 1380;
-        setIsDesktopNavVisible(width >= threshold);
-      }
+      if (disposed || !measureRef.current || !containerRef.current) return;
+      // Identical markup includes real button padding, icons, gaps and active-link weight.
+      const needed = measureRef.current.getBoundingClientRect().width;
+      const available = containerRef.current.getBoundingClientRect().width;
+      setIsDesktopNavVisible(window.innerWidth > 960 && available >= Math.ceil(needed) + 2);
     };
-
+    const scheduleCheck = () => {
+      if (disposed) return;
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(checkHeaderFit);
+    };
     checkHeaderFit();
-    const rafId = requestAnimationFrame(checkHeaderFit);
-
-    let resizeObserver;
-    if (typeof ResizeObserver !== 'undefined' && containerRef.current) {
-      resizeObserver = new ResizeObserver(() => {
-        checkHeaderFit();
-      });
-      resizeObserver.observe(containerRef.current);
-    }
-
-    window.addEventListener('resize', checkHeaderFit);
+    const observer = new ResizeObserver(scheduleCheck);
+    observer.observe(containerRef.current);
+    observer.observe(measureRef.current);
+    document.fonts?.ready.then(scheduleCheck);
+    document.fonts?.addEventListener('loadingdone', scheduleCheck);
+    window.addEventListener('resize', scheduleCheck);
     return () => {
-      cancelAnimationFrame(rafId);
-      window.removeEventListener('resize', checkHeaderFit);
-      if (resizeObserver) resizeObserver.disconnect();
+      disposed = true;
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      document.fonts?.removeEventListener('loadingdone', scheduleCheck);
+      window.removeEventListener('resize', scheduleCheck);
     };
-  }, [lang, region, currentRegionLabel, t]);
+  }, [lang, region, currentRoute, currentRegionLabel, t]);
 
   useEffect(() => {
     if (isDesktopNavVisible && isMobileMenuOpen) {
@@ -146,9 +136,8 @@ export const Header = () => {
 
   const logoSrc = `${import.meta.env.BASE_URL}laute-logo.png`;
 
-  return (
-    <header className={`header ${isScrolled ? 'header-scrolled' : ''} ${isDesktopNavVisible ? 'header-desktop-mode' : 'header-compact-mode'}`}>
-      <div className="container header-container" ref={containerRef}>
+  const renderHeaderContents = (measuring = false) => (
+      <div className={`container header-container ${measuring ? 'header-measure' : ''}`} ref={measuring ? measureRef : containerRef}>
         {/* Left: Brand Logo & Main Nav */}
         <div className="header-left">
           <a 
@@ -171,8 +160,7 @@ export const Header = () => {
             </span>
           </a>
 
-          {isDesktopNavVisible && (
-            <nav className="nav-desktop" aria-label="Основная навигация">
+          <nav className="nav-desktop" aria-label="Основная навигация">
             <ul className="nav-links">
               <li>
                 <button 
@@ -239,13 +227,12 @@ export const Header = () => {
               </li>
             </ul>
           </nav>
-          )}
         </div>
 
         {/* Right: Selectors & Actions */}
         <div className="header-right">
           {/* Language Selector */}
-          <div className="select-dropdown header-lang-dropdown" ref={langRef}>
+          <div className="select-dropdown header-lang-dropdown" ref={measuring ? undefined : langRef}>
             <button
               type="button"
               className="select-trigger"
@@ -256,6 +243,7 @@ export const Header = () => {
                   return next;
                 });
               }}
+              aria-expanded={isLangOpen}
               aria-label={t.nav.language || 'Язык сайта'}
             >
               <Globe size={15} className="select-icon" />
@@ -263,7 +251,7 @@ export const Header = () => {
               <ChevronDown size={13} className={`arrow-icon ${isLangOpen ? 'open' : ''}`} />
             </button>
 
-            {isLangOpen && (
+            {!measuring && isLangOpen && (
               <div className="dropdown-panel lang-panel">
                 {languageOptions.map((opt) => (
                   <button
@@ -284,7 +272,7 @@ export const Header = () => {
           </div>
 
           {/* Region Selector */}
-          <div className="select-dropdown header-region-dropdown" ref={regionRef}>
+          <div className="select-dropdown header-region-dropdown" ref={measuring ? undefined : regionRef}>
             <button
               type="button"
               className="select-trigger"
@@ -295,6 +283,7 @@ export const Header = () => {
                   return next;
                 });
               }}
+              aria-expanded={isRegionOpen}
               aria-label={t.regions?.selectRegion || t.nav.region || 'Ваш регион'}
             >
               <MapPin size={15} className="select-icon" />
@@ -302,7 +291,7 @@ export const Header = () => {
               <ChevronDown size={13} className={`arrow-icon ${isRegionOpen ? 'open' : ''}`} />
             </button>
 
-            {isRegionOpen && (
+            {!measuring && isRegionOpen && (
               <div className="dropdown-panel region-panel">
                 <div className="dropdown-header">
                   <p className="dropdown-desc">{t.regions?.regionDesc || 'Выберите регион, чтобы увидеть контакты и условия обращения в LAUTE.'}</p>
@@ -326,8 +315,7 @@ export const Header = () => {
           </div>
 
           {/* B2B Client Cabinet */}
-          {isDesktopNavVisible && (
-            <button
+          <button
               type="button"
               className="btn btn-outline btn-sm cabinet-btn"
               onClick={openAuthModal}
@@ -336,7 +324,6 @@ export const Header = () => {
               <User size={15} />
               <span className="cabinet-btn-label">{t.nav.clientCabinet || 'Кабинет партнёра'}</span>
             </button>
-          )}
 
           {/* Main Wholesale Partner CTA */}
           <button
@@ -348,22 +335,29 @@ export const Header = () => {
           </button>
 
           {/* Mobile Menu Toggle */}
-          {!isDesktopNavVisible && (
+          {!measuring && (
             <button
               type="button"
               className="mobile-toggle"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-label="Меню"
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-navigation"
             >
               {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           )}
         </div>
       </div>
+  );
+
+  return (
+    <header className={`header ${isScrolled ? 'header-scrolled' : ''} ${isDesktopNavVisible ? 'header-desktop-mode' : 'header-compact-mode'}`}>
+      {renderHeaderContents()}
 
       {/* Mobile Drawer */}
       {isMobileMenuOpen && (
-        <div className="mobile-nav-drawer" role="dialog" aria-modal="true">
+        <div id="mobile-navigation" className="mobile-nav-drawer" role="dialog" aria-label="Меню" aria-modal="true">
           <ul className="mobile-nav-links">
             <li>
               <button
@@ -498,39 +492,9 @@ export const Header = () => {
         </div>
       )}
 
-      {/* Off-screen measurement node to accurately calculate whether desktop header fits without collision */}
-      <div
-        ref={measureRef}
-        aria-hidden="true"
-        style={{
-          position: 'fixed',
-          top: -9999,
-          left: -9999,
-          visibility: 'hidden',
-          pointerEvents: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '16px',
-          whiteSpace: 'nowrap',
-          zIndex: -100
-        }}
-      >
-        <div style={{ width: 170, height: 42, flexShrink: 0 }} />
-        <ul className="nav-links" style={{ display: 'flex', flexShrink: 0 }}>
-          <li className="nav-link">{t.nav?.home || 'Главная'}</li>
-          <li className="nav-link">{t.nav?.catalog || t.nav?.products || 'Каталог'}</li>
-          <li className="nav-link">{t.nav?.about || t.nav?.company || 'О LAUTE'}</li>
-          <li className="nav-link">{t.nav?.partners || 'Партнёрам'}</li>
-          <li className="nav-link">{t.nav?.whereToBuy || 'Где купить'}</li>
-          <li className="nav-link">{t.nav?.service || 'Первый цифровой сервис'}</li>
-          <li className="nav-link">{t.nav?.contacts || 'Контакты'}</li>
-        </ul>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
-          <div className="select-trigger"><Globe size={15} /> <span>{lang === 'ru' ? 'РУС' : lang === 'kz' ? 'КАЗ' : 'ENG'}</span></div>
-          <div className="select-trigger"><MapPin size={15} /> <span style={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentRegionLabel}</span></div>
-          <div className="cabinet-btn" style={{ display: 'inline-flex' }}><User size={15} /> <span>{t.nav?.clientCabinet || 'Кабинет партнёра'}</span></div>
-          <div className="btn-partner-cta" style={{ display: 'inline-flex' }}><span>{t.nav?.requestQuote || 'Стать партнёром'}</span></div>
-        </div>
+      {/* Same desktop markup, clipped and inert: no page overflow or keyboard focus. */}
+      <div className="header-measure-clip" aria-hidden="true" inert="">
+        {renderHeaderContents(true)}
       </div>
     </header>
   );

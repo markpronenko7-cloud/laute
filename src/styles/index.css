@@ -126,7 +126,6 @@
   --sab: env(safe-area-inset-bottom, 0px);
   --sal: env(safe-area-inset-left, 0px);
   --sar: env(safe-area-inset-right, 0px);
-  --header-scroll-ratio: 0;
 
   /* ==========================================================================
      UNIFIED SPACING SYSTEM & RESPONSIVE LAYOUT TOKENS (8pt Harmonic Grid)
@@ -455,19 +454,16 @@ img {
   z-index: 1000;
   height: calc(var(--header-height) + var(--sat, 0px));
   padding-top: var(--sat, 0px);
-  background: rgba(11, 14, 22, calc(0.25 + var(--header-scroll-ratio, 0) * 0.62));
+  background: rgba(11, 14, 22, 0.4);
   color: #FFFFFF;
-  border-bottom: 1px solid rgba(255, 255, 255, calc(0.08 + var(--header-scroll-ratio, 0) * 0.08));
-  backdrop-filter: blur(calc(8px + var(--header-scroll-ratio, 0) * 12px));
-  -webkit-backdrop-filter: blur(calc(8px + var(--header-scroll-ratio, 0) * 12px));
-  box-shadow: 0 4px calc(8px + var(--header-scroll-ratio, 0) * 20px) rgba(0, 0, 0, calc(var(--header-scroll-ratio, 0) * 0.35));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   transition: background 0.25s ease,
     border-color 0.25s ease,
     box-shadow 0.25s ease;
-  will-change: background, backdrop-filter;
   box-sizing: border-box;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
 }
 
 @media (max-width: 768px) {
@@ -477,7 +473,9 @@ img {
 }
 
 .header.header-scrolled {
-  border-bottom-color: rgba(255, 255, 255, calc(0.06 + var(--header-scroll-ratio, 0) * 0.08));
+  background: rgba(11, 14, 22, 0.92);
+  border-bottom-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .header-container {
@@ -592,8 +590,7 @@ img {
   align-items: center;
   gap: clamp(8px, 1.2vw, 22px);
   min-width: 0;
-  flex: 0 1 auto;
-  overflow: hidden;
+  flex: 0 0 auto;
 }
 
 @media (max-width: 768px) {
@@ -616,10 +613,45 @@ img {
   display: none !important;
 }
 
-/* Pure CSS fallback: desktop navigation active on screens >= 1680px where all languages are guaranteed to fit without collision */
-@media (min-width: 1680px) {
-  .header:not(.header-compact-mode) .nav-desktop {
-    display: block;
+.header-measure-clip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.header-measure {
+  width: max-content;
+  max-width: none;
+}
+
+.header .header-measure .nav-desktop {
+  display: block !important;
+}
+
+.header .header-measure .cabinet-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.header-compact-mode > .header-container .cabinet-btn {
+  display: none;
+}
+
+/* Immediate small-screen fallback while ResizeObserver updates React state. */
+@media (max-width: 960px) {
+  .header > .header-container .nav-desktop,
+  .header > .header-container .cabinet-btn {
+    display: none !important;
+  }
+
+  .header > .header-container .mobile-toggle {
+    display: inline-flex !important;
   }
 }
 
@@ -641,7 +673,7 @@ img {
 
 @media (min-width: 1680px) {
   .nav-links {
-    gap: 20px;
+    gap: 12px;
   }
 }
 
@@ -964,12 +996,6 @@ img {
   display: inline-flex !important;
 }
 
-@media (min-width: 1680px) {
-  .header:not(.header-compact-mode) .mobile-toggle {
-    display: none !important;
-  }
-}
-
 /* Mobile Drawer */
 .mobile-nav-drawer {
   position: fixed;
@@ -1078,6 +1104,18 @@ img {
   color: var(--text-light);
   letter-spacing: 0.05em;
   font-weight: 600;
+}
+
+.lang-buttons,
+.region-chips,
+.mobile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mobile-actions {
+  flex-direction: column;
 }
 
 /* ==========================================================================
@@ -2321,7 +2359,6 @@ img {
   opacity: 0;
   transform: translateY(24px);
   transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
 }
 
 .reveal-on-scroll.is-visible {
@@ -4248,7 +4285,8 @@ img {
   position: relative;
   width: 100%;
   min-height: 100vh;
-  height: 100vh;
+  height: auto;
+  padding-top: calc(var(--header-height) + var(--sat, 0px) + 32px);
   overflow: hidden;
   background-color: #07090E;
   color: #FFFFFF;
@@ -4260,15 +4298,15 @@ img {
 @supports (height: 100svh) {
   .hero-carousel-section {
     min-height: 100svh;
-    height: 100svh;
+    height: auto;
   }
 }
 
 @media (max-width: 768px) {
   .hero-carousel-section {
     min-height: 100svh;
-    height: 100svh;
-    padding-top: calc(var(--header-height-mobile) + var(--sat, 0px));
+    height: auto;
+    padding-top: calc(var(--header-height-mobile) + var(--sat, 0px) + 24px);
   }
 }
 
@@ -4289,7 +4327,6 @@ img {
   opacity: 0;
   visibility: hidden;
   transition: opacity 1.2s cubic-bezier(0.25, 1, 0.5, 1), visibility 1.2s ease;
-  will-change: opacity, transform;
 }
 
 .hero-slide.is-active {
@@ -4306,11 +4343,33 @@ img {
   background-repeat: no-repeat;
   transform: scale(1.05);
   transition: transform 7s cubic-bezier(0.1, 0.8, 0.3, 1);
-  will-change: transform;
 }
 
 .hero-slide.is-active .hero-slide-bg {
   transform: scale(1);
+}
+
+/* Off-screen slides need no zoom transition or extra compositor layer. */
+.hero-carousel-section[data-autoplay-paused="true"] .hero-slide-bg {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .hero-slide,
+  .hero-slide-bg,
+  .hero-slide-caption {
+    transition: none !important;
+    transform: none !important;
+  }
+
+  .hero-slide-caption.is-active > *,
+  .indicator-bar-fill.is-animating {
+    animation: none !important;
+  }
 }
 
 .hero-slide-overlay {
@@ -4326,13 +4385,14 @@ img {
 .hero-content-container {
   position: relative;
   z-index: 10;
-  padding-bottom: 110px;
+  padding-bottom: 166px;
   width: 100%;
+  margin-top: auto;
 }
 
 @media (max-width: 768px) {
   .hero-content-container {
-    padding-bottom: calc(var(--sab, 0px) + 90px);
+    padding-bottom: calc(var(--sab, 0px) + 146px);
   }
 }
 
@@ -4340,8 +4400,8 @@ img {
   position: relative;
   width: 100%;
   min-height: 280px;
-  display: flex;
-  align-items: flex-end;
+  display: grid;
+  align-items: end;
 }
 
 @media (max-width: 768px) {
@@ -4351,7 +4411,9 @@ img {
 }
 
 .hero-slide-caption {
-  position: absolute;
+  /* Keep every caption in the same grid cell to reserve the tallest slide. */
+  position: relative;
+  grid-area: 1 / 1;
   bottom: 0;
   left: 0;
   width: 100%;
@@ -4521,13 +4583,11 @@ img {
   0% {
     opacity: 0;
     transform: translateY(22px);
-    filter: blur(4px);
   }
 
   100% {
     opacity: 1;
     transform: translateY(0);
-    filter: blur(0);
   }
 }
 
@@ -4547,7 +4607,8 @@ img {
 /* Controls Bar */
 .hero-controls-bar {
   position: absolute;
-  bottom: calc(var(--sab, 0px) + 24px);
+  /* Leave the bottom corner free for the existing floating assistant control. */
+  bottom: calc(var(--sab, 0px) + 80px);
   left: 0;
   right: 0;
   z-index: 15;
@@ -4616,7 +4677,9 @@ img {
 .indicator-bar-fill {
   display: block;
   height: 100%;
-  width: 0%;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
   background: #FFFFFF;
   border-radius: 2px;
 }
@@ -4627,11 +4690,11 @@ img {
 
 @keyframes fillProgress {
   0% {
-    width: 0%;
+    transform: scaleX(0);
   }
 
   100% {
-    width: 100%;
+    transform: scaleX(1);
   }
 }
 
@@ -5344,7 +5407,6 @@ img {
   height: 100%;
   object-fit: cover;
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform;
 }
 
 .collection-gallery-item:hover .collection-media-img {
@@ -6035,7 +6097,18 @@ img {
 .catalog-hero-header {
   background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 56px 0 44px;
+  padding-bottom: 44px;
+}
+
+.catalog-hero-header .catalog-b2b-btn {
+  color: #E2E8F0;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.catalog-hero-header .catalog-b2b-btn:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.7);
 }
 
 .catalog-header-grid {

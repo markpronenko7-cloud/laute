@@ -163,7 +163,7 @@ export const BlockRenderer = ({
           <div className="builder-columns-block">
             {block.badge && <span className="section-badge" style={{ marginBottom: 12, display: 'inline-block' }}>{block.badge}</span>}
             {block.title && <h2 className="section-title" style={{ marginBottom: 24, textAlign: align }}>{withBrandWord(block.title)}</h2>}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 32 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 32 }}>
               <div style={{ background: 'rgba(255,255,255,0.02)', padding: 24, borderRadius: 12, border: '1px solid rgba(255,255,255,0.06)' }}>
                 {block.col1Title && <h3 style={{ fontSize: 18, color: '#FFFFFF', marginBottom: 12 }}>{block.col1Title}</h3>}
                 <p style={{ color: 'var(--color-text-secondary)', lineHeight: 1.6, margin: 0 }}>{block.col1Text}</p>
@@ -180,7 +180,7 @@ export const BlockRenderer = ({
       case 'image_text': {
         const isRight = block.imagePosition === 'right';
         return (
-          <div className="builder-image-text-block" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 40, alignItems: 'center' }}>
+          <div className="builder-image-text-block" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 40, alignItems: 'center' }}>
             {!isRight && (
               <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 12px 30px rgba(0,0,0,0.4)' }}>
                 {block.imageUrl ? (
@@ -230,7 +230,7 @@ export const BlockRenderer = ({
               <h2 className="section-title" style={{ marginBottom: 10 }}>{withBrandWord(block.title || '')}</h2>
               {block.subtitle && <p className="section-desc" style={{ maxWidth: 700, margin: align === 'center' ? '0 auto' : '0' }}>{block.subtitle}</p>}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: 20 }}>
               {(block.items || []).map((item, idx) => (
                 <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column' }}>
                   {item.imageUrl && (
@@ -255,7 +255,7 @@ export const BlockRenderer = ({
               <h2 className="section-title" style={{ marginBottom: 10 }}>{withBrandWord(block.title || '')}</h2>
               {block.subtitle && <p className="section-desc" style={{ maxWidth: 700, margin: align === 'center' ? '0 auto' : '0' }}>{block.subtitle}</p>}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 22 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))', gap: 22 }}>
               {(block.items || []).map((item, idx) => (
                 <div key={idx} style={{ background: 'rgba(255,255,255,0.025)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column' }}>
                   {item.imageUrl && (
@@ -280,7 +280,7 @@ export const BlockRenderer = ({
               <h2 className="section-title" style={{ marginBottom: 10 }}>{withBrandWord(block.title || '')}</h2>
               {block.subtitle && <p className="section-desc" style={{ maxWidth: 700, margin: align === 'center' ? '0 auto' : '0' }}>{block.subtitle}</p>}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 20 }}>
               {(block.items || []).map((item, idx) => (
                 <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: 24, borderRadius: 12, border: '1px solid rgba(255,255,255,0.06)', position: 'relative' }}>
                   <div style={{ fontSize: 32, fontWeight: 800, color: '#D4AF37', opacity: 0.8, marginBottom: 12 }}>
@@ -303,7 +303,7 @@ export const BlockRenderer = ({
               <h2 className="section-title" style={{ marginBottom: 10 }}>{withBrandWord(block.title || 'Представительства и филиалы')}</h2>
               {block.subtitle && <p className="section-desc" style={{ maxWidth: 750, margin: align === 'center' ? '0 auto' : '0' }}>{block.subtitle}</p>}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 290px), 1fr))', gap: 20 }}>
               {(block.items || []).map((hub, idx) => (
                 <div key={idx} style={{ background: 'rgba(255,255,255,0.03)', padding: 22, borderRadius: 12, border: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <h4 style={{ margin: 0, fontSize: 16, color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -457,7 +457,7 @@ export const BlockRenderer = ({
               <h2 className="section-title" style={{ marginBottom: 10 }}>{withBrandWord(block.title || 'Популярная продукция')}</h2>
               {block.subtitle && <p className="section-desc" style={{ maxWidth: 700, margin: align === 'center' ? '0 auto' : '0' }}>{block.subtitle}</p>}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 240px), 1fr))', gap: 20 }}>
               {prods.map((prod, idx) => {
                 const priceVal = prod.price || prod.priceRRC;
                 const curr = prod.currency || '₸';
