@@ -335,29 +335,32 @@ export const CatalogPage = () => {
 
   // Show only categories that actually contain products in the current catalog.
   const categoryDefinitions = [
-    { id: 'kitchen-mixers', image: `${baseUrl}images/cat_kitchen.png`, mounting: 'deck' },
-    { id: 'basin-mixers', image: `${baseUrl}images/category-basin-v2.png`, mounting: 'deck' },
-    { id: 'bath-mixers', image: `${baseUrl}images/category-bath-v2.png`, mounting: 'wall' },
-    { id: 'universal-mixers', image: `${baseUrl}images/category-universal-v2.png`, mounting: 'wall' },
-    { id: 'shower-mixers', image: `${baseUrl}images/cat_shower.png`, mounting: 'wall' },
-    { id: 'bidet-hygiene', image: `${baseUrl}images/cat_shower.png`, mounting: 'wall' },
-    { id: 'sinks', image: `${baseUrl}images/cat_sinks.png`, mounting: 'deck' },
-    { id: 'shower-systems', image: `${baseUrl}images/cat_shower.png`, mounting: 'wall' },
-    { id: 'cartridges', image: `${baseUrl}images/cat_components.png`, mounting: 'internal' },
-    { id: 'aerators', image: `${baseUrl}images/cat_components.png`, mounting: 'internal' },
-    { id: 'hoses-showers', image: `${baseUrl}images/cat_shower.png`, mounting: 'internal' },
-    { id: 'spouts', image: `${baseUrl}images/cat_components.png`, mounting: 'internal' },
-    { id: 'diverters-fittings', image: `${baseUrl}images/cat_components.png`, mounting: 'internal' },
-    { id: 'shower-cabins', image: `${baseUrl}images/cat_laute_brand.jpg`, mounting: 'cabin' }
+    { id: 'kitchen-mixers', mounting: 'deck' },
+    { id: 'basin-mixers', mounting: 'deck' },
+    { id: 'bath-mixers', mounting: 'wall' },
+    { id: 'universal-mixers', mounting: 'wall' },
+    { id: 'shower-mixers', mounting: 'wall' },
+    { id: 'bidet-hygiene', mounting: 'wall' },
+    { id: 'sinks', mounting: 'deck' },
+    { id: 'shower-systems', mounting: 'wall' },
+    { id: 'cartridges', mounting: 'internal' },
+    { id: 'aerators', mounting: 'internal' },
+    { id: 'hoses-showers', mounting: 'internal' },
+    { id: 'spouts', mounting: 'internal' },
+    { id: 'diverters-fittings', mounting: 'internal' },
+    { id: 'shower-cabins', mounting: 'cabin' }
   ];
   const categories = productCategories.map((sourceCategory) => {
     const item = categoryDefinitions.find((candidate) => categoryTranslations[candidate.id]?.name?.ru === sourceCategory);
+    const sourceProduct = activeProducts.find(p => normalizeCategory(p.category) === sourceCategory);
+    const image = sourceProduct?.photo1 ? classifyProductImages(sourceProduct, baseUrl).mainPhoto : null;
     if (!item) {
       return {
         id: sourceCategory,
         sourceCategory,
         name: sourceCategory,
-        image: null,
+        image,
+        imageSku: sourceProduct?.article,
         mounting: 'other',
         count: activeProducts.filter(p => normalizeCategory(p.category) === sourceCategory).length
       };
@@ -366,6 +369,8 @@ export const CatalogPage = () => {
     return {
       ...item,
       sourceCategory,
+      image,
+      imageSku: sourceProduct?.article,
       count: activeProducts.filter(p => normalizeCategory(p.category) === sourceCategory).length,
       name: tr.name?.[lang] || tr.name?.ru || item.id,
       badge: tr.badge?.[lang] || tr.badge?.ru || '',
@@ -868,7 +873,7 @@ export const CatalogPage = () => {
               {filteredCategories.map((cItem, idx) => (
                 <div key={cItem.id} className="catalog-card">
                   <div className={`card-media ${cItem.image ? '' : 'card-media-empty'}`}>
-                    {cItem.image && <img src={cItem.image} alt="" className="card-product-img" loading="lazy" />}
+                    {cItem.image && <img src={cItem.image} alt={`${cItem.sourceCategory}: ${cItem.imageSku}`} className="card-product-img" loading="lazy" />}
                     <span className="card-badge">
                       {cItem.count} {lang === 'en' ? 'models' : lang === 'kz' ? 'модель' : 'мод.'}
                     </span>
@@ -883,7 +888,7 @@ export const CatalogPage = () => {
                         : `Категория #${idx + 1}`}
                     </div>
                     <h3 className="card-title">{cItem.name}</h3>
-                    {cItem.image && <span className="card-image-note">{lang === 'en' ? 'Category illustration' : lang === 'kz' ? 'Санат иллюстрациясы' : 'Иллюстрация категории'}</span>}
+                    {cItem.image && <span className="card-image-note">{lang === 'en' ? 'Product photo' : lang === 'kz' ? 'Тауар фотосы' : 'Фото товара'} · {cItem.imageSku}</span>}
 
                     <div className="card-footer">
                       <button
