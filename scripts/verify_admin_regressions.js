@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import XLSX from 'xlsx';
-import { build } from 'esbuild';
+import { build, transform } from 'esbuild';
 import { createRequire } from 'node:module';
 import { parseAndValidateExcelFile, applyExcelImport, createCatalogWorkbook } from '../src/utils/excelManager.js';
 import { formatProductDisplay, classifyProductImages } from '../src/utils/imageHelper.js';
@@ -121,8 +121,8 @@ test('CMS: серверные отказы, частичное обновлен�
       const fn = endpoint.slice(4);
       if (reject) data = { success: false, error: 'Сессия истекла' };
       else if (fn === 'laute_get_admin_data') data = { draft: structuredClone(draft) };
-      else if (fn === 'laute_save_content_draft') { draft = { ...draft, ...args.p_updates }; data = { success: true, draft: structuredClone(draft) }; }
-      else if (fn === 'laute_publish_content') { published = structuredClone(draft); data = { success: true, content: published }; }
+      else if (fn === 'laute_save_content_draft') { draft = structuredClone(args.p_updates); data = { success: true, draft: structuredClone(draft) }; }
+      else if (fn === 'laute_publish_content') { published = structuredClone(draft); data = { success: true, version: '1.0.2' }; }
       else if (fn === 'laute_save_product') { products = [{ ...args.p_product }]; data = { success: true }; }
       else data = { success: true };
     } else if (endpoint?.startsWith('laute_products?')) data = products;
@@ -137,7 +137,9 @@ test('CMS: серверные отказы, частичное обновлен�
     await api.saveSiteContentDraft({ hero: { title: 'Новый текст' } });
     cache.delete('laute_site_content');
     assert.equal((await api.fetchSiteContent('draft')).hero.title, 'Новый текст');
-    await api.publishSiteContent();
+    const publication = await api.publishSiteContent();
+    assert.equal(publication.content.hero.title, 'Новый текст');
+    assert.equal(publication.content.hasUnpublishedChanges, false);
     assert.equal((await api.fetchSiteContent(false)).hero.title, 'Новый текст');
     await api.updateProduct('X', { price: 150 });
     assert.equal(products[0].name, 'Изделие');
@@ -156,4 +158,33 @@ test('CMS: серверные отказы, частичное обновлен�
     delete globalThis.window;
     delete globalThis.localStorage;
   }
+});
+
+test('Медиасервис: проверка сессии до Storage и защищённая загрузка', async () => {
+  const source = fs.readFileSync(new URL('../supabase/functions/admin-media/index.ts', import.meta.url), 'utf8');
+  const compiled = await transform(source, { loader: 'ts', format: 'cjs' });
+  let handler;
+  let valid = false;
+  const calls = [];
+  const fakeFetch = async (url, options) => {
+    calls.push({ url, options });
+    if (url.includes('/rpc/')) return Response.json({ valid });
+    return Response.json({ success: true });
+  };
+  new Function('Deno', 'fetch', compiled.code)({ env: { get: name => ({ SUPABASE_URL: 'https://example.supabase.co', SUPABASE_ANON_KEY: 'public-key', SUPABASE_SERVICE_ROLE_KEY: 'server-secret' }[name]) }, serve: fn => { handler = fn; } }, fakeFetch);
+  assert.equal((await handler(new Request('https://example.com/'))).status, 401);
+  assert.equal(calls.length, 0);
+  assert.equal((await handler(new Request('https://example.com/', { headers: { origin: 'https://untrusted.example', 'x-laute-token': 'test' } }))).status, 403);
+  assert.equal((await handler(new Request('https://example.com/', { headers: { 'x-laute-token': 'expired' } }))).status, 401);
+  assert.equal(calls.length, 1);
+  valid = true;
+  const form = new FormData();
+  form.append('file', new File(['image'], 'qa.png', { type: 'image/png' }));
+  const response = await handler(new Request('https://example.com/', { method: 'POST', headers: { 'x-laute-token': 'valid' }, body: form }));
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.equal(result.success, true);
+  assert.ok(result.url.startsWith('https://example.supabase.co/storage/v1/object/public/laute-media/'));
+  assert.equal(calls.at(-1).options.headers.Authorization, 'Bearer server-secret');
+  assert.ok(!JSON.stringify(result).includes('server-secret'));
 });

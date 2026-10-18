@@ -286,7 +286,9 @@ export const publishSiteContent = async () => {
   if (!result || !result.success) {
     throw new Error(result?.error || 'Ошибка публикации контента');
   }
-  return result;
+  const records = await querySupabase('laute_site_content?id=eq.published&select=data,version');
+  if (!records?.[0]?.data) throw new Error('Публикация выполнена, но не удалось перечитать контент. Обнови страницу.');
+  return { ...result, content: { ...records[0].data, version: records[0].version || result.version, hasUnpublishedChanges: false } };
 };
 
 export const discardSiteContentDraft = async () => {
@@ -315,7 +317,8 @@ export const rollbackSiteContent = async (backupId) => {
   if (!result || !result.success) {
     throw new Error(result?.error || 'Ошибка отката контента');
   }
-  return result;
+  const records = await querySupabase('laute_site_content?id=eq.published&select=data,version');
+  return { ...result, content: records?.[0]?.data ? { ...records[0].data, version: records[0].version } : null };
 };
 
 export const fetchContentBackups = async () => {
@@ -325,7 +328,7 @@ export const fetchContentBackups = async () => {
   try {
     const adminData = await callSupabaseRpc('laute_get_admin_data', { p_token: token });
     if (adminData && Array.isArray(adminData.backups)) {
-      return adminData.backups;
+      return normalizeBackups(adminData.backups).filter(b => b.backup_type === 'content_publish' || b.backup_type === 'content_restore');
     }
   } catch (err) {
     console.warn('Ошибка загрузки бэкапов:', err);
@@ -467,11 +470,14 @@ export const duplicateCustomPage = async (id) => {
 };
 
 export const fetchPageVersions = async () => {
-  return await fetchContentBackups();
+  const token = getAuthToken();
+  if (!token) throw new Error('Требуется авторизация');
+  const data = await callSupabaseRpc('laute_get_admin_data', { p_token: token });
+  return normalizeBackups(data.backups || []).filter(b => b.backup_type === 'pages_update' || b.backup_type === 'pages_restore');
 };
 
 export const rollbackPagesVersion = async (backupId) => {
-  await rollbackSiteContent(backupId);
+  await callSupabaseRpc('laute_restore_backup', { p_token: getAuthToken(), p_backup_id: backupId, p_scope: 'pages' });
   return await fetchCustomPages();
 };
 
@@ -720,10 +726,9 @@ export const deleteProductsBatch = async (skuList) => {
 // ==========================================
 
 export const fetchMediaList = async () => {
-  const token = getAuthToken();
   const headers = {
     'apikey': SUPABASE_CONFIG.anonKey,
-    'Authorization': `Bearer ${token || SUPABASE_CONFIG.anonKey}`,
+    'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`,
     'Content-Type': 'application/json'
   };
 
@@ -786,53 +791,29 @@ export const fetchMediaList = async () => {
   return combined;
 };
 
-export const uploadMediaFiles = async (fileList) => {
+async function callMediaService(method, body) {
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
-  if (!fileList || fileList.length === 0) throw new Error('Не выбраны файлы для загрузки');
+  const headers = { apikey: SUPABASE_CONFIG.anonKey, Authorization: 'Bearer ' + SUPABASE_CONFIG.anonKey, 'x-laute-token': token };
+  if (body && !(body instanceof FormData)) headers['Content-Type'] = 'application/json';
+  const response = await fetch(SUPABASE_CONFIG.url + '/functions/v1/admin-media', { method, headers, body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined });
+  const data = await response.json().catch(() => null);
+  if (!response.ok || data?.success === false) throw new Error(data?.error || 'Медиасервис недоступен. Повтори попытку.');
+  return data;
+}
 
+export const uploadMediaFiles = async (fileList) => {
+  if (!fileList?.length) throw new Error('Не выбраны файлы для загрузки');
   const uploaded = [];
   const errors = [];
-
-  for (let i = 0; i < fileList.length; i++) {
-    const file = fileList[i];
-    const ext = file.name.split('.').pop();
-    const cleanBase = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_');
-    const safeName = `${Date.now()}_${cleanBase}.${ext}`;
-
+  for (const file of fileList) {
     try {
-      const res = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/object/${SUPABASE_CONFIG.storageBucket}/${safeName}`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_CONFIG.anonKey,
-          'Authorization': `Bearer ${token || SUPABASE_CONFIG.anonKey}`,
-          'Content-Type': file.type || 'application/octet-stream'
-        },
-        body: file
-      });
-
-      if (res.ok) {
-        const publicUrl = `${SUPABASE_CONFIG.url}/storage/v1/object/public/${SUPABASE_CONFIG.storageBucket}/${safeName}`;
-        uploaded.push({
-          name: safeName,
-          url: publicUrl,
-          size: file.size,
-          isStorage: true
-        });
-      } else {
-        const errJson = await res.json().catch(() => null);
-        const errMsg = errJson?.message || errJson?.error || `HTTP ${res.status}`;
-        errors.push(`${file.name}: ${errMsg}`);
-      }
-    } catch (err) {
-      errors.push(`${file.name}: ${err.message}`);
-    }
+      const form = new FormData();
+      form.append('file', file);
+      uploaded.push(await callMediaService('POST', form));
+    } catch (err) { errors.push(file.name + ': ' + err.message); }
   }
-
-  if (uploaded.length === 0 && errors.length > 0) {
-    throw new Error(`Ошибка загрузки файлов в хранилище: ${errors.join(', ')}`);
-  }
-
+  if (errors.length) throw new Error('Загружено: ' + uploaded.length + '. Ошибки: ' + errors.join('; '));
   return uploaded;
 };
 
@@ -847,20 +828,7 @@ export const deleteMediaFile = async (filename) => {
   if (!token) throw new Error('Требуется авторизация администратора');
   if (!filename) throw new Error('Не указано имя файла для удаления');
 
-  const cleanName = filename.split('/').pop();
-  const res = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/object/${SUPABASE_CONFIG.storageBucket}/${encodeURIComponent(cleanName)}`, {
-    method: 'DELETE',
-    headers: {
-      'apikey': SUPABASE_CONFIG.anonKey,
-      'Authorization': `Bearer ${token || SUPABASE_CONFIG.anonKey}`
-    }
-  });
-
-  if (!res.ok) {
-    const errJson = await res.json().catch(() => null);
-    const msg = errJson?.message || errJson?.error || `HTTP ${res.status}`;
-    throw new Error(`Ошибка удаления файла из хранилища: ${msg}`);
-  }
+  await callMediaService('DELETE', { name: filename.split('/').pop() });
 
   return true;
 };
@@ -901,21 +869,14 @@ export const commitExcelImport = async (validRows) => {
     .filter(r => r.actionStatus === 'УДАЛИТЬ')
     .map(r => r.article);
 
-  if (deletedSkus.length > 0) {
-    await callSupabaseRpc('laute_delete_products_batch', {
-      p_token: token,
-      p_skus: deletedSkus
-    });
-  }
-
   // 2. Применяем изменения (товары, отсутствующие в Excel, НЕ удаляются)
   const updatedProducts = clientApplyExcelImport(currentProducts, validRows);
 
   // 3. Сохраняем пакет товаров в Supabase
-  const result = await callSupabaseRpc('laute_save_products_batch', {
+  const result = await callSupabaseRpc('laute_import_products', {
     p_token: token,
     p_products: updatedProducts,
-    p_backup_desc: `Импорт Excel (${validRows.length} позиций)`
+    p_deleted_skus: deletedSkus
   });
 
   if (!result || !result.success) {
@@ -973,6 +934,8 @@ export const downloadErrorReport = async (errors) => {
 // 7. ИСТОРИЯ, БЭКАПЫ И НАСТРОЙКИ
 // ==========================================
 
+const normalizeBackups = (backups) => backups.map(b => ({ ...b, backupId: b.backupId || b.id, timestamp: b.timestamp || b.created_at, sessionId: b.sessionId || b.session_id }));
+
 export const fetchHistory = async () => {
   const token = getAuthToken();
   if (!token) return { logs: [], backups: [] };
@@ -981,7 +944,7 @@ export const fetchHistory = async () => {
     const adminData = await callSupabaseRpc('laute_get_admin_data', { p_token: token });
     return {
       logs: adminData.logs || [],
-      backups: adminData.backups || []
+      backups: normalizeBackups(adminData.backups || []).filter(b => ['catalog_batch', 'catalog_import', 'catalog_restore', 'product_update'].includes(b.backup_type))
     };
   } catch (err) {
     console.warn('Ошибка загрузки истории из Supabase:', err);
@@ -990,7 +953,7 @@ export const fetchHistory = async () => {
 };
 
 export const rollbackToBackup = async (backupId) => {
-  return await rollbackSiteContent(backupId);
+  return await callSupabaseRpc('laute_restore_backup', { p_token: getAuthToken(), p_backup_id: backupId, p_scope: 'catalog' });
 };
 
 export const checkSystemDiagnostics = async () => {
@@ -1033,7 +996,7 @@ export const checkSystemDiagnostics = async () => {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_CONFIG.anonKey,
-        'Authorization': `Bearer ${token || SUPABASE_CONFIG.anonKey}`,
+        'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ prefix: '', limit: 1 })
@@ -1086,13 +1049,16 @@ export const fetchSystemSettings = async () => {
 };
 
 export const downloadFullSystemBackup = async () => {
-  const [products, pages, categories, content, warehouses, stock] = await Promise.all([
+  const [products, pages, categories, content, warehouses, stock, regionMap, draft, orders] = await Promise.all([
     fetchProducts(true),
     fetchCustomPages(),
     fetchCategories(),
     fetchSiteContent(false),
     fetchWarehouses(),
-    fetchWarehouseStock()
+    fetchWarehouseStock(),
+    fetchRegionWarehouseMap(),
+    fetchSiteContent(true),
+    fetchOrderInquiries()
   ]);
 
   const fullBackup = {
@@ -1103,7 +1069,10 @@ export const downloadFullSystemBackup = async () => {
     categories,
     content,
     warehouses,
-    stock
+    stock,
+    regionMap,
+    draft,
+    orders
   };
 
   const blob = new Blob([JSON.stringify(fullBackup, null, 2)], { type: 'application/json' });
@@ -1173,9 +1142,7 @@ export const deleteWarehouse = async (id) => {
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
 
-  const current = await fetchWarehouses(true);
-  const updated = current.filter(w => w.id !== id);
-  await callSupabaseRpc('laute_save_warehouses', { p_token: token, p_warehouses: updated });
+  await callSupabaseRpc('laute_delete_warehouse', { p_token: token, p_id: id });
   return { success: true };
 };
 
@@ -1958,66 +1925,10 @@ export const fetchOrderInquiries = async () => {
     throw new Error('Требуется авторизация администратора');
   }
 
-  let serverOrders = [];
-  try {
-    const res = await fetch(`${getApiBase()}/orders`, {
-      headers: getHeaders()
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data?.orders)) {
-        serverOrders = data.orders;
-      }
-    }
-  } catch {
-    // fallback in static mode
-  }
-
-  // Также проверяем наличие сохранённых заявок в Supabase
-  let supabaseOrders = [];
-  try {
-    const adminData = await callSupabaseRpc('laute_get_admin_data', { p_token: token });
-    if (adminData && adminData.draft && Array.isArray(adminData.draft.order_inquiries)) {
-      supabaseOrders = adminData.draft.order_inquiries;
-    }
-  } catch {
-    // fallback if RPC unavailable
-  }
-
-  let localOrders = [];
-  if (typeof window !== 'undefined') {
-    try {
-      const parsed = JSON.parse(localStorage.getItem(ORDER_INQUIRIES_STORAGE_KEY) || '[]');
-      if (Array.isArray(parsed)) {
-        localOrders = parsed;
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  // Объединяем без дублей по inquiryNumber
-  const mapByNumber = new Map();
-  [...serverOrders, ...supabaseOrders, ...localOrders].forEach((ord) => {
-    if (ord && ord.inquiryNumber && !mapByNumber.has(ord.inquiryNumber)) {
-      mapByNumber.set(ord.inquiryNumber, ord);
-    }
-  });
-
-  const merged = Array.from(mapByNumber.values()).sort(
-    (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
-  );
-
-  // Синхронизируем локальный кэш
-  if (typeof window !== 'undefined' && merged.length > 0) {
-    try {
-      localStorage.setItem(ORDER_INQUIRIES_STORAGE_KEY, JSON.stringify(merged.slice(0, 500)));
-    } catch {
-      // ignore
-    }
-  }
-
-  return merged;
+  const result = await callSupabaseRpc('laute_get_orders', { p_token: token });
+  const orders = Array.isArray(result?.orders) ? result.orders : [];
+  try { localStorage.setItem(ORDER_INQUIRIES_STORAGE_KEY, JSON.stringify(orders)); } catch { /* cache only */ }
+  return orders;
 };
 
 /**
@@ -2029,20 +1940,8 @@ export const updateOrderInquiryInAdmin = async (inquiryNumber, patch) => {
     throw new Error('Требуется авторизация администратора');
   }
 
-  const currentDraft = await fetchSiteContent('draft');
-  const orders = Array.isArray(currentDraft.order_inquiries) ? currentDraft.order_inquiries : [];
-  const source = orders.find(o => o.inquiryNumber === inquiryNumber)
-    || (await fetchOrderInquiries()).find(o => o.inquiryNumber === inquiryNumber);
-  if (!source) throw new Error('Заявка не найдена');
-  const updatedOrder = {
-    ...source, ...patch,
-    routing: patch.routing ? { ...source.routing, ...patch.routing } : source.routing
-  };
-  const nextOrders = [updatedOrder, ...orders.filter(o => o.inquiryNumber !== inquiryNumber)];
-  await saveSiteContentDraft({ ...currentDraft, order_inquiries: nextOrders });
-  try { localStorage.setItem(ORDER_INQUIRIES_STORAGE_KEY, JSON.stringify(nextOrders)); } catch { /* cache only */ }
-
-  return { success: true, order: updatedOrder };
+  const result = await callSupabaseRpc('laute_update_order', { p_token: token, p_number: inquiryNumber, p_patch: patch });
+  return result;
 };
 
 /**
@@ -2054,12 +1953,6 @@ export const deleteOrderInquiryInAdmin = async (inquiryNumber) => {
     throw new Error('Требуется авторизация администратора');
   }
 
-  const currentDraft = await fetchSiteContent('draft');
-  const orders = Array.isArray(currentDraft.order_inquiries) ? currentDraft.order_inquiries : [];
-  const filtered = orders.filter(o => o.inquiryNumber !== inquiryNumber);
-  await saveSiteContentDraft({ ...currentDraft, order_inquiries: filtered });
-  try { localStorage.setItem(ORDER_INQUIRIES_STORAGE_KEY, JSON.stringify(filtered)); } catch { /* cache only */ }
-
-  return { success: true };
+  return callSupabaseRpc('laute_delete_order', { p_token: token, p_number: inquiryNumber });
 };
 
