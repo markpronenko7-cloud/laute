@@ -532,7 +532,11 @@ export const CatalogPage = () => {
               <span className="catalog-found-counter">
                 {catalogView === 'products'
                   ? `${filteredProducts.length} ${cat.foundModels || 'позиций в номенклатуре'}`
-                  : `${filteredCategories.length} категорий`}
+                  : lang === 'kz'
+                    ? `Санаттар: ${filteredCategories.length}`
+                    : lang === 'en'
+                      ? `Categories: ${filteredCategories.length}`
+                      : `Категорий: ${filteredCategories.length}`}
               </span>
 
               <button
