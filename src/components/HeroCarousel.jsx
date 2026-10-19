@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { EditableNode, NativeEditorScope } from './builder/NativeContent';
+import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import { useApp } from '../context/AppContext';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { isSafeActionLink } from './SiteAction';
@@ -6,6 +7,7 @@ import { withBrandWord } from '../utils/brandFormatter';
 
 export const HeroCarousel = ({ slidesOverride } = {}) => {
   const { navigateTo, openPartnerModal, t, siteContent, lang } = useApp();
+  const editor = useContext(NativeEditorScope);
   const baseUrl = import.meta.env.BASE_URL;
 
   const [activeSlide, setActiveSlide] = useState(0);
@@ -32,7 +34,7 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
     };
   }, []);
 
-  const autoplayPaused = isPaused || !isInView || !isDocumentVisible || reducedMotion;
+  const autoplayPaused = !!editor || isPaused || !isInView || !isDocumentVisible || reducedMotion;
 
   const SLIDE_DURATION = 3000; // Exactly 3000ms per requirement
 
@@ -194,7 +196,7 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
   };
 
   return (
-    <section 
+    <section
       className="hero-carousel-section"
       ref={sectionRef}
       data-autoplay-paused={autoplayPaused}
@@ -216,12 +218,12 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
               className={`hero-slide ${isActive ? 'is-active' : ''}`}
               aria-hidden={!isActive}
             >
-              <div 
+              <EditableNode as="div" editKey={"herocarousel-1" + ':' + String(index)} kind="background" src={slide.image}
                 className="hero-slide-bg"
                 style={{ backgroundImage: `url(${slide.image})` }}
               >
                 <div className="hero-slide-overlay"></div>
-              </div>
+              </EditableNode>
             </div>
           );
         })}
@@ -234,8 +236,8 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
             const isActive = index === activeSlide;
 
             return (
-              <div 
-                key={`content-${slide.id}`} 
+              <div
+                key={`content-${slide.id}`}
                 className={`hero-slide-caption ${isActive ? 'is-active' : 'is-inactive'}`}
                 aria-hidden={!isActive}
                 inert={isActive ? undefined : ''}
@@ -243,39 +245,39 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
                 {/* Slide 1 & 5 prominent authentic LAUTE branding */}
                 {slide.showLargeLogo ? (
                   <div className="hero-prominent-logo-wrap">
-                    <img 
-                      src={`${baseUrl}laute-logo.png`} 
-                      alt="LAUTE" 
-                      className="hero-prominent-logo-img" 
+                    <EditableNode as="img" editKey={"herocarousel-2" + ':' + String(index)} kind="image"
+                      src={`${baseUrl}laute-logo.png`}
+                      alt="LAUTE"
+                      className="hero-prominent-logo-img"
                     />
                   </div>
                 ) : (
                   <div className="hero-slide-badge">
-                    <span className="hero-badge-pill">{withBrandWord(slide.tagline)}</span>
+                    <EditableNode as="span" editKey={"herocarousel-3" + ':' + String(index)} kind="text" className="hero-badge-pill">{withBrandWord(slide.tagline)}</EditableNode>
                   </div>
                 )}
 
                 {/* Main Headline: Single semantic H1 on page for slide 1 */}
                 {index === 0 ? (
-                  <h1 className="hero-slide-title">
+                  <EditableNode as="h1" editKey={"herocarousel-4" + ':' + String(index)} kind="text" className="hero-slide-title">
                     {withBrandWord(slide.title)}
-                  </h1>
+                  </EditableNode>
                 ) : (
-                  <h2 className="hero-slide-title">
+                  <EditableNode as="h2" editKey={"herocarousel-5" + ':' + String(index)} kind="text" className="hero-slide-title">
                     {withBrandWord(slide.title)}
-                  </h2>
+                  </EditableNode>
                 )}
 
                 {/* Subtitle / Strong explanation for slides 4 & 6 */}
                 {slide.subtitle && (
-                  <p className="hero-slide-subtitle">
+                  <EditableNode as="p" editKey={"herocarousel-6" + ':' + String(index)} kind="text" className="hero-slide-subtitle">
                     {withBrandWord(slide.subtitle)}
-                  </p>
+                  </EditableNode>
                 )}
 
                 {/* Action Button */}
                 <div className="hero-slide-action-wrap">
-                  <button
+                  <EditableNode as="button" editKey={"herocarousel-7" + ':' + String(index)} kind="button"
                     type="button"
                     id={slide.buttonId}
                     className="btn btn-hero-luxury"
@@ -283,7 +285,7 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
                   >
                     <span>{withBrandWord(slide.buttonText)}</span>
                     <ArrowRight size={18} className="btn-icon-arrow" />
-                  </button>
+                  </EditableNode>
                 </div>
               </div>
             );
@@ -299,7 +301,7 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
             {slidesData.map((slide, index) => {
               const isActive = index === activeSlide;
               return (
-                <button
+                <button data-preview-control=""
                   key={`indicator-${slide.id}`}
                   type="button"
                   role="tab"
@@ -310,7 +312,7 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
                 >
                   <span className="indicator-num">0{index + 1}</span>
                   <span className="indicator-bar-track">
-                    <span 
+                    <span
                       className={`indicator-bar-fill ${isActive && !autoplayPaused ? 'is-animating' : ''}`}
                       style={{ animationDuration: `${SLIDE_DURATION}ms` }}
                     ></span>
@@ -322,7 +324,7 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
 
           {/* Minimalist Prev / Next Arrows */}
           <div className="hero-arrows-group">
-            <button
+            <button data-preview-control=""
               type="button"
               className="hero-arrow-btn prev-btn"
               onClick={prevSlide}
@@ -330,7 +332,7 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
             >
               <ChevronLeft size={20} />
             </button>
-            <button
+            <button data-preview-control=""
               type="button"
               className="hero-arrow-btn next-btn"
               onClick={nextSlide}

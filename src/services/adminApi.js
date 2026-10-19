@@ -434,6 +434,13 @@ export const createCustomPage = async (pageData) => {
 };
 
 export const updateCustomPage = async (id, pageData) => {
+  for (const block of pageData.blocks || []) {
+    for (const languages of Object.values(block.nativeEdits || {})) {
+      for (const field of Object.values(languages)) {
+        if (field.link !== undefined && (!field.link.trim() || !/^(https?:\/\/|mailto:|tel:|\/(?!\/)|#)/i.test(field.link.trim()))) throw new Error('Укажи корректную ссылку кнопки: /catalog или https://…');
+      }
+    }
+  }
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
 

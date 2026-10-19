@@ -187,7 +187,7 @@ const ImageFieldEditor = ({ value, onChange, label = 'Изображение' })
       <div className="image-field-controls">
         <div className="image-preview-thumbnail">
           {value ? (
-            <img src={previewSrc} alt="Preview" onError={(e) => { e.target.style.display = 'none'; }} />
+            <img key={previewSrc} src={previewSrc} alt="Выбранное фото" onLoad={e=>{e.currentTarget.style.display='';}} onError={(e) => { e.target.style.display = 'none'; }} />
           ) : (
             <div className="image-no-preview"><ImageIcon size={20} /></div>
           )}
@@ -208,7 +208,7 @@ const ImageFieldEditor = ({ value, onChange, label = 'Изображение' })
               disabled={isUploading}
             >
               <Upload size={12} />
-              <span>{isUploading ? 'Загрузка...' : 'Выбрать файл на компьютере'}</span>
+              <span>{isUploading ? 'Загрузка...' : 'Загрузить фото'}</span>
             </button>
             {value && (
               <button 
@@ -224,7 +224,7 @@ const ImageFieldEditor = ({ value, onChange, label = 'Изображение' })
           <input 
             type="text" 
             className="image-path-input" 
-            placeholder="или введите путь к файлу (например, images/hero/hero-slide-1.jpg)"
+            aria-label={label || 'Ссылка на фото'} placeholder="Ссылка на фото"
             value={value || ''}
             onChange={(e) => onChange(e.target.value)}
           />
@@ -576,6 +576,7 @@ export const AdminPage = () => {
     if (!isAuthenticated) return;
 
     if (activeTab === 'dashboard') {
+      loadCatalogData();
       loadPagesData();
       loadSettingsData();
       loadHistoryData();
@@ -1497,26 +1498,26 @@ export const AdminPage = () => {
 
   // Navigation Items (15 Sections)
   const navItems = [
-    { id: 'dashboard', label: 'Главная панель', icon: LayoutDashboard },
+    { id: 'dashboard', label: 'Обзор', icon: LayoutDashboard },
     {
       id: 'orders',
-      label: 'Заявки и территории',
+      label: 'Заявки',
       icon: Mail,
       count: orderInquiriesList.length || undefined,
       badge: pendingOrdersCount > 0 ? `Ожидают: ${pendingOrdersCount}` : null
     },
-    { id: 'editor', label: 'Редактор сайта', icon: Edit3, badge: draftContent?.hasUnpublishedChanges ? 'Черновик' : null },
+    { id: 'editor', label: 'Общие настройки', icon: Edit3, badge: draftContent?.hasUnpublishedChanges ? 'Черновик' : null },
     { id: 'pages', label: 'Страницы', icon: FileText },
-    { id: 'catalog', label: 'Каталог', icon: Package, count: catalogList.length },
-    { id: 'stock', label: 'Складские остатки', icon: Boxes },
+    { id: 'catalog', label: 'Товары', icon: Package, count: catalogList.length },
+    { id: 'stock', label: 'Склады', icon: Boxes },
     { id: 'buttons', label: 'Кнопки сайта', icon: Sliders },
-    { id: 'categories', label: 'Категории товаров', icon: FolderTree },
-    { id: 'excel', label: 'Импорт и экспорт Excel', icon: FileSpreadsheet },
-    { id: 'media', label: 'Фотографии и медиа', icon: ImageIcon },
+    { id: 'categories', label: 'Категории', icon: FolderTree },
+    { id: 'excel', label: 'Excel', icon: FileSpreadsheet },
+    { id: 'media', label: 'Фотографии', icon: ImageIcon },
     { id: 'menu', label: 'Меню и футер', icon: Menu },
     { id: 'languages', label: 'Языки и переводы', icon: Languages },
     { id: 'seo', label: 'SEO', icon: Globe },
-    { id: 'drafts', label: 'Черновики и публикации', icon: GitPullRequest, badge: draftContent?.hasUnpublishedChanges ? '●' : null },
+    { id: 'drafts', label: 'Публикации', icon: GitPullRequest, badge: draftContent?.hasUnpublishedChanges ? '●' : null },
     { id: 'history', label: 'История изменений', icon: History },
     { id: 'settings', label: 'Настройки', icon: Settings }
   ];
@@ -1735,15 +1736,16 @@ export const AdminPage = () => {
               <input aria-label="Найти раздел" placeholder="Найти раздел…" value={navSearch} onChange={e => setNavSearch(e.target.value)} />
             </label>
             {[
-              { label: 'Рабочий день', ids: ['dashboard', 'orders'] },
-              { label: 'Товары и склад', ids: ['catalog', 'excel', 'stock', 'categories', 'media'] },
-              { label: 'Сайт и публикация', ids: ['editor', 'pages', 'buttons', 'menu', 'languages', 'seo', 'drafts'] },
-              { label: 'Система', ids: ['history', 'settings'] }
+              { label: 'Работа', ids: ['dashboard', 'pages', 'catalog', 'orders'] },
+              { label: 'Каталог', ids: ['categories', 'media', 'excel', 'stock'] },
+              { label: 'Настройки сайта', compact: true, ids: ['buttons', 'menu', 'languages', 'seo', 'drafts', 'editor'] },
+              { label: 'Система', compact: true, ids: ['history', 'settings'] }
             ].map(group => {
               const items = group.ids.map(id => navItems.find(item => item.id === id)).filter(item => item && item.label.toLowerCase().includes(navSearch.toLowerCase()));
               if (!items.length) return null;
-              return <section className="admin-nav-group" key={group.label} aria-label={group.label}>
-                <h2>{group.label}</h2>
+              const Group = group.compact ? 'details' : 'section';
+              return <Group className="admin-nav-group" data-primary={group.label==='Работа' ? '' : undefined} key={group.label} aria-label={group.label} open={group.compact ? group.ids.includes(activeTab) || !!navSearch : undefined}>
+                {group.compact ? <summary>{group.label}<ChevronDown size={13}/></summary> : <h2>{group.label}</h2>}
                 {items.map(item => {
                   const Icon = item.icon;
                   const isActive = activeTab === item.id;
@@ -1753,8 +1755,9 @@ export const AdminPage = () => {
                     {item.count !== undefined && <span className="admin-nav-badge count">{item.count}</span>}
                   </button>;
                 })}
-              </section>;
+              </Group>;
             })}
+            <details className="studio-mobile-navigation"><summary>Ещё <ChevronDown size={14}/></summary><div>{navItems.filter(item=>!['dashboard','pages','catalog'].includes(item.id)).map(item=><button key={item.id} onClick={e=>{setActiveTab(item.id);e.currentTarget.closest('details').open=false;}}>{item.label}</button>)}</div></details>
             {!navItems.some(item => item.label.toLowerCase().includes(navSearch.toLowerCase())) && <p className="admin-nav-empty">Раздел не найден. Измени запрос.</p>}
           </div>
 
@@ -1771,18 +1774,7 @@ export const AdminPage = () => {
 
         {/* Content Viewport */}
         <main className="admin-main-viewport">
-          <div className="admin-workflow-guide">
-            <strong>{navItems.find(item => item.id === activeTab)?.label}</strong>
-            <span>{['editor', 'buttons', 'menu', 'languages', 'seo', 'drafts'].includes(activeTab)
-              ? 'Сохрани черновик, чтобы продолжить позже. «Опубликовать» сохраняет текущие правки и выводит их на сайт.'
-              : activeTab === 'excel'
-                ? '1. Выгрузи каталог → 2. Заполни Excel → 3. Проверь строки → 4. Примени импорт. Категория берётся из твоего файла.'
-                : activeTab === 'pages'
-                  ? 'Редактируй страницу в конструкторе. Черновик скрыт на сайте; кнопка «Опубликовать» делает страницу доступной.'
-                  : activeTab === 'orders'
-                    ? 'Назначения заявок сохраняются сразу. Правила территорий сохраняются в черновик и применяются после публикации.'
-                    : 'Каталог, склады и остатки сохраняются сразу после подтверждения операции. Для текстов сайта используй черновик и публикацию.'}</span>
-          </div>
+          <div className="workspace-location"><span>LAUTE</span><ChevronRight size={13}/><strong>{navItems.find(item=>item.id===activeTab)?.label}</strong></div>
           {notice && (
             <div role={notice.type === 'error' ? 'alert' : 'status'} className={`admin-floating-notice ${notice.type}`}>
               {notice.type === 'error' ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />}
@@ -1790,197 +1782,15 @@ export const AdminPage = () => {
             </div>
           )}
 
-          {/* TAB 1: ГЛАВНАЯ ПАНЕЛЬ */}
-          {activeTab === 'dashboard' && (
-            <div className="admin-view dashboard-view">
-              <div className="view-header">
-                <div>
-                  <h2 className="view-title">Твоя рабочая студия</h2>
-                  <p className="view-subtitle">Каталог, страницы и заявки — всё под рукой.</p>
-                </div>
-                <div className="header-actions">
-                  <button 
-                    type="button" 
-                    className="admin-btn admin-btn-primary admin-btn-sm"
-                    onClick={() => setActiveTab('editor')}
-                  >
-                    <Edit3 size={14} />
-                    <span>Редактор сайта</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Status Banner if Drafts are Pending */}
-              {draftContent?.hasUnpublishedChanges && (
-                <div className="admin-alert-banner">
-                  <div className="banner-icon-col">
-                    <Sparkles size={22} />
-                  </div>
-                  <div className="banner-content-col">
-                    <h4>Есть неопубликованные изменения</h4>
-                    <p>В черновике сохранены правки контента сайта. Они видны в режиме предпросмотра, но еще не появились на действующем сайте.</p>
-                  </div>
-                  <div className="banner-action-col">
-                    <button 
-                      type="button" 
-                      className="admin-btn admin-btn-success"
-                      onClick={handlePublish}
-                      disabled={isPublishing || isSavingDraft}
-                    >
-                      <Check size={14} />
-                      <span>{isPublishing ? 'Публикация...' : 'Опубликовать сейчас'}</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Stat Cards Grid */}
-              <div className="admin-stats-grid">
-                <div className="stat-card" onClick={() => setActiveTab('catalog')}>
-                  <div className="stat-card-top">
-                    <span className="stat-label">Товаров в каталоге</span>
-                    <Package size={20} className="stat-icon" />
-                  </div>
-                  <div className="stat-value">{catalogList.length}</div>
-                  <div className="stat-footer">
-                    <span className="stat-tag success">Активных: {catalogList.filter(p => p.status !== 'СКРЫТ').length}</span>
-                    <span className="stat-tag warning">Скрыто: {catalogList.filter(p => p.status === 'СКРЫТ').length}</span>
-                  </div>
-                </div>
-
-                <div className="stat-card" onClick={() => setActiveTab('pages')}>
-                  <div className="stat-card-top">
-                    <span className="stat-label">Страниц сайта</span>
-                    <FileText size={20} className="stat-icon" />
-                  </div>
-                  <div className="stat-value">{pagesList.length + 7}</div>
-                  <div className="stat-footer">
-                    <span>7 основных разделов + {pagesList.length} инфо-страниц</span>
-                  </div>
-                </div>
-
-                <div className="stat-card" onClick={() => setActiveTab('drafts')}>
-                  <div className="stat-card-top">
-                    <span className="stat-label">Версия публикации</span>
-                    <GitPullRequest size={20} className="stat-icon" />
-                  </div>
-                  <div className="stat-value">{draftContent?.version || '1.0.0'}</div>
-                  <div className="stat-footer">
-                    <span>{draftContent?.hasUnpublishedChanges ? 'Черновик ожидает публикации' : 'Сайт синхронизирован'}</span>
-                  </div>
-                </div>
-
-                <div className="stat-card" onClick={() => setActiveTab('history')}>
-                  <div className="stat-card-top">
-                    <span className="stat-label">Точки отката</span>
-                    <History size={20} className="stat-icon" />
-                  </div>
-                  <div className="stat-value">{backupsList.length}</div>
-                  <div className="stat-footer">
-                    <span>Резервных снимков каталога</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Quick Actions Panel */}
-              <div className="admin-section-card">
-                <h3 className="card-section-title">Быстрые действия</h3>
-                <div className="quick-actions-row">
-                  <button 
-                    type="button" 
-                    className="quick-tile-btn"
-                    onClick={() => setActiveTab('editor')}
-                  >
-                    <Edit3 size={18} />
-                    <span>Редактировать тексты</span>
-                  </button>
-
-                  <button 
-                    type="button" 
-                    className="quick-tile-btn"
-                    onClick={() => { setActiveTab('catalog'); setIsAddingNewProduct(true); }}
-                  >
-                    <Plus size={18} />
-                    <span>Добавить товар</span>
-                  </button>
-
-                  <button 
-                    type="button" 
-                    className="quick-tile-btn"
-                    onClick={downloadExcelTemplate}
-                  >
-                    <Download size={18} />
-                    <span>Шаблон Excel</span>
-                  </button>
-
-                  <button 
-                    type="button" 
-                    className="quick-tile-btn"
-                    onClick={exportCurrentCatalog}
-                  >
-                    <FileSpreadsheet size={18} />
-                    <span>Выгрузить каталог</span>
-                  </button>
-
-                  <button 
-                    type="button" 
-                    className="quick-tile-btn"
-                    onClick={() => setActiveTab('media')}
-                  >
-                    <ImageIcon size={18} />
-                    <span>Медиаменеджер</span>
-                  </button>
-
-                  <button 
-                    type="button" 
-                    className="quick-tile-btn"
-                    onClick={() => setActiveTab('menu')}
-                  >
-                    <Menu size={18} />
-                    <span>Контакты и футер</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Recent Activity Log Preview */}
-              <div className="admin-section-card">
-                <div className="card-header-row">
-                  <h3 className="card-section-title">Последние операции в системе</h3>
-                  <button 
-                    type="button" 
-                    className="admin-btn admin-btn-ghost admin-btn-sm"
-                    onClick={() => setActiveTab('history')}
-                  >
-                    <span>Вся история</span>
-                    <ChevronRight size={14} />
-                  </button>
-                </div>
-
-                <div className="admin-table-wrapper">
-                  <table className="admin-table">
-                    <thead>
-                      <tr>
-                        <th>Время</th>
-                        <th>Действие</th>
-                        <th>Операция</th>
-                        <th>Сессия</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {auditLogs.slice(0, 6).map((log) => (
-                        <tr key={log.id}>
-                          <td className="cell-time">{new Date(log.timestamp).toLocaleString('ru-RU')}</td>
-                          <td><span className="log-action-tag">{log.actionTitle || log.action}</span></td>
-                          <td>{log.summary}</td>
-                          <td className="cell-muted">{log.sessionId || 'Система'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+          {activeTab === 'dashboard' && <div className="admin-view studio-overview">
+            <header className="overview-header"><div><span className="studio-eyebrow">Рабочее пространство</span><h1>Что меняем сегодня?</h1></div><span className="overview-live"><span/>Сайт работает</span></header>
+            <div className="overview-primary-grid">
+              <button className="overview-primary-card site" onClick={()=>setActiveTab('pages')}><FileText size={28}/><span className="overview-card-meta">{pagesList.length} страниц</span><h2>Сайт</h2><p>Тексты, блоки и фотографии</p><span className="overview-card-cta">Редактировать страницы <ChevronRight size={17}/></span></button>
+              <button className="overview-primary-card products" onClick={()=>setActiveTab('catalog')}><Package size={28}/><span className="overview-card-meta">{catalogList.length} товаров</span><h2>Каталог</h2><p>Товары, цены и наличие</p><span className="overview-card-cta">Открыть каталог <ChevronRight size={17}/></span></button>
             </div>
-          )}
+            <div className="overview-secondary-grid">{[{id:'orders',title:'Заявки',note:'Обращения клиентов',Icon:Mail},{id:'excel',title:'Excel',note:'Импорт и экспорт',Icon:FileSpreadsheet},{id:'media',title:'Фотографии',note:'Медиатека сайта',Icon:ImageIcon},{id:'categories',title:'Категории',note:'Структура каталога',Icon:FolderTree}].map(({id,title,note,Icon})=><button key={id} onClick={()=>setActiveTab(id)}><Icon size={22}/><span><strong>{title}</strong><small>{note}</small></span><ChevronRight size={16}/></button>)}</div>
+            <div className="overview-status-row"><div><span className="studio-eyebrow">Публикация</span><strong>{draftContent?.hasUnpublishedChanges?'Есть сохранённый черновик':'Все изменения на сайте'}</strong></div><button className="admin-btn admin-btn-outline" onClick={()=>setActiveTab(draftContent?.hasUnpublishedChanges?'drafts':'history')}>{draftContent?.hasUnpublishedChanges?'Посмотреть черновик':'История изменений'}</button></div>
+          </div>}
 
           {activeTab === 'buttons' && <ButtonSettings content={draftContent} onChange={setDraftContent} />}
 
@@ -1989,7 +1799,7 @@ export const AdminPage = () => {
             <div className="admin-view editor-view">
               <div className="view-header">
                 <div>
-                  <h2 className="view-title">Редактор сайта LAUTE</h2>
+                  <h2 className="view-title">Общие настройки сайта</h2>
                   <p className="view-subtitle">Редактирование текстов, заголовков, слайдов, фотографий и блоков всех страниц сайта</p>
                 </div>
                 <div className="header-actions"><span className="stat-tag">Сохранение и публикация — в верхней панели</span></div>
@@ -2548,9 +2358,9 @@ export const AdminPage = () => {
               <div className="admin-view pages-view">
                 <div className="view-header">
                   <div>
-                    <h2 className="view-title">Страницы и блоки</h2>
+                    <h2 className="view-title">Страницы</h2>
                     <p className="view-subtitle">
-                      Редактирование существующих страниц LAUTE и создание новых разделов в визуальном конструкторе (как в Tilda)
+                      Выбери страницу для редактирования.
                     </p>
                   </div>
                   <div className="header-actions">
@@ -2592,146 +2402,11 @@ export const AdminPage = () => {
                   </span>
                 </div>
 
-                {/* Unified Pages Table */}
-                <div className="admin-section-card">
-                  <div className="admin-table-wrapper">
-                    <table className="admin-table">
-                      <thead>
-                        <tr>
-                          <th>Название страницы</th>
-                          <th>URL (Маршрут)</th>
-                          <th>Блоков</th>
-                          <th>Тип страницы</th>
-                          <th>Статус</th>
-                          <th>Изменена</th>
-                          <th style={{ textAlign: 'right' }}>Действия</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {pagesList
-                          .filter(p => {
-                            if (!pagesSearchQuery) return true;
-                            const q = pagesSearchQuery.toLowerCase();
-                            return p.title?.toLowerCase().includes(q) || p.slug?.toLowerCase().includes(q);
-                          })
-                          .map((p) => {
-                            const formattedDate = p.updatedAt
-                              ? new Date(p.updatedAt).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                              : '—';
-
-                            return (
-                              <tr key={p.id}>
-                                <td>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    <strong style={{ color: '#FFFFFF', fontSize: 13 }}>{p.title}</strong>
-                                    {p.isSystem && (
-                                      <span className="stat-tag success" style={{ fontSize: 10, padding: '1px 6px' }}>
-                                        Системная
-                                      </span>
-                                    )}
-                                  </div>
-                                </td>
-                                <td>
-                                  <code>{p.route || `/${p.slug}`}</code>
-                                </td>
-                                <td>
-                                  <span style={{ background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: 4, fontSize: 12, color: 'var(--adm-accent-blue)', fontWeight: 600 }}>
-                                    {getEditableBlocks(p).length} блоков
-                                  </span>
-                                </td>
-                                <td>
-                                  <span style={{ fontSize: 12, color: 'var(--adm-text-muted)' }}>
-                                    {p.isSystem ? 'Основной раздел' : 'Информационная'}
-                                  </span>
-                                </td>
-                                <td>
-                                  <span className={`stat-tag ${p.status === 'ОПУБЛИКОВАН' ? 'success' : 'warning'}`}>
-                                    {p.status || 'ОПУБЛИКОВАН'}
-                                  </span>
-                                </td>
-                                <td style={{ fontSize: 12, color: 'var(--adm-text-muted)' }}>
-                                  {formattedDate}
-                                </td>
-                                <td>
-                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
-                                    <button
-                                      type="button"
-                                      className="admin-btn admin-btn-primary admin-btn-xs"
-                                      onClick={() => setBuilderEditingPage(p)}
-                                      title="Открыть в визуальном конструкторе блоков"
-                                      style={{ fontWeight: 600 }}
-                                    >
-                                      <Sliders size={13} />
-                                      <span>Конструктор</span>
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      className="action-btn"
-                                      onClick={async () => {
-                                        if (isDemoMode) {
-                                          showNotice('В демонстрационном режиме дублирование защищено.');
-                                          return;
-                                        }
-                                        try {
-                                          const dup = await duplicateCustomPage(p.id);
-                                          await loadPagesData();
-                                          showNotice(`Страница сдублирована: "${dup.title}"`);
-                                        } catch (err) {
-                                          showNotice(err.message || 'Ошибка дублирования', 'error');
-                                        }
-                                      }}
-                                      title="Сдублировать страницу"
-                                    >
-                                      <Copy size={13} />
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      className="action-btn"
-                                      onClick={() => {
-                                        const cleanRoute = (p.route || `/${p.slug}`).replace(/^\//, '');
-                                        navigateTo(cleanRoute || 'home');
-                                      }}
-                                      title="Открыть на живом сайте"
-                                    >
-                                      <ExternalLink size={13} />
-                                    </button>
-
-                                    {!p.isSystem && (
-                                      <button
-                                        type="button"
-                                        className="action-btn"
-                                        style={{ color: 'var(--adm-accent-red)' }}
-                                        onClick={async () => {
-                                          if (isDemoMode) {
-                                            showNotice('В демонстрационном режиме удаление защищено.');
-                                            return;
-                                          }
-                                          if (window.confirm(`Удалить страницу "${p.title}" (/${p.slug})?`)) {
-                                            try {
-                                              await deleteCustomPage(p.id);
-                                              await loadPagesData();
-                                              showNotice(`Страница "${p.title}" удалена`);
-                                            } catch (err) {
-                                              showNotice(err.message || 'Ошибка удаления', 'error');
-                                            }
-                                          }
-                                        }}
-                                        title="Удалить страницу"
-                                      >
-                                        <Trash2 size={13} />
-                                      </button>
-                                    )}
-                                  </div>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                <div className="studio-page-grid">{pagesList.filter(p=>!pagesSearchQuery||(p.title+' '+p.slug).toLowerCase().includes(pagesSearchQuery.toLowerCase())).map((p,index)=><article className="studio-page-card" key={p.id}>
+                  <button className="studio-page-cover" onClick={()=>setBuilderEditingPage(p)} aria-label={'Редактировать: '+p.title}><span className="page-cover-number">{String(index+1).padStart(2,'0')}</span><div className="page-cover-lines"><i/><i/><div><i/><i/><i/></div></div><span className="page-cover-edit"><Edit3 size={16}/>Редактировать</span></button>
+                  <div className="studio-page-info"><div><h3>{p.title}</h3><small>/{p.slug==='home'?'':p.slug}</small></div><span className={'stat-tag '+(p.status==='ЧЕРНОВИК'?'warning':'success')}>{p.status==='ЧЕРНОВИК'?'Черновик':'На сайте'}</span></div>
+                  <div className="studio-page-bottom"><span>{getEditableBlocks(p).length} блоков</span><details className="page-card-more"><summary aria-label={'Действия: '+p.title}>•••</summary><div><button onClick={()=>navigateTo(p.slug==='home'?'home':p.slug)}>Открыть на сайте</button><button disabled={isDemoMode} onClick={async()=>{try{await duplicateCustomPage(p.id);await loadPagesData();}catch(err){showNotice(err.message,'error');}}}>Создать копию</button>{!p.isSystem&&<button disabled={isDemoMode} onClick={async()=>{if(!window.confirm('Удалить страницу «'+p.title+'»?'))return;try{await deleteCustomPage(p.id);await loadPagesData();}catch(err){showNotice(err.message,'error');}}}>Удалить</button>}</div></details></div>
+                </article>)}</div>
 
                 {/* Create Page Modal */}
                 {isCreatePageModalOpen && (
@@ -2963,7 +2638,7 @@ export const AdminPage = () => {
             <div className="admin-view catalog-view">
               <div className="view-header">
                 <div>
-                  <h2 className="view-title">Каталог продукции LAUTE</h2>
+                  <h2 className="view-title">Товары</h2>
                   <p className="view-subtitle">Управление позициями номенклатуры, ценами, описаниями, фотографиями и статусами</p>
                 </div>
                 <div className="header-actions">
@@ -2994,7 +2669,7 @@ export const AdminPage = () => {
                     onClick={() => setActiveTab('excel')}
                   >
                     <FileSpreadsheet size={14} />
-                    <span>Excel синхронизация</span>
+                    <span>Excel</span>
                   </button>
                 </div>
               </div>
@@ -3095,7 +2770,7 @@ export const AdminPage = () => {
                             />
                           </th>
                           <th style={{ width: 60 }}>Фото</th>
-                          <th>Артикул (SKU)</th>
+                          <th>Артикул</th>
                           <th>Название товара</th>
                           <th>Категория</th>
                           <th>Цена</th>
@@ -3233,73 +2908,13 @@ export const AdminPage = () => {
                                     </button>
                                   </div>
                                 ) : (
-                                  <div className="actions-cell">
-                                    <button
-                                      type="button"
-                                      className="action-btn"
-                                      onClick={() => handleStartInlineEdit(prod)}
-                                      title="Быстрое редактирование строки (цена, название, категория)"
-                                    >
-                                      <Edit3 size={15} />
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      className="action-btn"
-                                      onClick={() => {
-                                        setProductModalTab('main');
-                                        setEditingProduct({ ...prod });
-                                      }}
-                                      title="Полная карточка товара (7 разделов)"
-                                    >
-                                      <Sliders size={15} />
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      className={`action-btn ${isHidden ? 'active-green' : ''}`}
-                                      onClick={async () => {
-                                        if (isDemoMode) {
-                                          showNotice('В демонстрационном режиме изменение статуса товара заблокировано.');
-                                          return;
-                                        }
-                                        const newStatus = isHidden ? 'АКТИВЕН' : 'СКРЫТ';
-                                        await toggleProductStatus(prod.article, newStatus);
-                                        loadCatalogData();
-                                        showNotice(`Статус товара ${prod.article} изменён на "${newStatus}"`);
-                                      }}
-                                      title={isHidden ? 'Показать на сайте' : 'Скрыть с сайта'}
-                                    >
-                                      {isHidden ? <Eye size={15} /> : <EyeOff size={15} />}
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      className="action-btn danger"
-                                      onClick={async () => {
-                                        if (isDemoMode) {
-                                          showNotice('В демонстрационном режиме удаление товаров заблокировано.');
-                                          return;
-                                        }
-                                        if (window.confirm(`Вы уверены, что хотите удалить товар ${prod.article} (${prod.name}) из каталога?`)) {
-                                          try {
-                                            await deleteProduct(prod.article);
-                                            setSelectedCatalogSkus(prev => {
-                                              const next = new Set(prev);
-                                              next.delete(prod.article);
-                                              return next;
-                                            });
-                                            await loadCatalogData();
-                                            showNotice(`Товар ${prod.article} успешно удалён`);
-                                          } catch (err) {
-                                            showNotice(err.message || 'Ошибка удаления товара', 'error');
-                                          }
-                                        }
-                                      }}
-                                      title="Удалить товар"
-                                    >
-                                      <Trash2 size={15} />
-                                    </button>
+                                  <div className="actions-cell studio-catalog-actions">
+                                    <button type="button" className="admin-btn admin-btn-outline admin-btn-xs" onClick={()=>{setProductModalTab('main');setEditingProduct({...prod});}}>Изменить</button>
+                                    <details className="catalog-actions-menu"><summary aria-label={'Действия: '+prod.article}>•••</summary><div>
+                                      <button onClick={()=>handleStartInlineEdit(prod)}>Быстрое изменение</button>
+                                      <button disabled={isDemoMode} onClick={async()=>{try{await toggleProductStatus(prod.article,isHidden?'АКТИВЕН':'СКРЫТ');await loadCatalogData();showNotice('Статус товара сохранён');}catch(err){showNotice(err.message,'error');}}}>{isHidden?'Показать на сайте':'Скрыть с сайта'}</button>
+                                      <button disabled={isDemoMode} onClick={async()=>{if(!window.confirm('Удалить товар '+prod.article+'?'))return;try{await deleteProduct(prod.article);setSelectedCatalogSkus(prev=>{const next=new Set(prev);next.delete(prod.article);return next;});await loadCatalogData();showNotice('Товар удалён');}catch(err){showNotice(err.message,'error');}}}>Удалить товар</button>
+                                    </div></details>
                                   </div>
                                 )}
                               </td>
@@ -3319,7 +2934,7 @@ export const AdminPage = () => {
             <div className="admin-view stock-view">
               <div className="view-header">
                 <div>
-                  <h2 className="view-title">Складские остатки LAUTE</h2>
+                  <h2 className="view-title">Склады</h2>
                   <p className="view-subtitle">
                     Единая складская система: матрица остатков филиалов (Алматы, Новосибирск, Москва, Китай), быстрое редактирование ячеек, массовые операции и Excel-синхронизация
                   </p>
@@ -3472,10 +3087,10 @@ export const AdminPage = () => {
                     type="button" 
                     className="admin-btn admin-btn-primary admin-btn-sm"
                     onClick={() => stockFileInputRef.current?.click()}
-                    title="Загрузить Excel файл (поддерживает как один склад, так и матрицу всех складов)"
+                    title="Импорт Excel файл (поддерживает как один склад, так и матрицу всех складов)"
                   >
                     <Upload size={14} />
-                    <span>Загрузить Excel</span>
+                    <span>Импорт Excel</span>
                   </button>
                 </div>
               </div>
@@ -4001,7 +3616,7 @@ export const AdminPage = () => {
                       <thead>
                         <tr>
                           <th style={{ width: 60 }}>Фото</th>
-                          <th style={{ width: 140 }}>Артикул (SKU)</th>
+                          <th style={{ width: 140 }}>Артикул</th>
                           <th>Наименование товара</th>
                           <th>Категория</th>
                           <th style={{ width: 220 }}>Количество на складе</th>
@@ -4445,7 +4060,7 @@ export const AdminPage = () => {
 
           {activeTab === 'categories' && (
             <div className="admin-view categories-view">
-              <div className="view-header"><div><span className="studio-eyebrow">Каталог / Структура</span><h2 className="view-title">Категории</h2><p className="view-subtitle">Переименовывай и меняй порядок — товары сохранят свои связи.</p></div>
+              <div className="view-header"><div><span className="studio-eyebrow">Каталог / Структура</span><h2 className="view-title">Категории</h2><p className="view-subtitle">Названия, порядок и фотографии.</p></div>
                 <button className="admin-btn admin-btn-primary" disabled={isSavingCategories} onClick={() => setEditingCategory({ id: 'cat-' + Date.now(), name: '', description: '', isVisible: true })}><Plus size={16}/>Добавить категорию</button>
               </div>
               <div className="studio-category-grid">
@@ -4480,7 +4095,7 @@ export const AdminPage = () => {
             <div className="admin-view excel-view">
               <div className="view-header">
                 <div>
-                  <h2 className="view-title">Синхронизация каталога через Excel</h2>
+                  <h2 className="view-title">Excel</h2>
                   <p className="view-subtitle">Экспорт, редактирование и безопасный импорт каталога в Microsoft Excel (.xlsx)</p>
                 </div>
               </div>
@@ -4492,7 +4107,7 @@ export const AdminPage = () => {
                   <div className="card-top-icon">
                     <Download size={26} />
                   </div>
-                  <h3>Скачать шаблон Excel</h3>
+                  <h3>Шаблон Excel</h3>
                   <p>Оригинальный фирменный файл <strong>LAUTE_Catalog.xlsx</strong> со справочниками, выпадающими списками и инструкцией.</p>
                   <button 
                     type="button" 
@@ -4509,7 +4124,7 @@ export const AdminPage = () => {
                   <div className="card-top-icon">
                     <FileSpreadsheet size={26} />
                   </div>
-                  <h3>Скачать текущий каталог</h3>
+                  <h3>Текущий каталог</h3>
                   <p>Полная выгрузка действующей базы каталога LAUTE ({catalogList.length} товаров) со всеми ценами, описаниями и фото.</p>
                   <button 
                     type="button" 
@@ -4517,7 +4132,7 @@ export const AdminPage = () => {
                     onClick={exportCurrentCatalog}
                   >
                     <FileSpreadsheet size={14} />
-                    <span>Выгрузить текущую базу</span>
+                    <span>Скачать каталог</span>
                   </button>
                 </div>
 
@@ -4526,8 +4141,8 @@ export const AdminPage = () => {
                   <div className="card-top-icon accent">
                     <Upload size={26} />
                   </div>
-                  <h3>Загрузить Excel</h3>
-                  <p>Умный импорт: проверка артикулов, цен, предотвращение дублей и предварительный показ всех изменений перед применением.</p>
+                  <h3>Импорт Excel</h3>
+                  <p>Проверь изменения перед применением.</p>
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -4567,7 +4182,7 @@ export const AdminPage = () => {
                   <div className="card-top-icon" style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38BDF8' }}>
                     <Layers size={26} />
                   </div>
-                  <h3>Остатки всех складов (Матрица XLSX)</h3>
+                  <h3>Остатки складов</h3>
                   <p>Единый Excel-шаблон со столбцами по всем филиалам ({warehousesList.map(w => w.name).join(', ')}). Позволяет обновлять складские остатки по всей филиальной сети одновременно.</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 'auto' }}>
                     <button 
@@ -4705,7 +4320,7 @@ export const AdminPage = () => {
             <div className="admin-view media-view">
               <div className="view-header">
                 <div>
-                  <h2 className="view-title">Фотографии и медиафайлы</h2>
+                  <h2 className="view-title">Фотографии</h2>
                   <p className="view-subtitle">Медиаменеджер: загрузка фотографий товаров, интерьеров и баннеров</p>
                 </div>
                 <div className="header-actions">
@@ -5016,7 +4631,7 @@ export const AdminPage = () => {
             <div className="admin-view languages-view">
               <div className="view-header">
                 <div>
-                  <h2 className="view-title">Языки и переводы (RU, KZ, EN)</h2>
+                  <h2 className="view-title">Языки</h2>
                   <p className="view-subtitle">Мультиязычная система LAUTE: точный подсчёт заполненности, редактирование переводов и публикация</p>
                 </div>
                 <div className="header-actions">
@@ -5216,7 +4831,7 @@ export const AdminPage = () => {
             <div className="admin-view seo-view">
               <div className="view-header">
                 <div>
-                  <h2 className="view-title">Поисковая оптимизация (SEO)</h2>
+                  <h2 className="view-title">Для поиска</h2>
                   <p className="view-subtitle">Комплексный аудит метаданных, сниппеты поисковых систем Google/Yandex и постраничная настройка</p>
                 </div>
                 <div className="header-actions">
@@ -5530,7 +5145,7 @@ export const AdminPage = () => {
             <div className="admin-view history-view">
               <div className="view-header">
                 <div>
-                  <h2 className="view-title">История изменений и резервные копии</h2>
+                  <h2 className="view-title">История изменений</h2>
                   <p className="view-subtitle">Журнал всех операций и мгновенный откат каталога или контента к любому снимку</p>
                 </div>
               </div>
@@ -5618,14 +5233,14 @@ export const AdminPage = () => {
             <div className="admin-view settings-view">
               <div className="view-header">
                 <div>
-                  <h2 className="view-title">Системные настройки</h2>
+                  <h2 className="view-title">Настройки</h2>
                   <p className="view-subtitle">Смена мастер-пароля администратора, выгрузка полной базы данных и технические параметры</p>
                 </div>
               </div>
 
               {/* Change Password Card */}
               <div className="admin-section-card">
-                <h3 className="card-section-title">Смена пароля доступа к панели управления</h3>
+                <h3 className="card-section-title">Пароль</h3>
                 <p className="section-desc">
                   Доступ ко всей административной панели осуществляется по единственному безопасному мастер-паролю.
                   Пароль проверяется сервером. Сессия требуется для изменения данных.
@@ -5680,9 +5295,9 @@ export const AdminPage = () => {
 
               {/* Full System Backup Export */}
               <div className="admin-section-card">
-                <h3 className="card-section-title">Полная резервная копия сайта</h3>
+                <h3 className="card-section-title">Резервная копия</h3>
                 <p className="section-desc">
-                  Выгрузка полной базы сайта в один файл JSON: все товары каталога, контент страниц, меню, SEO-настройки и категории.
+                  Товары, страницы и настройки одним файлом.
                 </p>
 
                 <button 
@@ -5691,7 +5306,7 @@ export const AdminPage = () => {
                   onClick={downloadFullSystemBackup}
                 >
                   <Download size={14} />
-                  <span>Скачать полный бэкап системы (.json)</span>
+                  <span>Скачать резервную копию</span>
                 </button>
               </div>
 
@@ -5699,9 +5314,9 @@ export const AdminPage = () => {
               <div className="admin-section-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
                   <div>
-                    <h3 className="card-section-title" style={{ margin: 0 }}>Технические параметры и живая диагностика</h3>
+                    <h3 className="card-section-title" style={{ margin: 0 }}>Подключение</h3>
                     <p className="section-desc" style={{ margin: '4px 0 0 0' }}>
-                      Реальная проверка доступности базы данных Supabase PostgreSQL, хранилища медиа-файлов и серверного API.
+                      Состояние базы и фотографий.
                     </p>
                   </div>
                   <button
@@ -5752,7 +5367,7 @@ export const AdminPage = () => {
             <div className="admin-view">
               <div className="view-header">
                 <div>
-                  <h2 className="view-title">Заявки из корзины и территории менеджеров</h2>
+                  <h2 className="view-title">Заявки</h2>
                   <p className="view-subtitle">
                     Настройка правил «Территория → Ответственный менеджер → Email менеджера» и обработка первичных заявок без регистрации
                   </p>
@@ -6077,7 +5692,7 @@ export const AdminPage = () => {
                 onClick={() => setProductModalTab('main')}
               >
                 <Package size={14} />
-                <span>1. Основное</span>
+                <span>Основное</span>
               </button>
 
               <button
@@ -6086,7 +5701,7 @@ export const AdminPage = () => {
                 onClick={() => setProductModalTab('specs')}
               >
                 <Sliders size={14} />
-                <span>2. Характеристики</span>
+                <span>Характеристики</span>
               </button>
 
               <button
@@ -6095,7 +5710,7 @@ export const AdminPage = () => {
                 onClick={() => setProductModalTab('pricing')}
               >
                 <BarChart3 size={14} />
-                <span>3. Цены</span>
+                <span>Цены</span>
               </button>
 
               <button
@@ -6104,7 +5719,7 @@ export const AdminPage = () => {
                 onClick={() => setProductModalTab('media')}
               >
                 <ImageIcon size={14} />
-                <span>4. Фото & Медиа</span>
+                <span>Фото</span>
               </button>
 
               <button
@@ -6113,7 +5728,7 @@ export const AdminPage = () => {
                 onClick={() => setProductModalTab('publish')}
               >
                 <Eye size={14} />
-                <span>5. Публикация</span>
+                <span>Видимость</span>
               </button>
 
               <button
@@ -6122,7 +5737,7 @@ export const AdminPage = () => {
                 onClick={() => setProductModalTab('seo')}
               >
                 <Globe size={14} />
-                <span>6. SEO</span>
+                <span>Для поиска</span>
               </button>
 
               <button
@@ -6131,7 +5746,7 @@ export const AdminPage = () => {
                 onClick={() => setProductModalTab('stock')}
               >
                 <Boxes size={14} />
-                <span>7. Склады</span>
+                <span>Склады</span>
               </button>
             </div>
 
@@ -6167,7 +5782,7 @@ export const AdminPage = () => {
                 <div className="modal-tab-pane">
                   <div className="modal-form-grid">
                     <div className="form-group">
-                      <label>Артикул (SKU) *:</label>
+                      <label>Артикул *:</label>
                       <input
                         type="text"
                         required
@@ -6395,25 +6010,25 @@ export const AdminPage = () => {
                 <div className="modal-tab-pane">
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                     <ImageFieldEditor
-                      label="Основное фото товара (photo1):"
+                      label="Основное фото:"
                       value={editingProduct?.photo1 || ''}
                       onChange={(url) => setEditingProduct({ ...editingProduct, photo1: url })}
                     />
 
                     <ImageFieldEditor
-                      label="Ракурс 2 (photo2):"
+                      label="Второе фото:"
                       value={editingProduct?.photo2 || ''}
                       onChange={(url) => setEditingProduct({ ...editingProduct, photo2: url })}
                     />
 
                     <ImageFieldEditor
-                      label="Интерьерное фото 3 (photo3):"
+                      label="Третье фото:"
                       value={editingProduct?.photo3 || ''}
                       onChange={(url) => setEditingProduct({ ...editingProduct, photo3: url })}
                     />
 
                     <ImageFieldEditor
-                      label="Размерный чертёж изделия:"
+                      label="Чертёж:"
                       value={editingProduct?.drawing || ''}
                       onChange={(url) => setEditingProduct({ ...editingProduct, drawing: url })}
                     />
@@ -6622,7 +6237,7 @@ export const AdminPage = () => {
                   disabled={isSavingProduct}
                 >
                   <Save size={14} />
-                  <span>{isSavingProduct ? 'Сохранение...' : 'Сохранить товар во всех разделах'}</span>
+                  <span>{isSavingProduct ? 'Сохранение...' : 'Сохранить'}</span>
                 </button>
               </div>
             </form>
@@ -6776,10 +6391,10 @@ export const AdminPage = () => {
                     value={mediaAttachSlot}
                     onChange={(e) => setMediaAttachSlot(e.target.value)}
                   >
-                    <option value="photo1">Главное фото витрины (photo1)</option>
-                    <option value="photo2">Дополнительный ракурс 2 (photo2)</option>
-                    <option value="photo3">Интерьерное фото 3 (photo3)</option>
-                    <option value="drawing">Размерный технический чертёж</option>
+                    <option value="photo1">Основное фото</option>
+                    <option value="photo2">Второе фото</option>
+                    <option value="photo3">Третье фото</option>
+                    <option value="drawing">Чертёж</option>
                   </select>
                 </div>
 

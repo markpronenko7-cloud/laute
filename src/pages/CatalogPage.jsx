@@ -1,3 +1,4 @@
+import { EditableNode, EditableSection, NativeSectionGate } from '../components/builder/NativeContent';
 import { PageText } from '../components/PageText';
 import { SiteAction } from '../components/SiteAction';
 import React, { useState, useEffect } from 'react';
@@ -416,19 +417,19 @@ export const CatalogPage = () => {
   return (
     <div className="page-wrapper catalog-page">
       {/* Page Header */}
-      <section className="page-header catalog-hero-header">
+      <EditableSection sectionKey="catalog-1" className="page-header catalog-hero-header">
         <div className="container">
           <div className="page-header-content catalog-header-grid">
             <div className="catalog-header-text">
-              <span className="section-badge">{cat.badge || 'Номенклатура продукции'}</span>
-              <PageText as="h1" route="catalog" field="h1" className="page-title">{cat.title || 'Номенклатура продукции LAUTE'}</PageText>
-              <PageText route="catalog" field="description" className="page-subtitle">
+              <EditableNode as="span" editKey={"catalogpage-1"} kind="text" className="section-badge">{cat.badge || 'Номенклатура продукции'}</EditableNode>
+              <EditableNode as="h1" editKey={"catalogpage-2"} kind="text"  introRoute="catalog" introField="h1" className="page-title">{cat.title || 'Номенклатура продукции LAUTE'}</EditableNode>
+              <EditableNode as="p" editKey={"catalogpage-3"} kind="text" introRoute="catalog" introField="description" className="page-subtitle">
                 {cat.subtitle || 'Полноразмерный каталог сантехники, сформированный по назначению изделий и архитектурным сериям.'}
-              </PageText>
+              </EditableNode>
             </div>
 
             <div className="catalog-header-actions">
-              <SiteAction controlId="catalog-1"
+              <EditableNode as={SiteAction} editKey={"catalogpage-4"} kind="button" controlId="catalog-1"
                 type="button"
                 className="btn btn-primary catalog-cart-trigger-btn"
                 onClick={openCartModal}
@@ -441,26 +442,26 @@ export const CatalogPage = () => {
                     {cartTotalKnownAmount > 0 ? ` · ${cartTotalKnownAmount.toLocaleString('ru-RU')} ₽` : ''}
                   </span>
                 )}
-              </SiteAction>
+              </EditableNode>
 
               {isB2BAuthorized || adminSession ? (
-                <SiteAction controlId="catalog-2" type="button" className="btn btn-outline catalog-b2b-btn" onClick={openAuthModal}>
+                <EditableNode as={SiteAction} editKey={"catalogpage-5"} kind="button" controlId="catalog-2" type="button" className="btn btn-outline catalog-b2b-btn" onClick={openAuthModal}>
                   <CheckCircle2 size={15} color="#10B981" />
                   <span>Склад: {activeWarehouse?.name || 'Не выбран'}</span>
-                </SiteAction>
+                </EditableNode>
               ) : (
-                <SiteAction controlId="catalog-3" type="button" className="btn btn-outline catalog-b2b-btn" onClick={openAuthModal}>
+                <EditableNode as={SiteAction} editKey={"catalogpage-6"} kind="button" controlId="catalog-3" type="button" className="btn btn-outline catalog-b2b-btn" onClick={openAuthModal}>
                   <PackageCheck size={16} />
                   <span>{cat.authBtn || 'Авторизоваться для просмотра остатков'}</span>
-                </SiteAction>
+                </EditableNode>
               )}
             </div>
           </div>
         </div>
-      </section>
+      </EditableSection>
 
       {/* Stock Notice & Rules */}
-      <section className="stock-notice-bar">
+      <EditableSection sectionKey="catalog-2" className="stock-notice-bar">
         <div className="container">
           <div className="notice-inner">
             <div className="notice-lead">
@@ -489,7 +490,7 @@ export const CatalogPage = () => {
 
             {(isB2BAuthorized || adminSession) && (
               <div className="notice-warehouse-switcher">
-                <span>Сменить склад:</span>
+                <EditableNode as="span" editKey={"catalogpage-7"} kind="text">Сменить склад:</EditableNode>
                 <select
                   value={activeWarehouseId || ''}
                   onChange={(e) => setClientSelectedWarehouse(e.target.value || null)}
@@ -506,15 +507,15 @@ export const CatalogPage = () => {
             )}
           </div>
         </div>
-      </section>
+      </EditableSection>
 
       {/* Main Catalog Workspace */}
-      <section className="catalog-main-section">
+      <EditableSection sectionKey="catalog-3" className="catalog-main-section">
         <div className="container">
           {/* View switcher + Cart summary bar */}
           <div className="catalog-view-switcher-bar">
             <div className="view-toggle-group">
-              <button
+              <EditableNode as="button" editKey={"catalogpage-8"} kind="button"
                 type="button"
                 className={`view-toggle-btn ${catalogView === 'products' ? 'active' : ''}`}
                 onClick={() => {
@@ -527,9 +528,9 @@ export const CatalogPage = () => {
                 <span>
                   {cat.allProductsTab || 'Вся номенклатура'} ({activeProducts.length})
                 </span>
-              </button>
+              </EditableNode>
 
-              <button
+              <EditableNode as="button" editKey={"catalogpage-9"} kind="button"
                 type="button"
                 className={`view-toggle-btn ${catalogView === 'categories' ? 'active' : ''}`}
                 onClick={() => {
@@ -541,7 +542,7 @@ export const CatalogPage = () => {
               >
                 <Layers size={15} />
                 <span>{(cat.allCategories || 'Все категории').replace(/\s*\(\d+\)\s*$/, '')} ({categories.length})</span>
-              </button>
+              </EditableNode>
             </div>
 
             <div className="catalog-toolbar-right">
@@ -555,7 +556,7 @@ export const CatalogPage = () => {
                       : `Категорий: ${filteredCategories.length}`}
               </span>
 
-              <button
+              <EditableNode as="button" editKey={"catalogpage-10"} kind="button"
                 type="button"
                 className={`catalog-inline-cart-btn ${cartDistinctCount > 0 ? 'has-items' : ''}`}
                 onClick={openCartModal}
@@ -563,7 +564,7 @@ export const CatalogPage = () => {
                 <ShoppingBag size={16} />
                 <span>{cat.openCartBtn || 'Корзина заявки'}</span>
                 <span className="catalog-inline-cart-badge">{cartTotalUnits}</span>
-              </button>
+              </EditableNode>
             </div>
           </div>
 
@@ -582,17 +583,17 @@ export const CatalogPage = () => {
 
             {catalogView === 'products' && productCategories.length > 0 && (
               <div className="mounting-filter-group">
-                <span className="filter-label">
+                <EditableNode as="span" editKey={"catalogpage-11"} kind="text" className="filter-label">
                   {lang === 'kz' ? 'Санат:' : lang === 'en' ? 'Category:' : 'Категория:'}
-                </span>
+                </EditableNode>
                 <div className="filter-chips">
-                  <button
+                  <EditableNode as="button" editKey={"catalogpage-12"} kind="button"
                     type="button"
                     className={`chip-btn ${selectedCategory === 'all' ? 'active' : ''}`}
                     onClick={() => setSelectedCategory('all')}
                   >
                     {lang === 'kz' ? 'Барлығы' : lang === 'en' ? 'All' : 'Все'}
-                  </button>
+                  </EditableNode>
                   {productCategories.map((cName) => (
                     <button
                       key={cName}
@@ -609,38 +610,38 @@ export const CatalogPage = () => {
 
             {catalogView === 'categories' && (
               <div className="mounting-filter-group">
-                <span className="filter-label">
+                <EditableNode as="span" editKey={"catalogpage-13"} kind="text" className="filter-label">
                   {lang === 'kz' ? 'Орнату түрі:' : lang === 'en' ? 'Mounting type:' : 'Тип монтажа:'}
-                </span>
+                </EditableNode>
                 <div className="filter-chips">
-                  <button
+                  <EditableNode as="button" editKey={"catalogpage-14"} kind="button"
                     type="button"
                     className={`chip-btn ${selectedMounting === 'all' ? 'active' : ''}`}
                     onClick={() => setSelectedMounting('all')}
                   >
                     {cat.allMountings || 'Все типы монтажа'}
-                  </button>
-                  <button
+                  </EditableNode>
+                  <EditableNode as="button" editKey={"catalogpage-15"} kind="button"
                     type="button"
                     className={`chip-btn ${selectedMounting === 'deck' ? 'active' : ''}`}
                     onClick={() => setSelectedMounting('deck')}
                   >
                     {cat.deckMounting || 'На борт (раковина / мойка)'}
-                  </button>
-                  <button
+                  </EditableNode>
+                  <EditableNode as="button" editKey={"catalogpage-16"} kind="button"
                     type="button"
                     className={`chip-btn ${selectedMounting === 'wall' ? 'active' : ''}`}
                     onClick={() => setSelectedMounting('wall')}
                   >
                     {cat.wallMounting || 'Настенный монтаж'}
-                  </button>
-                  <button
+                  </EditableNode>
+                  <EditableNode as="button" editKey={"catalogpage-17"} kind="button"
                     type="button"
                     className={`chip-btn ${selectedMounting === 'internal' ? 'active' : ''}`}
                     onClick={() => setSelectedMounting('internal')}
                   >
                     {lang === 'kz' ? 'Бөлшектер' : lang === 'en' ? 'Components' : 'Комплектующие'}
-                  </button>
+                  </EditableNode>
                 </div>
               </div>
             )}
@@ -862,8 +863,8 @@ export const CatalogPage = () => {
 
               {filteredProducts.length === 0 && (
                 <div className="empty-catalog-state" style={{ gridColumn: '1 / -1' }}>
-                  <p>По вашему поисковому запросу товаров не найдено.</p>
-                  <button
+                  <EditableNode as="p" editKey={"catalogpage-18"} kind="text">По вашему поисковому запросу товаров не найдено.</EditableNode>
+                  <EditableNode as="button" editKey={"catalogpage-19"} kind="button"
                     type="button"
                     className="btn btn-outline btn-sm"
                     onClick={() => {
@@ -872,7 +873,7 @@ export const CatalogPage = () => {
                     }}
                   >
                     {cat.resetFilters || 'Сбросить фильтры'}
-                  </button>
+                  </EditableNode>
                 </div>
               )}
             </div>
@@ -930,14 +931,14 @@ export const CatalogPage = () => {
           {/* Empty state for categories */}
           {catalogView === 'categories' && filteredCategories.length === 0 && (
             <div className="empty-catalog-state">
-              <p>
+              <EditableNode as="p" editKey={"catalogpage-20"} kind="text">
                 {lang === 'kz'
                   ? 'Сұранысыңыз бойынша санаттар табылмады. Сүзгілерді тазартып көріңіз.'
                   : lang === 'en'
                   ? 'No categories found matching your criteria. Try resetting filters.'
                   : 'По вашему запросу категорий не найдено. Попробуйте сбросить фильтры.'}
-              </p>
-              <button
+              </EditableNode>
+              <EditableNode as="button" editKey={"catalogpage-21"} kind="button"
                 type="button"
                 className="btn btn-outline btn-sm"
                 onClick={() => {
@@ -947,37 +948,37 @@ export const CatalogPage = () => {
                 }}
               >
                 {cat.resetFilters || 'Сбросить фильтры'}
-              </button>
+              </EditableNode>
             </div>
           )}
 
           {/* Нижний информационный блок каталога */}
           <div className="catalog-bottom-banner">
             <div className="banner-text">
-              <span className="catalog-banner-overline">ПРЯМОЕ СОТРУДНИЧЕСТВО С ЗАВОДОМ LAUTE</span>
-              <h3>{cat.notFoundTitle || 'Не нашли нужную позицию?'}</h3>
-              <p>
+              <EditableNode as="span" editKey={"catalogpage-22"} kind="text" className="catalog-banner-overline">ПРЯМОЕ СОТРУДНИЧЕСТВО С ЗАВОДОМ LAUTE</EditableNode>
+              <EditableNode as="h3" editKey={"catalogpage-23"} kind="text">{cat.notFoundTitle || 'Не нашли нужную позицию?'}</EditableNode>
+              <EditableNode as="p" editKey={"catalogpage-24"} kind="text">
                 {cat.notFoundDesc ||
                   'Завод LAUTE производит индивидуальные партии под проектные спецификации застройщиков и оптовых клиентов.'}
-              </p>
+              </EditableNode>
             </div>
             <div className="catalog-banner-actions">
               {cartDistinctCount > 0 && (
-                <SiteAction controlId="catalog-5" type="button" className="btn btn-outline catalog-banner-cart-btn" onClick={openCartModal}>
+                <EditableNode as={SiteAction} editKey={"catalogpage-25"} kind="button" controlId="catalog-5" type="button" className="btn btn-outline catalog-banner-cart-btn" onClick={openCartModal}>
                   <ShoppingBag size={16} />
                   <span>
                     {cat.openCartBtn || 'Корзина заявки'} ({cartTotalUnits})
                   </span>
-                </SiteAction>
+                </EditableNode>
               )}
-              <SiteAction controlId="catalog-6" type="button" className="btn btn-primary" onClick={openPartnerModal}>
+              <EditableNode as={SiteAction} editKey={"catalogpage-26"} kind="button" controlId="catalog-6" type="button" className="btn btn-primary" onClick={openPartnerModal}>
                 <span>{cat.requestObjectBtn || 'Запросить подбор под объект'}</span>
                 <ArrowRight size={16} />
-              </SiteAction>
+              </EditableNode>
             </div>
           </div>
         </div>
-      </section>
+      </EditableSection>
     </div>
   );
 };

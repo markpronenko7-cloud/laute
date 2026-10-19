@@ -343,16 +343,16 @@ export const BlockLibraryModal = ({ isOpen, onClose, onSelectTemplate }) => {
 
   const filteredTemplates = BLOCK_TEMPLATES.filter(tpl => {
     const matchCat = activeCategory === 'all' || tpl.category === activeCategory;
-    const matchQuery = !searchQuery || 
-      tpl.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchQuery = !searchQuery ||
+      tpl.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       tpl.desc.toLowerCase().includes(searchQuery.toLowerCase());
     return matchCat && matchQuery;
   });
 
   return (
     <div className="admin-modal-overlay" onClick={onClose} style={{ zIndex: 9999 }}>
-      <div 
-        className="admin-modal" 
+      <div
+        className="admin-modal"
         onClick={e => e.stopPropagation()}
         style={{ maxWidth: 940, width: '92%', maxHeight: '88vh', display: 'flex', flexDirection: 'column' }}
       >
@@ -363,9 +363,9 @@ export const BlockLibraryModal = ({ isOpen, onClose, onSelectTemplate }) => {
               <Plus size={18} />
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: 17, color: '#FFFFFF' }}>Библиотека готовых блоков LAUTE</h3>
+              <h3 style={{ margin: 0, fontSize: 17, color: '#FFFFFF' }}>Добавить блок</h3>
               <p style={{ margin: 0, fontSize: 12, color: 'var(--adm-text-muted)' }}>
-                Выберите блок из фирменной дизайн-системы для добавления на страницу
+
               </p>
             </div>
           </div>
@@ -406,7 +406,7 @@ export const BlockLibraryModal = ({ isOpen, onClose, onSelectTemplate }) => {
             {filteredTemplates.map((tpl, idx) => {
               const IconComp = tpl.icon;
               return (
-                <div
+                <button type="button"
                   key={idx}
                   className="block-library-card"
                   onClick={() => {
@@ -442,20 +442,20 @@ export const BlockLibraryModal = ({ isOpen, onClose, onSelectTemplate }) => {
                         <IconComp size={16} />
                       </div>
                       <span style={{ fontSize: 11, color: 'var(--adm-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        {tpl.category}
+                        {categories.find(c=>c.id===tpl.category)?.label || ''}
                       </span>
                     </div>
-                    <h4 style={{ margin: '0 0 6px 0', fontSize: 14, color: '#FFFFFF' }}>{tpl.name}</h4>
+                    <h4 style={{ margin: '0 0 6px 0', fontSize: 14, color: '#FFFFFF' }}>{tpl.name.replace(/^Hero:\s*/,'Обложка: ').replace(/^CTA:\s*/,'Баннер: ')}</h4>
                     <p style={{ margin: 0, fontSize: 12, color: 'var(--adm-text-muted)', lineHeight: 1.4 }}>
-                      {tpl.desc}
+
                     </p>
                   </div>
 
                   <div style={{ marginTop: 14, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 11, color: 'var(--adm-accent-blue)', fontWeight: 600 }}>+ Добавить на страницу</span>
+                    <span style={{ fontSize: 11, color: 'var(--adm-accent-blue)', fontWeight: 600 }}>Добавить</span>
                     <Plus size={14} style={{ color: 'var(--adm-accent-blue)' }} />
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>

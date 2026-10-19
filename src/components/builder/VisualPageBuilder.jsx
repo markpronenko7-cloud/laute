@@ -1,773 +1,271 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  ArrowLeft,
-  Save,
-  Eye,
-  Check,
-  RotateCcw,
-  Plus,
-  Monitor,
-  Tablet,
-  Smartphone,
-  Layers,
-  Sliders,
-  Sparkles,
-  Trash2,
-  Copy,
-  ArrowUp,
-  ArrowDown,
-  Globe,
-  CheckCircle2,
-  AlertTriangle,
-  History,
-  X
-} from 'lucide-react';
+import { PageCanvas } from './PageCanvas';
+import React, { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, Plus, Save, Check, MoreHorizontal, Monitor, Smartphone, Tablet, X, ArrowUp, ArrowDown, Trash2, History, Eye, Settings, Image as ImageIcon } from 'lucide-react';
 import { BlockRenderer } from './BlockRenderer';
-import { BlockInspector } from './BlockInspector';
+import { StudioInspector } from './StudioInspector';
 import { BlockLibraryModal } from './BlockLibraryModal';
+import { NativeEditorScope } from './NativeContent';
 import { getEditableBlocks } from '../../utils/pagePublication';
-import {
-  updateCustomPage,
-  duplicateCustomPage,
-  fetchPageVersions,
-  rollbackPagesVersion,
-  fetchMediaList,
-  resolveMediaUrl
-} from '../../services/adminApi';
-
-export const VisualPageBuilder = ({
+import { updateCustomPage, fetchPageVersions, rollbackPagesVersion, fetchMediaList, resolveMediaUrl } from '../../services/adminApi';
+export function VisualPageBuilder({
   page,
   allPages = [],
   onBack,
   onSaveSuccess,
   showNotice = () => {}
-}) => {
+}) {
   const [currentPage, setCurrentPage] = useState(page);
   const [blocks, setBlocks] = useState(() => getEditableBlocks(page));
-  const [selectedBlockId, setSelectedBlockId] = useState(blocks[0]?.id || null);
-  const [selectedBlockIdx, setSelectedBlockIdx] = useState(0);
-
-  const [viewportMode, setViewportMode] = useState('desktop'); // desktop | tablet | mobile
-  const [leftTab, setLeftTab] = useState('layers'); // layers | page_seo
-  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
-  const [insertAfterIndex, setInsertAfterIndex] = useState(null);
-
-  const [isSaving, setIsSaving] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
-  const [saveMessage, setSaveMessage] = useState(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
-  // Versions history state
-  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-  const [pageVersions, setPageVersions] = useState([]);
-  const [isLoadingVersions, setIsLoadingVersions] = useState(false);
-
-  // Live preview modal state
-  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-
-  // Media picker modal stub
-  const [mediaPickerCallback, setMediaPickerCallback] = useState(null);
-  const [mediaItems, setMediaItems] = useState([]);
-  const [mediaSearch, setMediaSearch] = useState('');
-  const [mediaError, setMediaError] = useState('');
-  const [mediaLoading, setMediaLoading] = useState(false);
-
+  const [selectedId, setSelectedId] = useState(() => getEditableBlocks(page)[0]?.id);
+  const [selectedField, setSelectedField] = useState(null);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [device, setDevice] = useState('desktop');
+  const [dirty, setDirty] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState(null);
+  const [menu, setMenu] = useState(false);
+  const [dialog, setDialog] = useState(null);
+  const [confirmation, setConfirmation] = useState(null);
+  const [library, setLibrary] = useState(false);
+  const [insertAt, setInsertAt] = useState(null);
+  const [versions, setVersions] = useState([]);
+  const [media, setMedia] = useState([]);
+  const [mediaCallback, setMediaCallback] = useState(null);
+  const [mediaQuery, setMediaQuery] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [dialogError, setDialogError] = useState('');
+  const canvas = useRef(null);
+  const canvasDocument = useRef(null);
+  const selected = blocks.find(b => b.id === selectedId) || null;
   useEffect(() => {
-    if (!mediaPickerCallback) return;
-    let active = true;
-    setMediaLoading(true);
-    setMediaError('');
-    fetchMediaList().then(items => { if (active) setMediaItems(items); })
-      .catch(error => { if (active) setMediaError(error.message); })
-      .finally(() => { if (active) setMediaLoading(false); });
-    return () => { active = false; };
-  }, [mediaPickerCallback]);
-
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    setCurrentPage(page);
-    setBlocks(getEditableBlocks(page));
-    if (page.blocks && page.blocks.length > 0) {
-      setSelectedBlockId(page.blocks[0].id);
-      setSelectedBlockIdx(0);
-    }
-    setHasUnsavedChanges(false);
-  }, [page]);
-
-  const selectedBlock = blocks.find(b => b.id === selectedBlockId) || blocks[selectedBlockIdx] || null;
-
-  useEffect(() => {
-    const warn = e => { if (hasUnsavedChanges) { e.preventDefault(); e.returnValue = ''; } };
+    const warn = e => {
+      if (dirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
-  }, [hasUnsavedChanges]);
-
-  // Select a block
-  const handleSelectBlock = (blk, idx) => {
-    setSelectedBlockId(blk.id);
-    setSelectedBlockIdx(idx);
-    setLeftTab('layers');
+  }, [dirty]);
+  const change = next => {
+    setBlocks(next);
+    setDirty(true);
+    setStatus(null);
   };
-
-  // Update a block's fields
-  const handleUpdateBlock = (updatedBlock) => {
-    setBlocks(prev => prev.map(b => b.id === updatedBlock.id ? updatedBlock : b));
-    setHasUnsavedChanges(true);
-  };
-
-  // Move block up
-  const handleMoveUp = (idx) => {
-    if (idx <= 0) return;
-    setBlocks(prev => {
-      const copy = [...prev];
-      const temp = copy[idx];
-      copy[idx] = copy[idx - 1];
-      copy[idx - 1] = temp;
-      return copy;
+  const update = block => change(blocks.map(b => b.id === block.id ? block : b));
+  const select = (block, index, scroll = false) => {
+    setSelectedId(block.id);
+    setSelectedField(null);
+    setInspectorOpen(true);
+    if (scroll) canvasDocument.current?.querySelectorAll('[data-editor-block]')[index]?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
     });
-    setSelectedBlockIdx(idx - 1);
-    setHasUnsavedChanges(true);
   };
-
-  // Move block down
-  const handleMoveDown = (idx) => {
-    if (idx >= blocks.length - 1) return;
-    setBlocks(prev => {
-      const copy = [...prev];
-      const temp = copy[idx];
-      copy[idx] = copy[idx + 1];
-      copy[idx + 1] = temp;
-      return copy;
-    });
-    setSelectedBlockIdx(idx + 1);
-    setHasUnsavedChanges(true);
+  const move = (index, delta) => {
+    const target = index + delta;
+    if (target < 0 || target >= blocks.length) return;
+    const next = [...blocks];
+    [next[index], next[target]] = [next[target], next[index]];
+    change(next);
   };
-
-  // Duplicate block
-  const handleDuplicateBlock = (blk, idx) => {
-    if (blk.type === 'system_page') return;
-    const duplicated = {
-      ...JSON.parse(JSON.stringify(blk)),
-      id: `blk-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-      title: blk.title ? `${blk.title} (Копия)` : blk.title
+  const remove = index => {
+    if (blocks[index]?.protected) return;
+    setConfirmation({ text: 'Удалить блок?', action: () => {
+      change(blocks.filter((_, i) => i !== index));
+      setSelectedId(null);
+      setSelectedField(null);
+    }});
+  };
+  const duplicate = (block, index) => {
+    if (block.type === 'system_section' || block.type === 'system_page') return;
+    const copy = {
+      ...structuredClone(block),
+      id: 'block-' + crypto.randomUUID()
     };
-    setBlocks(prev => {
-      const copy = [...prev];
-      copy.splice(idx + 1, 0, duplicated);
-      return copy;
-    });
-    setSelectedBlockId(duplicated.id);
-    setSelectedBlockIdx(idx + 1);
-    setHasUnsavedChanges(true);
-    showNotice(`Блок "${blk.type}" сдублирован`);
+    const next = [...blocks];
+    next.splice(index + 1, 0, copy);
+    change(next);
+    select(copy, index + 1);
   };
-
-  // Delete block
-  const handleDeleteBlock = (idx) => {
-    if (blocks[idx]?.type === 'system_page') return;
-    setBlocks(prev => {
-      const copy = prev.filter((_, i) => i !== idx);
-      return copy;
-    });
-    if (selectedBlockIdx >= idx && selectedBlockIdx > 0) {
-      setSelectedBlockIdx(selectedBlockIdx - 1);
-      setSelectedBlockId(blocks[selectedBlockIdx - 1]?.id || null);
+  const back = () => {
+    if (busy) return;
+    if (dirty) setConfirmation({ text: 'Выйти без сохранения?', action: onBack });
+    else onBack();
+  };
+  const save = async publish => {
+    if (busy) return;
+    setBusy(true);
+    setStatus(null);
+    try {
+      const saved = await updateCustomPage(currentPage.id, {
+        ...currentPage,
+        useBuilder: true,
+        blocks: blocks.map(b => b.protected ? {
+          ...b,
+          isVisible: true
+        } : b),
+        status: publish ? 'ОПУБЛИКОВАН' : 'ЧЕРНОВИК'
+      });
+      setCurrentPage(saved);
+      setDirty(false);
+      setStatus({
+        type: 'success',
+        text: publish ? 'Опубликовано · проверено на сайте' : 'Черновик сохранён'
+      });
+      onSaveSuccess?.(saved);
+    } catch (error) {
+      setStatus({
+        type: 'error',
+        text: error.message
+      });
+    } finally {
+      setBusy(false);
     }
-    setHasUnsavedChanges(true);
-    showNotice('Блок удален');
   };
-
-  // Add block from library template
-  const handleAddBlockFromTemplate = (template) => {
-    const newBlock = {
-      ...JSON.parse(JSON.stringify(template.defaultData)),
-      id: `blk-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+  const openVersions = async () => {
+    setMenu(false);
+    setDialog('versions');
+    setLoading(true);
+    setDialogError('');
+    try {
+      setVersions(await fetchPageVersions());
+    } catch (e) {
+      setDialogError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const restore = async id => {
+    setLoading(true);
+    try {
+      const list = await rollbackPagesVersion(id);
+      const restored = list.find(p => p.id === page.id);
+      if (!restored) throw new Error('В этой версии страницы нет');
+      setCurrentPage(restored);
+      const next = getEditableBlocks(restored);
+      setBlocks(next);
+      setSelectedId(next[0]?.id);
+      setSelectedField(null);
+      setDirty(false);
+      onSaveSuccess?.(restored);
+      setDialog(null);
+    } catch (e) {
+      setDialogError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const pickMedia = async callback => {
+    setMediaCallback(() => callback);
+    setDialog('media');
+    setLoading(true);
+    setDialogError('');
+    try {
+      setMedia(await fetchMediaList());
+    } catch (e) {
+      setDialogError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const openSettings = () => {
+    setMenu(false);
+    setDialog('settings');
+  };
+  const addTemplate = template => {
+    const block = {
+      ...structuredClone(template.defaultData || {}),
+      id: 'block-' + crypto.randomUUID(),
       type: template.type,
       isVisible: true
     };
-
-    setBlocks(prev => {
-      const copy = [...prev];
-      if (insertAfterIndex !== null && insertAfterIndex >= 0 && insertAfterIndex < copy.length) {
-        copy.splice(insertAfterIndex + 1, 0, newBlock);
-      } else {
-        copy.push(newBlock);
-      }
-      return copy;
-    });
-
-    const newIdx = insertAfterIndex !== null ? insertAfterIndex + 1 : blocks.length;
-    setSelectedBlockId(newBlock.id);
-    setSelectedBlockIdx(newIdx);
-    setInsertAfterIndex(null);
-    setHasUnsavedChanges(true);
-    showNotice(`Добавлен блок: "${template.name}"`);
+    const next = [...blocks];
+    const index = insertAt ?? next.length;
+    next.splice(index, 0, block);
+    change(next);
+    setLibrary(false);
+    setInsertAt(null);
+    select(block, index);
   };
-
-  // Save changes to backend
-  const handleSavePage = async (statusOverride = null) => {
-    if (isSaving) return;
-    setIsSaving(true);
-    setSaveMessage(null);
-    try {
-      const nextStatus = statusOverride !== null ? statusOverride : 'ЧЕРНОВИК';
-      const updatedPageData = {
-        ...currentPage,
-        blocks,
-        useBuilder: true,
-        status: nextStatus,
-        updatedAt: new Date().toISOString()
-      };
-
-      const saved = await updateCustomPage(currentPage.id, updatedPageData);
-      setCurrentPage(saved);
-      setHasUnsavedChanges(false);
-      setSaveMessage({ type: 'success', text: nextStatus === 'ОПУБЛИКОВАН' ? 'Опубликовано · чтение с сайта подтверждено' : 'Черновик сохранён · опубликованная версия не изменена' });
-      showNotice(
-        nextStatus === 'ОПУБЛИКОВАН'
-          ? 'Страница успешно опубликована на сайте!'
-          : 'Черновик страницы сохранён (статус: Черновик)'
-      );
-      if (onSaveSuccess) onSaveSuccess(saved);
-    } catch (err) {
-      setSaveMessage({ type: 'error', text: err.message || 'Не удалось сохранить страницу' });
-      showNotice(err.message || 'Ошибка сохранения страницы', 'error');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // Open versions history
-  const handleOpenHistory = async () => {
-    setIsLoadingVersions(true);
-    setIsHistoryModalOpen(true);
-    try {
-      const versions = await fetchPageVersions();
-      setPageVersions(versions);
-    } catch (err) {
-      showNotice('Ошибка загрузки истории версий', 'error');
-    } finally {
-      setIsLoadingVersions(false);
-    }
-  };
-
-  // Rollback to specific version
-  const handleRollback = async (backupId) => {
-    if (!window.confirm(`Восстановить версию ${backupId}? Текущие несохраненные правки будут заменены.`)) return;
-    try {
-      const restoredPages = await rollbackPagesVersion(backupId);
-      const list = Array.isArray(restoredPages) ? restoredPages : [];
-      const myPage = list.find(p => p.id === currentPage.id);
-      if (myPage) {
-        setCurrentPage(myPage);
-        setBlocks(myPage.blocks || []);
-        if (myPage.blocks?.[0]) {
-          setSelectedBlockId(myPage.blocks[0].id);
-          setSelectedBlockIdx(0);
-        }
-      }
-      setIsHistoryModalOpen(false);
-      setHasUnsavedChanges(false);
-      showNotice('Версия успешно восстановлена!');
-      if (onSaveSuccess && myPage) onSaveSuccess(myPage);
-    } catch (err) {
-      showNotice(err.message || 'Ошибка восстановления версии', 'error');
-    }
-  };
-
-  // Viewport width styling
-  let canvasWidth = '100%';
-  if (viewportMode === 'tablet') canvasWidth = '768px';
-  if (viewportMode === 'mobile') canvasWidth = '375px';
-
-  return (
-    <div className="visual-builder-root" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#07090D', color: '#FFFFFF', overflow: 'hidden' }}>
-      {/* 1. TOP APP BAR */}
-      <header className="builder-topbar" style={{ height: 56, background: '#0D1117', borderBottom: '1px solid var(--adm-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', zIndex: 100 }}>
-        {/* Left: Back & Page title */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <button
-            type="button"
-            className="admin-btn admin-btn-ghost admin-btn-sm"
-            disabled={isSaving}
-            onClick={() => {
-              if (hasUnsavedChanges) {
-                if (!window.confirm('У вас есть несохранённые изменения. Вы уверены, что хотите выйти?')) return;
-              }
-              onBack();
-            }}
-          >
-            <ArrowLeft size={16} />
-            <span>Страницы</span>
-          </button>
-
-          <div style={{ height: 22, width: 1, background: 'var(--adm-border)' }}></div>
-
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <strong style={{ fontSize: 14, color: '#FFFFFF' }}>{currentPage.title}</strong>
-              <code style={{ fontSize: 11, background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: 4, color: 'var(--adm-accent-blue)' }}>
-                {currentPage.route || `/${currentPage.slug}`}
-              </code>
-              <span
-                className={`stat-tag ${currentPage.status === 'ОПУБЛИКОВАН' ? 'success' : 'warning'}`}
-                style={{ fontSize: 11, padding: '2px 8px' }}
-              >
-                {currentPage.status === 'ОПУБЛИКОВАН' ? 'Опубликовано' : 'Черновик'}
-              </span>
-              {hasUnsavedChanges && (
-                <span style={{ fontSize: 11, color: 'var(--adm-accent-amber)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  • Не сохранено
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Center: Device Viewport Switcher */}
-        <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.04)', padding: 3, borderRadius: 8, border: '1px solid var(--adm-border)' }}>
-          <button
-            type="button"
-            className={`admin-btn ${viewportMode === 'desktop' ? 'admin-btn-primary' : 'admin-btn-ghost'} admin-btn-xs`}
-            onClick={() => setViewportMode('desktop')}
-            title="Десктоп (100%)"
-            style={{ padding: '4px 10px' }}
-          >
-            <Monitor size={14} />
-            <span style={{ fontSize: 11 }}>Компьютер</span>
-          </button>
-
-          <button
-            type="button"
-            className={`admin-btn ${viewportMode === 'tablet' ? 'admin-btn-primary' : 'admin-btn-ghost'} admin-btn-xs`}
-            onClick={() => setViewportMode('tablet')}
-            title="Планшет (768px)"
-            style={{ padding: '4px 10px' }}
-          >
-            <Tablet size={14} />
-            <span style={{ fontSize: 11 }}>Планшет</span>
-          </button>
-
-          <button
-            type="button"
-            className={`admin-btn ${viewportMode === 'mobile' ? 'admin-btn-primary' : 'admin-btn-ghost'} admin-btn-xs`}
-            onClick={() => setViewportMode('mobile')}
-            title="Смартфон (375px)"
-            style={{ padding: '4px 10px' }}
-          >
-            <Smartphone size={14} />
-            <span style={{ fontSize: 11 }}>Телефон</span>
-          </button>
-        </div>
-
-        {/* Right: Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button
-            type="button"
-            className="admin-btn admin-btn-outline admin-btn-xs"
-            onClick={handleOpenHistory}
-            title="История версий и откат"
-          >
-            <History size={13} />
-            <span>Версии</span>
-          </button>
-
-          <button
-            type="button"
-            className="admin-btn admin-btn-ghost admin-btn-xs"
-            onClick={() => setIsPreviewModalOpen(true)}
-            title="Предпросмотр всей страницы"
-          >
-            <Eye size={13} />
-            <span>Предпросмотр</span>
-          </button>
-
-          <button
-            type="button"
-            className="admin-btn admin-btn-outline admin-btn-sm"
-            onClick={() => handleSavePage('ЧЕРНОВИК')}
-            disabled={isSaving}
-          >
-            <Save size={14} />
-            <span>{isSaving ? 'Сохранение...' : 'Сохранить черновик'}</span>
-          </button>
-
-          <button
-            type="button"
-            className="admin-btn admin-btn-primary admin-btn-sm"
-            onClick={() => handleSavePage('ОПУБЛИКОВАН')}
-            disabled={isSaving}
-            style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #AA820A 100%)', color: '#000', fontWeight: 700 }}
-          >
-            <Check size={14} />
-            <span>Опубликовать</span>
-          </button>
-        </div>
-      </header>
-
-      <div className={'builder-save-state ' + (saveMessage?.type || '')} role={saveMessage?.type === 'error' ? 'alert' : 'status'}>
-        {hasUnsavedChanges ? 'Есть правки · выбери блок на макете и измени его справа. Затем сохрани черновик или опубликуй.' : saveMessage?.text || 'Выбери блок на макете → измени содержимое справа → опубликуй'}
-      </div>
-
-      {/* 2. MAIN 3-COLUMN WORKSPACE */}
-      <div className="builder-workspace" inert={isSaving ? '' : undefined} style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* LEFT COLUMN: Layers & Structure */}
-        <aside className="builder-sidebar-left" style={{ width: 280, background: '#0D1117', borderRight: '1px solid var(--adm-border)', display: 'flex', flexDirection: 'column' }}>
-          {/* Left panel header */}
-          <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--adm-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', gap: 4 }}>
-              <button
-                type="button"
-                className={`admin-btn ${leftTab === 'layers' ? 'admin-btn-primary' : 'admin-btn-ghost'} admin-btn-xs`}
-                onClick={() => setLeftTab('layers')}
-              >
-                <Layers size={13} />
-                <span>Блоки ({blocks.length})</span>
-              </button>
-              <button
-                type="button"
-                className={`admin-btn ${leftTab === 'page_seo' ? 'admin-btn-primary' : 'admin-btn-ghost'} admin-btn-xs`}
-                onClick={() => setLeftTab('page_seo')}
-              >
-                <Globe size={13} />
-                <span>SEO</span>
-              </button>
-            </div>
-
-            <button
-              type="button"
-              className="admin-btn admin-btn-primary admin-btn-xs"
-              onClick={() => {
-                setInsertAfterIndex(null);
-                setIsLibraryOpen(true);
-              }}
-              title="Добавить блок в конец страницы"
-              style={{ padding: '4px 8px' }}
-            >
-              <Plus size={14} />
-            </button>
-          </div>
-
-          {/* Left panel body */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: 8 }}>
-            {leftTab === 'layers' ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {blocks.map((blk, idx) => {
-                  const isSel = blk.id === selectedBlockId;
-                  return (
-                    <div
-                      key={blk.id}
-                      onClick={() => handleSelectBlock(blk, idx)}
-                      style={{
-                        padding: '9px 10px',
-                        borderRadius: 8,
-                        background: isSel ? 'rgba(56, 139, 253, 0.15)' : 'rgba(255,255,255,0.02)',
-                        border: isSel ? '1px solid var(--adm-accent-blue)' : '1px solid rgba(255,255,255,0.05)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 8,
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
-                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--adm-accent-amber)' }}>
-                          #{idx + 1}
-                        </span>
-                        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {blk.title || blk.name || blk.type}
-                          </div>
-                          <div style={{ fontSize: 10, color: 'var(--adm-text-muted)', textTransform: 'uppercase' }}>
-                            {blk.type}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 2 }} onClick={e => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          className="action-btn"
-                          disabled={idx === 0}
-                          onClick={() => handleMoveUp(idx)}
-                          style={{ padding: 2, height: 20, width: 20 }}
-                          title="Выше"
-                        >
-                          <ArrowUp size={11} />
-                        </button>
-                        <button
-                          type="button"
-                          className="action-btn"
-                          disabled={idx === blocks.length - 1}
-                          onClick={() => handleMoveDown(idx)}
-                          style={{ padding: 2, height: 20, width: 20 }}
-                          title="Ниже"
-                        >
-                          <ArrowDown size={11} />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-
-                <button
-                  type="button"
-                  className="admin-btn admin-btn-outline admin-btn-xs"
-                  onClick={() => {
-                    setInsertAfterIndex(null);
-                    setIsLibraryOpen(true);
-                  }}
-                  style={{ width: '100%', marginTop: 8, padding: '8px 12px', justifyContent: 'center', borderStyle: 'dashed' }}
-                >
-                  <Plus size={14} />
-                  <span>+ Добавить блок</span>
-                </button>
-              </div>
-            ) : (
-              /* SEO & Page settings tab */
-              <div style={{ padding: 6, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 11, color: 'var(--adm-text-muted)', marginBottom: 4 }}>
-                    Название страницы:
-                  </label>
-                  <input
-                    type="text"
-                    className="admin-input"
-                    value={currentPage.title || ''}
-                    onChange={e => {
-                      setCurrentPage({ ...currentPage, title: e.target.value });
-                      setHasUnsavedChanges(true);
-                    }}
-                    style={{ width: '100%', fontSize: 12 }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 11, color: 'var(--adm-text-muted)', marginBottom: 4 }}>
-                    URL slug:
-                  </label>
-                  <input
-                    type="text"
-                    disabled={currentPage.isSystem}
-                    className="admin-input"
-                    value={currentPage.slug || ''}
-                    onChange={e => {
-                      setCurrentPage({ ...currentPage, slug: e.target.value });
-                      setHasUnsavedChanges(true);
-                    }}
-                    style={{ width: '100%', fontSize: 12 }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 11, color: 'var(--adm-text-muted)', marginBottom: 4 }}>
-                    Meta Description:
-                  </label>
-                  <textarea
-                    rows={3}
-                    className="admin-input"
-                    value={currentPage.description || ''}
-                    onChange={e => {
-                      setCurrentPage({ ...currentPage, description: e.target.value });
-                      setHasUnsavedChanges(true);
-                    }}
-                    style={{ width: '100%', fontSize: 12, resize: 'vertical' }}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        </aside>
-
-        {/* CENTER COLUMN: Interactive Canvas */}
-        <main
-          className="builder-canvas-wrapper"
-          style={{
-            flex: 1,
-            background: '#040609',
-            overflowY: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            padding: '24px 12px'
-          }}
-          onClick={() => setSelectedBlockId(null)}
-        >
-          <div
-            ref={canvasRef}
-            className={`builder-canvas-frame frame-${viewportMode}`}
-            style={{
-              width: canvasWidth,
-              maxWidth: '100%',
-              minHeight: '80vh',
-              background: '#0B0E14',
-              borderRadius: viewportMode === 'desktop' ? 0 : 16,
-              border: viewportMode === 'desktop' ? 'none' : '2px solid rgba(255,255,255,0.1)',
-              boxShadow: viewportMode === 'desktop' ? 'none' : '0 20px 60px rgba(0,0,0,0.8)',
-              overflow: 'hidden',
-              transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-            }}
-          >
-            {blocks.length === 0 ? (
-              <div style={{ padding: '80px 20px', textAlign: 'center', color: 'var(--adm-text-muted)' }}>
-                <Sparkles size={40} style={{ color: '#D4AF37', margin: '0 auto 16px', opacity: 0.7 }} />
-                <h3 style={{ color: '#FFFFFF', margin: '0 0 8px 0', fontSize: 20 }}>Страница пока пуста</h3>
-                <p style={{ margin: '0 0 24px 0', fontSize: 14 }}>
-                  Добавьте готовый блок из библиотеки LAUTE, чтобы начать конструирование страницы
-                </p>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsLibraryOpen(true);
-                  }}
-                >
-                  <Plus size={16} />
-                  <span>+ Выбрать первый блок</span>
-                </button>
-              </div>
-            ) : (
-              blocks.map((blk, idx) => (
-                <BlockRenderer
-                  key={blk.id || idx}
-                  block={blk}
-                  index={idx}
-                  totalBlocks={blocks.length}
-                  isEditor={true}
-                  isSelected={blk.id === selectedBlockId}
-                  onSelectBlock={handleSelectBlock}
-                  onInlineUpdate={handleUpdateBlock}
-                  onMoveUp={handleMoveUp}
-                  onMoveDown={handleMoveDown}
-                  onDuplicate={handleDuplicateBlock}
-                  onDelete={handleDeleteBlock}
-                  onAddBelow={(index) => {
-                    setInsertAfterIndex(index);
-                    setIsLibraryOpen(true);
-                  }}
-                />
-              ))
-            )}
-          </div>
-        </main>
-
-        {/* RIGHT COLUMN: Block Inspector */}
-        <aside className="builder-sidebar-right" style={{ width: 340, background: '#0D1117', borderLeft: '1px solid var(--adm-border)', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-          <BlockInspector
-            block={selectedBlock}
-            onChange={handleUpdateBlock}
-            availablePages={allPages}
-            onOpenMediaPicker={callback => setMediaPickerCallback(() => callback)}
-          />
-        </aside>
-      </div>
-
-      {/* 3. MODALS */}
-      {mediaPickerCallback && <div className="admin-modal-overlay" onClick={() => setMediaPickerCallback(null)}>
-        <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: '90%', maxWidth: 900 }}>
-          <div className="admin-modal-header"><h3>Выбери фото</h3><button className="admin-btn admin-btn-ghost" onClick={() => setMediaPickerCallback(null)}><X size={18}/></button></div>
-          <div className="admin-modal-body">
-            <input className="admin-input" aria-label="Поиск фото" placeholder="Название файла…" value={mediaSearch} onChange={e => setMediaSearch(e.target.value)}/>
-            {mediaLoading && <p role="status">Загружаю медиатеку…</p>}
-            {mediaError && <p role="alert">{mediaError}</p>}
-            {!mediaLoading && !mediaError && !mediaItems.length && <p>Пока нет фотографий. Загрузи файл в настройках блока.</p>}
-            <div className="studio-media-picker">{mediaItems.filter(item => item.name.toLowerCase().includes(mediaSearch.toLowerCase())).map(item => <button key={item.url} title={item.name} onClick={() => { mediaPickerCallback(item.url); setMediaPickerCallback(null); }}><img src={resolveMediaUrl(item.url)} alt={item.name}/><span>{item.name}</span></button>)}</div>
-          </div>
-        </div>
-      </div>}
-      {/* Block Library Modal */}
-      <BlockLibraryModal
-        isOpen={isLibraryOpen}
-        onClose={() => setIsLibraryOpen(false)}
-        onSelectTemplate={handleAddBlockFromTemplate}
-      />
-
-      {/* Version History Modal */}
-      {isHistoryModalOpen && (
-        <div className="admin-modal-overlay" onClick={() => setIsHistoryModalOpen(false)}>
-          <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 640 }}>
-            <div className="admin-modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <History size={18} style={{ color: 'var(--adm-accent-amber)' }} />
-                <h3>История версий и точек восстановления</h3>
-              </div>
-              <button type="button" className="close-btn" onClick={() => setIsHistoryModalOpen(false)}>
-                <X size={18} />
-              </button>
-            </div>
-            <div className="admin-modal-body">
-              {isLoadingVersions ? (
-                <p>Загрузка списка версий...</p>
-              ) : pageVersions.length === 0 ? (
-                <p className="empty-text">История автоматических снимков пуста. Снимки создаются при каждом сохранении.</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {pageVersions.map(v => (
-                    <div
-                      key={v.backupId}
-                      style={{
-                        padding: '12px 14px',
-                        background: 'rgba(255,255,255,0.02)',
-                        border: '1px solid var(--adm-border)',
-                        borderRadius: 8,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between'
-                      }}
-                    >
-                      <div>
-                        <strong>{v.description}</strong>
-                        <div style={{ fontSize: 12, color: 'var(--adm-text-muted)', marginTop: 2 }}>
-                          {new Date(v.timestamp).toLocaleString('ru-RU')}
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        className="admin-btn admin-btn-outline admin-btn-xs"
-                        onClick={() => handleRollback(v.backupId)}
-                      >
-                        <RotateCcw size={12} />
-                        <span>Восстановить</span>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Full Live Preview Modal */}
-      {isPreviewModalOpen && (
-        <div className="admin-modal-overlay" onClick={() => setIsPreviewModalOpen(false)} style={{ zIndex: 10000 }}>
-          <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: '96%', maxWidth: 1200, height: '90vh', display: 'flex', flexDirection: 'column' }}>
-            <div className="admin-modal-header" style={{ padding: '12px 18px', borderBottom: '1px solid var(--adm-border)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Eye size={18} style={{ color: 'var(--adm-accent-blue)' }} />
-                <h3 style={{ margin: 0, fontSize: 16 }}>Предпросмотр страницы: {currentPage.title}</h3>
-              </div>
-              <button type="button" className="close-btn" onClick={() => setIsPreviewModalOpen(false)}>
-                <X size={18} />
-              </button>
-            </div>
-            <div className="builder-preview" style={{ flex: 1, overflowY: 'auto', background: '#0B0E14' }}>
-              {blocks.map((blk, idx) => (
-                <BlockRenderer
-                  key={blk.id || idx}
-                  block={blk}
-                  index={idx}
-                  totalBlocks={blocks.length}
-                  isEditor={false}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+  return <div className="visual-builder-root studio-builder">
+    <header className="studio-builder-header">
+      <div className="studio-builder-title"><button className="admin-btn admin-btn-ghost" onClick={back} disabled={busy} aria-label="К страницам"><ArrowLeft size={18} /></button><div><strong>{currentPage.title}</strong><small>{dirty ? 'Не сохранено' : currentPage.status === 'ЧЕРНОВИК' ? 'Черновик' : 'На сайте'}</small></div></div>
+      <div className="studio-device-switch">{[[Monitor, 'desktop', 'Компьютер'], [Tablet, 'tablet', 'Планшет'], [Smartphone, 'mobile', 'Телефон']].map(([Icon, id, label]) => <button key={id} aria-label={label} className={device === id ? 'active' : ''} onClick={() => setDevice(id)}><Icon size={17} /></button>)}</div>
+      <div className="studio-builder-actions"><button className="admin-btn admin-btn-outline" aria-label="Сохранить черновик" onClick={() => save(false)} disabled={busy}><Save size={15} /><span>Сохранить</span></button><button className="admin-btn admin-btn-primary" onClick={() => save(true)} disabled={busy}><Check size={16} /><span>{busy ? 'Проверка…' : 'Опубликовать'}</span></button><div className="studio-more"><button className="admin-btn admin-btn-ghost" aria-label="Другие действия" onClick={() => setMenu(!menu)}><MoreHorizontal size={20} /></button>{menu && <div className="studio-more-menu"><button onClick={() => {
+              setDialog('preview');
+              setMenu(false);
+            }}><Eye size={15} />Предпросмотр</button><button onClick={openSettings}><Settings size={15} />Название и адрес</button><button onClick={openVersions}><History size={15} />История версий</button></div>}</div></div>
+    </header>
+    {status && <div className={'studio-builder-status ' + status.type} role={status.type === 'error' ? 'alert' : 'status'}>{status.text}</div>}
+    <div className="builder-workspace" inert={busy ? '' : undefined}>
+      <aside className="builder-sidebar-left"><div className="studio-blocks-heading"><strong>Блоки страницы</strong><span>{blocks.length}</span></div><div className="studio-block-list">{blocks.map((block, index) => <button key={block.id} className={'studio-block-row ' + (selectedId === block.id ? 'active' : '')} onClick={() => select(block, index, true)}><span>{String(index + 1).padStart(2, '0')}</span><strong>{block.title || {
+                hero: 'Обложка',
+                text: 'Текст',
+                gallery: 'Фотографии',
+                form_lead: 'Форма',
+                contact_cards: 'Контакты',
+                features: 'Карточки',
+                cta_banner: 'Призыв к действию'
+              }[block.type] || 'Блок'}</strong>{block.isVisible === false && <small>Скрыт</small>}</button>)}</div><button className="admin-btn admin-btn-outline studio-add-block" onClick={() => {
+          setInsertAt(null);
+          setLibrary(true);
+        }}><Plus size={16} />Добавить блок</button></aside>
+      <main className="builder-canvas-wrapper" ref={canvas}><PageCanvas device={device} onReady={doc => {
+          canvasDocument.current = doc;
+        }}><NativeEditorScope.Provider value={{
+            selected: selectedField,
+            onSelect: field => {
+              setSelectedId(field.blockId);
+              setSelectedField(field);
+              setInspectorOpen(true);
+              if (window.matchMedia('(max-width: 850px)').matches) requestAnimationFrame(() => canvasDocument.current?.querySelector('[data-native-field="' + CSS.escape(field.key) + '"]')?.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+            }
+          }}>{blocks.map((block, index) => <BlockRenderer key={block.id} block={block} index={index} totalBlocks={blocks.length} isEditor isSelected={selectedId === block.id} onSelectBlock={select} onMoveUp={i => move(i, -1)} onMoveDown={i => move(i, 1)} onDuplicate={duplicate} onDelete={remove} onAddBelow={i => {
+              setInsertAt(i + 1);
+              setLibrary(true);
+            }} />)}</NativeEditorScope.Provider>{!blocks.length && <button className="studio-empty-canvas" onClick={() => setLibrary(true)}><Plus size={28} />Добавить первый блок</button>}</PageCanvas></main>
+      <aside className={'builder-sidebar-right ' + (inspectorOpen ? 'is-open' : '')}><div className="studio-inspector-top"><span>Настройки</span><button className="admin-btn admin-btn-ghost" aria-label="Закрыть настройки" onClick={() => setInspectorOpen(false)}><X size={18} /></button></div><StudioInspector availablePages={allPages} block={selected} selectedField={selectedField} onChange={update} onOpenMediaPicker={pickMedia} onClearField={() => setSelectedField(null)} />{selected && !selectedField && <div className="studio-section-actions"><button className="admin-btn admin-btn-outline" disabled={blocks.indexOf(selected) === 0} onClick={() => move(blocks.indexOf(selected), -1)}><ArrowUp size={15} />Выше</button><button className="admin-btn admin-btn-outline" disabled={blocks.indexOf(selected) === blocks.length - 1} onClick={() => move(blocks.indexOf(selected), 1)}><ArrowDown size={15} />Ниже</button>{!selected.protected && <button className="admin-btn admin-btn-ghost" onClick={() => update({
+            ...selected,
+            isVisible: selected.isVisible === false
+          })}>{selected.isVisible === false ? 'Показать' : 'Скрыть'}</button>}</div>}</aside>
     </div>
-  );
-};
+    <BlockLibraryModal isOpen={library} onClose={() => setLibrary(false)} onSelectTemplate={addTemplate} />
+    {dialog && <div className="admin-modal-overlay studio-dialog-overlay" onClick={() => setDialog(null)}><div className={'admin-modal studio-dialog ' + (dialog === 'preview' ? 'studio-preview-dialog' : '')} onClick={e => e.stopPropagation()}><div className="admin-modal-header"><h3>{{
+              media: 'Фотографии',
+              versions: 'История версий',
+              settings: 'Страница',
+              preview: 'Предпросмотр'
+            }[dialog]}</h3><button className="admin-btn admin-btn-ghost" aria-label="Закрыть окно" onClick={() => setDialog(null)}><X size={19} /></button></div><div className="admin-modal-body">
+      {loading && <p role="status">Загрузка…</p>}{dialogError && <p role="alert">{dialogError}</p>}
+      {dialog === 'media' && <><input placeholder="Найти фото" aria-label="Найти фото" value={mediaQuery} onChange={e => setMediaQuery(e.target.value)} /><div className="studio-media-picker">{media.filter(m => m.name.toLowerCase().includes(mediaQuery.toLowerCase())).map(m => <button key={m.url} onClick={() => {
+                mediaCallback?.(m.url);
+                setDialog(null);
+              }}><img src={resolveMediaUrl(m.url)} alt={m.name} /><span>{m.name}</span></button>)}</div></>}
+      {dialog === 'versions' && versions.map(v => <div className="studio-version-row" key={v.backupId}><div><strong>{v.description}</strong><small>{new Date(v.timestamp).toLocaleString('ru-RU')}</small></div><button className="admin-btn admin-btn-outline" disabled={loading} onClick={() => setConfirmation({ text: 'Восстановить эту версию всех страниц?', action: () => restore(v.backupId) })}>Восстановить</button></div>)}
+      {dialog === 'settings' && <><label className="studio-field"><span>Название</span><input value={currentPage.title || ''} onChange={e => {
+                setCurrentPage({
+                  ...currentPage,
+                  title: e.target.value
+                });
+                setDirty(true);
+              }} /></label><label className="studio-field"><span>Адрес</span><input disabled={currentPage.isSystem} value={currentPage.slug || ''} onChange={e => {
+                setCurrentPage({
+                  ...currentPage,
+                  slug: e.target.value
+                });
+                setDirty(true);
+              }} /></label><label className="studio-field"><span>Описание для поиска</span><textarea value={currentPage.description || ''} onChange={e => {
+                setCurrentPage({
+                  ...currentPage,
+                  description: e.target.value
+                });
+                setDirty(true);
+              }} /></label></>}
+      {dialog === 'preview' && <div style={{
+            height: '70dvh'
+          }}><PageCanvas device={device}><div inert="">{blocks.map((block, index) => <BlockRenderer key={block.id} block={block} index={index} />)}</div></PageCanvas></div>}
+    </div></div></div>}
+    {confirmation && <div className="admin-modal-overlay studio-dialog-overlay"><div className="admin-modal studio-dialog" role="alertdialog" aria-modal="true" aria-label={confirmation.text}><div className="admin-modal-body"><h3>{confirmation.text}</h3><div className="studio-section-actions"><button className="admin-btn admin-btn-outline" autoFocus onClick={() => setConfirmation(null)}>Остаться</button><button className="admin-btn admin-btn-primary" onClick={() => { const action = confirmation.action; setConfirmation(null); action(); }}>Подтвердить</button></div></div></div></div>}
+  </div>;
+}

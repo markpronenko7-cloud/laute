@@ -1,3 +1,4 @@
+import { EditableNode, EditableSection, NativeSectionGate } from '../components/builder/NativeContent';
 import { PageText } from '../components/PageText';
 import { SiteAction } from '../components/SiteAction';
 import React, { useState } from 'react';
@@ -72,68 +73,68 @@ export const ServicePage = () => {
   return (
     <div className="page-wrapper service-page">
       {/* Header */}
-      <section className="page-header">
+      <EditableSection sectionKey="service-1" className="page-header">
         <div className="container">
           <div className="page-header-content">
-            <span className="section-badge">{sp.badge || 'Официальная гарантийная поддержка'}</span>
-            <PageText as="h1" route="service" field="h1" className="page-title">{sp.title || 'Первый цифровой сервисный центр завода LAUTE'}</PageText>
-            <PageText route="service" field="description" className="page-subtitle">
+            <EditableNode as="span" editKey={"servicepage-1"} kind="text" className="section-badge">{sp.badge || 'Официальная гарантийная поддержка'}</EditableNode>
+            <EditableNode as="h1" editKey={"servicepage-2"} kind="text"  introRoute="service" introField="h1" className="page-title">{sp.title || 'Первый цифровой сервисный центр завода LAUTE'}</EditableNode>
+            <EditableNode as="p" editKey={"servicepage-3"} kind="text" introRoute="service" introField="description" className="page-subtitle">
               {sp.subtitle || 'Официальная гарантия, оперативная обработка обращений и прямая сервисная поддержка покупателей сантехники LAUTE.'}
-            </PageText>
+            </EditableNode>
 
             <div className="service-sla-banner">
               <Clock size={20} className="sla-icon" />
-              <span className="sla-phrase">«{sp.slaTitle || 'Ответ будет дан в течение 36 часов в рабочие дни'}»</span>
+              <EditableNode as="span" editKey={"servicepage-4"} kind="text" className="sla-phrase">«{sp.slaTitle || 'Ответ будет дан в течение 36 часов в рабочие дни'}»</EditableNode>
             </div>
           </div>
         </div>
-      </section>
+      </EditableSection>
 
       {/* Warranty Terms */}
-      <section className="section bg-light-section">
+      <EditableSection sectionKey="service-2" className="section bg-light-section">
         <div className="container">
           <div className="section-title-wrap">
-            <span className="section-badge">{lang === 'kz' ? 'Қызмет көрсету регламенті' : lang === 'en' ? 'Service Regulations' : 'Регламент обслуживания'}</span>
-            <h2 className="section-title">{lang === 'kz' ? 'Өндірушінің кепілдік міндеттемелері' : lang === 'en' ? 'Manufacturer Warranty Commitments' : 'Гарантийные обязательства производителя'}</h2>
-            <p className="section-desc">{sp.slaDesc || 'Основные правила гарантийного обслуживания сантехники LAUTE, Oute и Rainsberg.'}</p>
+            <EditableNode as="span" editKey={"servicepage-5"} kind="text" className="section-badge">{lang === 'kz' ? 'Қызмет көрсету регламенті' : lang === 'en' ? 'Service Regulations' : 'Регламент обслуживания'}</EditableNode>
+            <EditableNode as="h2" editKey={"servicepage-6"} kind="text" className="section-title">{lang === 'kz' ? 'Өндірушінің кепілдік міндеттемелері' : lang === 'en' ? 'Manufacturer Warranty Commitments' : 'Гарантийные обязательства производителя'}</EditableNode>
+            <EditableNode as="p" editKey={"servicepage-7"} kind="text" className="section-desc">{sp.slaDesc || 'Основные правила гарантийного обслуживания сантехники LAUTE, Oute и Rainsberg.'}</EditableNode>
           </div>
 
           <div className="warranty-rules-grid">
             {rulesData.map((rule) => (
               <div key={rule.num} className="rule-card">
                 <div className="rule-num">{rule.num}</div>
-                <h4>{rule.title}</h4>
-                <p>{rule.desc}</p>
+                <EditableNode as="h4" editKey={"servicepage-8" + ':' + String(rule.id ?? rule.num ?? rule.title ?? rule)} kind="text">{rule.title}</EditableNode>
+                <EditableNode as="p" editKey={"servicepage-9" + ':' + String(rule.id ?? rule.num ?? rule.title ?? rule)} kind="text">{rule.desc}</EditableNode>
               </div>
             ))}
           </div>
         </div>
-      </section>
+      </EditableSection>
 
       {/* Claim Form */}
-      <section className="section service-form-section">
+      <EditableSection sectionKey="service-3" className="section service-form-section">
         <div className="container">
           <div className="form-layout-box">
             <div className="form-info-col">
-              <span className="section-badge">{lang === 'kz' ? 'Электрондық өтінім' : lang === 'en' ? 'Online Submission' : 'Электронная заявка'}</span>
-              <h2>{sp.formTitle || 'Форма онлайн-обращения в сервис'}</h2>
-              <p>
+              <EditableNode as="span" editKey={"servicepage-10"} kind="text" className="section-badge">{lang === 'kz' ? 'Электрондық өтінім' : lang === 'en' ? 'Online Submission' : 'Электронная заявка'}</EditableNode>
+              <EditableNode as="h2" editKey={"servicepage-11"} kind="text">{sp.formTitle || 'Форма онлайн-обращения в сервис'}</EditableNode>
+              <EditableNode as="p" editKey={"servicepage-12"} kind="text">
                 {sp.formDesc || 'Заполните форму с описанием дефекта. Сервисный специалист свяжется с вами с готовым решением.'}
-              </p>
+              </EditableNode>
 
               <div className="routing-preview-box">
-                <span className="routing-label">{lang === 'kz' ? 'Шағымның өңірлік бағытталуы:' : lang === 'en' ? 'Regional Claim Routing:' : 'Региональная маршрутизация претензии:'}</span>
-                <span className="routing-target">{getTargetEmail()}</span>
+                <EditableNode as="span" editKey={"servicepage-13"} kind="text" className="routing-label">{lang === 'kz' ? 'Шағымның өңірлік бағытталуы:' : lang === 'en' ? 'Regional Claim Routing:' : 'Региональная маршрутизация претензии:'}</EditableNode>
+                <EditableNode as="span" editKey={"servicepage-14"} kind="text" className="routing-target">{getTargetEmail()}</EditableNode>
               </div>
 
               <div className="service-contacts-hint">
-                <p>{lang === 'kz' ? 'Кеңес алу үшін бэк-офистің тікелей телефоны:' : lang === 'en' ? 'Direct line for consultations:' : 'Прямой телефон бэк-офиса для консультаций:'}</p>
-                <a href="tel:+79833105626" className="clickable-contact">
+                <EditableNode as="p" editKey={"servicepage-15"} kind="text">{lang === 'kz' ? 'Кеңес алу үшін бэк-офистің тікелей телефоны:' : lang === 'en' ? 'Direct line for consultations:' : 'Прямой телефон бэк-офиса для консультаций:'}</EditableNode>
+                <EditableNode as="a" editKey={"servicepage-16"} kind="link" href="tel:+79833105626" className="clickable-contact">
                   <Phone size={14} /> +7 (983) 310-56-26
-                </a>
-                <a href="mailto:opt@laute.ltd" className="clickable-contact">
+                </EditableNode>
+                <EditableNode as="a" editKey={"servicepage-17"} kind="link" href="mailto:opt@laute.ltd" className="clickable-contact">
                   <Mail size={14} /> opt@laute.ltd
-                </a>
+                </EditableNode>
               </div>
             </div>
 
@@ -141,18 +142,18 @@ export const ServicePage = () => {
               {isSubmitted ? (
                 <div className="form-success-box" style={{ background: 'rgba(14,165,233,0.08)', border: '1px solid rgba(56,189,248,0.3)', padding: '24px', borderRadius: '8px', textAlign: 'center' }}>
                   <CheckCircle2 size={44} color="#0EA5E9" style={{ margin: '0 auto 12px' }} />
-                  <h3 style={{ color: '#F8FAFC', marginBottom: '8px' }}>{sp.successTitle || 'Обращение зарегистрировано!'}</h3>
-                  <p style={{ color: '#94A3B8', fontSize: '0.9rem', marginBottom: '16px' }}>
+                  <EditableNode as="h3" editKey={"servicepage-18"} kind="text" style={{ color: '#F8FAFC', marginBottom: '8px' }}>{sp.successTitle || 'Обращение зарегистрировано!'}</EditableNode>
+                  <EditableNode as="p" editKey={"servicepage-19"} kind="text" style={{ color: '#94A3B8', fontSize: '0.9rem', marginBottom: '16px' }}>
                     {sp.successDesc || 'Номер вашей заявки сформирован. Сервисный инженер свяжется с вами в течение 36 рабочих часов.'}
-                  </p>
-                  <button type="button" className="btn btn-outline btn-sm" onClick={() => setIsSubmitted(false)}>
+                  </EditableNode>
+                  <EditableNode as="button" editKey={"servicepage-20"} kind="button" type="button" className="btn btn-outline btn-sm" onClick={() => setIsSubmitted(false)}>
                     {lang === 'kz' ? 'Жаңа өтініш беру' : lang === 'en' ? 'Submit new claim' : 'Подать новое обращение'}
-                  </button>
+                  </EditableNode>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="b2b-form">
                   <div className="form-group">
-                    <label>{sp.nameLabel || 'ФИО заявителя'} *</label>
+                    <EditableNode as="label" editKey={"servicepage-21"} kind="text">{sp.nameLabel || 'ФИО заявителя'} *</EditableNode>
                     <input
                       type="text"
                       required
@@ -164,7 +165,7 @@ export const ServicePage = () => {
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label>{sp.phoneLabel || 'Телефон для связи'} *</label>
+                      <EditableNode as="label" editKey={"servicepage-22"} kind="text">{sp.phoneLabel || 'Телефон для связи'} *</EditableNode>
                       <input
                         type="tel"
                         required
@@ -174,7 +175,7 @@ export const ServicePage = () => {
                       />
                     </div>
                     <div className="form-group">
-                      <label>{sp.emailLabel || 'Email для ответа'} *</label>
+                      <EditableNode as="label" editKey={"servicepage-23"} kind="text">{sp.emailLabel || 'Email для ответа'} *</EditableNode>
                       <input
                         type="email"
                         required
@@ -187,7 +188,7 @@ export const ServicePage = () => {
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label>{sp.modelLabel || 'Артикул или модель изделия'} *</label>
+                      <EditableNode as="label" editKey={"servicepage-24"} kind="text">{sp.modelLabel || 'Артикул или модель изделия'} *</EditableNode>
                       <input
                         type="text"
                         required
@@ -197,7 +198,7 @@ export const ServicePage = () => {
                       />
                     </div>
                     <div className="form-group">
-                      <label>{sp.defectLabel || 'Характер обращения'}:</label>
+                      <EditableNode as="label" editKey={"servicepage-25"} kind="text">{sp.defectLabel || 'Характер обращения'}:</EditableNode>
                       <select
                         value={formData.defectType}
                         onChange={(e) => setFormData({ ...formData, defectType: e.target.value })}
@@ -213,7 +214,7 @@ export const ServicePage = () => {
                   </div>
 
                   <div className="form-group">
-                    <label>{sp.descLabel || 'Подробное описание проблемы'} *</label>
+                    <EditableNode as="label" editKey={"servicepage-26"} kind="text">{sp.descLabel || 'Подробное описание проблемы'} *</EditableNode>
                     <textarea
                       rows={3}
                       required
@@ -223,15 +224,15 @@ export const ServicePage = () => {
                     />
                   </div>
 
-                  <SiteAction controlId="service-1" type="submit" className="btn btn-primary btn-full">
+                  <EditableNode as={SiteAction} editKey={"servicepage-27"} kind="submit" controlId="service-1" type="submit" className="btn btn-primary btn-full">
                     <span>{sp.submitBtn || 'Отправить обращение в сервис'}</span>
-                  </SiteAction>
+                  </EditableNode>
                 </form>
               )}
             </div>
           </div>
         </div>
-      </section>
+      </EditableSection>
     </div>
   );
 };

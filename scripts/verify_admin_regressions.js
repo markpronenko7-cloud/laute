@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import XLSX from 'xlsx';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { build, transform } from 'esbuild';
 import { createRequire } from 'node:module';
 import { parseAndValidateExcelFile, applyExcelImport, createCatalogWorkbook } from '../src/utils/excelManager.js';
@@ -282,6 +284,13 @@ test('Категории: связанные товары, повторное ч
     assert.equal(getPublishedPage(pages[0]).title, 'До');
     await api.updateCustomPage('p', { status: 'ОПУБЛИКОВАН' });
     assert.equal(getPublishedPage(pages[0]).title, 'После');
+    const nativeBlock={id:'native-home-technologies',type:'system_section',route:'home',section:'home-technologies',nativeEdits:{'homepage-24':{ru:{text:'PVD сохранён'}}}};
+    await api.updateCustomPage('p',{blocks:[nativeBlock],status:'ЧЕРНОВИК'});
+    assert.deepEqual((await api.fetchCustomPages(true))[0].blocks[0].nativeEdits,nativeBlock.nativeEdits);
+    assert.ok(!getPublishedPage(pages[0]).blocks[0]?.nativeEdits);
+    await api.updateCustomPage('p',{status:'ОПУБЛИКОВАН'});
+    assert.deepEqual(getPublishedPage(pages[0]).blocks[0].nativeEdits,nativeBlock.nativeEdits);
+    await assert.rejects(api.updateCustomPage('p',{blocks:[{nativeEdits:{x:{ru:{link:'javascript:alert(1)'}}}}]}),/корректную ссылку/);
     await assert.rejects(api.saveSiteContentDraft({ buttons: { x: { action: 'link', link: 'javascript:alert(1)' } } }), /корректную ссылку/);
   } finally {
     globalThis.fetch = originalFetch;
@@ -293,9 +302,34 @@ test('Категории: связанные товары, повторное ч
 
 test('Конструктор основных страниц сохраняет рабочие каталог, формы и корзину', () => {
   const page = { isSystem: true, slug: 'catalog', title: 'Каталог', blocks: [{ type: 'hero' }] };
-  assert.equal(getEditableBlocks(page)[0].type, 'system_page');
+  assert.equal(getEditableBlocks(page)[0].type, 'system_section');
+  assert.deepEqual(getEditableBlocks(page).map(b=>b.section), ['catalog-1','catalog-2','catalog-3']);
   assert.equal(getEditableBlocks(page)[0].route, 'catalog');
-  assert.equal(getEditableBlocks({ ...page, useBuilder: true }).length, 2);
+  assert.equal(getEditableBlocks({ ...page, useBuilder: true }).length, 4);
   assert.equal(getEditableBlocks({ ...page, useBuilder: true, blocks: [{ type: 'system_page', isVisible: false, route: 'wrong' }] })[0].isVisible, true);
   assert.equal(getEditableBlocks({ ...page, useBuilder: true, blocks: [{ type: 'system_page', nativeIntro: { h1: 'Сохранённый заголовок' } }] })[0].nativeIntro.h1, 'Сохранённый заголовок');
+});
+
+
+test('Все секции главной доступны, включая нижние блоки, а контакты сохраняют настоящие карточки', () => {
+  const home = getEditableBlocks({ isSystem: true, slug: 'home', blocks: [] });
+  assert.deepEqual(home.map(b=>b.section), ['home-hero','home-collections','home-technologies','home-partners','home-service-preview','home-b2b-lead-form']);
+  const contacts=[{ id:'contacts-card', type:'contact_cards',items:[{phone:'+123'}] }];
+  assert.deepEqual(getEditableBlocks({isSystem:true,slug:'contacts',blocks:contacts}), contacts);
+  const edited={...home[2],nativeEdits:{'homepage-24':{ru:{text:'PVD после сохранения'}}}};
+  assert.deepEqual(getEditableBlocks({isSystem:true,slug:'home',useBuilder:true,blocks:[edited]}),[edited]);
+});
+
+test('Визуальные поля: опубликованные текст, фото и язык отображаются из сохранённых значений', async () => {
+  const compiled=await build({entryPoints:['src/components/builder/NativeContent.jsx'],bundle:true,packages:'external',write:false,format:'cjs',platform:'node',logLevel:'silent',define:{'import.meta.env.BASE_URL':'"/laute/"'},plugins:[{name:'mock-context',setup(b){b.onResolve({filter:/context\/AppContext$/},()=>({path:'app-context',namespace:'test'}));b.onLoad({filter:/.*/,namespace:'test'},()=>({contents:"export const useApp = () => ({lang: globalThis.__cmsTestLang || 'ru', siteContent: {}, navigateTo() {}});",loader:'js'}));}}]});
+  const module={exports:{}};new Function('require','module','exports',compiled.outputFiles[0].text)(createRequire(import.meta.url),module,module.exports);
+  const {EditableNode,NativeContentScope,EditableSection}=module.exports;
+  const render=child=>renderToStaticMarkup(React.createElement(NativeContentScope.Provider,{value:{section:'home-technologies',blockId:'native-home-technologies',edits:{title:{ru:{text:'Сохранённый PVD'}},photo:{ru:{src:'images/chosen.jpg',alt:'Новое фото'}}}}},child));
+  assert.match(render(React.createElement(EditableNode,{as:'h3',editKey:'title'},'Исходный PVD')),/Сохранённый PVD/);
+  assert.match(render(React.createElement(EditableNode,{as:'img',kind:'image',editKey:'photo',src:'images/old.jpg'})),/src="\/laute\/images\/chosen.jpg"/);
+  assert.doesNotMatch(render(React.createElement(EditableNode,{as:'h3',editKey:'title'},'Исходный PVD')),/data-native-field/);
+  assert.equal(render(React.createElement(EditableSection,{sectionKey:'home-partners'},'Чужая секция')),'');
+  globalThis.__cmsTestLang='en';
+  try { assert.match(render(React.createElement(EditableNode,{as:'h3',editKey:'title'},'Original PVD')),/Original PVD/); }
+  finally {delete globalThis.__cmsTestLang;}
 });

@@ -1,3 +1,4 @@
+import { EditableNode, EditableSection, NativeSectionGate } from './builder/NativeContent';
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { withBrandWord } from '../utils/brandFormatter';
@@ -46,31 +47,31 @@ export const CollectionsSection = () => {
     <section className="section collections-section" id="collections">
       <div className="container">
         <div className="section-title-wrap reveal-on-scroll">
-          <span className="section-badge collections-badge">
+          <EditableNode as="span" editKey={"collectionssection-1"} kind="text" className="section-badge collections-badge">
             {siteContent?.homeBlocks?.collections?.badge || t.home?.collectionsBadge || 'АРХИТЕКТУРНЫЕ ЛИНИИ'}
-          </span>
-          <h2 className="section-title collections-title">
+          </EditableNode>
+          <EditableNode as="h2" editKey={"collectionssection-2"} kind="text" className="section-title collections-title">
             {withBrandWord(siteContent?.homeBlocks?.collections?.title || t.home?.collectionsTitle || 'Коллекции LAUTE')}
-          </h2>
-          <p className="section-desc collections-desc">
+          </EditableNode>
+          <EditableNode as="p" editKey={"collectionssection-3"} kind="text" className="section-desc collections-desc">
             {withBrandWord(siteContent?.homeBlocks?.collections?.desc || t.home?.collectionsDesc || 'Смесители, душевые зоны, кабины и сантехническое оборудование, объединённые единой философией надежности и чистоты формы.')}
-          </p>
+          </EditableNode>
         </div>
 
         {/* Editorial Visual Gallery with Varied Scale */}
         <div className="collections-gallery-editorial">
           {collectionsData.map((item, index) => (
-            <div 
-              key={item.id} 
+            <div
+              key={item.id}
               className={`collection-gallery-item ${item.layoutClass} reveal-on-scroll reveal-delay-${(index % 4) + 1}`}
               onClick={(e) => e.preventDefault()}
               role="presentation"
             >
               <div className="collection-media-wrapper">
-                <img 
-                  src={item.image} 
-                  alt={item.title} 
-                  className="collection-media-img" 
+                <EditableNode as="img" editKey={"collectionssection-4" + ':' + String(index)} kind="image"
+                  src={item.image}
+                  alt={item.title}
+                  className="collection-media-img"
                   loading="lazy"
                 />
                 <div className="collection-media-vignette"></div>
@@ -79,15 +80,15 @@ export const CollectionsSection = () => {
               {/* Floating Translucent Glass Caption */}
               <div className="collection-glass-caption">
                 <div className="collection-caption-top">
-                  <span className="collection-pill-tag">{item.categoryBadge}</span>
+                  <EditableNode as="span" editKey={"collectionssection-5" + ':' + String(index)} kind="text" className="collection-pill-tag">{item.categoryBadge}</EditableNode>
                   {item.filterFeatureBadge && (
-                    <span className="collection-pill-tag collection-pill-filter">
+                    <EditableNode as="span" editKey={"collectionssection-6" + ':' + String(index)} kind="text" className="collection-pill-tag collection-pill-filter">
                       {item.filterFeatureBadge}
-                    </span>
+                    </EditableNode>
                   )}
                 </div>
-                <h3 className="collection-caption-heading">{item.title}</h3>
-                <p className="collection-caption-desc">{item.subtitle}</p>
+                <EditableNode as="h3" editKey={"collectionssection-7" + ':' + String(index)} kind="text" className="collection-caption-heading">{item.title}</EditableNode>
+                <EditableNode as="p" editKey={"collectionssection-8" + ':' + String(index)} kind="text" className="collection-caption-desc">{item.subtitle}</EditableNode>
               </div>
             </div>
           ))}

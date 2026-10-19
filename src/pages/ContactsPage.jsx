@@ -2,12 +2,13 @@ import { PageText } from '../components/PageText';
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { BlockRenderer } from '../components/builder/BlockRenderer';
+import { getPublishedPage } from '../utils/pagePublication';
 
 export const ContactsPage = () => {
   const { pagesList = [], lang, t } = useApp();
   const ctp = t.contactsPage || {};
 
-  const contactsPage = pagesList.find(p => p.slug === 'contacts');
+  const contactsPage = getPublishedPage(pagesList.find(p => p.slug === 'contacts'), true);
   const rawBlocks = contactsPage?.blocks || [];
 
   const blocks = rawBlocks.map((block, idx) => {

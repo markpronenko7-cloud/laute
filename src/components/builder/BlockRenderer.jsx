@@ -43,7 +43,7 @@ export const BlockRenderer = ({
   const [openFaqIndices, setOpenFaqIndices] = useState([0]);
 
   if (!block) return null;
-  if (block.isVisible === false && block.type !== 'system_page' && !isEditor) return null;
+  if (block.isVisible === false && !block.protected && !isEditor) return null;
 
   const baseUrl = import.meta.env.BASE_URL;
 
@@ -111,7 +111,11 @@ export const BlockRenderer = ({
   const renderContent = () => {
     switch (block.type) {
       case 'system_page':
-        return <div inert={isEditor ? '' : undefined} style={isEditor ? { pointerEvents: 'none' } : undefined}><SystemPageContent block={block}/></div>;
+      case 'system_section':
+        return <div onSubmitCapture={isEditor ? e => { e.preventDefault(); e.stopPropagation(); } : undefined} onClickCapture={isEditor ? e => {
+          if (e.target.closest('[data-native-field], [data-preview-control]')) return;
+          e.preventDefault(); e.stopPropagation(); onSelectBlock?.(block,index);
+        } : undefined}><SystemPageContent block={block}/></div>;
       // 1. HERO BLOCK
       case 'hero':
         return (
@@ -528,11 +532,12 @@ export const BlockRenderer = ({
 
   return (
     <section
+      data-editor-block={isEditor ? block.id : undefined}
       id={block.anchor || (block.type === 'form_lead' ? 'lead-form' : block.id)}
       className={`builder-block-wrapper ${isEditor ? 'editor-mode' : ''} ${isSelected ? 'is-selected' : ''}`}
       style={{
         background: sectionBg,
-        padding: block.type === 'system_page' ? 0 : sectionPadding,
+        padding: ['system_page','system_section'].includes(block.type) ? 0 : sectionPadding,
         position: 'relative',
         transition: 'all 0.2s ease',
         outline: isEditor ? (isSelected ? '2px solid var(--adm-accent-blue)' : '1px dashed rgba(255,255,255,0.12)') : 'none',
@@ -546,7 +551,7 @@ export const BlockRenderer = ({
       }}
     >
       {/* Floating Toolbar on Hover / Selection in Editor Mode */}
-      {isEditor && (
+      {isEditor && isSelected && (
         <div
           className="builder-block-toolbar"
           style={{
@@ -567,7 +572,7 @@ export const BlockRenderer = ({
           onClick={e => e.stopPropagation()}
         >
           <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--adm-accent-amber)', padding: '2px 6px', textTransform: 'uppercase' }}>
-            #{index + 1} {block.type}
+            {block.title || `Блок ${index + 1}`}
           </span>
 
           <button
@@ -595,7 +600,7 @@ export const BlockRenderer = ({
           <button
             type="button"
             className="action-btn"
-            disabled={block.type === 'system_page'}
+            disabled={['system_page','system_section'].includes(block.type)}
             onClick={() => onDuplicate && onDuplicate(block, index)}
             title="Дублировать блок"
             style={{ padding: 4, height: 24, width: 24 }}
@@ -616,12 +621,8 @@ export const BlockRenderer = ({
           <button
             type="button"
             className="action-btn"
-            disabled={block.type === 'system_page'}
-            onClick={() => {
-              if (window.confirm(`Удалить блок #${index + 1} (${block.title || block.type})?`)) {
-                onDelete && onDelete(index);
-              }
-            }}
+            disabled={block.protected}
+            onClick={() => onDelete?.(index)}
             title="Удалить блок"
             style={{ padding: 4, height: 24, width: 24, color: 'var(--adm-accent-red)' }}
           >
@@ -630,7 +631,7 @@ export const BlockRenderer = ({
         </div>
       )}
 
-      <div className={block.type === 'system_page' ? undefined : 'container'} style={{ position: 'relative' }}>
+      <div className={['system_page','system_section'].includes(block.type) ? undefined : 'container'} style={{ position: 'relative' }}>
         {renderContent()}
       </div>
     </section>
