@@ -1,3 +1,5 @@
+import { PageText } from '../components/PageText';
+import { SiteAction } from '../components/SiteAction';
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Store, Building2, ShoppingBag, Phone, Mail, ArrowRight, CheckCircle2 } from 'lucide-react';
@@ -32,10 +34,10 @@ export const WhereToBuyPage = () => {
         <div className="container">
           <div className="page-header-content">
             <span className="section-badge">{wp.badge || 'География присутствия'}</span>
-            <h1 className="page-title">{wp.title || 'Где купить продукцию LAUTE'}</h1>
-            <p className="page-subtitle">
+            <PageText as="h1" route="where-to-buy" field="h1" className="page-title">{wp.title || 'Где купить продукцию LAUTE'}</PageText>
+            <PageText route="where-to-buy" field="description" className="page-subtitle">
               {wp.subtitle || 'Прямые поставки для оптовых заказчиков со складов представительства и приобретение в розницу через официальную дилерскую сеть.'}
-            </p>
+            </PageText>
 
             <div className="tab-switcher">
               <button
@@ -179,10 +181,10 @@ export const WhereToBuyPage = () => {
                           onChange={(e) => setCityQuery(e.target.value)}
                           className="search-input"
                         />
-                        <button type="submit" className="btn btn-primary">
+                        <SiteAction controlId="wheretobuy-1" type="submit" className="btn btn-primary">
                           <span>{wp.inquiryBtn || 'Найти магазины'}</span>
                           <ArrowRight size={15} />
-                        </button>
+                        </SiteAction>
                       </div>
                     </form>
                   )}

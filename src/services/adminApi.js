@@ -121,6 +121,14 @@ async function querySupabase(endpoint) {
   return await res.json();
 }
 
+const canonicalJson = value => JSON.stringify(value, (_, v) => v && typeof v === 'object' && !Array.isArray(v)
+  ? Object.fromEntries(Object.keys(v).sort().map(k => [k, v[k]])) : v);
+const sameJson = (a, b) => canonicalJson(a) === canonicalJson(b);
+const containsSavedFields = (actual, expected) => Object.entries(expected).every(([key, value]) =>
+  value === undefined || (value && typeof value === 'object' && !Array.isArray(value)
+    ? actual?.[key] && containsSavedFields(actual[key], value)
+    : sameJson(actual?.[key], value)));
+
 function triggerBlobDownload(blob, filename) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -261,6 +269,9 @@ export const fetchSiteContent = async (isDraft = false) => {
 };
 
 export const saveSiteContentDraft = async (updates) => {
+  for (const setting of Object.values(updates.buttons || {})) {
+    if (setting.action === 'link' && (!setting.link?.trim() || !/^(https?:\/\/|mailto:|tel:|\/(?!\/)|#)/i.test(setting.link.trim()))) throw new Error('Укажи корректную ссылку для кнопки: /catalog, #блок или https://…');
+  }
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
 
@@ -272,7 +283,9 @@ export const saveSiteContentDraft = async (updates) => {
   if (!result || !result.success) {
     throw new Error(result?.error || 'Ошибка сохранения черновика в Supabase');
   }
-  return result.draft;
+  const saved = await fetchSiteContent(true);
+  if (!containsSavedFields(saved, updates)) throw new Error('Черновик записан, но проверка содержимого не совпала. Обнови данные перед повтором.');
+  return saved;
 };
 
 export const publishSiteContent = async () => {
@@ -288,6 +301,7 @@ export const publishSiteContent = async () => {
   }
   const records = await querySupabase('laute_site_content?id=eq.published&select=data,version');
   if (!records?.[0]?.data) throw new Error('Публикация выполнена, но не удалось перечитать контент. Обнови страницу.');
+  if (result.content && !containsSavedFields(records[0].data, result.content)) throw new Error('Публичная версия не совпала с опубликованной. Обнови страницу и проверь результат.');
   return { ...result, content: { ...records[0].data, version: records[0].version || result.version, hasUnpublishedChanges: false } };
 };
 
@@ -364,6 +378,8 @@ export const fetchCustomPages = async (strict = false) => {
     console.warn('Ошибка загрузки страниц из Supabase:', err);
   }
 
+  if (strict) throw new Error('Не удалось прочитать страницы с сервера');
+
   // Fallback to static public JSON
   try {
     const res = await fetch(`${import.meta.env.BASE_URL}data/custom_pages.json?t=${Date.now()}`);
@@ -376,6 +392,13 @@ export const fetchCustomPages = async (strict = false) => {
   }
   return [];
 };
+
+async function saveAndVerifyPages(pages) {
+  await callSupabaseRpc('laute_save_custom_pages', { p_token: getAuthToken(), p_pages: pages });
+  const saved = await fetchCustomPages(true);
+  if (!sameJson(saved, pages)) throw new Error('Запись страниц не подтверждена. Обнови список и проверь результат.');
+  return saved;
+}
 
 export const createCustomPage = async (pageData) => {
   const token = getAuthToken();
@@ -394,7 +417,7 @@ export const createCustomPage = async (pageData) => {
     title: pageData.title,
     slug: cleanSlug,
     description: pageData.description || '',
-    status: 'ОПУБЛИКОВАН',
+    status: 'ЧЕРНОВИК',
     template: pageData.template || 'info',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -405,7 +428,7 @@ export const createCustomPage = async (pageData) => {
   };
 
   pages.push(newPage);
-  await callSupabaseRpc('laute_save_custom_pages', { p_token: token, p_pages: pages });
+  await saveAndVerifyPages(pages);
   return newPage;
 };
 
@@ -421,15 +444,20 @@ export const updateCustomPage = async (id, pageData) => {
   if (!cleanSlug || !(pageData.title ?? pages[idx].title)?.trim()) throw new Error('Заполни название и адрес страницы');
   if (pages.some(p => p.id !== id && p.slug === cleanSlug)) throw new Error(`Страница с адресом "${cleanSlug}" уже существует`);
 
+  const old = pages[idx];
+  const snapshot = pageData.status === 'ЧЕРНОВИК'
+    ? old.published || (old.status === 'ОПУБЛИКОВАН' ? JSON.parse(JSON.stringify({ ...old, published: undefined })) : null)
+    : null;
   pages[idx] = {
     ...pages[idx],
     ...pageData,
+    published: snapshot,
     slug: cleanSlug,
     route: `/${cleanSlug}`,
     updatedAt: new Date().toISOString()
   };
 
-  await callSupabaseRpc('laute_save_custom_pages', { p_token: token, p_pages: pages });
+  await saveAndVerifyPages(pages);
   return pages[idx];
 };
 
@@ -439,7 +467,7 @@ export const deleteCustomPage = async (id) => {
 
   const pages = await fetchCustomPages(true);
   const filtered = pages.filter(p => p.id !== id);
-  await callSupabaseRpc('laute_save_custom_pages', { p_token: token, p_pages: filtered });
+  await saveAndVerifyPages(filtered);
   return true;
 };
 
@@ -465,13 +493,15 @@ export const duplicateCustomPage = async (id) => {
     slug: newSlug,
     route: `/${newSlug}`,
     isSystem: false,
+    status: 'ЧЕРНОВИК',
+    published: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     blocks: source.blocks ? source.blocks.map(b => ({ ...b, id: `blk-${Date.now()}-${Math.random().toString(36).substr(2, 5)}` })) : []
   };
 
   pages.push(duplicatedPage);
-  await callSupabaseRpc('laute_save_custom_pages', { p_token: token, p_pages: pages });
+  await saveAndVerifyPages(pages);
   return duplicatedPage;
 };
 
@@ -487,16 +517,18 @@ export const rollbackPagesVersion = async (backupId) => {
   return await fetchCustomPages();
 };
 
-export const fetchCategories = async () => {
+export const fetchCategories = async (strict = false) => {
   try {
     const records = await querySupabase('laute_categories?id=eq.current&select=categories');
     if (Array.isArray(records) && records.length > 0 && Array.isArray(records[0].categories)) {
       return records[0].categories;
     }
   } catch (err) {
+    if (strict) throw err;
     console.warn('Ошибка загрузки категорий из Supabase:', err);
   }
 
+  if (strict) throw new Error('Не удалось прочитать категории с сервера');
   try {
     const res = await fetch(`${import.meta.env.BASE_URL}data/categories.json?t=${Date.now()}`);
     if (res.ok) return await res.json();
@@ -506,19 +538,41 @@ export const fetchCategories = async () => {
   return [];
 };
 
+// Product categories use the category name as their key. Preserve every linked SKU.
 export const saveCategories = async (categories) => {
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
-
-  const result = await callSupabaseRpc('laute_save_categories', {
-    p_token: token,
-    p_categories: categories
+  const previous = await fetchCategories(true);
+  const clean = categories.map(({ originalName, ...c }, i) => ({ ...c, name: c.name.trim(), order: i + 1 }));
+  const names = clean.map(c => c.name.toLocaleLowerCase());
+  if (names.some(n => !n) || new Set(names).size !== names.length) throw new Error('Названия категорий должны быть заполнены и не повторяться');
+  const products = await fetchProducts(true, true);
+  const originals = [...previous, ...categories.filter(c => c.originalName && !previous.some(p => p.id === c.id)).map(c => ({ ...c, name: c.originalName }))];
+  const renamed = new Map(originals.flatMap(old => {
+    const next = clean.find(c => c.id === old.id);
+    if (!next && products.some(p => p.category === old.name)) throw new Error('Сначала перенеси товары из удаляемой категории');
+    return next && next.name !== old.name ? [[old.name, next.name]] : [];
+  }));
+  const linked = products.filter(p => renamed.has(p.category));
+  if (linked.length) await callSupabaseRpc('laute_import_products', {
+    p_token: token, p_products: linked.map(p => ({ ...p, category: renamed.get(p.category) })), p_deleted_skus: []
   });
-
-  if (!result || !result.success) {
-    throw new Error(result?.error || 'Ошибка сохранения категорий');
+  try {
+    await callSupabaseRpc('laute_save_categories', { p_token: token, p_categories: clean });
+    const saved = await fetchCategories(true);
+    if (!sameJson(saved, clean)) throw new Error('Сохранение категорий не подтверждено чтением');
+    const actual = await fetchProducts(true, true);
+    if (linked.some(p => actual.find(a => a.article === p.article)?.category !== renamed.get(p.category))) throw new Error('Не удалось подтвердить связи товаров');
+    return saved;
+  } catch (error) {
+    try {
+      if (linked.length) await callSupabaseRpc('laute_import_products', { p_token: token, p_products: linked, p_deleted_skus: [] });
+      await callSupabaseRpc('laute_save_categories', { p_token: token, p_categories: previous });
+    } catch {
+      throw new Error('Сохранение прервано. Не удалось подтвердить восстановление связей. Обнови каталог и проверь категории перед повтором.');
+    }
+    throw error;
   }
-  return categories;
 };
 
 // ==========================================
@@ -532,6 +586,7 @@ function normalizeProduct(p) {
   // Классифицируем фотографии: гарантируем, что главное фото — это смеситель,
   // а чертёж выделяется для раздела "Размеры и чертежи"
   const classified = classifyProductImages({
+    imageSlotsExplicit: raw.imageSlotsExplicit ?? p.imageSlotsExplicit,
     article,
     photo1: p.photo1 || raw.photo1,
     photo2: p.photo2 || raw.photo2,
@@ -543,6 +598,7 @@ function normalizeProduct(p) {
   return {
     ...raw,
     article,
+    imageSlotsExplicit: raw.imageSlotsExplicit ?? p.imageSlotsExplicit ?? false,
     name: p.name || raw.name || '',
     category: p.category || raw.category || '',
     subcategory: p.subcategory || raw.subcategory || '',
@@ -561,11 +617,11 @@ function normalizeProduct(p) {
     volume: p.volume || raw.volume || '',
     specs: p.specs || raw.specs || '',
     extraSpecs: p.extra_specs || raw.extraSpecs || raw.extra_specs || '',
-    photo1: classified.mainPhoto || p.photo1 || raw.photo1 || '',
-    photo2: classified.additionalPhotos[0] || p.photo2 || raw.photo2 || '',
-    photo3: classified.additionalPhotos[1] || p.photo3 || raw.photo3 || '',
-    drawingUrl: classified.drawingPhotos[0] || p.drawingUrl || raw.drawingUrl || '',
-    boxUrl: classified.boxPhotos[0] || p.boxUrl || raw.boxUrl || '',
+    photo1: p.photo1 ?? raw.photo1 ?? '',
+    photo2: p.photo2 ?? raw.photo2 ?? '',
+    photo3: p.photo3 ?? raw.photo3 ?? '',
+    drawingUrl: p.drawing_url ?? p.drawingUrl ?? raw.drawingUrl ?? '',
+    boxUrl: p.box_url ?? p.boxUrl ?? raw.boxUrl ?? '',
     additionalPhotos: classified.additionalPhotos,
     drawingPhotos: classified.drawingPhotos,
     allPhotos: classified.allPhotos,
@@ -636,7 +692,9 @@ export const addProduct = async (productData) => {
     throw new Error(result?.error || 'Ошибка создания товара в Supabase');
   }
 
-  return productData;
+  const saved = (await fetchProducts(true, true)).find(p => p.article === productData.article);
+  if (!saved || !containsSavedFields(saved, productData)) throw new Error('Создание товара не подтверждено повторным чтением');
+  return saved;
 };
 
 export const updateProduct = async (sku, updates) => {
@@ -648,6 +706,7 @@ export const updateProduct = async (sku, updates) => {
   const productToSave = {
     ...existing,
     ...updates,
+    ...(['photo1', 'photo2', 'photo3', 'drawingUrl', 'boxUrl'].some(k => Object.hasOwn(updates, k)) ? { imageSlotsExplicit: true } : {}),
     article: sku
   };
 
@@ -660,7 +719,9 @@ export const updateProduct = async (sku, updates) => {
     throw new Error(result?.error || 'Ошибка обновления товара в Supabase');
   }
 
-  return productToSave;
+  const saved = (await fetchProducts(true, true)).find(p => p.article === sku);
+  if (!saved || !containsSavedFields(saved, Object.fromEntries(Object.entries(updates).filter(([key]) => !['updatedAt', 'raw_data', 'additionalPhotos', 'drawingPhotos', 'allPhotos', 'imageSlotsExplicit'].includes(key))))) throw new Error('Сохранение товара не подтверждено. Обнови каталог и проверь изменения.');
+  return saved;
 };
 
 export const toggleProductStatus = async (sku, status) => {

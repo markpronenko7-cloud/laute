@@ -1,3 +1,5 @@
+import { PageText } from '../components/PageText';
+import { SiteAction } from '../components/SiteAction';
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Clock, CheckCircle2, Phone, Mail } from 'lucide-react';
@@ -74,10 +76,10 @@ export const ServicePage = () => {
         <div className="container">
           <div className="page-header-content">
             <span className="section-badge">{sp.badge || 'Официальная гарантийная поддержка'}</span>
-            <h1 className="page-title">{sp.title || 'Первый цифровой сервисный центр завода LAUTE'}</h1>
-            <p className="page-subtitle">
+            <PageText as="h1" route="service" field="h1" className="page-title">{sp.title || 'Первый цифровой сервисный центр завода LAUTE'}</PageText>
+            <PageText route="service" field="description" className="page-subtitle">
               {sp.subtitle || 'Официальная гарантия, оперативная обработка обращений и прямая сервисная поддержка покупателей сантехники LAUTE.'}
-            </p>
+            </PageText>
 
             <div className="service-sla-banner">
               <Clock size={20} className="sla-icon" />
@@ -221,9 +223,9 @@ export const ServicePage = () => {
                     />
                   </div>
 
-                  <button type="submit" className="btn btn-primary btn-full">
+                  <SiteAction controlId="service-1" type="submit" className="btn btn-primary btn-full">
                     <span>{sp.submitBtn || 'Отправить обращение в сервис'}</span>
-                  </button>
+                  </SiteAction>
                 </form>
               )}
             </div>

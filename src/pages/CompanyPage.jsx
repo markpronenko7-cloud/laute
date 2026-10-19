@@ -1,3 +1,5 @@
+import { getPublishedPage } from '../utils/pagePublication';
+import { usePageIntro } from '../components/PageText';
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { BlockRenderer } from '../components/builder/BlockRenderer';
@@ -6,10 +8,12 @@ export const CompanyPage = () => {
   const { pagesList = [], lang, t } = useApp();
   const cp = t.companyPage || {};
 
-  const companyPage = pagesList.find(p => p.slug === 'company');
+  const companyPage = getPublishedPage(pagesList.find(p => p.slug === 'company' || p.published?.slug === 'company'), true);
+  const intro = usePageIntro('company');
   const rawBlocks = companyPage?.blocks || [];
 
-  const blocks = rawBlocks.map((block, idx) => {
+  const blocks = rawBlocks.map((source, idx) => {
+    const block = idx === 0 && source.type === 'hero' ? { ...source, title: intro.h1 || source.title, subtitle: intro.description || source.subtitle } : source;
     const cleanBadge = typeof block.badge === 'string' ? block.badge.replace(/LAUTEк\s*/gi, 'LAUTE') : block.badge;
     if (lang !== 'ru' && idx === 0 && block.type === 'hero') {
       return {

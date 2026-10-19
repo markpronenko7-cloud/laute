@@ -1,3 +1,4 @@
+import { SiteAction } from './SiteAction';
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { ArrowRight, Layers } from 'lucide-react';
@@ -19,13 +20,13 @@ export const Categories = () => {
             <p className="section-subtitle">{t.categories.subtitle}</p>
           </div>
 
-          <button
+          <SiteAction controlId="categories-1"
             className="btn btn-outline"
             onClick={openPartnerModal}
           >
             <span>{t.categories.allCatalogBtn}</span>
             <ArrowRight size={16} />
-          </button>
+          </SiteAction>
         </div>
 
         <div className="categories-grid">

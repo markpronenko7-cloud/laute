@@ -298,12 +298,15 @@ export const BlockInspector = ({
       )}
 
       {/* Button / CTA Settings */}
-      {block.buttonText !== undefined && (
+      {['hero', 'image_text', 'cta_banner'].includes(block.type) && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid var(--adm-border)', paddingTop: 14 }}>
           <h5 style={{ margin: 0, fontSize: 12, color: 'var(--adm-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             Кнопка действия (CTA)
           </h5>
 
+          <div>
+            <label className="studio-check"><input type="checkbox" checked={!!block.buttonNewTab} onChange={e => handleFieldChange('buttonNewTab', e.target.checked)}/>Внешнюю ссылку в новой вкладке</label>
+          </div>
           <div>
             <label style={{ display: 'block', fontSize: 11, color: 'var(--adm-text-muted)', marginBottom: 4 }}>Текст кнопки:</label>
             <input
@@ -519,6 +522,7 @@ export const BlockInspector = ({
       )}
 
       {/* Style & Layout */}
+      {block.type === 'form_lead' && <label className="form-group">Кнопка отправки формы<input className="admin-input" value={block.submitText || ''} placeholder="Отправить заявку в отдел продаж" onChange={e => handleFieldChange('submitText', e.target.value)}/></label>}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid var(--adm-border)', paddingTop: 14 }}>
         <h5 style={{ margin: 0, fontSize: 12, color: 'var(--adm-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
           Оформление и дизайн

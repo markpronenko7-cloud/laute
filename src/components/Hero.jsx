@@ -1,3 +1,4 @@
+import { SiteAction } from './SiteAction';
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { ArrowRight, ShieldCheck, Layers } from 'lucide-react';
@@ -31,20 +32,20 @@ export const Hero = () => {
             </p>
 
             <div className="hero-actions">
-              <button
+              <SiteAction controlId="hero-1"
                 className="btn btn-primary btn-lg"
                 onClick={scrollToCatalog}
               >
                 <span>{t.hero.ctaCatalog}</span>
                 <ArrowRight size={18} />
-              </button>
+              </SiteAction>
 
-              <button
+              <SiteAction controlId="hero-2"
                 className="btn btn-secondary btn-lg"
                 onClick={openPartnerModal}
               >
                 <span>{t.hero.ctaPartner}</span>
-              </button>
+              </SiteAction>
             </div>
 
             <div className="hero-notice">

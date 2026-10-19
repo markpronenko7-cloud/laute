@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { isSafeActionLink } from './SiteAction';
 import { withBrandWord } from '../utils/brandFormatter';
 
 export const HeroCarousel = () => {
@@ -120,7 +121,12 @@ export const HeroCarousel = () => {
             else navigateTo('catalog');
           };
         } else if (s.buttonLink) {
-          action = () => navigateTo(s.buttonLink);
+          action = () => {
+            const link = s.buttonLink.trim();
+            if (/^https?:|^mailto:|^tel:/i.test(link) && isSafeActionLink(link)) window.location.assign(link);
+            else if (link.startsWith('#')) document.getElementById(link.slice(1))?.scrollIntoView({ behavior: 'smooth' });
+            else navigateTo(link.replace(/^\//, ''));
+          };
         }
         const slideT = t.home?.heroSlides?.[idx] || {};
         return {

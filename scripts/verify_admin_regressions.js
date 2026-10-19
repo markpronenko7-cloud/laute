@@ -6,6 +6,7 @@ import { build, transform } from 'esbuild';
 import { createRequire } from 'node:module';
 import { parseAndValidateExcelFile, applyExcelImport, createCatalogWorkbook } from '../src/utils/excelManager.js';
 import { formatProductDisplay, classifyProductImages } from '../src/utils/imageHelper.js';
+import { getPublishedPage } from '../src/utils/pagePublication.js';
 import { getNavigation, getNavTranslation, getPageSeo } from '../src/utils/contentSettings.js';
 
 const workbook = rows => {
@@ -143,7 +144,8 @@ test('CMS: серверные отказы, частичное обновлен�
       else if (fn === 'laute_publish_content') { published = structuredClone(draft); data = { success: true, version: '1.0.2' }; }
       else if (fn === 'laute_save_product') { products = [{ ...args.p_product }]; data = { success: true }; }
       else data = { success: true };
-    } else if (endpoint?.startsWith('laute_products?')) data = products;
+    } else if (endpoint?.startsWith('laute_custom_pages?')) data = [{ pages: [] }];
+    else if (endpoint?.startsWith('laute_products?')) data = products;
     else if (endpoint?.startsWith('laute_warehouse_stock?')) data = stocks;
     else if (endpoint?.startsWith('laute_site_content?')) data = [{ data: structuredClone(published) }];
     else data = [];
@@ -212,4 +214,78 @@ test('Медиасервис: проверка сессии до Storage и за
   assert.ok(result.url.startsWith('https://example.supabase.co/storage/v1/object/public/laute-media/'));
   assert.equal(calls.at(-1).options.headers.Authorization, 'Bearer server-secret');
   assert.ok(!JSON.stringify(result).includes('server-secret'));
+});
+
+
+test('Явное основное фото CMS сохраняет выбранный слот независимо от имени файла', () => {
+  const product = { article: 'ETH103D', imageSlotsExplicit: true, photo1: 'images/new-box-photo.jpg', photo2: 'images/old.jpg', photo3: 'images/third.jpg', drawingUrl: 'images/plan.jpg' };
+  const gallery = classifyProductImages(product, '/laute/');
+  assert.equal(gallery.mainPhoto, '/laute/images/new-box-photo.jpg');
+  assert.deepEqual(gallery.additionalPhotos, ['/laute/images/old.jpg', '/laute/images/third.jpg']);
+  assert.deepEqual(gallery.drawingPhotos, ['/laute/images/plan.jpg']);
+  assert.equal(classifyProductImages({ ...product, photo1: gallery.mainPhoto }, '/laute/').mainPhoto, gallery.mainPhoto);
+});
+
+test('Черновик страницы оставляет прежнюю опубликованную версию доступной', () => {
+  const published = { id: 'p', slug: 'before', status: 'ОПУБЛИКОВАН', blocks: [{ title: 'До' }] };
+  assert.equal(getPublishedPage({ ...published, slug: 'after', status: 'ЧЕРНОВИК', blocks: [{ title: 'После' }], published }), published);
+  assert.equal(getPublishedPage({ status: 'ЧЕРНОВИК' }), null);
+  assert.equal(getPublishedPage({ isSystem: true, status: 'ОПУБЛИКОВАН' }), null);
+  assert.equal(getPublishedPage({ isSystem: true, useBuilder: true, status: 'ОПУБЛИКОВАН' }).useBuilder, true);
+});
+
+test('Категории: связанные товары, повторное чтение и восстановление после отказа', async () => {
+  const compiled = await build({ entryPoints: ['src/services/adminApi.js'], bundle: true, packages: 'external', write: false, format: 'cjs', platform: 'node', logLevel: 'silent', define: { 'import.meta.env.BASE_URL': '"/laute/"' } });
+  const module = { exports: {} };
+  new Function('require', 'module', 'exports', compiled.outputFiles[0].text)(createRequire(import.meta.url), module, module.exports);
+  const api = module.exports;
+  const originalFetch = globalThis.fetch;
+  globalThis.window = {};
+  globalThis.localStorage = { getItem: key => key === 'laute_admin_token' ? 'test' : null, setItem() {} };
+  let categories = [{ id: 'c', name: 'До' }];
+  let products = [{ article: 'X', name: 'Товар', category: 'До', photo1: 'images/first.jpg', photo2: 'images/second.jpg', price: 10 }];
+  let failMetadata = false;
+  let ignoreWrite = false;
+  let pages = [{ id: 'p', title: 'До', slug: 'before', status: 'ОПУБЛИКОВАН', blocks: [] }];
+  globalThis.fetch = async (url, options = {}) => {
+    const endpoint = String(url).split('/rest/v1/')[1];
+    const args = options.body ? JSON.parse(options.body) : {};
+    let result = { success: true };
+    if (endpoint.startsWith('laute_categories?')) result = [{ categories }];
+    if (endpoint.startsWith('laute_products?')) result = products;
+    if (endpoint.startsWith('laute_custom_pages?')) result = [{ pages }];
+    if (endpoint === 'rpc/laute_import_products') products = args.p_products;
+    if (endpoint === 'rpc/laute_save_categories') {
+      if (failMetadata) { failMetadata = false; result = { success: false, error: 'Metadata failed' }; }
+      else categories = args.p_categories;
+    }
+    if (endpoint === 'rpc/laute_save_product' && !ignoreWrite) products = [args.p_product];
+    if (endpoint === 'rpc/laute_save_custom_pages') pages = args.p_pages;
+    return Response.json(structuredClone(result));
+  };
+  try {
+    await api.saveCategories([{ id: 'c', name: 'После' }]);
+    assert.equal(products[0].category, 'После');
+    assert.equal(categories[0].name, 'После');
+    failMetadata = true;
+    await assert.rejects(api.saveCategories([{ id: 'c', name: 'Отказ' }]), /Metadata failed/);
+    assert.equal(products[0].category, 'После');
+    assert.equal(categories[0].name, 'После');
+    await assert.rejects(api.saveCategories([]), /перенеси/);
+    const photo = await api.updateProduct('X', { photo1: 'images/chosen-box.jpg' });
+    assert.equal(photo.photo1, 'images/chosen-box.jpg');
+    assert.equal(photo.photo2, 'images/second.jpg');
+    assert.equal(classifyProductImages(photo, '/laute/').mainPhoto, '/laute/images/chosen-box.jpg');
+    ignoreWrite = true;
+    await assert.rejects(api.updateProduct('X', { photo1: 'images/not-saved.jpg' }), /не подтверждено/);
+    await api.updateCustomPage('p', { title: 'После', slug: 'after', status: 'ЧЕРНОВИК' });
+    assert.equal(getPublishedPage(pages[0]).title, 'До');
+    await api.updateCustomPage('p', { status: 'ОПУБЛИКОВАН' });
+    assert.equal(getPublishedPage(pages[0]).title, 'После');
+    await assert.rejects(api.saveSiteContentDraft({ buttons: { x: { action: 'link', link: 'javascript:alert(1)' } } }), /корректную ссылку/);
+  } finally {
+    globalThis.fetch = originalFetch;
+    delete globalThis.window;
+    delete globalThis.localStorage;
+  }
 });

@@ -1,3 +1,4 @@
+import { ButtonSettings } from '../components/builder/ButtonSettings';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { CATEGORY_NAMES } from '../data/catalogData';
 import { getNavTranslation, getPageSeo, navigationKey } from '../utils/contentSettings';
@@ -123,6 +124,7 @@ import {
   parseStockExcelClient
 } from '../utils/excelManager';
 import '../styles/admin.css';
+import '../styles/admin-studio.css';
 
 // Demo mode privacy masking helpers for customer personal data
 const maskCustomerName = (name) => {
@@ -289,6 +291,8 @@ export const AdminPage = () => {
   // Categories State
   const [categoriesList, setCategoriesList] = useState([]);
   const [editingCategory, setEditingCategory] = useState(null);
+  const [isSavingCategories, setIsSavingCategories] = useState(false);
+  const [isAttachingMedia, setIsAttachingMedia] = useState(false);
 
   // Warehouse & Stock Management State
   const [warehousesList, setWarehousesList] = useState([]);
@@ -454,7 +458,7 @@ export const AdminPage = () => {
   const loadCatalogData = useCallback(async () => {
     setIsLoadingProducts(true);
     try {
-      const prods = await fetchProducts(true);
+      const prods = await fetchProducts(true, true);
       if (Array.isArray(prods)) {
         setCatalogList(prods);
         updateProducts(prods);
@@ -471,7 +475,7 @@ export const AdminPage = () => {
       const [cats, prods] = await Promise.all([fetchCategories(), fetchProducts(true)]);
       const names = new Set(cats.map(c => c.name));
       const all = [...cats];
-      [...CATEGORY_NAMES, ...prods.map(p => p.category)].filter(Boolean).forEach(name => {
+      [...prods.map(p => p.category)].filter(Boolean).forEach(name => {
         if (!names.has(name)) { all.push({ id: name, name }); names.add(name); }
       });
       setCategoriesList(all);
@@ -573,7 +577,7 @@ export const AdminPage = () => {
       loadSettingsData();
       loadHistoryData();
       loadContentData();
-    } else if (activeTab === 'editor' || activeTab === 'drafts' || activeTab === 'languages' || activeTab === 'menu' || activeTab === 'seo') {
+    } else if (activeTab === 'buttons' || activeTab === 'editor' || activeTab === 'drafts' || activeTab === 'languages' || activeTab === 'menu' || activeTab === 'seo') {
       loadContentData();
       if (activeTab === 'drafts' || activeTab === 'editor') {
         loadHistoryData();
@@ -1016,18 +1020,26 @@ export const AdminPage = () => {
     try {
       const prod = catalogList.find(p => p.article === mediaAttachProductSku);
       if (!prod) return;
-      const updatedProd = {
-        ...prod,
-        [mediaAttachSlot]: mediaDetailModal.url
-      };
-      await updateProduct(prod.article, updatedProd);
+      setIsAttachingMedia(true);
+      const updatedProd = await updateProduct(prod.article, { [mediaAttachSlot]: mediaDetailModal.url });
       setCatalogList(prev => prev.map(p => p.article === prod.article ? updatedProd : p));
       updateProducts(catalogList.map(p => p.article === prod.article ? updatedProd : p));
       showNotice(`Фото «${mediaDetailModal.name}» привязано к товару ${prod.article} (${mediaAttachSlot})`);
       setMediaDetailModal(null);
     } catch (err) {
       showNotice(err.message || 'Ошибка привязки фото к товару', 'error');
-    }
+    } finally { setIsAttachingMedia(false); }
+  };
+  const persistCategories = async (next) => {
+    if (isDemoMode) { showNotice('Для сохранения войди по паролю', 'error'); return; }
+    setIsSavingCategories(true);
+    try {
+      setCategoriesList(await saveCategories(next));
+      await loadCatalogData();
+      setEditingCategory(null);
+      showNotice('Категории и связи товаров сохранены. Изменения уже на сайте.');
+    } catch (err) { showNotice(err.message, 'error'); }
+    finally { setIsSavingCategories(false); }
   };
   const handleSelectWarehouse = (whId) => {
     setSelectedWarehouseId(whId);
@@ -1490,6 +1502,7 @@ export const AdminPage = () => {
     { id: 'pages', label: 'Страницы', icon: FileText },
     { id: 'catalog', label: 'Каталог', icon: Package, count: catalogList.length },
     { id: 'stock', label: 'Складские остатки', icon: Boxes },
+    { id: 'buttons', label: 'Кнопки сайта', icon: Sliders },
     { id: 'categories', label: 'Категории товаров', icon: FolderTree },
     { id: 'excel', label: 'Импорт и экспорт Excel', icon: FileSpreadsheet },
     { id: 'media', label: 'Фотографии и медиа', icon: ImageIcon },
@@ -1643,7 +1656,7 @@ export const AdminPage = () => {
         <div className="admin-navbar-left">
           <div className="admin-brand-cluster">
             <span className="admin-logo-text">LAUTE</span>
-            <span className="admin-cms-badge">ПАНЕЛЬ СОТРУДНИКОВ</span>
+            <span className="admin-cms-badge">STUDIO / УПРАВЛЕНИЕ</span>
           </div>
 
           {draftContent?.hasUnpublishedChanges && (
@@ -1715,7 +1728,7 @@ export const AdminPage = () => {
             {[
               { label: 'Рабочий день', ids: ['dashboard', 'orders'] },
               { label: 'Товары и склад', ids: ['catalog', 'excel', 'stock', 'categories', 'media'] },
-              { label: 'Сайт и публикация', ids: ['editor', 'pages', 'menu', 'languages', 'seo', 'drafts'] },
+              { label: 'Сайт и публикация', ids: ['editor', 'pages', 'buttons', 'menu', 'languages', 'seo', 'drafts'] },
               { label: 'Система', ids: ['history', 'settings'] }
             ].map(group => {
               const items = group.ids.map(id => navItems.find(item => item.id === id)).filter(item => item && item.label.toLowerCase().includes(navSearch.toLowerCase()));
@@ -1741,7 +1754,7 @@ export const AdminPage = () => {
               <Shield size={14} className="session-shield" />
               <div className="session-info">
                 <span className="session-title">Сессия активна</span>
-                <span className="session-id">{adminSession?.id || 'admin-session'}</span>
+                <span className="session-id">{'Доступ сотрудника'}</span>
               </div>
             </div>
           </div>
@@ -1751,7 +1764,7 @@ export const AdminPage = () => {
         <main className="admin-main-viewport">
           <div className="admin-workflow-guide">
             <strong>{navItems.find(item => item.id === activeTab)?.label}</strong>
-            <span>{['editor', 'menu', 'languages', 'seo', 'drafts'].includes(activeTab)
+            <span>{['editor', 'buttons', 'menu', 'languages', 'seo', 'drafts'].includes(activeTab)
               ? 'Сохрани черновик, чтобы продолжить позже. «Опубликовать» сохраняет текущие правки и выводит их на сайт.'
               : activeTab === 'excel'
                 ? '1. Выгрузи каталог → 2. Заполни Excel → 3. Проверь строки → 4. Примени импорт. Категория берётся из твоего файла.'
@@ -1773,8 +1786,8 @@ export const AdminPage = () => {
             <div className="admin-view dashboard-view">
               <div className="view-header">
                 <div>
-                  <h2 className="view-title">Главная панель управления</h2>
-                  <p className="view-subtitle">Сводный статус контента, каталога товаров и публикации сайта LAUTE</p>
+                  <h2 className="view-title">Твоя рабочая студия</h2>
+                  <p className="view-subtitle">Каталог, страницы и заявки — всё под рукой.</p>
                 </div>
                 <div className="header-actions">
                   <button 
@@ -1960,6 +1973,8 @@ export const AdminPage = () => {
             </div>
           )}
 
+          {activeTab === 'buttons' && <ButtonSettings content={draftContent} onChange={setDraftContent} />}
+
           {/* TAB 2: РЕДАКТОР САЙТА (ВИЗУАЛЬНЫЙ РЕДАКТОР БЛОКОВ) */}
           {activeTab === 'editor' && (
             <div className="admin-view editor-view">
@@ -1968,58 +1983,7 @@ export const AdminPage = () => {
                   <h2 className="view-title">Редактор сайта LAUTE</h2>
                   <p className="view-subtitle">Редактирование текстов, заголовков, слайдов, фотографий и блоков всех страниц сайта</p>
                 </div>
-                <div className="header-actions">
-                  <button 
-                    type="button" 
-                    className="admin-btn admin-btn-outline admin-btn-sm"
-                    onClick={handleSaveDraft}
-                    disabled={isSavingDraft}
-                  >
-                    <Save size={14} />
-                    <span>{isSavingDraft ? 'Сохранение...' : 'Сохранить черновик'}</span>
-                  </button>
-
-                  <button 
-                    type="button" 
-                    className="admin-btn admin-btn-outline admin-btn-sm"
-                    onClick={() => setPreviewModalOpen(true)}
-                  >
-                    <Eye size={14} />
-                    <span>Предпросмотр</span>
-                  </button>
-
-                  <button 
-                    type="button" 
-                    className="admin-btn admin-btn-success admin-btn-sm"
-                    onClick={handlePublish}
-                    disabled={isPublishing}
-                  >
-                    <Check size={14} />
-                    <span>{isPublishing ? 'Публикация...' : 'Опубликовать'}</span>
-                  </button>
-
-                  <button 
-                    type="button" 
-                    className="admin-btn admin-btn-ghost admin-btn-sm"
-                    onClick={handleDiscardDraft}
-                    title="Сбросить изменения к последней публикации"
-                  >
-                    <RotateCcw size={14} />
-                    <span>Отменить</span>
-                  </button>
-
-                  {contentBackupsList.length > 0 && (
-                    <button 
-                      type="button" 
-                      className="admin-btn admin-btn-outline admin-btn-sm"
-                      onClick={() => setActiveTab('drafts')}
-                      title="Восстановить предыдущую версию контента"
-                    >
-                      <RotateCcw size={14} />
-                      <span>Восстановить версию</span>
-                    </button>
-                  )}
-                </div>
+                <div className="header-actions"><span className="stat-tag">Сохранение и публикация — в верхней панели</span></div>
               </div>
 
               {/* Page Selection Row */}
@@ -2575,7 +2539,7 @@ export const AdminPage = () => {
               <div className="admin-view pages-view">
                 <div className="view-header">
                   <div>
-                    <h2 className="view-title">Управление страницами и Визуальный конструктор</h2>
+                    <h2 className="view-title">Страницы и блоки</h2>
                     <p className="view-subtitle">
                       Редактирование существующих страниц LAUTE и создание новых разделов в визуальном конструкторе (как в Tilda)
                     </p>
@@ -2870,7 +2834,7 @@ export const AdminPage = () => {
                               route: `/${cleanSlug}`,
                               description: newPageForm.description,
                               blocks: initialBlocks,
-                              status: 'ОПУБЛИКОВАН'
+                              status: 'ЧЕРНОВИК'
                             });
                             setIsCreatePageModalOpen(false);
                             setNewPageForm({ title: '', slug: '', description: '', template: 'hero_text' });
@@ -4470,42 +4434,35 @@ export const AdminPage = () => {
             </div>
           )}
 
-          {/* TAB 5: КАТЕГОРИИ */}
           {activeTab === 'categories' && (
             <div className="admin-view categories-view">
-              <div className="view-header">
-                <div>
-                  <h2 className="view-title">Категории каталога</h2>
-                  <p className="view-subtitle">Структура категорий, последовательность отображения и привязка номенклатуры</p>
-                </div>
+              <div className="view-header"><div><span className="studio-eyebrow">Каталог / Структура</span><h2 className="view-title">Категории</h2><p className="view-subtitle">Переименовывай и меняй порядок — товары сохранят свои связи.</p></div>
+                <button className="admin-btn admin-btn-primary" disabled={isSavingCategories} onClick={() => setEditingCategory({ id: 'cat-' + Date.now(), name: '', description: '', isVisible: true })}><Plus size={16}/>Добавить категорию</button>
               </div>
-
-              <div className="admin-section-card">
-                <div className="admin-table-wrapper">
-                  <table className="admin-table">
-                    <thead>
-                      <tr>
-                        <th>Порядок</th>
-                        <th>Название категории</th>
-                        <th>Видимость</th>
-                        <th>Товаров</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {categoriesList.map((cat, idx) => (
-                        <tr key={cat.id || idx}>
-                          <td>#{cat.order || idx + 1}</td>
-                          <td><strong>{cat.name}</strong></td>
-                          <td>
-                            <span className="stat-tag">{catalogList.some(p => p.category === cat.name && p.status !== 'СКРЫТ') ? 'Есть на витрине' : 'Без активных товаров'}</span>
-                          </td>
-                          <td>{catalogList.filter(p => p.category === cat.name).length} позиций</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+              <div className="studio-category-grid">
+                {categoriesList.map((cat, idx) => <article className="studio-category-card" key={cat.id || cat.name}>
+                  <div className="studio-category-top"><span className="studio-category-index">{String(idx + 1).padStart(2, '0')}</span><span className={'stat-tag ' + (cat.isVisible === false ? 'warning' : 'success')}>{cat.isVisible === false ? 'Скрыта' : 'На сайте'}</span></div>
+                  {cat.image && <img className="studio-category-image" src={resolveMediaUrl(cat.image)} alt=""/>}
+                  <h3>{cat.name}</h3><p>{cat.description || 'Добавь описание категории'}</p><span className="cell-muted">{catalogList.filter(p => p.category === cat.name).length} товаров</span>
+                  <div className="studio-category-actions"><button className="admin-btn admin-btn-outline" disabled={isSavingCategories} onClick={() => setEditingCategory({ ...cat, originalName: cat.name })}><Edit3 size={14}/>Изменить</button>
+                    <button className="admin-btn admin-btn-ghost" aria-label={'Поднять ' + cat.name} disabled={idx === 0 || isSavingCategories} onClick={() => { const next = [...categoriesList]; [next[idx-1],next[idx]] = [next[idx],next[idx-1]]; persistCategories(next); }}><ArrowUp size={16}/></button>
+                    <button className="admin-btn admin-btn-ghost" aria-label={'Опустить ' + cat.name} disabled={idx === categoriesList.length-1 || isSavingCategories} onClick={() => { const next = [...categoriesList]; [next[idx+1],next[idx]] = [next[idx],next[idx+1]]; persistCategories(next); }}><ArrowDown size={16}/></button>
+                  </div>
+                </article>)}
               </div>
+              {editingCategory && <div className="admin-modal-overlay"><form className="admin-modal" onSubmit={e => { e.preventDefault(); const found = categoriesList.some(c => c.id === editingCategory.id); persistCategories(found ? categoriesList.map(c => c.id === editingCategory.id ? editingCategory : c) : [...categoriesList, editingCategory]); }}>
+                <div className="admin-modal-header"><h3>{editingCategory.name || 'Новая категория'}</h3><button type="button" className="admin-btn admin-btn-ghost" disabled={isSavingCategories} onClick={() => setEditingCategory(null)}><X size={18}/></button></div>
+                <div className="admin-modal-body">
+                  <label className="form-group">Название<input aria-label="Название категории" required value={editingCategory.name} onChange={e => setEditingCategory({ ...editingCategory, name: e.target.value })}/></label>
+                  <label className="form-group">Описание<textarea aria-label="Описание категории" rows={3} value={editingCategory.description || ''} onChange={e => setEditingCategory({ ...editingCategory, description: e.target.value })}/></label>
+                  <ImageFieldEditor label="Фото категории" value={editingCategory.image || ''} onChange={image => setEditingCategory({ ...editingCategory, image })}/>
+                  <label className="studio-check"><input type="checkbox" checked={editingCategory.isVisible !== false} onChange={e => setEditingCategory({ ...editingCategory, isVisible: e.target.checked })}/>Показывать категорию и её товары на сайте</label>
+                </div>
+                <div className="admin-modal-footer">
+                  <button type="button" className="admin-btn admin-btn-danger" disabled={isSavingCategories || catalogList.some(p => p.category === editingCategory.name)} onClick={() => { if (window.confirm('Удалить пустую категорию?')) persistCategories(categoriesList.filter(c => c.id !== editingCategory.id)); }}>Удалить пустую</button>
+                  <button type="submit" className="admin-btn admin-btn-primary" disabled={isSavingCategories}>{isSavingCategories ? 'Сохраняю и проверяю…' : 'Сохранить на сайте'}</button>
+                </div>
+              </form></div>}
             </div>
           )}
 
@@ -6828,7 +6785,7 @@ export const AdminPage = () => {
                   <button
                     type="button"
                     className="admin-btn admin-btn-primary"
-                    disabled={!mediaAttachProductSku}
+                    disabled={!mediaAttachProductSku || isAttachingMedia}
                     onClick={handleAttachMediaToProduct}
                   >
                     <Check size={14} />

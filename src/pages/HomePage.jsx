@@ -1,16 +1,17 @@
+import { SiteAction } from '../components/SiteAction';
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { 
-  ArrowRight, 
-  Users, 
-  Store, 
-  HardHat, 
-  Wrench, 
-  PhoneCall, 
-  Mail, 
-  CheckCircle2, 
-  Clock, 
-  Headphones, 
+import {
+  ArrowRight,
+  Users,
+  Store,
+  HardHat,
+  Wrench,
+  PhoneCall,
+  Mail,
+  CheckCircle2,
+  Clock,
+  Headphones,
   ShieldCheck,
   Sparkles
 } from 'lucide-react';
@@ -97,9 +98,9 @@ export const HomePage = () => {
             {/* 1. Испанские картриджи Sedal — КРУПНЫЙ ВИЗУАЛЬНЫЙ ПЛАН (Featured Macro) */}
             <div className="tech-card tech-card-featured reveal-on-scroll">
               <div className="tech-media-frame">
-                <img 
-                  src={`${baseUrl}images/sedal_cartridge_macro.jpg`} 
-                  alt="Испанский керамический картридж Sedal для смесителей LAUTE" 
+                <img
+                  src={`${baseUrl}images/sedal_cartridge_macro.jpg`}
+                  alt="Испанский керамический картридж Sedal для смесителей LAUTE"
                   className="tech-macro-img"
                   loading="lazy"
                 />
@@ -137,9 +138,9 @@ export const HomePage = () => {
             {/* 2. Сверхпрочные эксцентрики из латуни А+ */}
             <div className="tech-card tech-card-standard reveal-on-scroll reveal-delay-1">
               <div className="tech-media-frame">
-                <img 
-                  src={`${baseUrl}images/brass_eccentric_macro.jpg`} 
-                  alt="Сверхпрочные эксцентрики из первичной латуни А+" 
+                <img
+                  src={`${baseUrl}images/brass_eccentric_macro.jpg`}
+                  alt="Сверхпрочные эксцентрики из первичной латуни А+"
                   className="tech-macro-img"
                   loading="lazy"
                 />
@@ -163,9 +164,9 @@ export const HomePage = () => {
             {/* 3. PVD-покрытие */}
             <div className="tech-card tech-card-standard reveal-on-scroll reveal-delay-2">
               <div className="tech-media-frame">
-                <img 
-                  src={`${baseUrl}images/pvd_finish_macro.jpg`} 
-                  alt="PVD-покрытие сантехники LAUTE" 
+                <img
+                  src={`${baseUrl}images/pvd_finish_macro.jpg`}
+                  alt="PVD-покрытие сантехники LAUTE"
                   className="tech-macro-img"
                   loading="lazy"
                 />
@@ -189,9 +190,9 @@ export const HomePage = () => {
             {/* 4. Нержавеющая сталь SUS304 */}
             <div className="tech-card tech-card-standard reveal-on-scroll reveal-delay-3">
               <div className="tech-media-frame">
-                <img 
-                  src={`${baseUrl}images/sus304_steel_macro.jpg`} 
-                  alt="Пищевая нержавеющая сталь SUS304 LAUTE" 
+                <img
+                  src={`${baseUrl}images/sus304_steel_macro.jpg`}
+                  alt="Пищевая нержавеющая сталь SUS304 LAUTE"
                   className="tech-macro-img"
                   loading="lazy"
                 />
@@ -215,9 +216,9 @@ export const HomePage = () => {
             {/* 5. ЭКО алюминий */}
             <div className="tech-card tech-card-standard reveal-on-scroll reveal-delay-4">
               <div className="tech-media-frame">
-                <img 
-                  src={`${baseUrl}images/eco_aluminum_macro.jpg`} 
-                  alt="Конструкционный ЭКО алюминий для душевых зон и кабин" 
+                <img
+                  src={`${baseUrl}images/eco_aluminum_macro.jpg`}
+                  alt="Конструкционный ЭКО алюминий для душевых зон и кабин"
                   className="tech-macro-img"
                   loading="lazy"
                 />
@@ -260,9 +261,9 @@ export const HomePage = () => {
             {/* Left Column: Architectural Photo Canvas & Floating Overlay */}
             <div className="partnership-heroic-visual">
               <div className="partnership-media-frame">
-                <img 
-                  src={`${baseUrl}images/hero/hero-slide-4.jpg`} 
-                  alt="Партнёрство с LAUTE" 
+                <img
+                  src={`${baseUrl}images/hero/hero-slide-4.jpg`}
+                  alt="Партнёрство с LAUTE"
                   className="partnership-stage-img"
                   loading="lazy"
                 />
@@ -292,15 +293,15 @@ export const HomePage = () => {
                   </div>
 
                   <div className="partnership-stage-cta">
-                    <button 
-                      type="button" 
-                      className="btn btn-primary btn-luxury" 
+                    <SiteAction controlId="home-1"
+                      type="button"
+                      className="btn btn-primary btn-luxury"
                       onClick={openPartnerModal}
                       id="adv-btn-partner"
                     >
                       <span>{h.btnPartner || 'Стать партнёром'}</span>
                       <ArrowRight size={18} />
-                    </button>
+                    </SiteAction>
                   </div>
                 </div>
               </div>
@@ -385,9 +386,9 @@ export const HomePage = () => {
               </p>
             </div>
             <div className="ai-cta-banner-action">
-              <button 
-                type="button" 
-                className="btn btn-primary btn-luxury btn-ai-start" 
+              <button
+                type="button"
+                className="btn btn-primary btn-luxury btn-ai-start"
                 onClick={startAIPartnerAnalysis}
                 id="btn-partner-ai-analysis"
               >
@@ -441,32 +442,32 @@ export const HomePage = () => {
                 </div>
 
                 <div className="service-editorial-actions">
-                  <button 
-                    type="button" 
-                    className="btn btn-primary" 
+                  <SiteAction controlId="home-3"
+                    type="button"
+                    className="btn btn-primary"
                     onClick={() => navigateTo('service')}
                     id="btn-service-center"
                   >
                     <span>{h.serviceBtn || 'Обратиться в сервис'}</span>
                     <ArrowRight size={16} />
-                  </button>
-                  <button 
-                    type="button" 
-                    className="btn btn-outline light-btn-outline" 
+                  </SiteAction>
+                  <SiteAction controlId="home-4"
+                    type="button"
+                    className="btn btn-outline light-btn-outline"
                     onClick={() => navigateTo('partners')}
                     id="btn-partner-support"
                   >
                     <span>{h.servicePartnerBtn || 'Поддержка партнеров'}</span>
-                  </button>
+                  </SiteAction>
                 </div>
               </div>
 
               {/* Right Column: Factory Quality Testing Photo */}
               <div className="service-visual-column">
                 <div className="service-photo-frame">
-                  <img 
-                    src={`${baseUrl}images/prod_testing.png`} 
-                    alt="Контроль качества и сервис LAUTE" 
+                  <img
+                    src={`${baseUrl}images/prod_testing.png`}
+                    alt="Контроль качества и сервис LAUTE"
                     className="service-photo-img"
                     loading="lazy"
                   />
@@ -521,14 +522,14 @@ export const HomePage = () => {
               </div>
 
               <div className="cta-secondary-link-wrap">
-                <button 
-                  type="button" 
-                  className="btn btn-outline light-btn-outline btn-sm" 
+                <SiteAction controlId="home-5"
+                  type="button"
+                  className="btn btn-outline light-btn-outline btn-sm"
                   onClick={() => navigateTo('contacts')}
                   id="btn-all-contacts"
                 >
                   <span>{h.formAllContacts || 'Контакты в вашем регионе'}</span>
-                </button>
+                </SiteAction>
               </div>
             </div>
 
@@ -538,9 +539,9 @@ export const HomePage = () => {
                   <CheckCircle2 size={48} color="#0EA5E9" />
                   <h3>{h.formSuccessTitle || 'Запрос успешно отправлен!'}</h3>
                   <p>{withBrandWord(h.formSuccessDesc || 'Представитель LAUTE свяжется с вами для отправки коммерческого предложения.')}</p>
-                  <button 
-                    type="button" 
-                    className="btn btn-outline light-btn-outline btn-sm" 
+                  <button
+                    type="button"
+                    className="btn btn-outline light-btn-outline btn-sm"
                     style={{ marginTop: '16px' }}
                     onClick={() => setLeadSubmitted(false)}
                   >
@@ -612,10 +613,10 @@ export const HomePage = () => {
                   </div>
 
                   <div className="form-submit-wrap">
-                    <button type="submit" className="btn btn-primary btn-lg btn-full" id="btn-submit-lead">
+                    <SiteAction controlId="home-6" type="submit" className="btn btn-primary btn-lg btn-full" id="btn-submit-lead">
                       <span>{h.formSubmit || 'Получить предложение'}</span>
                       <ArrowRight size={18} />
-                    </button>
+                    </SiteAction>
                     <p className="form-disclaimer light-disclaimer">
                       {h.formDisclaimer || 'Я согласен на обработку персональных данных на условиях Политики конфиденциальности'}
                     </p>

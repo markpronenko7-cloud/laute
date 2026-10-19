@@ -19,7 +19,8 @@ import {
   Plus
 } from 'lucide-react';
 import { withBrandWord } from '../../utils/brandFormatter';
-import { submitLeadInquiry } from '../../services/adminApi';
+import { isSafeActionLink } from '../SiteAction';
+import { resolveMediaUrl, submitLeadInquiry } from '../../services/adminApi';
 
 export const BlockRenderer = ({
   block,
@@ -46,19 +47,14 @@ export const BlockRenderer = ({
   const baseUrl = import.meta.env.BASE_URL;
 
   // Resolve image URL (prepend baseUrl if relative and not http)
-  const getImgSrc = (url) => {
-    if (!url) return '';
-    if (url.startsWith('http') || url.startsWith('data:')) return url;
-    const clean = url.startsWith('/') ? url.slice(1) : url;
-    return `${baseUrl}${clean}`;
-  };
+  const getImgSrc = resolveMediaUrl;
 
   const handleLinkClick = (e, link) => {
     if (isEditor) {
       e.preventDefault();
       return;
     }
-    if (!link) return;
+    if (!link || !isSafeActionLink(link)) { e.preventDefault(); return; }
     if (link.startsWith('#')) {
       e.preventDefault();
       const targetId = link.slice(1);
@@ -76,6 +72,7 @@ export const BlockRenderer = ({
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    if (isEditor) return;
     try {
       await submitLeadInquiry({
         source: block.formType || 'page_form',
@@ -132,7 +129,9 @@ export const BlockRenderer = ({
             {block.buttonText && (
               <div style={{ display: 'flex', gap: 14, justifyContent: align === 'center' ? 'center' : 'flex-start', flexWrap: 'wrap' }}>
                 <a
-                  href={block.buttonLink || '#'}
+                  href={isSafeActionLink(block.buttonLink) ? block.buttonLink || '#' : '#'}
+                  target={block.buttonNewTab && /^https?:/i.test(block.buttonLink || '') ? '_blank' : undefined}
+                  rel={block.buttonNewTab ? 'noopener noreferrer' : undefined}
                   className={`btn ${block.buttonType === 'primary' ? 'btn-primary' : (block.buttonType === 'gold' ? 'btn-gold' : 'btn-outline')}`}
                   onClick={(e) => handleLinkClick(e, block.buttonLink)}
                 >
@@ -199,8 +198,10 @@ export const BlockRenderer = ({
               </div>
               {block.buttonText && (
                 <a
-                  href={block.buttonLink || '#'}
-                  className="btn btn-outline"
+                  href={isSafeActionLink(block.buttonLink) ? block.buttonLink || '#' : '#'}
+                  target={block.buttonNewTab && /^https?:/i.test(block.buttonLink || '') ? '_blank' : undefined}
+                  rel={block.buttonNewTab ? 'noopener noreferrer' : undefined}
+                  className={'btn btn-' + (block.buttonType || 'outline')}
                   onClick={(e) => handleLinkClick(e, block.buttonLink)}
                 >
                   <span>{block.buttonText}</span>
@@ -405,7 +406,7 @@ export const BlockRenderer = ({
                   style={{ background: 'rgba(0,0,0,0.3)', padding: '12px 16px', fontSize: 14, resize: 'vertical' }}
                 />
                 <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 4 }}>
-                  <span>Отправить заявку в отдел продаж</span>
+                  <span>{block.submitText || 'Отправить заявку в отдел продаж'}</span>
                   <ArrowRight size={16} />
                 </button>
               </form>
@@ -492,8 +493,10 @@ export const BlockRenderer = ({
             {block.subtitle && <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.85)', maxWidth: 680, margin: align === 'center' ? '0 auto 26px' : '0 0 26px', lineHeight: 1.6 }}>{block.subtitle}</p>}
             {block.buttonText && (
               <a
-                href={block.buttonLink || '#'}
-                className="btn btn-gold"
+                href={isSafeActionLink(block.buttonLink) ? block.buttonLink || '#' : '#'}
+                  target={block.buttonNewTab && /^https?:/i.test(block.buttonLink || '') ? '_blank' : undefined}
+                  rel={block.buttonNewTab ? 'noopener noreferrer' : undefined}
+                className={'btn btn-' + (block.buttonType || 'gold')}
                 onClick={(e) => handleLinkClick(e, block.buttonLink)}
               >
                 <span>{block.buttonText}</span>
@@ -522,6 +525,7 @@ export const BlockRenderer = ({
 
   return (
     <section
+      id={block.anchor || (block.type === 'form_lead' ? 'lead-form' : block.id)}
       className={`builder-block-wrapper ${isEditor ? 'editor-mode' : ''} ${isSelected ? 'is-selected' : ''}`}
       style={{
         background: sectionBg,

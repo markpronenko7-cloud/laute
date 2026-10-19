@@ -1,3 +1,4 @@
+import { SiteAction } from './SiteAction';
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { Factory, CheckCircle2, Cog, Sparkles, Droplets, ArrowRight } from 'lucide-react';
@@ -47,13 +48,13 @@ export const Production = () => {
               <span>Строгий входной контроль сырья и 100% выходной тест каждого смесителя</span>
             </div>
 
-            <button
+            <SiteAction controlId="production-1"
               className="btn btn-secondary"
               onClick={openPartnerModal}
             >
               <span>{t.production.cta}</span>
               <ArrowRight size={16} />
-            </button>
+            </SiteAction>
           </div>
         </div>
       </div>

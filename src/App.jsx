@@ -18,6 +18,7 @@ import { ProductComparisonModal } from './components/modals/ProductComparisonMod
 import { ExcelManagerModal } from './components/modals/ExcelManagerModal';
 import CartModal from './components/modals/CartModal';
 import { CustomPageRenderer } from './components/builder/CustomPageRenderer';
+import { getPublishedPage } from './utils/pagePublication';
 
 const AdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
 
@@ -33,6 +34,9 @@ export const AppContent = () => {
   }
 
   const renderCurrentPage = () => {
+    const publishedPage = pagesList.map(p => getPublishedPage(p)).filter(Boolean)
+      .find(p => p.slug === currentRoute || p.route === `/${currentRoute}` || (currentRoute === 'home' && p.route === '/'));
+    if (publishedPage && !['company', 'partners'].includes(currentRoute)) return <CustomPageRenderer page={publishedPage} />;
     switch (currentRoute) {
       case 'catalog':
         return <CatalogPage />;

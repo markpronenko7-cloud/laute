@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import { PageText } from '../components/PageText';
+import { SiteAction } from '../components/SiteAction';
+import React, { useState, useEffect } from 'react';
+import { fetchCategories } from '../services/adminApi';
 import { useApp } from '../context/AppContext';
 import { 
   Search, 
@@ -49,6 +52,9 @@ export const CatalogPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMounting, setSelectedMounting] = useState('all');
+
+  const [categorySettings, setCategorySettings] = useState([]);
+  useEffect(() => { let active = true; fetchCategories().then(data => { if (active) setCategorySettings(data); }); return () => { active = false; }; }, []);
 
   const baseUrl = import.meta.env.BASE_URL;
   const cat = t.catalogPage || {};
@@ -330,7 +336,7 @@ export const CatalogPage = () => {
   };
 
   const normalizeCategory = (value) => String(value || '').trim().replace(/\s+/g, ' ');
-  const activeProducts = products.filter(p => p.status !== 'СКРЫТ');
+  const activeProducts = products.filter(p => p.status !== 'СКРЫТ' && !categorySettings.some(c => c.name === p.category && c.isVisible === false));
   const productCategories = Array.from(new Set(activeProducts.map(p => normalizeCategory(p.category)).filter(Boolean)));
 
   // Show only categories that actually contain products in the current catalog.
@@ -380,8 +386,13 @@ export const CatalogPage = () => {
     };
   });
 
+  const orderedCategories = categories.map(c => {
+    const saved = categorySettings.find(item => item.name === c.sourceCategory);
+    return saved ? { ...c, name: saved.name, desc: saved.description || c.desc, image: saved.image || c.image, order: saved.order ?? 999 } : { ...c, order: 999 };
+  }).sort((a,b) => a.order - b.order);
+
   // Filter Categories
-  const filteredCategories = categories.filter(c => {
+  const filteredCategories = orderedCategories.filter(c => {
     const matchesCat = selectedCategory === 'all' || c.sourceCategory === selectedCategory;
     const matchesMount = selectedMounting === 'all' || c.mounting === selectedMounting;
     const matchesSearch = searchQuery === '' || 
@@ -410,14 +421,14 @@ export const CatalogPage = () => {
           <div className="page-header-content catalog-header-grid">
             <div className="catalog-header-text">
               <span className="section-badge">{cat.badge || 'Номенклатура продукции'}</span>
-              <h1 className="page-title">{cat.title || 'Номенклатура продукции LAUTE'}</h1>
-              <p className="page-subtitle">
+              <PageText as="h1" route="catalog" field="h1" className="page-title">{cat.title || 'Номенклатура продукции LAUTE'}</PageText>
+              <PageText route="catalog" field="description" className="page-subtitle">
                 {cat.subtitle || 'Полноразмерный каталог сантехники, сформированный по назначению изделий и архитектурным сериям.'}
-              </p>
+              </PageText>
             </div>
 
             <div className="catalog-header-actions">
-              <button
+              <SiteAction controlId="catalog-1"
                 type="button"
                 className="btn btn-primary catalog-cart-trigger-btn"
                 onClick={openCartModal}
@@ -430,18 +441,18 @@ export const CatalogPage = () => {
                     {cartTotalKnownAmount > 0 ? ` · ${cartTotalKnownAmount.toLocaleString('ru-RU')} ₽` : ''}
                   </span>
                 )}
-              </button>
+              </SiteAction>
 
               {isB2BAuthorized || adminSession ? (
-                <button type="button" className="btn btn-outline catalog-b2b-btn" onClick={openAuthModal}>
+                <SiteAction controlId="catalog-2" type="button" className="btn btn-outline catalog-b2b-btn" onClick={openAuthModal}>
                   <CheckCircle2 size={15} color="#10B981" />
                   <span>Склад: {activeWarehouse?.name || 'Не выбран'}</span>
-                </button>
+                </SiteAction>
               ) : (
-                <button type="button" className="btn btn-outline catalog-b2b-btn" onClick={openAuthModal}>
+                <SiteAction controlId="catalog-3" type="button" className="btn btn-outline catalog-b2b-btn" onClick={openAuthModal}>
                   <PackageCheck size={16} />
                   <span>{cat.authBtn || 'Авторизоваться для просмотра остатков'}</span>
-                </button>
+                </SiteAction>
               )}
             </div>
           </div>
@@ -891,7 +902,7 @@ export const CatalogPage = () => {
                     {cItem.image && <span className="card-image-note">{lang === 'en' ? 'Product photo' : lang === 'kz' ? 'Тауар фотосы' : 'Фото товара'} · {cItem.imageSku}</span>}
 
                     <div className="card-footer">
-                      <button
+                      <SiteAction controlId="catalog-4"
                         type="button"
                         className="btn btn-outline btn-sm btn-full"
                         onClick={() => {
@@ -908,7 +919,7 @@ export const CatalogPage = () => {
                             : 'Смотреть модели в каталоге'}
                         </span>
                         <ArrowRight size={14} />
-                      </button>
+                      </SiteAction>
                     </div>
                   </div>
                 </div>
@@ -952,17 +963,17 @@ export const CatalogPage = () => {
             </div>
             <div className="catalog-banner-actions">
               {cartDistinctCount > 0 && (
-                <button type="button" className="btn btn-outline catalog-banner-cart-btn" onClick={openCartModal}>
+                <SiteAction controlId="catalog-5" type="button" className="btn btn-outline catalog-banner-cart-btn" onClick={openCartModal}>
                   <ShoppingBag size={16} />
                   <span>
                     {cat.openCartBtn || 'Корзина заявки'} ({cartTotalUnits})
                   </span>
-                </button>
+                </SiteAction>
               )}
-              <button type="button" className="btn btn-primary" onClick={openPartnerModal}>
+              <SiteAction controlId="catalog-6" type="button" className="btn btn-primary" onClick={openPartnerModal}>
                 <span>{cat.requestObjectBtn || 'Запросить подбор под объект'}</span>
                 <ArrowRight size={16} />
-              </button>
+              </SiteAction>
             </div>
           </div>
         </div>

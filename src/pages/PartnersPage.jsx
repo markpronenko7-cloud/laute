@@ -1,3 +1,5 @@
+import { getPublishedPage } from '../utils/pagePublication';
+import { usePageIntro } from '../components/PageText';
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { BlockRenderer } from '../components/builder/BlockRenderer';
@@ -6,10 +8,12 @@ export const PartnersPage = () => {
   const { pagesList = [], lang, t } = useApp();
   const pp = t.partnersPage || {};
 
-  const partnersPage = pagesList.find(p => p.slug === 'partners');
+  const partnersPage = getPublishedPage(pagesList.find(p => p.slug === 'partners' || p.published?.slug === 'partners'), true);
+  const intro = usePageIntro('partners');
   const rawBlocks = partnersPage?.blocks || [];
 
-  const blocks = rawBlocks.map((block, idx) => {
+  const blocks = rawBlocks.map((source, idx) => {
+    const block = idx === 0 && source.type === 'hero' ? { ...source, title: intro.h1 || source.title, subtitle: intro.description || source.subtitle } : source;
     if (lang !== 'ru' && idx === 0 && block.type === 'hero') {
       return {
         ...block,

@@ -30,6 +30,7 @@ import {
   duplicateCustomPage,
   fetchPageVersions,
   rollbackPagesVersion
+  , fetchMediaList, resolveMediaUrl
 } from '../../services/adminApi';
 
 export const VisualPageBuilder = ({
@@ -51,6 +52,7 @@ export const VisualPageBuilder = ({
 
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [saveMessage, setSaveMessage] = useState(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Versions history state
@@ -63,6 +65,21 @@ export const VisualPageBuilder = ({
 
   // Media picker modal stub
   const [mediaPickerCallback, setMediaPickerCallback] = useState(null);
+  const [mediaItems, setMediaItems] = useState([]);
+  const [mediaSearch, setMediaSearch] = useState('');
+  const [mediaError, setMediaError] = useState('');
+  const [mediaLoading, setMediaLoading] = useState(false);
+
+  useEffect(() => {
+    if (!mediaPickerCallback) return;
+    let active = true;
+    setMediaLoading(true);
+    setMediaError('');
+    fetchMediaList().then(items => { if (active) setMediaItems(items); })
+      .catch(error => { if (active) setMediaError(error.message); })
+      .finally(() => { if (active) setMediaLoading(false); });
+    return () => { active = false; };
+  }, [mediaPickerCallback]);
 
   const canvasRef = useRef(null);
 
@@ -77,6 +94,12 @@ export const VisualPageBuilder = ({
   }, [page]);
 
   const selectedBlock = blocks.find(b => b.id === selectedBlockId) || blocks[selectedBlockIdx] || null;
+
+  useEffect(() => {
+    const warn = e => { if (hasUnsavedChanges) { e.preventDefault(); e.returnValue = ''; } };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [hasUnsavedChanges]);
 
   // Select a block
   const handleSelectBlock = (blk, idx) => {
@@ -180,26 +203,31 @@ export const VisualPageBuilder = ({
 
   // Save changes to backend
   const handleSavePage = async (statusOverride = null) => {
+    if (isSaving) return;
     setIsSaving(true);
+    setSaveMessage(null);
     try {
       const nextStatus = statusOverride !== null ? statusOverride : 'ЧЕРНОВИК';
       const updatedPageData = {
         ...currentPage,
         blocks,
+        useBuilder: true,
         status: nextStatus,
         updatedAt: new Date().toISOString()
       };
 
-      await updateCustomPage(currentPage.id, updatedPageData);
-      setCurrentPage(updatedPageData);
+      const saved = await updateCustomPage(currentPage.id, updatedPageData);
+      setCurrentPage(saved);
       setHasUnsavedChanges(false);
+      setSaveMessage({ type: 'success', text: nextStatus === 'ОПУБЛИКОВАН' ? 'Опубликовано · чтение с сайта подтверждено' : 'Черновик сохранён · опубликованная версия не изменена' });
       showNotice(
         nextStatus === 'ОПУБЛИКОВАН'
           ? 'Страница успешно опубликована на сайте!'
           : 'Черновик страницы сохранён (статус: Черновик)'
       );
-      if (onSaveSuccess) onSaveSuccess(updatedPageData);
+      if (onSaveSuccess) onSaveSuccess(saved);
     } catch (err) {
+      setSaveMessage({ type: 'error', text: err.message || 'Не удалось сохранить страницу' });
       showNotice(err.message || 'Ошибка сохранения страницы', 'error');
     } finally {
       setIsSaving(false);
@@ -302,7 +330,7 @@ export const VisualPageBuilder = ({
             style={{ padding: '4px 10px' }}
           >
             <Monitor size={14} />
-            <span style={{ fontSize: 11 }}>Desktop</span>
+            <span style={{ fontSize: 11 }}>Компьютер</span>
           </button>
 
           <button
@@ -313,7 +341,7 @@ export const VisualPageBuilder = ({
             style={{ padding: '4px 10px' }}
           >
             <Tablet size={14} />
-            <span style={{ fontSize: 11 }}>Tablet</span>
+            <span style={{ fontSize: 11 }}>Планшет</span>
           </button>
 
           <button
@@ -324,7 +352,7 @@ export const VisualPageBuilder = ({
             style={{ padding: '4px 10px' }}
           >
             <Smartphone size={14} />
-            <span style={{ fontSize: 11 }}>Mobile</span>
+            <span style={{ fontSize: 11 }}>Телефон</span>
           </button>
         </div>
 
@@ -372,6 +400,10 @@ export const VisualPageBuilder = ({
           </button>
         </div>
       </header>
+
+      <div className={'builder-save-state ' + (saveMessage?.type || '')} role={saveMessage?.type === 'error' ? 'alert' : 'status'}>
+        {hasUnsavedChanges ? 'Есть правки · выбери блок на макете и измени его справа. Затем сохрани черновик или опубликуй.' : saveMessage?.text || 'Выбери блок на макете → измени содержимое справа → опубликуй'}
+      </div>
 
       {/* 2. MAIN 3-COLUMN WORKSPACE */}
       <div className="builder-workspace" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
@@ -602,6 +634,7 @@ export const VisualPageBuilder = ({
                   isEditor={true}
                   isSelected={blk.id === selectedBlockId}
                   onSelectBlock={handleSelectBlock}
+                  onInlineUpdate={handleUpdateBlock}
                   onMoveUp={handleMoveUp}
                   onMoveDown={handleMoveDown}
                   onDuplicate={handleDuplicateBlock}
@@ -628,6 +661,18 @@ export const VisualPageBuilder = ({
       </div>
 
       {/* 3. MODALS */}
+      {mediaPickerCallback && <div className="admin-modal-overlay" onClick={() => setMediaPickerCallback(null)}>
+        <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ width: '90%', maxWidth: 900 }}>
+          <div className="admin-modal-header"><h3>Выбери фото</h3><button className="admin-btn admin-btn-ghost" onClick={() => setMediaPickerCallback(null)}><X size={18}/></button></div>
+          <div className="admin-modal-body">
+            <input className="admin-input" aria-label="Поиск фото" placeholder="Название файла…" value={mediaSearch} onChange={e => setMediaSearch(e.target.value)}/>
+            {mediaLoading && <p role="status">Загружаю медиатеку…</p>}
+            {mediaError && <p role="alert">{mediaError}</p>}
+            {!mediaLoading && !mediaError && !mediaItems.length && <p>Пока нет фотографий. Загрузи файл в настройках блока.</p>}
+            <div className="studio-media-picker">{mediaItems.filter(item => item.name.toLowerCase().includes(mediaSearch.toLowerCase())).map(item => <button key={item.url} title={item.name} onClick={() => { mediaPickerCallback(item.url); setMediaPickerCallback(null); }}><img src={resolveMediaUrl(item.url)} alt={item.name}/><span>{item.name}</span></button>)}</div>
+          </div>
+        </div>
+      </div>}
       {/* Block Library Modal */}
       <BlockLibraryModal
         isOpen={isLibraryOpen}

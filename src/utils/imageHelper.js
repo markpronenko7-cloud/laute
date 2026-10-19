@@ -88,6 +88,7 @@ export function normalizeImageUrl(rawUrl, baseUrl = import.meta.env?.BASE_URL ||
   if (!rawUrl || typeof rawUrl !== 'string') return '';
   const trimmed = rawUrl.trim();
   if (!trimmed) return '';
+  if (trimmed.startsWith(baseUrl)) return trimmed;
 
   // 1. Проверяем папку Google Drive
   const folderId = extractGoogleDriveFolderId(trimmed);
@@ -174,6 +175,17 @@ export function classifyProductImages(product, baseUrl = import.meta.env?.BASE_U
       additionalPhotos: [],
       allPhotos: [fallback]
     };
+  }
+
+  // An explicit CMS assignment takes priority over filename guesses and SKU maps.
+  if (product.imageSlotsExplicit) {
+    const main = product.photo1 ? normalizeImageUrl(product.photo1, baseUrl) : '';
+    const additional = [product.photo2, product.photo3].filter(Boolean).map(url => normalizeImageUrl(url, baseUrl));
+    const boxes = product.boxUrl ? [normalizeImageUrl(product.boxUrl, baseUrl)] : [];
+    const mainPhoto = main || additional.shift() || `${baseUrl}images/cat_laute_brand.jpg`;
+    return { mainPhoto, additionalPhotos: [...additional, ...boxes],
+      drawingPhotos: product.drawingUrl ? [normalizeImageUrl(product.drawingUrl, baseUrl)] : [],
+      boxPhotos: boxes, allPhotos: [...new Set([mainPhoto, ...additional, ...boxes])] };
   }
 
   const rawImages = [];

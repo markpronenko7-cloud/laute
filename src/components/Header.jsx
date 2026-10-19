@@ -1,3 +1,4 @@
+import { SiteAction } from './SiteAction';
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Globe, MapPin, User, Menu, X, ChevronDown } from 'lucide-react';
@@ -260,7 +261,7 @@ export const Header = () => {
           </div>
 
           {/* B2B Client Cabinet */}
-          <button
+          <SiteAction controlId="header-1"
               type="button"
               className="btn btn-outline btn-sm cabinet-btn"
               onClick={openAuthModal}
@@ -269,16 +270,16 @@ export const Header = () => {
             >
               <User size={15} />
               <span className="cabinet-btn-label">{t.nav.clientCabinet || 'Кабинет партнёра'}</span>
-            </button>
+            </SiteAction>
 
           {/* Main Wholesale Partner CTA */}
-          <button
+          <SiteAction controlId="header-2"
             type="button"
             className="btn btn-primary btn-partner-cta"
             onClick={openPartnerModal}
           >
             <span>{t.nav.requestQuote || 'Стать партнёром'}</span>
-          </button>
+          </SiteAction>
 
           {/* Mobile Menu Toggle */}
           {!measuring && (
@@ -354,7 +355,7 @@ export const Header = () => {
             </div>
 
             <div className="mobile-actions">
-              <button
+              <SiteAction controlId="header-3"
                 type="button"
                 className="btn btn-outline btn-full"
                 onClick={() => {
@@ -364,8 +365,8 @@ export const Header = () => {
               >
                 <User size={16} />
                 <span>{t.nav.clientCabinet || 'Кабинет партнера'}</span>
-              </button>
-              <button
+              </SiteAction>
+              <SiteAction controlId="header-4"
                 type="button"
                 className="btn btn-primary btn-full"
                 onClick={() => {
@@ -374,7 +375,7 @@ export const Header = () => {
                 }}
               >
                 <span>{t.nav.requestQuote || 'Стать партнёром'}</span>
-              </button>
+              </SiteAction>
             </div>
           </div>
         </div>

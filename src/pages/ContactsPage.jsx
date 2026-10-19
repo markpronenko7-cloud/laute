@@ -1,3 +1,4 @@
+import { PageText } from '../components/PageText';
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { BlockRenderer } from '../components/builder/BlockRenderer';
@@ -49,7 +50,7 @@ export const ContactsPage = () => {
         ))
       ) : (
         <div className="container" style={{ padding: '80px 20px', textAlign: 'center' }}>
-          <h1 className="page-title">{ctp.title || 'Контакты завода LAUTE'}</h1>
+          <PageText as="h1" route="contacts" field="h1" className="page-title">{ctp.title || 'Контакты завода LAUTE'}</PageText>
           <p style={{ color: 'var(--color-text-secondary)' }}>{ctp.subtitle || 'Загрузка контактных данных...'}</p>
         </div>
       )}
