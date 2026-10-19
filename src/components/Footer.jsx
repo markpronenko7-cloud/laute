@@ -1,3 +1,4 @@
+import { SiteAction } from './SiteAction';
 import { getNavigation } from '../utils/contentSettings';
 import React from 'react';
 import { useApp } from '../context/AppContext';
@@ -21,16 +22,16 @@ export const Footer = () => {
         <div className="footer-top">
           {/* Brand Info & Socials */}
           <div className="footer-brand">
-            <a 
-              href={`${import.meta.env.BASE_URL}`} 
-              className="brand-logo" 
+            <a
+              href={`${import.meta.env.BASE_URL}`}
+              className="brand-logo"
               onClick={(e) => { e.preventDefault(); navigateTo('home'); }}
               title="LAUTE"
             >
-              <img 
-                src={logoSrc} 
-                alt="LAUTE" 
-                className="brand-logo-img footer-logo-img" 
+              <img
+                src={logoSrc}
+                alt="LAUTE"
+                className="brand-logo-img footer-logo-img"
                 onError={(e) => {
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'inline-block';
@@ -47,11 +48,11 @@ export const Footer = () => {
             <div className="footer-socials">
               <span className="footer-socials-label">{f.socialsLabel || 'Официальные страницы:'}</span>
               <div className="social-links-row">
-                <a 
-                  href="https://www.instagram.com/laute.official.russia/" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="social-btn" 
+                <a
+                  href="https://www.instagram.com/laute.official.russia/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="social-btn"
                   title="LAUTE в Instagram"
                   aria-label="Instagram"
                 >
@@ -63,11 +64,11 @@ export const Footer = () => {
                   <span>Instagram</span>
                 </a>
 
-                <a 
-                  href="https://www.facebook.com/laute.official.russia/" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="social-btn" 
+                <a
+                  href="https://www.facebook.com/laute.official.russia/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="social-btn"
                   title="LAUTE в Facebook"
                   aria-label="Facebook"
                 >
@@ -77,11 +78,11 @@ export const Footer = () => {
                   <span>Facebook</span>
                 </a>
 
-                <a 
-                  href="https://www.youtube.com/channel/UCNr6GllBjjPC6mg0wyc-BOw" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="social-btn" 
+                <a
+                  href="https://www.youtube.com/channel/UCNr6GllBjjPC6mg0wyc-BOw"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="social-btn"
                   title="LAUTE на YouTube"
                   aria-label="YouTube"
                 >
@@ -149,7 +150,7 @@ export const Footer = () => {
           {/* Verified Contacts */}
           <div className="footer-col">
             <h4 className="footer-col-title">{f.contactsCol || 'Контакты'}</h4>
-            
+
             <div className="footer-contact-block">
               <span className="contact-role">{f.representativeOffice || 'Представительство:'}</span>
               <p className="contact-address">
@@ -194,13 +195,13 @@ export const Footer = () => {
             <p className="footer-action-desc">
               {withBrandWord(f.collabDesc || 'Обсуждайте ассортимент, условия сотрудничества и сервис с командой LAUTE.')}
             </p>
-            <button 
-              type="button" 
+            <SiteAction controlId="footer-partner"
+              type="button"
               className="btn btn-primary btn-full"
               onClick={openPartnerModal}
             >
-              {f.partnerBtn || 'Стать партнёром'}
-            </button>
+              <span>{f.partnerBtn || 'Стать партнёром'}</span>
+            </SiteAction>
           </div>
         </div>
 
@@ -216,9 +217,9 @@ export const Footer = () => {
           </div>
 
           <div className="footer-bottom-right">
-            <button 
-              type="button" 
-              className="scroll-top-btn" 
+            <button
+              type="button"
+              className="scroll-top-btn"
               onClick={scrollToTop}
               title="Наверх"
             >
@@ -230,8 +231,8 @@ export const Footer = () => {
 
         {/* Subtle Staff Panel Link */}
         <div className="footer-admin-link-row">
-          <a 
-            href={`${import.meta.env.BASE_URL}admin`} 
+          <a
+            href={`${import.meta.env.BASE_URL}admin`}
             className="footer-admin-link"
             onClick={(e) => {
               e.preventDefault();

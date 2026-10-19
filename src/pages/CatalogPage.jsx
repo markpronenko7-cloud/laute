@@ -784,16 +784,16 @@ export const CatalogPage = () => {
                         {/* КНОПКИ КАРТОЧКИ: Подробнее + Сравнить (верхний ряд), Добавить в корзину (полноширинная кнопка снизу без обрезания) */}
                         <div className="sku-card-actions">
                           <div className="sku-card-secondary-actions">
-                            <button
+                            <SiteAction controlId="catalog-details"
                               type="button"
                               className="sku-btn-secondary sku-action-detail"
                               onClick={() => openProductModal(p)}
                             >
                               <Eye size={14} />
                               <span>{cat.detailsBtn || 'Подробнее'}</span>
-                            </button>
+                            </SiteAction>
 
-                            <button
+                            <SiteAction controlId="catalog-compare"
                               type="button"
                               className="sku-btn-secondary sku-action-compare"
                               onClick={() => {
@@ -807,7 +807,7 @@ export const CatalogPage = () => {
                             >
                               <Scale size={14} />
                               <span>{cat.compareBtn || 'Сравнить'}</span>
-                            </button>
+                            </SiteAction>
                           </div>
 
                           {qtyInCart > 0 ? (
@@ -844,14 +844,14 @@ export const CatalogPage = () => {
                               </button>
                             </div>
                           ) : (
-                            <button
+                            <SiteAction controlId="catalog-add"
                               type="button"
                               className="sku-btn-add-cart"
                               onClick={() => addToCart(p, 1)}
                             >
                               <ShoppingBag size={15} />
                               <span>{cat.addToCartBtn || 'Добавить в корзину'}</span>
-                            </button>
+                            </SiteAction>
                           )}
                         </div>
                       </div>

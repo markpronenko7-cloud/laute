@@ -21,7 +21,7 @@ import { CollectionsSection } from '../components/CollectionsSection';
 import { withBrandWord } from '../utils/brandFormatter';
 import { submitLeadInquiry } from '../services/adminApi';
 
-export const HomePage = () => {
+export const HomePage = ({ heroSlidesOverride } = {}) => {
   const { navigateTo, openPartnerModal, openServiceModal, startAIPartnerAnalysis, t, siteContent, lang } = useApp();
   const baseUrl = import.meta.env.BASE_URL;
 
@@ -74,7 +74,7 @@ export const HomePage = () => {
   return (
     <div className="page-wrapper home-page-transformed">
       {/* 1. FULL-SCREEN HERO CAROUSEL — 5 СЛАЙДОВ (3 СЕКУНДЫ АВТОМАТИЧЕСКАЯ СМЕНА) */}
-      <HeroCarousel />
+      <HeroCarousel slidesOverride={heroSlidesOverride}/>
 
       {/* 2. ФОТОГРАФИЧЕСКАЯ ГАЛЕРЕЯ «КОЛЛЕКЦИИ LAUTE» */}
       <CollectionsSection />

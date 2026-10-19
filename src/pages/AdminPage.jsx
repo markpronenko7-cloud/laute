@@ -1,4 +1,5 @@
 import { ButtonSettings } from '../components/builder/ButtonSettings';
+import { getEditableBlocks } from '../utils/pagePublication';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { CATEGORY_NAMES } from '../data/catalogData';
 import { getNavTranslation, getPageSeo, navigationKey } from '../utils/contentSettings';
@@ -268,6 +269,7 @@ export const AdminPage = () => {
   const [isLoadingContent, setIsLoadingContent] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [lastContentSave, setLastContentSave] = useState('');
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
 
   // Products State
@@ -574,6 +576,7 @@ export const AdminPage = () => {
     if (!isAuthenticated) return;
 
     if (activeTab === 'dashboard') {
+      loadPagesData();
       loadSettingsData();
       loadHistoryData();
       loadContentData();
@@ -738,6 +741,7 @@ export const AdminPage = () => {
   };
 
   const handleSaveDraft = async () => {
+    if (isSavingDraft || isPublishing) return;
     if (isDemoMode) {
       showNotice('В ознакомительном демо-режиме изменение реальных данных заблокировано. Для сохранения требуется авторизация с мастер-паролем.');
       return;
@@ -747,6 +751,7 @@ export const AdminPage = () => {
     try {
       const saved = await saveCurrentDraft();
       setDraftContent(saved);
+      setLastContentSave('Черновик сохранён · ' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }));
       showNotice('Изменения сохранены');
     } catch (err) {
       showNotice(err.message || 'Ошибка сохранения черновика', 'error');
@@ -757,6 +762,7 @@ export const AdminPage = () => {
 
   // Publish Draft Handler
   const handlePublish = async () => {
+    if (isSavingDraft || isPublishing) return;
     if (isDemoMode) {
       showNotice('В ознакомительном демо-режиме публикация на сайте заблокирована. Для публикации требуется авторизация с мастер-паролем.');
       return;
@@ -767,6 +773,7 @@ export const AdminPage = () => {
       const res = await publishSiteContent();
       setDraftContent(res.content);
       setSiteContent(res.content);
+      setLastContentSave('Публикация подтверждена · ' + res.content.version);
       reloadSiteContent();
       showNotice('Изменения опубликованы');
     } catch (err) {
@@ -1659,6 +1666,8 @@ export const AdminPage = () => {
             <span className="admin-cms-badge">STUDIO / УПРАВЛЕНИЕ</span>
           </div>
 
+          {lastContentSave && <span className="studio-save-confirmation" role="status">{lastContentSave}</span>}
+
           {draftContent?.hasUnpublishedChanges && (
             <div className="admin-draft-chip">
               <span className="draft-dot"></span>
@@ -1674,7 +1683,7 @@ export const AdminPage = () => {
                 type="button" 
                 className="admin-btn admin-btn-outline admin-btn-sm"
                 onClick={handleSaveDraft}
-                disabled={isSavingDraft}
+                disabled={isSavingDraft || isPublishing}
                 title="Сохранить черновик"
               >
                 <Save size={14} />
@@ -1685,7 +1694,7 @@ export const AdminPage = () => {
                 type="button" 
                 className="admin-btn admin-btn-success admin-btn-sm"
                 onClick={handlePublish}
-                disabled={isPublishing}
+                disabled={isPublishing || isSavingDraft}
                 title="Опубликовать изменения на сайте"
               >
                 <Check size={14} />
@@ -1816,7 +1825,7 @@ export const AdminPage = () => {
                       type="button" 
                       className="admin-btn admin-btn-success"
                       onClick={handlePublish}
-                      disabled={isPublishing}
+                      disabled={isPublishing || isSavingDraft}
                     >
                       <Check size={14} />
                       <span>{isPublishing ? 'Публикация...' : 'Опубликовать сейчас'}</span>
@@ -2627,7 +2636,7 @@ export const AdminPage = () => {
                                 </td>
                                 <td>
                                   <span style={{ background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: 4, fontSize: 12, color: 'var(--adm-accent-blue)', fontWeight: 600 }}>
-                                    {p.blocks?.length || 0} блоков
+                                    {getEditableBlocks(p).length} блоков
                                   </span>
                                 </td>
                                 <td>
@@ -4763,7 +4772,7 @@ export const AdminPage = () => {
                   .map((file, fIdx) => {
                     const fullSrc = resolveMediaUrl(file.url);
                     return (
-                      <div key={fIdx} className="media-card-item">
+                      <div key={file.url} className="media-card-item">
                         <div 
                           className="media-thumb-box"
                           onClick={() => setSelectedMediaPreview(file)}
@@ -5015,7 +5024,7 @@ export const AdminPage = () => {
                     type="button" 
                     className="admin-btn admin-btn-outline admin-btn-sm"
                     onClick={handleSaveDraft}
-                    disabled={isSavingDraft}
+                    disabled={isSavingDraft || isPublishing}
                   >
                     <Save size={14} />
                     <span>{isSavingDraft ? 'Сохранение...' : 'Сохранить черновик'}</span>
@@ -5024,7 +5033,7 @@ export const AdminPage = () => {
                     type="button" 
                     className="admin-btn admin-btn-success admin-btn-sm"
                     onClick={handlePublish}
-                    disabled={isPublishing}
+                    disabled={isPublishing || isSavingDraft}
                   >
                     <Check size={14} />
                     <span>Опубликовать переводы</span>
@@ -5215,7 +5224,7 @@ export const AdminPage = () => {
                     type="button" 
                     className="admin-btn admin-btn-outline admin-btn-sm"
                     onClick={handleSaveDraft}
-                    disabled={isSavingDraft}
+                    disabled={isSavingDraft || isPublishing}
                   >
                     <Save size={14} />
                     <span>{isSavingDraft ? 'Сохранение...' : 'Сохранить черновик'}</span>
@@ -5224,7 +5233,7 @@ export const AdminPage = () => {
                     type="button" 
                     className="admin-btn admin-btn-success admin-btn-sm"
                     onClick={handlePublish}
-                    disabled={isPublishing}
+                    disabled={isPublishing || isSavingDraft}
                   >
                     <Check size={14} />
                     <span>Опубликовать SEO</span>

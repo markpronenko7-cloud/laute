@@ -1,4 +1,3 @@
-import { SiteAction } from './SiteAction';
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { Handshake, ArrowRight, FileSpreadsheet, MessageSquare } from 'lucide-react';
@@ -24,19 +23,19 @@ export const PartnerCTA = () => {
           <p>{t.ctaPartner.subtitle}</p>
 
           <div className="partner-cta-actions">
-            <SiteAction controlId="partnercta-1" className="btn btn-primary btn-lg" onClick={openPartnerModal}>
+            <button className="btn btn-primary btn-lg" onClick={openPartnerModal}>
               <span>{t.ctaPartner.primaryBtn}</span>
               <ArrowRight size={18} />
-            </SiteAction>
+            </button>
 
-            <SiteAction controlId="partnercta-2" className="btn btn-secondary btn-lg" onClick={scrollToCatalog}>
+            <button className="btn btn-secondary btn-lg" onClick={scrollToCatalog}>
               <span>{t.ctaPartner.secondaryBtn}</span>
-            </SiteAction>
+            </button>
 
-            <SiteAction controlId="partnercta-3" className="btn btn-outline btn-lg" onClick={openPartnerModal}>
+            <button className="btn btn-outline btn-lg" onClick={openPartnerModal}>
               <MessageSquare size={18} />
               <span>{t.ctaPartner.consultBtn}</span>
-            </SiteAction>
+            </button>
           </div>
         </div>
       </div>

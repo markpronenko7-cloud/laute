@@ -25,12 +25,14 @@ import {
 import { BlockRenderer } from './BlockRenderer';
 import { BlockInspector } from './BlockInspector';
 import { BlockLibraryModal } from './BlockLibraryModal';
+import { getEditableBlocks } from '../../utils/pagePublication';
 import {
   updateCustomPage,
   duplicateCustomPage,
   fetchPageVersions,
-  rollbackPagesVersion
-  , fetchMediaList, resolveMediaUrl
+  rollbackPagesVersion,
+  fetchMediaList,
+  resolveMediaUrl
 } from '../../services/adminApi';
 
 export const VisualPageBuilder = ({
@@ -41,7 +43,7 @@ export const VisualPageBuilder = ({
   showNotice = () => {}
 }) => {
   const [currentPage, setCurrentPage] = useState(page);
-  const [blocks, setBlocks] = useState(page.blocks || []);
+  const [blocks, setBlocks] = useState(() => getEditableBlocks(page));
   const [selectedBlockId, setSelectedBlockId] = useState(blocks[0]?.id || null);
   const [selectedBlockIdx, setSelectedBlockIdx] = useState(0);
 
@@ -85,7 +87,7 @@ export const VisualPageBuilder = ({
 
   useEffect(() => {
     setCurrentPage(page);
-    setBlocks(page.blocks || []);
+    setBlocks(getEditableBlocks(page));
     if (page.blocks && page.blocks.length > 0) {
       setSelectedBlockId(page.blocks[0].id);
       setSelectedBlockIdx(0);
@@ -144,6 +146,7 @@ export const VisualPageBuilder = ({
 
   // Duplicate block
   const handleDuplicateBlock = (blk, idx) => {
+    if (blk.type === 'system_page') return;
     const duplicated = {
       ...JSON.parse(JSON.stringify(blk)),
       id: `blk-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
@@ -162,6 +165,7 @@ export const VisualPageBuilder = ({
 
   // Delete block
   const handleDeleteBlock = (idx) => {
+    if (blocks[idx]?.type === 'system_page') return;
     setBlocks(prev => {
       const copy = prev.filter((_, i) => i !== idx);
       return copy;
@@ -286,6 +290,7 @@ export const VisualPageBuilder = ({
           <button
             type="button"
             className="admin-btn admin-btn-ghost admin-btn-sm"
+            disabled={isSaving}
             onClick={() => {
               if (hasUnsavedChanges) {
                 if (!window.confirm('У вас есть несохранённые изменения. Вы уверены, что хотите выйти?')) return;
@@ -406,7 +411,7 @@ export const VisualPageBuilder = ({
       </div>
 
       {/* 2. MAIN 3-COLUMN WORKSPACE */}
-      <div className="builder-workspace" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div className="builder-workspace" inert={isSaving ? '' : undefined} style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* LEFT COLUMN: Layers & Structure */}
         <aside className="builder-sidebar-left" style={{ width: 280, background: '#0D1117', borderRight: '1px solid var(--adm-border)', display: 'flex', flexDirection: 'column' }}>
           {/* Left panel header */}
@@ -749,7 +754,7 @@ export const VisualPageBuilder = ({
                 <X size={18} />
               </button>
             </div>
-            <div style={{ flex: 1, overflowY: 'auto', background: '#0B0E14' }}>
+            <div className="builder-preview" style={{ flex: 1, overflowY: 'auto', background: '#0B0E14' }}>
               {blocks.map((blk, idx) => (
                 <BlockRenderer
                   key={blk.id || idx}

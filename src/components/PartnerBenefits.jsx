@@ -1,4 +1,3 @@
-import { SiteAction } from './SiteAction';
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import {
@@ -54,10 +53,10 @@ export const PartnerBenefits = () => {
         </div>
 
         <div style={{ textAlign: 'center' }}>
-          <SiteAction controlId="partnerbenefits-1" className="btn btn-primary btn-lg" onClick={openPartnerModal}>
+          <button className="btn btn-primary btn-lg" onClick={openPartnerModal}>
             <span>{t.benefits.cta}</span>
             <ArrowRight size={18} />
-          </SiteAction>
+          </button>
         </div>
       </div>
     </section>

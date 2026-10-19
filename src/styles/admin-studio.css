@@ -21,6 +21,7 @@
 .admin-logo-text { color: #17345b; font-size: 25px; letter-spacing: .16em; }
 .admin-cms-badge { background: #edf2f8; color: #50647f; letter-spacing: .12em; padding: 7px 10px; }
 .admin-navbar-actions { gap: 8px; }
+.studio-save-confirmation { font-size: 11px; color: #32795f; }
 .admin-container { min-height: calc(100vh - 76px); }
 .admin-sidebar { background: #132c4d; width: 244px; flex: 0 0 244px; border: 0; }
 .admin-sidebar-menu { position: sticky; top: 78px; padding: 22px 14px; gap: 18px; }
@@ -47,11 +48,11 @@
 .view-subtitle { color: #6b7b90; max-width: 680px; line-height: 1.6; }
 .studio-eyebrow { display: block; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #7c8ca3; margin-bottom: 10px; }
 .admin-layout :is(.admin-section-card, .editor-section-card, .excel-action-card, .admin-stat-card, .stat-card, .dashboard-card) { background: #fff; border: 1px solid #dfe6ef; border-radius: 16px; box-shadow: 0 4px 20px #1e385606; }
-.admin-layout :is(h2,h3,h4,h5,.stat-value,.card-title,.field-label,.editor-card-header h3,.section-title) { color: #203c60; }
+.admin-layout :is(h2,h3,h4,h5,.stat-value,.card-title,.field-label,.editor-card-header h3,.section-title):not(.builder-canvas-frame *):not(.builder-preview *) { color: #203c60; }
 .admin-layout .admin-nav-group h2 { color: #819bb9; }
-.admin-layout :is(.admin-main-viewport,.admin-modal) :is(strong,label,th) { color: #243e60; }
-.admin-layout .admin-main-viewport [style*="color: rgb(255, 255, 255)"] { color: #203c60 !important; }
-.admin-layout .admin-main-viewport [style*="background: rgba(255, 255, 255"] { background: #edf2f8 !important; }
+.admin-layout :is(.admin-main-viewport,.admin-modal) :is(strong,label,th):not(.builder-canvas-frame *):not(.builder-preview *) { color: #243e60; }
+.admin-layout .admin-main-viewport [style*="color: rgb(255, 255, 255)"]:not(.builder-canvas-frame *):not(.builder-preview *) { color: #203c60 !important; }
+.admin-layout .admin-main-viewport [style*="background: rgba(255, 255, 255"]:not(.builder-canvas-frame *):not(.builder-preview *) { background: #edf2f8 !important; }
 .admin-layout .admin-btn { border-radius: 8px; font-weight: 600; min-height: 35px; transition: background .15s, box-shadow .15s; }
 .admin-layout .admin-btn-primary, .admin-layout .admin-btn-success { background: #244e87 !important; color: #fff !important; border-color: #244e87; box-shadow: 0 3px 7px #244e871c; }
 .admin-layout .admin-btn-primary:hover, .admin-layout .admin-btn-success:hover { background: #173963 !important; }
@@ -95,6 +96,11 @@
 .studio-media-picker button:hover { border-color: #2456ad; }
 .studio-media-picker img { width: 100%; height: 100px; object-fit: contain; margin-bottom: 10px; }
 .studio-media-picker span { display: block; font-size: 11px; overflow-wrap: anywhere; }
+.native-block-inspector { padding: 22px; font-size: 13px; }
+.native-block-inspector p,.native-block-inspector small { color: #71829a; line-height: 1.65; }
+.native-block-inspector section { border-top: 1px solid #e0e6ef; padding: 16px 0; margin-top: 16px; }
+.native-block-inspector label { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; font-size: 12px; }
+.native-block-inspector input,.native-block-inspector textarea { width: 100%; }
 
 /* The builder controls are light; the page canvas keeps the public site's theme. */
 .visual-builder-root { position: fixed; inset: 0; z-index: 180; background: #e9eef5 !important; color: #253d5b !important; }
@@ -140,3 +146,5 @@
   .builder-topbar > div { gap: 6px !important; }
   .builder-save-state { padding: 9px 14px; }
 }
+
+.admin-layout .admin-sidebar .admin-nav-search input { background: transparent; color: #eef4ff; border: 0; }

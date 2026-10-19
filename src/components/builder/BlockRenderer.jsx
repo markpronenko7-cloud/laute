@@ -19,6 +19,7 @@ import {
   Plus
 } from 'lucide-react';
 import { withBrandWord } from '../../utils/brandFormatter';
+import { SystemPageContent } from './SystemPageContent';
 import { isSafeActionLink } from '../SiteAction';
 import { resolveMediaUrl, submitLeadInquiry } from '../../services/adminApi';
 
@@ -42,7 +43,7 @@ export const BlockRenderer = ({
   const [openFaqIndices, setOpenFaqIndices] = useState([0]);
 
   if (!block) return null;
-  if (block.isVisible === false && !isEditor) return null;
+  if (block.isVisible === false && block.type !== 'system_page' && !isEditor) return null;
 
   const baseUrl = import.meta.env.BASE_URL;
 
@@ -109,6 +110,8 @@ export const BlockRenderer = ({
   // Sub-renderers for each block type
   const renderContent = () => {
     switch (block.type) {
+      case 'system_page':
+        return <div inert={isEditor ? '' : undefined} style={isEditor ? { pointerEvents: 'none' } : undefined}><SystemPageContent block={block}/></div>;
       // 1. HERO BLOCK
       case 'hero':
         return (
@@ -529,7 +532,7 @@ export const BlockRenderer = ({
       className={`builder-block-wrapper ${isEditor ? 'editor-mode' : ''} ${isSelected ? 'is-selected' : ''}`}
       style={{
         background: sectionBg,
-        padding: sectionPadding,
+        padding: block.type === 'system_page' ? 0 : sectionPadding,
         position: 'relative',
         transition: 'all 0.2s ease',
         outline: isEditor ? (isSelected ? '2px solid var(--adm-accent-blue)' : '1px dashed rgba(255,255,255,0.12)') : 'none',
@@ -592,6 +595,7 @@ export const BlockRenderer = ({
           <button
             type="button"
             className="action-btn"
+            disabled={block.type === 'system_page'}
             onClick={() => onDuplicate && onDuplicate(block, index)}
             title="Дублировать блок"
             style={{ padding: 4, height: 24, width: 24 }}
@@ -612,6 +616,7 @@ export const BlockRenderer = ({
           <button
             type="button"
             className="action-btn"
+            disabled={block.type === 'system_page'}
             onClick={() => {
               if (window.confirm(`Удалить блок #${index + 1} (${block.title || block.type})?`)) {
                 onDelete && onDelete(index);
@@ -625,7 +630,7 @@ export const BlockRenderer = ({
         </div>
       )}
 
-      <div className="container" style={{ position: 'relative' }}>
+      <div className={block.type === 'system_page' ? undefined : 'container'} style={{ position: 'relative' }}>
         {renderContent()}
       </div>
     </section>

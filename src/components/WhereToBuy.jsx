@@ -1,4 +1,3 @@
-import { SiteAction } from './SiteAction';
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { MapPin, Navigation, ArrowRight, ShieldCheck } from 'lucide-react';
@@ -28,11 +27,11 @@ export const WhereToBuy = () => {
           </div>
 
           <div>
-            <SiteAction controlId="wheretobuy-1" className="btn btn-secondary btn-lg" onClick={openPartnerModal}>
+            <button className="btn btn-secondary btn-lg" onClick={openPartnerModal}>
               <Navigation size={18} />
               <span>{t.whereToBuy.cta}</span>
               <ArrowRight size={16} />
-            </SiteAction>
+            </button>
           </div>
         </div>
       </div>

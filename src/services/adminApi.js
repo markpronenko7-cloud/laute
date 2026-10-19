@@ -69,6 +69,7 @@ export const resolveMediaUrl = (url) => {
   }
   const baseUrl = import.meta.env.BASE_URL || '/';
   const cleanBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+  if (trimmed.startsWith(cleanBase)) return trimmed;
   const cleanPath = trimmed.startsWith('/') ? trimmed.slice(1) : trimmed;
   return `${cleanBase}${cleanPath}`;
 };

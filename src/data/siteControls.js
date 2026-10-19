@@ -103,57 +103,27 @@ export const SITE_CONTROLS = [
     "submit": false
   },
   {
-    "id": "hero-1",
-    "page": "Главная / Обложка",
-    "label": "Главная / Обложка · кнопка 1",
+    "id": "footer-partner",
+    "page": "Футер",
+    "label": "Стать партнёром",
     "submit": false
   },
   {
-    "id": "hero-2",
-    "page": "Главная / Обложка",
-    "label": "Главная / Обложка · кнопка 2",
+    "id": "catalog-details",
+    "page": "Каталог / Карточка товара",
+    "label": "Подробнее о товаре",
     "submit": false
   },
   {
-    "id": "partnerbenefits-1",
-    "page": "Преимущества партнёра",
-    "label": "Преимущества партнёра · кнопка 1",
+    "id": "catalog-compare",
+    "page": "Каталог / Карточка товара",
+    "label": "Сравнить товары",
     "submit": false
   },
   {
-    "id": "categories-1",
-    "page": "Категории главной",
-    "label": "Категории главной · кнопка 1",
-    "submit": false
-  },
-  {
-    "id": "wheretobuy-1",
-    "page": "Главная / Где купить",
-    "label": "Главная / Где купить · кнопка 1",
-    "submit": false
-  },
-  {
-    "id": "partnercta-1",
-    "page": "Главная / Партнёрам",
-    "label": "Главная / Партнёрам · кнопка 1",
-    "submit": false
-  },
-  {
-    "id": "partnercta-2",
-    "page": "Главная / Партнёрам",
-    "label": "Главная / Партнёрам · кнопка 2",
-    "submit": false
-  },
-  {
-    "id": "partnercta-3",
-    "page": "Главная / Партнёрам",
-    "label": "Главная / Партнёрам · кнопка 3",
-    "submit": false
-  },
-  {
-    "id": "production-1",
-    "page": "Главная / Производство",
-    "label": "Главная / Производство · кнопка 1",
+    "id": "catalog-add",
+    "page": "Каталог / Карточка товара",
+    "label": "Добавить в заявку",
     "submit": false
   }
 ];

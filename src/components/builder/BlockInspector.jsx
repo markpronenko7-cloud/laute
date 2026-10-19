@@ -12,6 +12,7 @@ import {
   Upload
 } from 'lucide-react';
 import { uploadSingleImage } from '../../services/adminApi';
+import { NativeBlockInspector } from './NativeBlockInspector';
 
 export const BlockInspector = ({
   block,
@@ -30,6 +31,8 @@ export const BlockInspector = ({
       </div>
     );
   }
+
+  if (block.type === 'system_page') return <NativeBlockInspector block={block} onChange={onChange} onOpenMediaPicker={onOpenMediaPicker}/>;
 
   const handleFieldChange = (field, value) => {
     onChange({

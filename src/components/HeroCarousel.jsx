@@ -4,7 +4,7 @@ import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { isSafeActionLink } from './SiteAction';
 import { withBrandWord } from '../utils/brandFormatter';
 
-export const HeroCarousel = () => {
+export const HeroCarousel = ({ slidesOverride } = {}) => {
   const { navigateTo, openPartnerModal, t, siteContent, lang } = useApp();
   const baseUrl = import.meta.env.BASE_URL;
 
@@ -36,7 +36,7 @@ export const HeroCarousel = () => {
 
   const SLIDE_DURATION = 3000; // Exactly 3000ms per requirement
 
-  const configuredSlides = siteContent?.homeBlocks?.heroSlider?.filter(s => s.isVisible !== false);
+  const configuredSlides = (slidesOverride || siteContent?.homeBlocks?.heroSlider)?.filter(s => s.isVisible !== false);
 
   const defaultSlides = [
     {

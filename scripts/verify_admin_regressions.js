@@ -6,7 +6,7 @@ import { build, transform } from 'esbuild';
 import { createRequire } from 'node:module';
 import { parseAndValidateExcelFile, applyExcelImport, createCatalogWorkbook } from '../src/utils/excelManager.js';
 import { formatProductDisplay, classifyProductImages } from '../src/utils/imageHelper.js';
-import { getPublishedPage } from '../src/utils/pagePublication.js';
+import { getPublishedPage, getEditableBlocks } from '../src/utils/pagePublication.js';
 import { getNavigation, getNavTranslation, getPageSeo } from '../src/utils/contentSettings.js';
 
 const workbook = rows => {
@@ -288,4 +288,14 @@ test('Категории: связанные товары, повторное ч
     delete globalThis.window;
     delete globalThis.localStorage;
   }
+});
+
+
+test('Конструктор основных страниц сохраняет рабочие каталог, формы и корзину', () => {
+  const page = { isSystem: true, slug: 'catalog', title: 'Каталог', blocks: [{ type: 'hero' }] };
+  assert.equal(getEditableBlocks(page)[0].type, 'system_page');
+  assert.equal(getEditableBlocks(page)[0].route, 'catalog');
+  assert.equal(getEditableBlocks({ ...page, useBuilder: true }).length, 2);
+  assert.equal(getEditableBlocks({ ...page, useBuilder: true, blocks: [{ type: 'system_page', isVisible: false, route: 'wrong' }] })[0].isVisible, true);
+  assert.equal(getEditableBlocks({ ...page, useBuilder: true, blocks: [{ type: 'system_page', nativeIntro: { h1: 'Сохранённый заголовок' } }] })[0].nativeIntro.h1, 'Сохранённый заголовок');
 });
