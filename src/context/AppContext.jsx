@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { translations } from '../i18n/translations';
 import { getPageSeo } from '../utils/contentSettings';
+import { getPublishedPage } from '../utils/pagePublication';
 import { DEFAULT_PRODUCTS } from '../data/catalogData';
 import {
   fetchProducts,
@@ -552,7 +553,8 @@ export const AppProvider = ({ children }) => {
     }
 
     const savedSeo = getPageSeo(siteContent, currentRoute);
-    const customPage = pagesList.find(p => p.slug === currentRoute || p.route === `/${currentRoute}`);
+    const customPage = pagesList.map(p => getPublishedPage(p, true)).filter(Boolean)
+      .find(p => p.slug === currentRoute || p.route === `/${currentRoute}`);
     pageTitle = savedSeo.title || customPage?.seoTitle || customPage?.title || pageTitle;
     pageDesc = savedSeo.description || customPage?.seoDescription || customPage?.description || pageDesc;
     document.title = pageTitle;
