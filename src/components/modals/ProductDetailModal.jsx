@@ -30,6 +30,8 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
     getCartItemQuantity,
     openCartModal,
     products,
+    getProductPrice,
+    partnerAccount,
     adminSession,
     isB2BAuthorized,
     warehousesList = [],
@@ -314,9 +316,9 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
 
             <div className="product-price-row">
               <div className="price-val">
-                {selectedProduct.price ? `${selectedProduct.price.toLocaleString('ru-RU')} ${selectedProduct.currency || '₸'}` : (pm.onDemand || 'По запросу')}
+                {getProductPrice(selectedProduct) ? `${Number(getProductPrice(selectedProduct)).toLocaleString('ru-RU')} ${selectedProduct.currency || '₸'}` : (pm.onDemand || 'По запросу')}
               </div>
-              <span className="price-type-note">{pm.officialBasePrice || 'Официальная базовая цена'}</span>
+              <span className="price-type-note">{partnerAccount?.role === 'partner' ? 'Твоя цена' : pm.officialBasePrice || 'Официальная базовая цена'}</span>
             </div>
 
             {/* TAB CONTROLS: Характеристики | Размеры и чертежи | Наличие на складах */}

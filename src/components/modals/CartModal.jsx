@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { PartnerCart } from '../partners/PartnerCart';
 import {
   X,
   ShoppingBag,
@@ -37,9 +38,11 @@ const CartModal = () => {
     cartDistinctCount,
     cartTotalUnits,
     cartTotalKnownAmount,
+    cartCurrencyTotals,
     cartHasPriceOnRequest,
     navigateTo,
-    currentRoute
+    currentRoute,
+    partnerAccount
   } = useApp();
 
   const baseUrl = import.meta.env.BASE_URL;
@@ -160,6 +163,8 @@ const CartModal = () => {
     return `${num.toLocaleString('ru-RU')} ₽`;
   };
 
+  if (isCartModalOpen && partnerAccount?.role === 'partner') return <PartnerCart />;
+
   // Плавающая кнопка корзины, если модальное окно закрыто, но в корзине есть товары (и мы не в админке)
   if (!isCartModalOpen) {
     if (cartDistinctCount > 0 && currentRoute !== 'admin') {
@@ -181,7 +186,7 @@ const CartModal = () => {
           <span className="laute-floating-cart-info">
             <span className="laute-floating-cart-title">{ct.openCartBtn || 'Корзина заявки'}</span>
             <span className="laute-floating-cart-sum">
-              {cartTotalKnownAmount > 0
+              {partnerAccount?.role === 'partner' ? (Object.entries(cartCurrencyTotals).map(([c, v]) => `${v.toLocaleString('ru-RU')} ${c}`).join(' · ') || `${cartDistinctCount} поз.`) : cartTotalKnownAmount > 0
                 ? `${cartTotalKnownAmount.toLocaleString('ru-RU')} ₽`
                 : `${cartDistinctCount} поз.`}
             </span>

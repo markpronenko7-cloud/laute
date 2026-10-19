@@ -1462,31 +1462,6 @@ export const saveRegionWarehouseMap = async (mapping) => {
 // 9. ПАРТНЁРСКИЙ ДОСТУП B2B И СОХРАНЕНИЕ ЗАЯВОК
 // ==========================================
 
-export const authenticateB2BPartner = async (login, password) => {
-  if (!password || !password.trim()) {
-    throw new Error('Введите код или пароль партнёра');
-  }
-  const cleanPwd = password.trim();
-
-  // Проверяем через серверную функцию авторизации Supabase
-  try {
-    const result = await callSupabaseRpc('laute_login', {
-      p_password: cleanPwd,
-      p_ip: typeof window !== 'undefined' ? window.location.hostname : 'unknown'
-    });
-    if (result && result.success) {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('laute_partner_token', result.token || 'b2b_verified');
-      }
-      return { success: true, login: login || 'Партнёр LAUTE' };
-    }
-  } catch {
-    // fallback if RPC throws
-  }
-
-  throw new Error('Неверный пароль или код партнёра. Для получения доступа обратитесь в оптовый отдел LAUTE.');
-};
-
 const MAIL_INBOX = 'markpronenko7@gmail.com';
 
 async function sendInquiryEmail(subject, message, customerName, customerEmail) {

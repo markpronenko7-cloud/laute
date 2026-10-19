@@ -36,6 +36,11 @@ jobs:
       - name: Verify catalog and CMS regressions
         run: npm run test:admin
 
+      - name: Verify partner portal in isolated PostgreSQL
+        run: |
+          npm install --prefix .temp/qa --no-save --no-audit --no-fund @electric-sql/pglite@0.5.10
+          npm run test:partners
+
       - name: Build project
         run: |
           npm run build

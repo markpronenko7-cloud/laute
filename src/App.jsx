@@ -21,6 +21,7 @@ import { CustomPageRenderer } from './components/builder/CustomPageRenderer';
 import { getPublishedPage } from './utils/pagePublication';
 
 const AdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
+const AccountPage = lazy(() => import('./pages/AccountPage').then(m => ({ default: m.AccountPage })));
 
 export const AppContent = () => {
   const { currentRoute, pagesList = [] } = useApp();
@@ -34,6 +35,7 @@ export const AppContent = () => {
   }
 
   const renderCurrentPage = () => {
+    if (currentRoute === 'account') return <Suspense fallback={<div className="partner-page">Загрузка кабинета…</div>}><AccountPage /></Suspense>;
     const publishedPage = pagesList.map(p => getPublishedPage(p)).filter(Boolean)
       .find(p => p.slug === currentRoute || p.route === `/${currentRoute}` || (currentRoute === 'home' && p.route === '/'));
     if (publishedPage && !['company', 'partners'].includes(currentRoute)) return <CustomPageRenderer page={publishedPage} />;

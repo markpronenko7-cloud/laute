@@ -31,6 +31,8 @@ export const CatalogPage = () => {
     openPartnerModal, 
     openAuthModal, 
     products, 
+    getProductPrice,
+    partnerAccount,
     openProductModal, 
     startComparison,
     addToCart,
@@ -40,6 +42,7 @@ export const CatalogPage = () => {
     cartDistinctCount,
     cartTotalUnits,
     cartTotalKnownAmount,
+    cartCurrencyTotals,
     adminSession,
     isB2BAuthorized,
     warehousesList,
@@ -439,7 +442,7 @@ export const CatalogPage = () => {
                 {cartTotalUnits > 0 && (
                   <span className="catalog-cart-count-pill">
                     {cartTotalUnits} шт.
-                    {cartTotalKnownAmount > 0 ? ` · ${cartTotalKnownAmount.toLocaleString('ru-RU')} ₽` : ''}
+                    {partnerAccount?.role === 'partner' ? Object.entries(cartCurrencyTotals).map(([c, v]) => ` · ${v.toLocaleString('ru-RU')} ${c}`).join('') : cartTotalKnownAmount > 0 ? ` · ${cartTotalKnownAmount.toLocaleString('ru-RU')} ₽` : ''}
                   </span>
                 )}
               </EditableNode>
@@ -656,7 +659,7 @@ export const CatalogPage = () => {
                 // Главной фотографией всегда должен быть сам смеситель (imgInfo.mainPhoto отфильтровывает чертежи и коробки)
                 const mainPhotoSrc = imgInfo.mainPhoto || getImgUrl(p.photo1);
                 const qtyInCart = getCartItemQuantity(p.article);
-                const rawPrice = Number(p.price);
+                const rawPrice = Number(getProductPrice(p));
                 const hasKnownPrice = Number.isFinite(rawPrice) && rawPrice > 0;
 
                 return (
@@ -728,7 +731,7 @@ export const CatalogPage = () => {
                         <div className="sku-price-row">
                           <div className="sku-price-block">
                             <span className="sku-price-label">
-                              {cat.retailPriceLabel || 'Публичная розничная цена'}
+                              {partnerAccount?.role === 'partner' ? 'Твоя цена' : cat.retailPriceLabel || 'Публичная розничная цена'}
                             </span>
                             <div className={`sku-price ${!hasKnownPrice ? 'is-on-request' : ''}`}>
                               {hasKnownPrice

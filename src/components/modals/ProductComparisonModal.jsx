@@ -3,11 +3,11 @@ import { useApp } from '../../context/AppContext';
 import { X, Scale, Check, ArrowRight, ShieldCheck, MapPin } from 'lucide-react';
 import { classifyProductImages, formatProductDisplay } from '../../utils/imageHelper';
 export const ProductComparisonModal = () => {
-  const { comparisonItems, closeComparisonModal, openProductModal, openPartnerModal, getStockForSku, activeWarehouse } = useApp();
+  const { comparisonItems, closeComparisonModal, openProductModal, openPartnerModal, getStockForSku, activeWarehouse, getProductPrice } = useApp();
 
   if (!comparisonItems || comparisonItems.length < 2) return null;
 
-  const [itemA, itemB] = comparisonItems;
+  const [itemA, itemB] = comparisonItems.map(item => ({ ...item, price: getProductPrice(item) }));
   const baseUrl = import.meta.env.BASE_URL;
 
   const getImgUrl = (path) => {

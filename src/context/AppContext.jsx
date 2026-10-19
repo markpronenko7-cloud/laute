@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { translations } from '../i18n/translations';
 import { getPageSeo } from '../utils/contentSettings';
 import { getPublishedPage } from '../utils/pagePublication';
 import { DEFAULT_PRODUCTS } from '../data/catalogData';
+import { portal, getPartnerToken, clearPartnerToken } from '../services/partnerApi';
 import {
   fetchProducts,
   getCurrentAdminSession,
@@ -53,6 +54,42 @@ export const AppProvider = ({ children }) => {
 
   // Current logged in admin session
   const [adminSession, setAdminSession] = useState(null);
+  const [partnerAccount, setPartnerAccount] = useState(null);
+  const [partnerManager, setPartnerManager] = useState(null);
+  const [partnerPrices, setPartnerPrices] = useState({});
+  const [partnerLoading, setPartnerLoading] = useState(!!getPartnerToken());
+  const [partnerError, setPartnerError] = useState('');
+  const partnerRequest = useRef(0);
+  const logoutPartner = useCallback(() => {
+    partnerRequest.current++;
+    clearPartnerToken(); setPartnerAccount(null); setPartnerManager(null); setPartnerPrices({}); setPartnerLoading(false);
+  }, []);
+  const refreshPartner = useCallback(async () => {
+    if (!getPartnerToken()) return;
+    const request = ++partnerRequest.current;
+    setPartnerLoading(true); setPartnerError(''); setPartnerPrices({});
+    try {
+      const result = await portal('me');
+      if (request !== partnerRequest.current) return;
+      setPartnerAccount(result.account); setPartnerManager(result.manager);
+      if (result.account.role === 'partner' && !result.account.mustChange) {
+        const catalog = await portal('catalog');
+        if (request !== partnerRequest.current) return;
+        setPartnerPrices(Object.fromEntries(catalog.prices.map(p => [p.article, p])));
+      }
+    } catch (e) { if (request === partnerRequest.current) setPartnerError(e.message); throw e; }
+    finally { if (request === partnerRequest.current) setPartnerLoading(false); }
+  }, []);
+  useEffect(() => {
+    refreshPartner().catch(() => {});
+    const expired = () => { logoutPartner(); setPartnerError('Сессия истекла. Войди снова.'); };
+    const refresh = () => { if (getPartnerToken()) refreshPartner().catch(() => {}); };
+    window.addEventListener('laute:portal-expired', expired);
+    window.addEventListener('focus', refresh);
+    return () => { window.removeEventListener('laute:portal-expired', expired); window.removeEventListener('focus', refresh); };
+  }, [refreshPartner, logoutPartner]);
+  const getProductPrice = useCallback(product => partnerAccount?.role === 'partner'
+    ? partnerPrices[product.article]?.price ?? null : product.price, [partnerAccount, partnerPrices]);
 
   // Dynamic Site Content (synced from CMS backend / public content.json)
   const [siteContent, setSiteContent] = useState(() => {
@@ -105,9 +142,7 @@ export const AppProvider = ({ children }) => {
     usa: null
   });
   const [clientSelectedWarehouseId, setClientSelectedWarehouseId] = useState(null);
-  const [isB2BAuthorized, setIsB2BAuthorized] = useState(() => {
-    return localStorage.getItem('laute_b2b_auth') === 'true';
-  });
+  const isB2BAuthorized = !!partnerAccount && !partnerAccount.mustChange;
 
   // Pages List State for Visual Page Builder
   const [pagesList, setPagesList] = useState([]);
@@ -367,13 +402,14 @@ export const AppProvider = ({ children }) => {
   const cartItems = useMemo(() => {
     return cartRawItems.map((entry) => {
       const liveProd = products.find(p => p.article === entry.article);
-      const rawPrice = liveProd !== undefined ? Number(liveProd.price) : Number(entry.price);
+      const rawPrice = liveProd !== undefined ? Number(getProductPrice(liveProd)) : (partnerAccount ? NaN : Number(entry.price));
       const hasKnownPrice = Number.isFinite(rawPrice) && rawPrice > 0;
       const qty = Math.max(1, Math.min(9999, parseInt(entry.quantity, 10) || 1));
 
       return {
         article: entry.article,
-        title: liveProd?.title || entry.title || entry.article,
+        currency: liveProd?.currency || '₸',
+        title: liveProd?.title || liveProd?.name || entry.title || entry.article,
         series: liveProd?.series || entry.series || '',
         category: liveProd?.category || entry.category || '',
         image: liveProd?.image || entry.image || '',
@@ -384,7 +420,7 @@ export const AppProvider = ({ children }) => {
         lineSubtotal: hasKnownPrice ? rawPrice * qty : null
       };
     });
-  }, [cartRawItems, products]);
+  }, [cartRawItems, products, getProductPrice, partnerAccount]);
 
   const addToCart = useCallback((product, deltaQty = 1) => {
     if (!product || !product.article) return;
@@ -461,6 +497,10 @@ export const AppProvider = ({ children }) => {
     () => cartItems.reduce((acc, it) => acc + (it.lineSubtotal || 0), 0),
     [cartItems]
   );
+  const cartCurrencyTotals = useMemo(() => cartItems.reduce((totals, item) => {
+    if (item.hasKnownPrice) totals[item.currency] = (totals[item.currency] || 0) + item.lineSubtotal;
+    return totals;
+  }, {}), [cartItems]);
   const cartHasPriceOnRequest = useMemo(
     () => cartItems.some(it => !it.hasKnownPrice),
     [cartItems]
@@ -619,6 +659,7 @@ export const AppProvider = ({ children }) => {
     reloadSiteContent,
     reloadProducts,
     products,
+    partnerAccount, partnerManager, partnerLoading, partnerError, refreshPartner, logoutPartner, getProductPrice,
     updateProducts,
     selectedProduct,
     openProductModal,
@@ -639,6 +680,7 @@ export const AppProvider = ({ children }) => {
     cartDistinctCount,
     cartTotalUnits,
     cartTotalKnownAmount,
+    cartCurrencyTotals,
     cartHasPriceOnRequest,
     selectedCity,
     setSelectedCity,
@@ -660,7 +702,7 @@ export const AppProvider = ({ children }) => {
       window.dispatchEvent(new CustomEvent('laute:ai:partner-analysis'));
     },
     isAuthModalOpen,
-    openAuthModal: () => setIsAuthModalOpen(true),
+    openAuthModal: () => partnerAccount ? navigateTo('account') : setIsAuthModalOpen(true),
     closeAuthModal: () => setIsAuthModalOpen(false),
     isExcelModalOpen,
     openExcelModal: () => setIsExcelModalOpen(true),
@@ -685,10 +727,6 @@ export const AppProvider = ({ children }) => {
     getStockForSku,
     reloadStockData,
     isB2BAuthorized,
-    setIsB2BAuthorized: (val) => {
-      setIsB2BAuthorized(val);
-      localStorage.setItem('laute_b2b_auth', val ? 'true' : 'false');
-    },
     // Visual Page Builder & CMS Pages
     pagesList,
     setPagesList,

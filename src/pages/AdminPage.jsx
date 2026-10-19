@@ -1,4 +1,5 @@
 import { ButtonSettings } from '../components/builder/ButtonSettings';
+import { PartnerManagement } from '../components/partners/PartnerManagement';
 import { getEditableBlocks } from '../utils/pagePublication';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { CATEGORY_NAMES } from '../data/catalogData';
@@ -1498,6 +1499,7 @@ export const AdminPage = () => {
 
   // Navigation Items (15 Sections)
   const navItems = [
+    { id: 'partner-accounts', label: 'Кабинеты', icon: Shield },
     { id: 'dashboard', label: 'Обзор', icon: LayoutDashboard },
     {
       id: 'orders',
@@ -1736,7 +1738,7 @@ export const AdminPage = () => {
               <input aria-label="Найти раздел" placeholder="Найти раздел…" value={navSearch} onChange={e => setNavSearch(e.target.value)} />
             </label>
             {[
-              { label: 'Работа', ids: ['dashboard', 'pages', 'catalog', 'orders'] },
+              { label: 'Работа', ids: ['dashboard', 'pages', 'catalog', 'orders', 'partner-accounts'] },
               { label: 'Каталог', ids: ['categories', 'media', 'excel', 'stock'] },
               { label: 'Настройки сайта', compact: true, ids: ['buttons', 'menu', 'languages', 'seo', 'drafts', 'editor'] },
               { label: 'Система', compact: true, ids: ['history', 'settings'] }
@@ -1792,6 +1794,7 @@ export const AdminPage = () => {
             <div className="overview-status-row"><div><span className="studio-eyebrow">Публикация</span><strong>{draftContent?.hasUnpublishedChanges?'Есть сохранённый черновик':'Все изменения на сайте'}</strong></div><button className="admin-btn admin-btn-outline" onClick={()=>setActiveTab(draftContent?.hasUnpublishedChanges?'drafts':'history')}>{draftContent?.hasUnpublishedChanges?'Посмотреть черновик':'История изменений'}</button></div>
           </div>}
 
+          {activeTab === 'partner-accounts' && <PartnerManagement admin />}
           {activeTab === 'buttons' && <ButtonSettings content={draftContent} onChange={setDraftContent} />}
 
           {/* TAB 2: РЕДАКТОР САЙТА (ВИЗУАЛЬНЫЙ РЕДАКТОР БЛОКОВ) */}
