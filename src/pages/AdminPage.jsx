@@ -1319,37 +1319,7 @@ export const AdminPage = () => {
 
     setIsStockExcelConfirming(true);
     try {
-      try {
-        await commitStockExcelImport(selectedWarehouseId, stockExcelDiff.diffList, stockExcelMode);
-      } catch (apiErr) {
-        const newStockMap = new Map();
-        stockList.forEach(s => newStockMap.set(s.sku, s.quantity));
-
-        if (stockExcelMode === 'replace') {
-          const updatedSkus = new Set(stockExcelDiff.diffList.map(d => d.sku));
-          catalogList.forEach(p => {
-            if (!updatedSkus.has(p.article)) {
-              newStockMap.set(p.article, 0);
-            }
-          });
-        }
-
-        stockExcelDiff.diffList.forEach(d => {
-          newStockMap.set(d.sku, d.newQuantity);
-        });
-
-        const updatedStockArray = [];
-        newStockMap.forEach((qty, sku) => {
-          updatedStockArray.push({
-            warehouseId: selectedWarehouseId,
-            sku,
-            quantity: qty,
-            updatedAt: new Date().toISOString(),
-            updatedBy: 'admin (excel)'
-          });
-        });
-        setStockList(updatedStockArray);
-      }
+      await commitStockExcelImport(selectedWarehouseId, stockExcelDiff.diffList, stockExcelMode);
 
       showNotice(`Остатки склада успешно обновлены из Excel (${stockExcelDiff.diffList.length} поз.)`);
       setIsStockExcelModalOpen(false);
@@ -2661,7 +2631,11 @@ export const AdminPage = () => {
                   <button 
                     type="button" 
                     className="admin-btn admin-btn-primary admin-btn-sm"
-                    onClick={() => setIsAddingNewProduct(true)}
+                    onClick={() => {
+                      setEditingProduct({ category: categoriesList[0]?.name || 'Кухонные смесители', currency: '₸', collection: 'LAUTE Master Line', brand: 'LAUTE', status: 'АКТИВЕН' });
+                      setProductModalTab('main');
+                      setIsAddingNewProduct(true);
+                    }}
                   >
                     <Plus size={14} />
                     <span>Добавить товар</span>
@@ -2858,7 +2832,7 @@ export const AdminPage = () => {
                                     <input
                                       type="number"
                                       min="0"
-                                      step="100"
+                                      step="0.01"
                                       className="inline-edit-input"
                                       style={{ width: 90 }}
                                       value={inlineEditData.price}
@@ -5868,7 +5842,7 @@ export const AdminPage = () => {
                       <label>Материал корпуса:</label>
                       <input
                         type="text"
-                        value={editingProduct?.material || 'Первичная латунь CW617N (евростандарт)'}
+                        value={editingProduct?.material || ''}
                         onChange={(e) => setEditingProduct({ ...editingProduct, material: e.target.value })}
                       />
                     </div>
@@ -5877,7 +5851,7 @@ export const AdminPage = () => {
                       <label>Цвет:</label>
                       <input
                         type="text"
-                        value={editingProduct?.color || 'Хром глянец'}
+                        value={editingProduct?.color || ''}
                         onChange={(e) => setEditingProduct({ ...editingProduct, color: e.target.value })}
                       />
                     </div>
@@ -5886,8 +5860,8 @@ export const AdminPage = () => {
                       <label>Покрытие:</label>
                       <input
                         type="text"
-                        value={editingProduct?.coating || 'Гальваническое хромирование / PVD'}
-                        onChange={(e) => setEditingProduct({ ...editingProduct, coating: e.target.value })}
+                        value={editingProduct?.finish ?? editingProduct?.coating ?? ''}
+                        onChange={(e) => setEditingProduct({ ...editingProduct, finish: e.target.value })}
                         placeholder="PVD, Хром, Матовый порошковый полимер"
                       />
                     </div>
@@ -5906,7 +5880,7 @@ export const AdminPage = () => {
                       <label>Тип установки:</label>
                       <input
                         type="text"
-                        value={editingProduct?.installType || 'На раковину / столешницу'}
+                        value={editingProduct?.installType || ''}
                         onChange={(e) => setEditingProduct({ ...editingProduct, installType: e.target.value })}
                       />
                     </div>
@@ -5915,7 +5889,7 @@ export const AdminPage = () => {
                       <label>Назначение:</label>
                       <input
                         type="text"
-                        value={editingProduct?.purpose || 'Для кухни / мойки'}
+                        value={editingProduct?.purpose || ''}
                         onChange={(e) => setEditingProduct({ ...editingProduct, purpose: e.target.value })}
                       />
                     </div>
@@ -5924,7 +5898,7 @@ export const AdminPage = () => {
                       <label>Подключения:</label>
                       <input
                         type="text"
-                        value={editingProduct?.connections || 'G 1/2", гибкая подводка 500 мм в оплетке'}
+                        value={editingProduct?.connections || ''}
                         onChange={(e) => setEditingProduct({ ...editingProduct, connections: e.target.value })}
                       />
                     </div>
@@ -5933,7 +5907,7 @@ export const AdminPage = () => {
                       <label>Гарантия производителя:</label>
                       <input
                         type="text"
-                        value={editingProduct?.warranty || '5 лет (на корпус 7 лет)'}
+                        value={editingProduct?.warranty || ''}
                         onChange={(e) => setEditingProduct({ ...editingProduct, warranty: e.target.value })}
                       />
                     </div>
@@ -5971,7 +5945,7 @@ export const AdminPage = () => {
                           type="number"
                           required
                           min="0"
-                          step="100"
+                          step="0.01"
                           value={editingProduct?.price || ''}
                           onChange={(e) => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
                           placeholder="28900"
@@ -6032,8 +6006,8 @@ export const AdminPage = () => {
 
                     <ImageFieldEditor
                       label="Чертёж:"
-                      value={editingProduct?.drawing || ''}
-                      onChange={(url) => setEditingProduct({ ...editingProduct, drawing: url })}
+                      value={editingProduct?.drawingUrl ?? editingProduct?.drawing ?? ''}
+                      onChange={(url) => setEditingProduct({ ...editingProduct, drawingUrl: url })}
                     />
                   </div>
 
@@ -6101,8 +6075,8 @@ export const AdminPage = () => {
                     <label>SEO Meta Description (Описание):</label>
                     <textarea
                       rows={2}
-                      value={editingProduct?.seoDescription || `${editingProduct?.name || ''}. Первичная латунь CW617N, картридж Sedal. Купить оптом и в розницу у официального производителя LAUTE.`}
-                      onChange={(e) => setEditingProduct({ ...editingProduct, seoDescription: e.target.value })}
+                      value={editingProduct?.seoDesc ?? editingProduct?.seoDescription ?? ''}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, seoDesc: e.target.value })}
                     />
                   </div>
 
@@ -6120,7 +6094,7 @@ export const AdminPage = () => {
                     <div className="serp-card">
                       <span className="serp-url">https://laute.ltd/catalog/{editingProduct?.article?.toLowerCase()}</span>
                       <h4 className="serp-title">{editingProduct?.seoTitle || `${editingProduct?.name} | LAUTE`}</h4>
-                      <p className="serp-desc">{editingProduct?.seoDescription || editingProduct?.description}</p>
+                      <p className="serp-desc">{editingProduct?.seoDesc || editingProduct?.seoDescription || editingProduct?.description}</p>
                     </div>
                   </div>
                 </div>

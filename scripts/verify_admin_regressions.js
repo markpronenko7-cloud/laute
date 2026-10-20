@@ -6,10 +6,11 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { build, transform } from 'esbuild';
 import { createRequire } from 'node:module';
-import { parseAndValidateExcelFile, applyExcelImport, createCatalogWorkbook } from '../src/utils/excelManager.js';
+import { parseAndValidateExcelFile, applyExcelImport, createCatalogWorkbook, parseStockExcelClient } from '../src/utils/excelManager.js';
 import { formatProductDisplay, classifyProductImages } from '../src/utils/imageHelper.js';
 import { getPublishedPage, getEditableBlocks } from '../src/utils/pagePublication.js';
 import { getNavigation, getNavTranslation, getPageSeo } from '../src/utils/contentSettings.js';
+import { CATEGORY_NAMES } from '../src/data/catalogData.js';
 
 const workbook = rows => {
   const wb = XLSX.utils.book_new();
@@ -17,6 +18,95 @@ const workbook = rows => {
   return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 };
 const headings = ['Артикул (SKU) *', 'Название товара *', 'Категория *', 'Цена *'];
+
+test('Excel: все категории и все поля проходят экспорт → новый импорт → обновление', async () => {
+  const products = CATEGORY_NAMES.map((category, index) => ({
+    article: `QA-FIELDS-${index}`, name: 'Тестовое изделие', category,
+    subcategory: 'Подкатегория', collection: 'Коллекция', brand: 'Aloute',
+    description: 'Описание', price: 123.45, currency: '₽', material: 'Латунь',
+    color: 'Хром', finish: 'PVD', installType: 'Настенный', purpose: 'Для дома',
+    dimensions: '100 мм', weight: '1.5 кг', volume: '0.01 м³', specs: 'Характеристики',
+    photo1: 'https://example.com/product.jpg', photo2: 'https://example.com/second.jpg',
+    photo3: 'https://example.com/third.jpg', status: index % 2 ? 'СКРЫТ' : 'АКТИВЕН',
+    seoTitle: 'SEO заголовок', seoDesc: 'SEO описание', url: `/qa-${index}`,
+    extraSpecs: 'Дополнительно', drawingUrl: 'https://example.com/drawing.png',
+    boxUrl: 'https://example.com/box.png', cityStock: { Алматы: 7, Москва: 0 }
+  }));
+  assert.ok(products.length >= 14);
+  const buffer = XLSX.write(createCatalogWorkbook(products), { type: 'buffer', bookType: 'xlsx' });
+  for (const current of [[], products]) {
+    const parsed = await parseAndValidateExcelFile(buffer, current);
+    assert.equal(parsed.success, true, JSON.stringify(parsed.errors));
+    const imported = applyExcelImport(current, parsed.validRows);
+    assert.equal(imported.length, products.length);
+    products.forEach((expected, i) => {
+      for (const [key, value] of Object.entries(expected)) {
+        assert.deepEqual(imported[i][key], value, `${expected.category}: ${key}`);
+      }
+    });
+  }
+});
+
+test('Складской Excel: неверное количество отклоняется без округления и удаления символов', async () => {
+  const originalReader = globalThis.FileReader;
+  globalThis.FileReader = class {
+    readAsArrayBuffer(buffer) { this.onload({ target: { result: buffer } }); }
+  };
+  try {
+    const warehouses = [{ id: 'qa-wh', name: 'Тестовый склад' }];
+    const products = [{ article: 'QA-1', name: 'Тест', category: 'Аэраторы' }];
+    for (const heading of ['Количество', 'Тестовый склад']) {
+      for (const qty of [-3, 1.5, '-3', '1.5', '12oops', '1e3', 'Infinity', '2147483648', '9007199254740992']) {
+        const result = await parseStockExcelClient(workbook([['Артикул', heading], ['QA-1', qty]]), warehouses[0], products, [], warehouses);
+        assert.equal(result.errorCount, 1, `${heading}: ${qty}`);
+        assert.equal(result.validCount, 0, `${heading}: ${qty}`);
+      }
+      for (const qty of [0, 12, '12', '1 234', 2147483647]) {
+        const result = await parseStockExcelClient(workbook([['Артикул', heading], ['QA-1', qty]]), warehouses[0], products, [], warehouses);
+        assert.equal(result.errorCount, 0, `${heading}: ${qty}`);
+        assert.equal(result.diffList[0].newQuantity, Number(String(qty).replace(/\s/g, '')));
+      }
+      const blank = await parseStockExcelClient(workbook([['Артикул', heading], ['QA-1', '']]), warehouses[0], products, [], warehouses);
+      assert.equal(blank.validCount, 0);
+    }
+  } finally {
+    if (originalReader === undefined) delete globalThis.FileReader;
+    else globalThis.FileReader = originalReader;
+  }
+});
+
+test('Складской Excel: отказ сервера сохраняет предпросмотр и не сообщает об успехе', async () => {
+  const source = fs.readFileSync('src/pages/AdminPage.jsx', 'utf8');
+  const start = source.indexOf('const handleCommitStockExcel = async () => {');
+  assert.ok(start >= 0);
+  const end = source.indexOf('\n  };', start);
+  const handler = source.slice(start, end + '\n  };'.length);
+  for (const fail of [true, false]) {
+    const notices = [], modals = [], previews = [], busy = [], loads = [];
+    const state = {
+      isDemoMode: false,
+      stockExcelDiff: { diffList: [{ sku: 'QA', newQuantity: 7 }] },
+      stockExcelMode: 'partial', stockExcelReplaceAgreed: false, selectedWarehouseId: 'qa-wh',
+      showNotice: (...args) => notices.push(args), setIsStockExcelConfirming: value => busy.push(value),
+      setIsStockExcelModalOpen: value => modals.push(value), setStockExcelDiff: value => previews.push(value),
+      loadStockData: async id => loads.push(id),
+      commitStockExcelImport: async () => { if (fail) throw new Error('Сессия истекла'); }
+    };
+    await new Function(...Object.keys(state), `${handler}; return handleCommitStockExcel();`)(...Object.values(state));
+    assert.deepEqual(busy, [true, false]);
+    if (fail) {
+      assert.deepEqual(notices, [['Сессия истекла', 'error']]);
+      assert.deepEqual(modals, []);
+      assert.deepEqual(previews, []);
+      assert.deepEqual(loads, []);
+    } else {
+      assert.match(notices[0][0], /успешно/);
+      assert.deepEqual(modals, [false]);
+      assert.deepEqual(previews, [null]);
+      assert.deepEqual(loads, ['qa-wh']);
+    }
+  }
+});
 
 test('CMS: подписи, видимость, локализация меню и обе схемы SEO', () => {
   const content = {

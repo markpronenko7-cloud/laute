@@ -805,6 +805,12 @@ export const downloadStockTemplateExcel = (warehouse, products = [], currentStoc
  * Парсит и валидирует загруженный Excel-файл со складскими остатками на клиенте
  * Поддерживает как файл одного склада (Режим А), так и матрицу всех складов (Режим B)
  */
+const parseStockQuantity = (value) => {
+  const text = String(value).trim().replace(/\s+/g, '');
+  const quantity = /^\d+$/.test(text) ? Number(text) : NaN;
+  return Number.isSafeInteger(quantity) && quantity >= 0 && quantity <= 2147483647 ? quantity : null;
+};
+
 export const parseStockExcelClient = async (file, warehouse, currentProducts, currentStock = [], allWarehouses = []) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -906,16 +912,10 @@ export const parseStockExcelClient = async (file, warehouse, currentProducts, cu
               const val = row[colIdx];
               if (val === null || val === undefined || val === '') return; // Пропускаем пустые (без изменений)
 
-              let qty = 0;
-              if (typeof val === 'number') {
-                qty = Math.max(0, Math.floor(val));
-              } else {
-                const parsed = parseInt(String(val).replace(/[^0-9]/g, ''), 10);
-                if (isNaN(parsed) || parsed < 0) {
-                  errors.push({ row: i + 1, sku, message: `Некорректное число для склада ${wh.name}: "${val}"` });
-                  return;
-                }
-                qty = parsed;
+              const qty = parseStockQuantity(val);
+              if (qty === null) {
+                errors.push({ row: i + 1, sku, message: `Некорректное число для склада ${wh.name}: "${val}". Нужно неотрицательное целое число.` });
+                return;
               }
 
               const stockKey = `${wh.id}::${sku}`;
@@ -939,16 +939,10 @@ export const parseStockExcelClient = async (file, warehouse, currentProducts, cu
             const val = row[singleQtyIdx];
             if (val === null || val === undefined || val === '') continue;
 
-            let qty = 0;
-            if (typeof val === 'number') {
-              qty = Math.max(0, Math.floor(val));
-            } else {
-              const parsed = parseInt(String(val).replace(/[^0-9]/g, ''), 10);
-              if (isNaN(parsed) || parsed < 0) {
-                errors.push({ row: i + 1, sku, message: `Некорректное число количества "${val}"` });
-                continue;
-              }
-              qty = parsed;
+            const qty = parseStockQuantity(val);
+            if (qty === null) {
+              errors.push({ row: i + 1, sku, message: `Некорректное число количества "${val}". Нужно неотрицательное целое число.` });
+              continue;
             }
 
             const stockKey = `${singleWh.id}::${sku}`;
