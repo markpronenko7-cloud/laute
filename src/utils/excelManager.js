@@ -805,7 +805,7 @@ export const downloadStockTemplateExcel = (warehouse, products = [], currentStoc
  * Парсит и валидирует загруженный Excel-файл со складскими остатками на клиенте
  * Поддерживает как файл одного склада (Режим А), так и матрицу всех складов (Режим B)
  */
-const parseStockQuantity = (value) => {
+export const parseStockQuantity = (value) => {
   const text = String(value).trim().replace(/\s+/g, '');
   const quantity = /^\d+$/.test(text) ? Number(text) : NaN;
   return Number.isSafeInteger(quantity) && quantity >= 0 && quantity <= 2147483647 ? quantity : null;

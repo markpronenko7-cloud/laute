@@ -6,7 +6,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { build, transform } from 'esbuild';
 import { createRequire } from 'node:module';
-import { parseAndValidateExcelFile, applyExcelImport, createCatalogWorkbook, parseStockExcelClient } from '../src/utils/excelManager.js';
+import { parseAndValidateExcelFile, applyExcelImport, createCatalogWorkbook, parseStockExcelClient, parseStockQuantity } from '../src/utils/excelManager.js';
 import { formatProductDisplay, classifyProductImages } from '../src/utils/imageHelper.js';
 import { getPublishedPage, getEditableBlocks } from '../src/utils/pagePublication.js';
 import { getNavigation, getNavTranslation, getPageSeo } from '../src/utils/contentSettings.js';
@@ -18,6 +18,24 @@ const workbook = rows => {
   return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 };
 const headings = ['Артикул (SKU) *', 'Название товара *', 'Категория *', 'Цена *'];
+
+test('Ручные остатки: матрица, филиал и массовые операции отклоняют дроби и отрицательные числа', async () => {
+  const source = fs.readFileSync('src/pages/AdminPage.jsx', 'utf8');
+  for (const name of ['handleSaveMatrixCell', 'handleSaveStockRow', 'handleApplyMassStockEdit']) {
+    const start = source.indexOf(`const ${name} = async`);
+    const end = source.indexOf('\n  };', start);
+    for (const value of ['1.5', '-2', '12oops', '']) {
+      for (const action of ['set', 'add', 'subtract']) {
+        const notices = [];
+        const state = { isDemoMode:false, parseStockQuantity, showNotice:(...args)=>notices.push(args), stockLocalEdits:{QA:value}, selectedStockSkus:['QA'], massStockQty:value, massStockAction:action };
+        const fn = new Function(...Object.keys(state), `${source.slice(start,end+6)}; return ${name};`)(...Object.values(state));
+        await fn(...(name === 'handleSaveMatrixCell' ? ['qa-wh','QA',value] : ['QA']));
+        assert.equal(notices.length,1,`${name}: ${value}`);
+        assert.equal(notices[0][1],'error');
+      }
+    }
+  }
+});
 
 test('Excel: все категории и все поля проходят экспорт → новый импорт → обновление', async () => {
   const products = CATEGORY_NAMES.map((category, index) => ({

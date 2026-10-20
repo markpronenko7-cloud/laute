@@ -123,7 +123,8 @@ import { REGIONS_CONFIG } from '../data/regionsData';
 import { VisualPageBuilder } from '../components/builder/VisualPageBuilder';
 import {
   downloadStockTemplateExcel,
-  parseStockExcelClient
+  parseStockExcelClient,
+  parseStockQuantity
 } from '../utils/excelManager';
 import '../styles/admin.css';
 import '../styles/admin-studio.css';
@@ -916,9 +917,9 @@ export const AdminPage = () => {
       showNotice('В ознакомительном демо-режиме изменение остатков защищено.');
       return;
     }
-    const parsed = parseInt(newQty, 10);
-    if (isNaN(parsed) || parsed < 0) {
-      showNotice('Остаток должен быть неотрицательным числом (0 или больше)', 'error');
+    const parsed = parseStockQuantity(newQty);
+    if (parsed === null) {
+      showNotice('Остаток должен быть неотрицательным целым числом', 'error');
       return;
     }
     try {
@@ -964,8 +965,8 @@ export const AdminPage = () => {
       showNotice('Не выбрано ни одного товара', 'error');
       return;
     }
-    const qtyVal = parseInt(massStockQty, 10);
-    if (isNaN(qtyVal) || (massStockAction === 'set' && qtyVal < 0)) {
+    const qtyVal = parseStockQuantity(massStockQty);
+    if (qtyVal === null) {
       showNotice('Укажите корректное число остатка (неотрицательное)', 'error');
       return;
     }
@@ -1078,9 +1079,9 @@ export const AdminPage = () => {
       showNotice('Укажите количество для сохранения', 'error');
       return;
     }
-    const qty = parseInt(editVal, 10);
-    if (isNaN(qty) || qty < 0) {
-      showNotice('Количество не может быть отрицательным числом', 'error');
+    const qty = parseStockQuantity(editVal);
+    if (qty === null) {
+      showNotice('Количество должно быть неотрицательным целым числом', 'error');
       return;
     }
 
@@ -3630,7 +3631,7 @@ export const AdminPage = () => {
                             const dbQty = stockItem ? stockItem.quantity : null;
                             const hasEdit = stockLocalEdits[prod.article] !== undefined;
                             const displayQty = hasEdit ? stockLocalEdits[prod.article] : (dbQty !== null ? dbQty : '');
-                            const numVal = parseInt(displayQty, 10);
+                            const numVal = parseStockQuantity(displayQty);
                             const isChanged = hasEdit && (dbQty === null ? displayQty !== '' : numVal !== dbQty);
 
                             let statusTagClass = 'tag-unspecified';
@@ -3686,7 +3687,7 @@ export const AdminPage = () => {
                                       type="button"
                                       className="qty-step-btn"
                                       onClick={() => {
-                                        const cur = parseInt(displayQty || '0', 10) || 0;
+                                        const cur = parseStockQuantity(displayQty) ?? 0;
                                         const next = Math.max(0, cur - 1);
                                         setStockLocalEdits(prev => ({ ...prev, [prod.article]: next }));
                                       }}
@@ -3710,7 +3711,7 @@ export const AdminPage = () => {
                                       type="button"
                                       className="qty-step-btn"
                                       onClick={() => {
-                                        const cur = parseInt(displayQty || '0', 10) || 0;
+                                        const cur = parseStockQuantity(displayQty) ?? 0;
                                         const next = cur + 1;
                                         setStockLocalEdits(prev => ({ ...prev, [prod.article]: next }));
                                       }}
@@ -6173,8 +6174,8 @@ export const AdminPage = () => {
                                   type="button"
                                   className="admin-btn admin-btn-primary admin-btn-xs"
                                   onClick={async () => {
-                                    const val = parseInt(displayVal, 10);
-                                    if (isNaN(val) || val < 0) {
+                                    const val = parseStockQuantity(displayVal);
+                                    if (val === null) {
                                       showNotice('Укажите корректный остаток', 'error');
                                       return;
                                     }
