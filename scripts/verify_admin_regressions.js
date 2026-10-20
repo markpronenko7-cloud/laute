@@ -69,6 +69,11 @@ test('Складской Excel: неверное количество откло
       const blank = await parseStockExcelClient(workbook([['Артикул', heading], ['QA-1', '']]), warehouses[0], products, [], warehouses);
       assert.equal(blank.validCount, 0);
     }
+    const branches = ['Алматы', 'Новосибирск', 'Москва', 'Китай'].map((name, i) => ({id: `wh-${i}`, name}));
+    const existingStock = branches.map(w => ({warehouseId: w.id, sku: 'QA-1', quantity: 3}));
+    const matrix = await parseStockExcelClient(workbook([['Артикул', ...branches.map(w => w.name)], ['QA-1', 4, 5, 6, 7]]), branches[0], products, existingStock, branches);
+    assert.equal(matrix.warehouseId, 'all');
+    assert.deepEqual(matrix.diffList.map(d => [d.warehouseId, d.oldQuantity, d.diff]), branches.map((w, i) => [w.id, 3, i + 1]));
   } finally {
     if (originalReader === undefined) delete globalThis.FileReader;
     else globalThis.FileReader = originalReader;
@@ -82,18 +87,19 @@ test('Складской Excel: отказ сервера сохраняет п�
   const end = source.indexOf('\n  };', start);
   const handler = source.slice(start, end + '\n  };'.length);
   for (const fail of [true, false]) {
-    const notices = [], modals = [], previews = [], busy = [], loads = [];
+    const notices = [], modals = [], previews = [], busy = [], loads = [], commits = [];
     const state = {
       isDemoMode: false,
-      stockExcelDiff: { diffList: [{ sku: 'QA', newQuantity: 7 }] },
+      stockExcelDiff: { warehouseId: 'all', diffList: [{ sku: 'QA', newQuantity: 7 }] },
       stockExcelMode: 'partial', stockExcelReplaceAgreed: false, selectedWarehouseId: 'qa-wh',
       showNotice: (...args) => notices.push(args), setIsStockExcelConfirming: value => busy.push(value),
       setIsStockExcelModalOpen: value => modals.push(value), setStockExcelDiff: value => previews.push(value),
       loadStockData: async id => loads.push(id),
-      commitStockExcelImport: async () => { if (fail) throw new Error('Сессия истекла'); }
+      commitStockExcelImport: async (...args) => { commits.push(args); if (fail) throw new Error('Сессия истекла'); }
     };
     await new Function(...Object.keys(state), `${handler}; return handleCommitStockExcel();`)(...Object.values(state));
     assert.deepEqual(busy, [true, false]);
+    assert.equal(commits[0][0], 'all');
     if (fail) {
       assert.deepEqual(notices, [['Сессия истекла', 'error']]);
       assert.deepEqual(modals, []);

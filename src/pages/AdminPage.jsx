@@ -1319,7 +1319,7 @@ export const AdminPage = () => {
 
     setIsStockExcelConfirming(true);
     try {
-      await commitStockExcelImport(selectedWarehouseId, stockExcelDiff.diffList, stockExcelMode);
+      await commitStockExcelImport(stockExcelDiff.warehouseId || selectedWarehouseId, stockExcelDiff.diffList, stockExcelMode);
 
       showNotice(`Остатки склада успешно обновлены из Excel (${stockExcelDiff.diffList.length} поз.)`);
       setIsStockExcelModalOpen(false);
@@ -6717,7 +6717,7 @@ export const AdminPage = () => {
                   <div>
                     <h4 style={{ color: '#EF4444', margin: '0 0 4px 0' }}>Требуется подтверждение полной замены</h4>
                     <p style={{ margin: 0, fontSize: 13, color: 'var(--adm-text-secondary)' }}>
-                      Этот режим затрагивает ТОЛЬКО склад «{stockExcelDiff.warehouseName}». Остальные склады (Новосибирск, Москва, КНР) не будут затронуты.
+                      {stockExcelDiff.warehouseId === 'all' ? 'Этот режим заменяет остатки на всех складах. Неуказанные позиции будут обнулены на каждом складе.' : `Этот режим затрагивает только склад «${stockExcelDiff.warehouseName}». Остальные склады не будут затронуты.`}
                     </p>
                     <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, cursor: 'pointer', fontWeight: 600, color: '#FFFFFF' }}>
                       <input
@@ -6761,6 +6761,7 @@ export const AdminPage = () => {
                     <tr>
                       <th>SKU</th>
                       <th>Наименование</th>
+                      {stockExcelDiff.isMultiWarehouse && <th>Склад</th>}
                       <th>Было</th>
                       <th>Станет</th>
                       <th>Разница</th>
@@ -6768,9 +6769,10 @@ export const AdminPage = () => {
                   </thead>
                   <tbody>
                     {stockExcelDiff.diffList?.map((d) => (
-                      <tr key={d.sku}>
+                      <tr key={`${d.warehouseId || stockExcelDiff.warehouseId}::${d.sku}`}>
                         <td><code>{d.sku}</code></td>
                         <td><strong>{d.name}</strong></td>
+                        {stockExcelDiff.isMultiWarehouse && <td>{d.warehouseName || d.warehouseId}</td>}
                         <td>{d.oldQuantity} шт.</td>
                         <td><strong>{d.newQuantity} шт.</strong></td>
                         <td>

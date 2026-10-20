@@ -1340,7 +1340,7 @@ export const validateStockExcelFile = async (file, warehouseId) => {
   const [warehouses, products, stockList] = await Promise.all([
     fetchWarehouses(),
     fetchProducts(true),
-    fetchWarehouseStock(warehouseId === 'all' ? null : warehouseId)
+    fetchWarehouseStock()
   ]);
   const targetWh = warehouseId === 'all' ? 'all' : (warehouses.find(w => w.id === warehouseId) || warehouseId);
   return await clientParseStockExcel(file, targetWh, products, stockList, warehouses);
