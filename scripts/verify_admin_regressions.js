@@ -257,6 +257,11 @@ test('CMS: серверные отказы, частичное обновлен�
     await api.updateProduct('X', { price: 150 });
     assert.equal(products[0].name, 'Изделие');
     assert.equal(products[0].specs, 'Характеристики');
+    products.push({ article: 'LEGACY-UNTOUCHED', name: 'Старый товар без категории', price: 10 });
+    await api.commitExcelImport([{ article: 'X', name: 'Изделие', category: 'Картриджи', price: 150, actionStatus: 'ОБНОВИТЬ' }]);
+    const importCall = calls.findLast(c => c.endpoint === 'rpc/laute_import_products');
+    assert.deepEqual(importCall.args.p_products.map(p => p.article), ['X']);
+    assert.deepEqual(importCall.args.p_deleted_skus, []);
     await api.saveBulkStock([{ warehouseId: 'almaty', sku: 'X', quantity: 7 }]);
     assert.deepEqual(calls.at(-1).args.p_stocks, [{ warehouseId: 'almaty', sku: 'X', quantity: 7 }]);
     await assert.rejects(api.saveStockItem('almaty', 'X', -2), /целым/);

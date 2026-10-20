@@ -946,11 +946,13 @@ export const commitExcelImport = async (validRows) => {
 
   // 2. Применяем изменения (товары, отсутствующие в Excel, НЕ удаляются)
   const updatedProducts = clientApplyExcelImport(currentProducts, validRows);
+  const touchedSkus = new Set(validRows.filter(r => r.actionStatus !== 'УДАЛИТЬ').map(r => r.article.trim().toUpperCase()));
+  const productsToSave = updatedProducts.filter(p => touchedSkus.has(p.article.trim().toUpperCase()));
 
   // 3. Сохраняем пакет товаров в Supabase
   const result = await callSupabaseRpc('laute_import_products', {
     p_token: token,
-    p_products: updatedProducts,
+    p_products: productsToSave,
     p_deleted_skus: deletedSkus
   });
 
