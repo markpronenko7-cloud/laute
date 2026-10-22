@@ -15,7 +15,7 @@ export function FactoryFilm({ block, isEditor, onLink }) {
       <div className="factory-wordmark" aria-hidden="true"><img src={resolveMediaUrl('official-laute-logo.png')} alt=""/></div>
       <h1>{en ? 'Precision. Character. LAUTE.' : kz ? 'Дәлдік. Мінез. LAUTE.' : block.title}</h1>
       <p>{en ? 'From the first blank to the final touch. See metal take shape, and engineering find its character.' : kz ? 'Алғашқы дайындамадан соңғы өңдеуге дейін. Металдың пішінге айналуын өз көзіңізбен көріңіз.' : block.subtitle}</p>
-      <a className="btn btn-primary" href={isSafeActionLink(block.buttonLink) ? block.buttonLink || '/partners' : '#'} onClick={onLink}><span>{en ? 'Become a partner' : kz ? 'Серіктес болу' : block.buttonText}</span><ArrowUpRight size={18}/></a>
+      <a className="btn btn-primary" href={isSafeActionLink(block.buttonLink) ? (block.buttonLink?.startsWith('/') ? resolveMediaUrl(block.buttonLink.slice(1)) : block.buttonLink || resolveMediaUrl('partners')) : '#'} onClick={onLink}><span>{en ? 'Become a partner' : kz ? 'Серіктес болу' : block.buttonText}</span><ArrowUpRight size={18}/></a>
       <div className="factory-film-index"><span>01 — 06</span><span>{en ? 'MATERIAL / PROCESS / PEOPLE' : kz ? 'МАТЕРИАЛ / ПРОЦЕСС / АДАМДАР' : 'МАТЕРИАЛ / ПРОЦЕСС / ЛЮДИ'}</span></div>
     </div>
     <figure className="factory-film-player">

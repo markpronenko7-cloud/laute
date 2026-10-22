@@ -63,7 +63,8 @@ def narrate(ff, source, work, master):
  stamp=lambda seconds: f'{int(seconds//3600):02}:{int(seconds%3600//60):02}:{seconds%60:06.3f}'
  for lang,index in [('ru',4),('en',5)]:
   cues=[f'{stamp(row[3])} --> {stamp(row[3]+row[2]-row[1])}\n{row[index]}' for row in NARRATION]
-  (media/f'laute-factory-{lang}.vtt').write_text('WEBVTT\n\n'+'\n\n'.join(cues)+'\n',encoding='utf8')
+  web_cues=[cue.replace('\n',' line:65% position:50% align:center size:85%\n',1) for cue in cues]
+  (media/f'laute-factory-{lang}.vtt').write_text('WEBVTT\n\n'+'\n\n'.join(web_cues)+'\n',encoding='utf8')
   (work/f'{lang}.srt').write_text('\n\n'.join(f'{i+1}\n'+cue.replace('.',',',2) for i,cue in enumerate(cues))+'\n',encoding='utf8')
  args=['-f','concat','-safe',0,'-i',work/'concat.txt','-i',work/'original-score.wav']
  filters=[]
