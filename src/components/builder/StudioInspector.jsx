@@ -22,7 +22,8 @@ const labels = {
   question: 'Вопрос',
   answer: 'Ответ',
   desc: 'Описание',
-  step: 'Номер шага'
+  step: 'Номер шага',
+  year: 'Год', note: 'Короткая подпись'
 };
 const textKeys = ['badge', 'title', 'subtitle', 'content', 'col1Title', 'col1Text', 'col2Title', 'col2Text'];
 function PhotoInput({
@@ -146,6 +147,11 @@ export function StudioInspector({
   }
   return <div className="studio-inspector-content"><h3>{block.title || 'Блок'}</h3>
     {textKeys.filter(k => block[k] !== undefined || k === 'title').map(k => field(k, block[k], value => patch(k, value)))}
+    {block.type === 'factory_film' && <>
+      {field('videoUrl', block.videoUrl, v => patch('videoUrl', v), 'Ссылка на видео MP4')}
+      {field('buttonText', block.buttonText, v => patch('buttonText', v))}
+      <LinkInput value={block.buttonLink} onChange={v => patch('buttonLink', v)} pages={availablePages}/>
+    </>}
     {['hero', 'image_text', 'cta_banner'].includes(block.type) && <details open={!!block.buttonText}><summary>Кнопка</summary>{field('buttonText', block.buttonText, v => patch('buttonText', v))}{<LinkInput value={block.buttonLink} onChange={v=>patch('buttonLink',v)} pages={availablePages}/>}</details>}
     {(block.imageUrl !== undefined || block.type === 'image_text') && <PhotoInput value={block.imageUrl} onChange={v => patch('imageUrl', v)} onMedia={onOpenMediaPicker} />}
     {block.type === 'form_lead' && field('submitText', block.submitText, v => patch('submitText', v))}

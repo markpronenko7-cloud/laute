@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FACTORY_FILM, FACTORY_HISTORY } from '../../data/factoryStory';
 import {
   X,
   Type,
@@ -20,6 +21,8 @@ import {
 } from 'lucide-react';
 
 export const BLOCK_TEMPLATES = [
+  { type: 'factory_film', category: 'hero', name: 'Фильм о заводе', desc: 'Документальный ролик, обложка и крупная типографика', icon: Sparkles, defaultData: FACTORY_FILM },
+  { type: 'factory_history', category: 'text', name: 'История завода', desc: 'Годы, этапы развития и новые направления бренда', icon: Type, defaultData: FACTORY_HISTORY },
   // 1. ТЕКСТОВЫЕ БЛОКИ
   {
     type: 'hero',

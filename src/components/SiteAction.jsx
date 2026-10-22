@@ -10,7 +10,7 @@ export function SiteAction({ controlId, children, onClick, className, ...props }
   if (setting.isVisible === false) return null;
   let replaced = false;
   const content = React.Children.map(children, child => {
-    if (!replaced && setting.label && React.isValidElement(child) && child.type === 'span') {
+    if (!replaced && !props['aria-busy'] && setting.label && React.isValidElement(child) && child.type === 'span') {
       replaced = true;
       return React.cloneElement(child, {}, setting.label);
     }

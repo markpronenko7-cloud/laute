@@ -1,13 +1,17 @@
+import { InquiryFeedback } from '../components/InquiryFeedback';
 import { EditableNode, EditableSection, NativeSectionGate } from '../components/builder/NativeContent';
 import { PageText } from '../components/PageText';
 import { SiteAction } from '../components/SiteAction';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { Store, Building2, ShoppingBag, Phone, Mail, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { submitLeadInquiry } from '../services/adminApi';
 
 export const WhereToBuyPage = () => {
   const { openPartnerModal, lang, t } = useApp();
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState('');
+  const sendingRef = useRef(false);
   const [activeTab, setActiveTab] = useState('wholesale');
   const [cityQuery, setCityQuery] = useState('');
   const [inquirySent, setInquirySent] = useState(false);
@@ -16,14 +20,21 @@ export const WhereToBuyPage = () => {
 
   const handleInquirySubmit = async (e) => {
     e.preventDefault();
+    if (sendingRef.current) return;
+    sendingRef.current = true;
+    setIsSending(true);
+    setSendError('');
     try {
       await submitLeadInquiry({
         source: 'where_to_buy_city_inquiry',
         city: cityQuery
       });
     } catch (err) {
-      window.alert(err.message || 'Не удалось отправить запрос. Попробуйте ещё раз.');
+      setSendError(err.message || 'Не удалось отправить запрос. Попробуйте ещё раз.');
       return;
+    } finally {
+      sendingRef.current = false;
+      setIsSending(false);
     }
     setInquirySent(true);
   };
@@ -173,6 +184,7 @@ export const WhereToBuyPage = () => {
                     </div>
                   ) : (
                     <form onSubmit={handleInquirySubmit} className="retail-inquiry-form">
+            <InquiryFeedback sending={isSending} error={sendError} />
                       <div className="form-inline-group">
                         <input
                           type="text"
@@ -182,8 +194,8 @@ export const WhereToBuyPage = () => {
                           onChange={(e) => setCityQuery(e.target.value)}
                           className="search-input"
                         />
-                        <EditableNode as={SiteAction} editKey={"wheretobuypage-37"} kind="submit" controlId="wheretobuy-1" type="submit" className="btn btn-primary">
-                          <span>{wp.inquiryBtn || 'Найти магазины'}</span>
+                        <EditableNode as={SiteAction} editKey={"wheretobuypage-37"} kind="submit" controlId="wheretobuy-1" type="submit" disabled={isSending} aria-busy={isSending} className="btn btn-primary">
+                          <span>{isSending ? (lang === 'en' ? 'Sending…' : lang === 'kz' ? 'Жіберілуде…' : 'Отправляем…') : (wp.inquiryBtn || 'Найти магазины')}</span>
                           <ArrowRight size={15} />
                         </EditableNode>
                       </div>

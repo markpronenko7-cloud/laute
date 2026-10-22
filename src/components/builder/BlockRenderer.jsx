@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import { InquiryFeedback } from '../InquiryFeedback';
+import { FactoryFilm, FactoryHistory } from '../FactoryStory';
+import React, { useState, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
   ArrowRight,
@@ -37,7 +39,10 @@ export const BlockRenderer = ({
   onAddBelow,
   onInlineUpdate
 }) => {
-  const { navigateTo, openPartnerModal, openServiceModal, catalogList = [], products = [] } = useApp();
+  const { lang, navigateTo, openPartnerModal, openServiceModal, catalogList = [], products = [] } = useApp();
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState('');
+  const sendingRef = useRef(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [formData, setFormData] = useState({ name: '', company: '', phone: '', email: '', message: '' });
   const [openFaqIndices, setOpenFaqIndices] = useState([0]);
@@ -74,14 +79,21 @@ export const BlockRenderer = ({
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (isEditor) return;
+    if (sendingRef.current) return;
+    sendingRef.current = true;
+    setIsSending(true);
+    setSendError('');
     try {
       await submitLeadInquiry({
         source: block.formType || 'page_form',
         ...formData
       });
     } catch (err) {
-      window.alert(err.message || 'Не удалось отправить заявку. Попробуйте ещё раз.');
+      setSendError(err.message || 'Не удалось отправить заявку. Попробуйте ещё раз.');
       return;
+    } finally {
+      sendingRef.current = false;
+      setIsSending(false);
     }
     setFormSubmitted(true);
   };
@@ -110,6 +122,10 @@ export const BlockRenderer = ({
   // Sub-renderers for each block type
   const renderContent = () => {
     switch (block.type) {
+      case 'factory_film':
+        return <FactoryFilm block={block} isEditor={isEditor} onLink={e => handleLinkClick(e, block.buttonLink)} />;
+      case 'factory_history':
+        return <FactoryHistory block={block} />;
       case 'system_page':
       case 'system_section':
         return <div onSubmitCapture={isEditor ? e => { e.preventDefault(); e.stopPropagation(); } : undefined} onClickCapture={isEditor ? e => {
@@ -378,6 +394,7 @@ export const BlockRenderer = ({
               </div>
             ) : (
               <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <InquiryFeedback sending={isSending} error={sendError} />
                 <input
                   type="text"
                   required
@@ -412,8 +429,8 @@ export const BlockRenderer = ({
                   onChange={e => setFormData({ ...formData, message: e.target.value })}
                   style={{ background: 'rgba(0,0,0,0.3)', padding: '12px 16px', fontSize: 14, resize: 'vertical' }}
                 />
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 4 }}>
-                  <span>{block.submitText || 'Отправить заявку в отдел продаж'}</span>
+                <button type="submit" disabled={isSending} aria-busy={isSending} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 4 }}>
+                  <span>{isSending ? (lang === 'en' ? 'Sending…' : lang === 'kz' ? 'Жіберілуде…' : 'Отправляем…') : (block.submitText || 'Отправить заявку в отдел продаж')}</span>
                   <ArrowRight size={16} />
                 </button>
               </form>

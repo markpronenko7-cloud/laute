@@ -72,7 +72,7 @@ export function EditableNode({
   };
   const label = saved.text;
   let content = introField && intro[introField] ? intro[introField] : children;
-  if (label !== undefined) {
+  if (label !== undefined && !(kind === 'submit' && props['aria-busy'])) {
     let replaced = false;
     // Keep button icons and replace its label only.
     content = ['button', 'link', 'submit'].includes(kind) ? React.Children.map(children, child => {

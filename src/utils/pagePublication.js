@@ -1,4 +1,5 @@
 import { NATIVE_SECTIONS } from '../data/nativeSections.js';
+import { getCompanyBlocks } from '../data/factoryStory.js';
 // A saved working copy must never replace a page visitors can already see.
 export function getPublishedPage(page, allowSystem = false) {
   if (!page) return null;
@@ -9,6 +10,7 @@ export function getPublishedPage(page, allowSystem = false) {
 }
 
 export function getEditableBlocks(page) {
+  if (page?.slug === 'company') return getCompanyBlocks(page.blocks || []);
   const protectedRoutes = ['home', 'catalog', 'service', 'where-to-buy'];
   if (!page?.isSystem || !protectedRoutes.includes(page.slug)) return page?.blocks || [];
   const saved = page.useBuilder && (page.blocks || []).find(b => b.type === 'system_page');

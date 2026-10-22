@@ -1,13 +1,19 @@
+import { InquiryFeedback } from '../components/InquiryFeedback';
+import { REGIONS_CONFIG } from '../data/regionsData';
+import { resolveInquiryRecipient } from '../utils/inquiryRouting';
 import { EditableNode, EditableSection, NativeSectionGate } from '../components/builder/NativeContent';
 import { PageText } from '../components/PageText';
 import { SiteAction } from '../components/SiteAction';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { Clock, CheckCircle2, Phone, Mail } from 'lucide-react';
 import { submitLeadInquiry } from '../services/adminApi';
 
 export const ServicePage = () => {
-  const { region, lang, t } = useApp();
+  const { region, lang, t, siteContent } = useApp();
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState('');
+  const sendingRef = useRef(false);
   const sp = t.servicePage || {};
 
   const [formData, setFormData] = useState({
@@ -29,22 +35,28 @@ export const ServicePage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (sendingRef.current) return;
+    sendingRef.current = true;
+    setIsSending(true);
+    setSendError('');
     try {
       await submitLeadInquiry({
         source: 'service_page',
         ...formData
       });
     } catch (err) {
-      window.alert(err.message || 'Не удалось отправить обращение. Попробуйте ещё раз.');
+      setSendError(err.message || 'Не удалось отправить обращение. Попробуйте ещё раз.');
       return;
+    } finally {
+      sendingRef.current = false;
+      setIsSending(false);
     }
     setIsSubmitted(true);
   };
 
   const getTargetEmail = () => {
-    if (formData.regionInquiry === 'kz') return 'opt@laute.ltd (Казахстанское направление)';
-    if (formData.regionInquiry === 'siberia') return 'nsk@laute.ltd (Сибирский сервисный отдел)';
-    return 'opt@laute.ltd (Сервисный центр завода)';
+    try { return resolveInquiryRecipient(siteContent?.inquiryRouting, 'service', formData.regionInquiry); }
+    catch { return 'Свяжитесь с LAUTE по телефону'; }
   };
 
   const rulesData = [
@@ -152,6 +164,12 @@ export const ServicePage = () => {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="b2b-form">
+            <InquiryFeedback sending={isSending} error={sendError} />
+                  <label className="form-group">{lang === 'en' ? 'Request region' : lang === 'kz' ? 'Өтініш өңірі' : 'Регион обращения'}
+                    <select className="form-select" value={formData.regionInquiry} onChange={e => setFormData({ ...formData, regionInquiry: e.target.value })}>
+                      {REGIONS_CONFIG.map(r => <option key={r.id} value={r.id}>{r.names[lang] || r.names.ru}</option>)}
+                    </select>
+                  </label>
                   <div className="form-group">
                     <EditableNode as="label" editKey={"servicepage-21"} kind="text">{sp.nameLabel || 'ФИО заявителя'} *</EditableNode>
                     <input
@@ -224,8 +242,8 @@ export const ServicePage = () => {
                     />
                   </div>
 
-                  <EditableNode as={SiteAction} editKey={"servicepage-27"} kind="submit" controlId="service-1" type="submit" className="btn btn-primary btn-full">
-                    <span>{sp.submitBtn || 'Отправить обращение в сервис'}</span>
+                  <EditableNode as={SiteAction} editKey={"servicepage-27"} kind="submit" controlId="service-1" type="submit" disabled={isSending} aria-busy={isSending} className="btn btn-primary btn-full">
+                    <span>{isSending ? (lang === 'en' ? 'Sending…' : lang === 'kz' ? 'Жіберілуде…' : 'Отправляем…') : (sp.submitBtn || 'Отправить обращение в сервис')}</span>
                   </EditableNode>
                 </form>
               )}

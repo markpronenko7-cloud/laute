@@ -1,13 +1,19 @@
-import React, { useState } from 'react';
+import { InquiryFeedback } from '../InquiryFeedback';
+import { REGIONS_CONFIG } from '../../data/regionsData';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { X, Send, Clock, CheckCircle2 } from 'lucide-react';
 import { submitLeadInquiry } from '../../services/adminApi';
 
 export const ServiceModal = () => {
-  const { isServiceModalOpen, closeServiceModal, t } = useApp();
+  const { isServiceModalOpen, closeServiceModal, t, lang, region } = useApp();
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState('');
+  const sendingRef = useRef(false);
   const [submitted, setSubmitted] = useState(false);
   const [ticketId, setTicketId] = useState('');
   const [formData, setFormData] = useState({
+    region: region || 'siberia',
     article: '',
     purchaseDate: '',
     clientType: 'B2B',
@@ -16,12 +22,20 @@ export const ServiceModal = () => {
     description: ''
   });
 
+  useEffect(() => {
+    if (isServiceModalOpen && !sendingRef.current) { setSubmitted(false); setSendError(''); setFormData(prev => ({ ...prev, region })); }
+  }, [isServiceModalOpen, region]);
+
   if (!isServiceModalOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (sendingRef.current) return;
     const generatedTicket = 'LT-SRV-' + Math.floor(100000 + Math.random() * 900000);
     setTicketId(generatedTicket);
+    sendingRef.current = true;
+    setIsSending(true);
+    setSendError('');
     try {
       await submitLeadInquiry({
         source: 'service_modal',
@@ -29,8 +43,11 @@ export const ServiceModal = () => {
         ...formData
       });
     } catch (err) {
-      window.alert(err.message || 'Не удалось отправить обращение. Попробуйте ещё раз.');
+      setSendError(err.message || 'Не удалось отправить обращение. Попробуйте ещё раз.');
       return;
+    } finally {
+      sendingRef.current = false;
+      setIsSending(false);
     }
     setSubmitted(true);
   };
@@ -72,6 +89,12 @@ export const ServiceModal = () => {
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
+            <InquiryFeedback sending={isSending} error={sendError} />
+            <label className="form-group">{lang === 'en' ? 'Request region' : lang === 'kz' ? 'Өтініш өңірі' : 'Регион обращения'}
+              <select className="form-select" value={formData.region} onChange={e => setFormData({ ...formData, region: e.target.value })}>
+                {REGIONS_CONFIG.map(r => <option key={r.id} value={r.id}>{r.names[lang] || r.names.ru}</option>)}
+              </select>
+            </label>
             <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '14px' }}>
               <div className="form-group">
                 <label className="form-label">{modalT.article} *</label>
@@ -145,9 +168,9 @@ export const ServiceModal = () => {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '8px' }}>
+            <button type="submit" disabled={isSending} aria-busy={isSending} className="btn btn-primary" style={{ width: '100%', marginTop: '8px' }}>
               <Send size={16} />
-              <span>{modalT.submit}</span>
+              <span>{isSending ? (lang === 'en' ? 'Sending…' : lang === 'kz' ? 'Жіберілуде…' : 'Отправляем…') : (modalT.submit)}</span>
             </button>
           </form>
         )}

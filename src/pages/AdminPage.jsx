@@ -1,3 +1,4 @@
+import { InquirySettings } from '../components/builder/InquirySettings';
 import { ButtonSettings } from '../components/builder/ButtonSettings';
 import { PartnerManagement } from '../components/partners/PartnerManagement';
 import { getEditableBlocks } from '../utils/pagePublication';
@@ -1484,6 +1485,7 @@ export const AdminPage = () => {
     { id: 'catalog', label: 'Товары', icon: Package, count: catalogList.length },
     { id: 'stock', label: 'Склады', icon: Boxes },
     { id: 'buttons', label: 'Кнопки сайта', icon: Sliders },
+    { id: 'inquiry-emails', label: 'Email заявок', icon: Mail },
     { id: 'categories', label: 'Категории', icon: FolderTree },
     { id: 'excel', label: 'Excel', icon: FileSpreadsheet },
     { id: 'media', label: 'Фотографии', icon: ImageIcon },
@@ -1709,7 +1711,7 @@ export const AdminPage = () => {
               <input aria-label="Найти раздел" placeholder="Найти раздел…" value={navSearch} onChange={e => setNavSearch(e.target.value)} />
             </label>
             {[
-              { label: 'Работа', ids: ['dashboard', 'pages', 'catalog', 'orders', 'partner-accounts'] },
+              { label: 'Работа', ids: ['dashboard', 'pages', 'catalog', 'orders', 'inquiry-emails', 'partner-accounts'] },
               { label: 'Каталог', ids: ['categories', 'media', 'excel', 'stock'] },
               { label: 'Настройки сайта', compact: true, ids: ['buttons', 'menu', 'languages', 'seo', 'drafts', 'editor'] },
               { label: 'Система', compact: true, ids: ['history', 'settings'] }
@@ -1766,6 +1768,7 @@ export const AdminPage = () => {
           </div>}
 
           {activeTab === 'partner-accounts' && <PartnerManagement admin />}
+          {activeTab === 'inquiry-emails' && <InquirySettings content={draftContent} onChange={setDraftContent} />}
           {activeTab === 'buttons' && <ButtonSettings content={draftContent} onChange={setDraftContent} />}
 
           {/* TAB 2: РЕДАКТОР САЙТА (ВИЗУАЛЬНЫЙ РЕДАКТОР БЛОКОВ) */}
@@ -5347,7 +5350,7 @@ export const AdminPage = () => {
                 <div>
                   <h2 className="view-title">Заявки</h2>
                   <p className="view-subtitle">
-                    Настройка правил «Территория → Ответственный менеджер → Email менеджера» и обработка первичных заявок без регистрации
+                    Территории определяют ответственного менеджера. Получатели писем настраиваются в разделе «Email заявок».
                   </p>
                 </div>
                 <div className="view-actions">

@@ -6,6 +6,7 @@
  */
 
 import * as XLSX from 'xlsx';
+import { DEFAULT_INQUIRY_EMAIL, resolveInquiryRecipient, validateInquiryRouting } from '../utils/inquiryRouting.js';
 import { 
   exportCurrentCatalogToExcel as clientExportCatalog,
   parseAndValidateExcelFile as clientValidateExcel,
@@ -105,10 +106,11 @@ async function callSupabaseRpc(fnName, args = {}) {
 }
 
 // Supabase REST Query Helper (for public RLS reads)
-async function querySupabase(endpoint) {
+async function querySupabase(endpoint, signal) {
   const url = `${SUPABASE_CONFIG.url}/rest/v1/${endpoint}`;
   const res = await fetch(url, {
     method: 'GET',
+    signal,
     headers: {
       'apikey': SUPABASE_CONFIG.anonKey,
       'Accept': 'application/json',
@@ -270,6 +272,7 @@ export const fetchSiteContent = async (isDraft = false) => {
 };
 
 export const saveSiteContentDraft = async (updates) => {
+  validateInquiryRouting(updates.inquiryRouting);
   for (const setting of Object.values(updates.buttons || {})) {
     if (setting.action === 'link' && (!setting.link?.trim() || !/^(https?:\/\/|mailto:|tel:|\/(?!\/)|#)/i.test(setting.link.trim()))) throw new Error('Укажи корректную ссылку для кнопки: /catalog, #блок или https://…');
   }
@@ -1464,9 +1467,19 @@ export const saveRegionWarehouseMap = async (mapping) => {
 // 9. ПАРТНЁРСКИЙ ДОСТУП B2B И СОХРАНЕНИЕ ЗАЯВОК
 // ==========================================
 
-const MAIL_INBOX = 'markpronenko7@gmail.com';
+const MAIL_INBOX = DEFAULT_INQUIRY_EMAIL;
 
-async function sendInquiryEmail(subject, message, customerName, customerEmail) {
+async function fetchPublishedInquiryRouting() {
+  try {
+    const records = await querySupabase('laute_site_content?id=eq.published&select=data,version', AbortSignal.timeout(10000));
+    if (!records?.[0]?.data) throw new Error('Missing published content');
+    return records[0].data.inquiryRouting;
+  } catch {
+    throw new Error('Не удалось проверить адрес получателя. Поля формы не очищены. Повторите попытку или свяжитесь с LAUTE по телефону.');
+  }
+}
+
+async function sendInquiryEmail(subject, message, customerName, customerEmail, recipient = MAIL_INBOX) {
   const payload = {
     _subject: subject,
     name: customerName || 'Посетитель сайта LAUTE',
@@ -1478,30 +1491,35 @@ async function sendInquiryEmail(subject, message, customerName, customerEmail) {
   }
   let response;
   try {
-    response = await fetch(`https://formsubmit.co/ajax/${MAIL_INBOX}`, {
+    response = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(recipient)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(15000)
     });
   } catch {
-    throw new Error('Не удалось отправить заявку по электронной почте. Попробуйте ещё раз или напишите на markpronenko7@gmail.com.');
+    throw new Error(`Не удалось отправить заявку. Поля формы не очищены. Попробуйте ещё раз или напишите на ${recipient}.`);
   }
 
   const result = await response.json().catch(() => null);
   if (result?.success === false || result?.success === 'false') {
     if (/activat/i.test(result.message || '')) {
-      throw new Error('Для доставки заявок нужно подтвердить письмо FormSubmit в ящике markpronenko7@gmail.com. Заявка пока не отправлена; данные формы сохранены.');
+      throw new Error(`Получатель ${recipient} ещё не активировал приём заявок. Свяжитесь с LAUTE напрямую по этому адресу. Поля формы не очищены.`);
     }
   }
   if (!response.ok || (result?.success !== true && result?.success !== 'true')) {
-    throw new Error('Почтовый сервис не подтвердил приём заявки. Попробуйте ещё раз или напишите на markpronenko7@gmail.com.');
+    throw new Error(`Почтовый сервис не подтвердил приём заявки. Поля формы не очищены. Повторите попытку или напишите на ${recipient}.`);
   }
   return true;
 }
 
 export const submitLeadInquiry = async (leadData) => {
+  const routingSettings = await fetchPublishedInquiryRouting();
+  const type = /service/i.test(leadData.source || '') ? 'service' : 'partner';
+  const region = leadData.regionInquiry || leadData.region || (typeof window !== 'undefined' ? localStorage.getItem('laute_region') : null) || 'siberia';
+  const recipient = resolveInquiryRecipient(routingSettings, type, region);
   const payload = {
+    region, inquiryType: type, recipient,
     ...leadData,
     id: `lead_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
     createdAt: new Date().toISOString()
@@ -1514,7 +1532,8 @@ export const submitLeadInquiry = async (leadData) => {
     `Обращение с сайта LAUTE — ${payload.source || 'форма'}`,
     details,
     payload.name || payload.fullName || payload.contactPerson,
-    payload.email
+    payload.email || payload.contact,
+    recipient
   );
 
   // Локальная копия сохраняется только после подтверждения приёма почтовым сервисом.
@@ -1926,17 +1945,19 @@ export const submitCartOrderInquiry = async ({
       '',
       `Итого по известным ценам: ${totalKnownAmount} ₽`
     ];
+    const orderRecipient = resolveInquiryRecipient(await fetchPublishedInquiryRouting(), 'order', (typeof window !== 'undefined' ? localStorage.getItem('laute_region') : null) || 'siberia');
     await sendInquiryEmail(
       `Заявка ${orderRecord.inquiryNumber} — ${cleanCity}`,
       lines.join('\n'),
       cleanName,
-      cleanContact
+      cleanContact,
+      orderRecipient
     );
     emailAccepted = true;
     orderRecord.emailNotification = {
       sent: false,
       status: 'accepted_by_email_service',
-      recipientEmail: MAIL_INBOX,
+      recipientEmail: orderRecipient,
       copyTo: null,
       dispatchedAt: null
     };

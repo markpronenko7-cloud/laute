@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import { InquiryFeedback } from '../InquiryFeedback';
+import { REGIONS_CONFIG } from '../../data/regionsData';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { X, Send, CheckCircle2 } from 'lucide-react';
 import { submitLeadInquiry } from '../../services/adminApi';
 
 export const PartnerModal = () => {
-  const { isPartnerModalOpen, closePartnerModal, t } = useApp();
+  const { isPartnerModalOpen, closePartnerModal, t, lang, region } = useApp();
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState('');
+  const sendingRef = useRef(false);
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
+    region: region || 'siberia',
     companyName: '',
     inn: '',
     city: '',
@@ -16,26 +22,32 @@ export const PartnerModal = () => {
     comment: ''
   });
 
+  useEffect(() => {
+    if (isPartnerModalOpen && !sendingRef.current) { setSubmitted(false); setSendError(''); setFormData(prev => ({ ...prev, region })); }
+  }, [isPartnerModalOpen, region]);
+
   if (!isPartnerModalOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (sendingRef.current) return;
+    sendingRef.current = true;
+    setIsSending(true);
+    setSendError('');
     try {
       await submitLeadInquiry({
         source: 'partner_modal',
         ...formData
       });
     } catch (err) {
-      window.alert(err.message || 'Не удалось отправить заявку. Попробуйте ещё раз.');
+      setSendError(err.message || 'Не удалось отправить заявку. Попробуйте ещё раз.');
       return;
+    } finally {
+      sendingRef.current = false;
+      setIsSending(false);
     }
     setSubmitted(true);
-    setTimeout(() => {
-      setTimeout(() => {
-        setSubmitted(false);
-        closePartnerModal();
-      }, 2500);
-    }, 500);
+
   };
 
   const modalT = t.modals.partnerModal;
@@ -59,7 +71,7 @@ export const PartnerModal = () => {
               <span>{modalT.success}</span>
             </div>
             <p style={{ fontSize: '0.82rem', color: '#94A3B8', margin: 0 }}>
-              Заявка сформирована (Интерфейс подготовлен для интеграции с CRM).
+              Почтовый сервис принял заявку. Команда LAUTE свяжется с вами.
             </p>
             <div style={{ fontSize: '0.78rem', color: '#CBD5E1', marginTop: '4px' }}>
               Прямой контакт: <a href="tel:+79833105626" style={{ color: '#F97316', fontWeight: 600 }}>+7 (983) 310-56-26</a> • <a href="mailto:opt@laute.ltd" style={{ color: '#38BDF8' }}>opt@laute.ltd</a>
@@ -67,6 +79,12 @@ export const PartnerModal = () => {
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
+            <InquiryFeedback sending={isSending} error={sendError} />
+            <label className="form-group">{lang === 'en' ? 'Request region' : lang === 'kz' ? 'Өтініш өңірі' : 'Регион обращения'}
+              <select className="form-select" value={formData.region} onChange={e => setFormData({ ...formData, region: e.target.value })}>
+                {REGIONS_CONFIG.map(r => <option key={r.id} value={r.id}>{r.names[lang] || r.names.ru}</option>)}
+              </select>
+            </label>
             <div className="form-group">
               <label className="form-label">{modalT.companyName} *</label>
               <input
@@ -150,9 +168,9 @@ export const PartnerModal = () => {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '8px' }}>
+            <button type="submit" disabled={isSending} aria-busy={isSending} className="btn btn-primary" style={{ width: '100%', marginTop: '8px' }}>
               <Send size={16} />
-              <span>{modalT.submit}</span>
+              <span>{isSending ? (lang === 'en' ? 'Sending…' : lang === 'kz' ? 'Жіберілуде…' : 'Отправляем…') : (modalT.submit)}</span>
             </button>
           </form>
         )}

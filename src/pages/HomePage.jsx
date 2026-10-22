@@ -1,6 +1,7 @@
+import { InquiryFeedback } from '../components/InquiryFeedback';
 import { EditableNode, EditableSection, NativeSectionGate } from '../components/builder/NativeContent';
 import { SiteAction } from '../components/SiteAction';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import {
   ArrowRight,
@@ -24,6 +25,9 @@ import { submitLeadInquiry } from '../services/adminApi';
 
 export const HomePage = ({ heroSlidesOverride } = {}) => {
   const { navigateTo, openPartnerModal, openServiceModal, startAIPartnerAnalysis, t, siteContent, lang } = useApp();
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState('');
+  const sendingRef = useRef(false);
   const baseUrl = import.meta.env.BASE_URL;
 
   const [leadForm, setLeadForm] = useState({
@@ -58,14 +62,21 @@ export const HomePage = ({ heroSlidesOverride } = {}) => {
 
   const handleLeadSubmit = async (e) => {
     e.preventDefault();
+    if (sendingRef.current) return;
+    sendingRef.current = true;
+    setIsSending(true);
+    setSendError('');
     try {
       await submitLeadInquiry({
         source: 'home_b2b_lead',
         ...leadForm
       });
     } catch (err) {
-      window.alert(err.message || 'Не удалось отправить заявку. Попробуйте ещё раз.');
+      setSendError(err.message || 'Не удалось отправить заявку. Попробуйте ещё раз.');
       return;
+    } finally {
+      sendingRef.current = false;
+      setIsSending(false);
     }
     setLeadSubmitted(true);
   };
@@ -446,20 +457,13 @@ export const HomePage = ({ heroSlidesOverride } = {}) => {
                   <EditableNode as={SiteAction} editKey={"homepage-56"} kind="button" controlId="home-3"
                     type="button"
                     className="btn btn-primary"
-                    onClick={() => navigateTo('service')}
+                    onClick={openServiceModal}
                     id="btn-service-center"
                   >
                     <span>{h.serviceBtn || 'Обратиться в сервис'}</span>
                     <ArrowRight size={16} />
                   </EditableNode>
-                  <EditableNode as={SiteAction} editKey={"homepage-57"} kind="button" controlId="home-4"
-                    type="button"
-                    className="btn btn-outline light-btn-outline"
-                    onClick={() => navigateTo('partners')}
-                    id="btn-partner-support"
-                  >
-                    <span>{h.servicePartnerBtn || 'Поддержка партнеров'}</span>
-                  </EditableNode>
+
                 </div>
               </div>
 
@@ -551,6 +555,7 @@ export const HomePage = ({ heroSlidesOverride } = {}) => {
                 </div>
               ) : (
                 <form onSubmit={handleLeadSubmit} className="b2b-lead-form light-lead-form">
+            <InquiryFeedback sending={isSending} error={sendError} />
                   <div className="form-field-group">
                     <label htmlFor="lead-name" className="field-label light-field-label">
                       {h.fieldName || 'Ваше имя'} <span className="field-required">*</span>
@@ -614,8 +619,8 @@ export const HomePage = ({ heroSlidesOverride } = {}) => {
                   </div>
 
                   <div className="form-submit-wrap">
-                    <EditableNode as={SiteAction} editKey={"homepage-71"} kind="submit" controlId="home-6" type="submit" className="btn btn-primary btn-lg btn-full" id="btn-submit-lead">
-                      <span>{h.formSubmit || 'Получить предложение'}</span>
+                    <EditableNode as={SiteAction} editKey={"homepage-71"} kind="submit" controlId="home-6" type="submit" disabled={isSending} aria-busy={isSending} className="btn btn-primary btn-lg btn-full" id="btn-submit-lead">
+                      <span>{isSending ? (lang === 'en' ? 'Sending…' : lang === 'kz' ? 'Жіберілуде…' : 'Отправляем…') : (h.formSubmit || 'Получить предложение')}</span>
                       <ArrowRight size={18} />
                     </EditableNode>
                     <EditableNode as="p" editKey={"homepage-72"} kind="text" className="form-disclaimer light-disclaimer">

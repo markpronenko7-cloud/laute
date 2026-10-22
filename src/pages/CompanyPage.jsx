@@ -1,4 +1,5 @@
 import { getPublishedPage } from '../utils/pagePublication';
+import { getCompanyBlocks } from '../data/factoryStory';
 import { usePageIntro } from '../components/PageText';
 import React from 'react';
 import { useApp } from '../context/AppContext';
@@ -10,7 +11,7 @@ export const CompanyPage = () => {
 
   const companyPage = getPublishedPage(pagesList.find(p => p.slug === 'company' || p.published?.slug === 'company'), true);
   const intro = usePageIntro('company');
-  const rawBlocks = companyPage?.blocks || [];
+  const rawBlocks = getCompanyBlocks(companyPage?.blocks || []);
 
   const blocks = rawBlocks.map((source, idx) => {
     const block = idx === 0 && source.type === 'hero' ? { ...source, title: intro.h1 || source.title, subtitle: intro.description || source.subtitle } : source;
