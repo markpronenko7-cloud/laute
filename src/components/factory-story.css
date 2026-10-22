@@ -13,6 +13,10 @@
 .factory-film-player video{display:block;width:100%;aspect-ratio:9/16;background:#090b0e;object-fit:contain}
 .factory-film-player figcaption{display:flex;align-items:center;gap:8px;padding:14px 4px 6px;font-size:8px;letter-spacing:.09em;color:#c0c4cb}
 .factory-film-player figcaption>span:last-child{margin-left:auto;white-space:nowrap}
+.factory-film--motion{grid-template-columns:.7fr 1.3fr;gap:clamp(24px,4vw,60px)}
+.factory-film--motion .factory-film-player{max-width:none}
+.factory-film--motion .factory-film-player video{aspect-ratio:16/9}
+.factory-film--motion .factory-film-player figcaption{flex-wrap:wrap;line-height:1.6}
 .factory-history{padding:16px 0 32px}
 .factory-history h2{max-width:740px;font-size:clamp(34px,5vw,65px);line-height:1.1;letter-spacing:-.04em;margin:20px 0}
 .factory-history-intro{color:#b8bdc5;font-size:17px;line-height:1.6}
