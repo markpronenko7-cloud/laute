@@ -67,4 +67,11 @@ test('Завод: сохранённые блоки остаются редак�
  assert.equal(getCompanyBlocks(blocks),blocks);
  const edited=[{...FACTORY_FILM,title:'Свой заголовок',videoUrl:'https://example.com/film.mp4',isVisible:false},{...FACTORY_HISTORY,items:[{year:'2027',title:'Следующий этап',desc:'Описание'}]}];
  assert.equal(getCompanyBlocks(edited),edited);assert.equal(getEditableBlocks({slug:'company',blocks:edited}),edited);
+ const legacy={...FACTORY_FILM,videoUrl:'media/laute-factory-film.mp4',title:'Заголовок сотрудника',isVisible:false};
+ const upgraded=getCompanyBlocks([legacy,story]);
+ assert.equal(upgraded[0].videoUrl,FACTORY_FILM.videoUrl);
+ assert.equal(upgraded[0].title,legacy.title);assert.equal(upgraded[0].isVisible,false);
+ assert.equal(legacy.videoUrl,'media/laute-factory-film.mp4');
+ assert.equal(upgraded.filter(b=>b.type==='factory_history').length,1);
+ assert.equal(getCompanyBlocks(upgraded),upgraded);
 });

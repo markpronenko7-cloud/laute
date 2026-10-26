@@ -1,8 +1,8 @@
 export const FACTORY_FILM = {
   id: 'laute-factory-film', type: 'factory_film', badge: 'LAUTE / ВНУТРИ ПРОИЗВОДСТВА',
-  title: 'Точность. Характер. LAUTE.',
-  subtitle: 'От первой заготовки до последнего штриха. Посмотрите, как металл обретает форму, а инженерия — характер.',
-  videoUrl: 'media/laute-factory-film.mp4', imageUrl: 'images/factory/robot.jpg',
+  title: 'Завод. Изнутри.',
+  subtitle: 'За каждым изделием — металл, технологии и люди. Короткая экскурсия по производству LAUTE: от латунной заготовки до обработки поверхности.',
+  videoUrl: 'media/laute-factory-documentary.mp4', imageUrl: 'images/factory/documentary-poster.jpg',
   buttonText: 'Обсудить сотрудничество', buttonLink: '/partners',
   style: { background: 'deep', padding: 'lg' }
 };
@@ -19,12 +19,16 @@ export const FACTORY_HISTORY = {
 
 // Upgrade the original company layout once. Saved factory blocks remain fully editable.
 export function getCompanyBlocks(blocks = []) {
-  if (blocks.some(b => ['factory_film', 'factory_history'].includes(b.type))) return blocks;
-  const result = blocks.map(b => b.id === 'blk-comp-hero' ? { ...b, ...FACTORY_FILM } : b.id === 'blk-comp-prod-gallery' ? {
+  const result = blocks.map(b => b.id === 'blk-comp-hero' && b.type === 'hero' ? { ...b, ...FACTORY_FILM } : b.type === 'factory_film' && b.videoUrl === 'media/laute-factory-film.mp4' ? {
+    ...b, videoUrl: FACTORY_FILM.videoUrl, imageUrl: FACTORY_FILM.imageUrl,
+    ...(b.title === 'Точность. Характер. LAUTE.' ? { title: FACTORY_FILM.title, subtitle: FACTORY_FILM.subtitle } : {})
+  } : b.id === 'blk-comp-story' && b.imageUrl === 'images/pvd_finish_macro.jpg' ? {
+    ...b, imageUrl: 'images/factory/finishing.jpg'
+  } : b.id === 'blk-comp-prod-gallery' && b.items?.length > 0 && b.items.every(item => /^images\/prod_/.test(item.imageUrl || '')) ? {
     ...b, title: 'Производство без постановки', subtitle: 'Настоящие кадры из производственных цехов',
     items: [
       { title: 'Форма будущего изделия', desc: 'Латунные заготовки в начале производственного маршрута.', imageUrl: 'images/factory/brass.jpg' },
-      { title: 'Точность обработки', desc: 'Рабочие зоны и оборудование механической обработки.', imageUrl: 'images/factory/machining.jpg' },
+      { title: 'Производственная оснастка', desc: 'Формы и рабочие узлы оборудования в цехе.', imageUrl: 'images/factory/machining.jpg' },
       { title: 'Роботизированная полировка', desc: 'Автоматизация повторяемых операций обработки поверхности.', imageUrl: 'images/factory/robot.jpg' },
       { title: 'Внимание к поверхности', desc: 'Обработка деталей на полировальном оборудовании.', imageUrl: 'images/factory/polishing.jpg' },
       { title: 'Работа мастера', desc: 'Ручная доводка изделий в производственном цехе.', imageUrl: 'images/factory/finishing.jpg' },
@@ -32,7 +36,9 @@ export function getCompanyBlocks(blocks = []) {
     ]
   } : b);
   if (!result.some(b => b.type === 'factory_film')) result.unshift(FACTORY_FILM);
-  const cta = result.findIndex(b => b.type === 'cta_banner');
-  result.splice(cta < 0 ? result.length : cta, 0, FACTORY_HISTORY);
-  return result;
+  if (!result.some(b => b.type === 'factory_history')) {
+    const cta = result.findIndex(b => b.type === 'cta_banner');
+    result.splice(cta < 0 ? result.length : cta, 0, FACTORY_HISTORY);
+  }
+  return result.length === blocks.length && result.every((block, index) => block === blocks[index]) ? blocks : result;
 }

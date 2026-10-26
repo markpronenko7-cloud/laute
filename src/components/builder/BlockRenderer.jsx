@@ -31,6 +31,7 @@ export const BlockRenderer = ({
   totalBlocks = 1,
   isEditor = false,
   isSelected = false,
+  resolvePageLinks = false,
   onSelectBlock,
   onMoveUp,
   onMoveDown,
@@ -54,6 +55,9 @@ export const BlockRenderer = ({
 
   // Resolve image URL (prepend baseUrl if relative and not http)
   const getImgSrc = resolveMediaUrl;
+  const actionHref = isSafeActionLink(block.buttonLink)
+    ? (resolvePageLinks && block.buttonLink?.startsWith('/') ? resolveMediaUrl(block.buttonLink.slice(1)) : block.buttonLink || '#')
+    : '#';
 
   const handleLinkClick = (e, link) => {
     if (isEditor) {
@@ -61,6 +65,7 @@ export const BlockRenderer = ({
       return;
     }
     if (!link || !isSafeActionLink(link)) { e.preventDefault(); return; }
+    if (resolvePageLinks && (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || block.buttonNewTab)) return;
     if (link.startsWith('#')) {
       e.preventDefault();
       const targetId = link.slice(1);
@@ -152,7 +157,7 @@ export const BlockRenderer = ({
             {block.buttonText && (
               <div style={{ display: 'flex', gap: 14, justifyContent: align === 'center' ? 'center' : 'flex-start', flexWrap: 'wrap' }}>
                 <a
-                  href={isSafeActionLink(block.buttonLink) ? block.buttonLink || '#' : '#'}
+                  href={actionHref}
                   target={block.buttonNewTab && /^https?:/i.test(block.buttonLink || '') ? '_blank' : undefined}
                   rel={block.buttonNewTab ? 'noopener noreferrer' : undefined}
                   className={`btn ${block.buttonType === 'primary' ? 'btn-primary' : (block.buttonType === 'gold' ? 'btn-gold' : 'btn-outline')}`}
@@ -221,7 +226,7 @@ export const BlockRenderer = ({
               </div>
               {block.buttonText && (
                 <a
-                  href={isSafeActionLink(block.buttonLink) ? block.buttonLink || '#' : '#'}
+                  href={actionHref}
                   target={block.buttonNewTab && /^https?:/i.test(block.buttonLink || '') ? '_blank' : undefined}
                   rel={block.buttonNewTab ? 'noopener noreferrer' : undefined}
                   className={'btn btn-' + (block.buttonType || 'outline')}
@@ -517,7 +522,7 @@ export const BlockRenderer = ({
             {block.subtitle && <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.85)', maxWidth: 680, margin: align === 'center' ? '0 auto 26px' : '0 0 26px', lineHeight: 1.6 }}>{block.subtitle}</p>}
             {block.buttonText && (
               <a
-                href={isSafeActionLink(block.buttonLink) ? block.buttonLink || '#' : '#'}
+                href={actionHref}
                   target={block.buttonNewTab && /^https?:/i.test(block.buttonLink || '') ? '_blank' : undefined}
                   rel={block.buttonNewTab ? 'noopener noreferrer' : undefined}
                 className={'btn btn-' + (block.buttonType || 'gold')}
