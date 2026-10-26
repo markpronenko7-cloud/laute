@@ -33,10 +33,10 @@ export function FactoryFilm({ block, isEditor, onLink }) {
         </>}
         {documentary && <>
           <track kind="subtitles" src={resolveMediaUrl('media/laute-documentary-ru.vtt')} srcLang="ru" label="Русский"/>
-          <track kind="subtitles" src={resolveMediaUrl('media/laute-documentary-en.vtt')} srcLang="en" label="English" default={en || kz}/>
+          <track kind="subtitles" src={resolveMediaUrl('media/laute-documentary-en.vtt')} srcLang="en" label="English" default/>
         </>}
       </video>
-      <figcaption><Play size={13}/><span>{motionFilm ? (en ? 'BRAND FILM / ARTISTIC 3D VISUALIZATION' : 'БРЕНД-ФИЛЬМ / ХУДОЖЕСТВЕННАЯ 3D-ВИЗУАЛИЗАЦИЯ') : (en ? 'FACTORY JOURNAL' : kz ? 'ӨНДІРІС КҮНДЕЛІГІ' : 'ДНЕВНИК ПРОИЗВОДСТВА')}</span><span>{documentary ? '00:32 · RU / EN' : 'RU / EN'}</span></figcaption>
+      <figcaption><Play size={13}/><span>{motionFilm ? (en ? 'BRAND FILM / ARTISTIC 3D VISUALIZATION' : 'БРЕНД-ФИЛЬМ / ХУДОЖЕСТВЕННАЯ 3D-ВИЗУАЛИЗАЦИЯ') : (en ? 'FACTORY JOURNAL' : kz ? 'ӨНДІРІС КҮНДЕЛІГІ' : 'ДНЕВНИК ПРОИЗВОДСТВА')}</span><span>{documentary ? '00:49 · RU / EN' : 'RU / EN'}</span></figcaption>
       {failed && <p role="alert">{en ? 'Video unavailable.' : kz ? 'Бейне жүктелмеді.' : 'Видео не загрузилось.'} <a href={resolveMediaUrl(videoUrl)}>{en ? 'Open video file' : kz ? 'Бейнені ашу' : 'Открыть видеофайл'}</a></p>}
     </figure>
   </div>;
