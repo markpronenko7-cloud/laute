@@ -9,33 +9,38 @@ export function FactoryFilm({ block, isEditor, onLink }) {
   const { lang } = useApp();
   const en = lang === 'en', kz = lang === 'kz';
   const [failed, setFailed] = React.useState(false);
+  const [started, setStarted] = React.useState(false);
+  const videoRef = React.useRef(null);
   const motionFilm = block.videoUrl === 'media/laute-factory-film.mp4';
   const documentary = block.videoUrl === 'media/laute-factory-documentary.mp4';
-  React.useEffect(() => setFailed(false), [block.videoUrl, lang]);
-  const videoUrl = motionFilm ? `${block.videoUrl}?v=motion-20261022` : block.videoUrl;
+  React.useEffect(() => { setFailed(false); setStarted(false); }, [block.videoUrl, lang]);
+  const videoUrl = documentary ? `${block.videoUrl}?v=editorial-20261027-final` : motionFilm ? `${block.videoUrl}?v=motion-20261022` : block.videoUrl;
   const poster = motionFilm && block.imageUrl === 'images/factory/robot.jpg' ? 'images/factory/motion-poster.jpg' : block.imageUrl;
   return <div className={`factory-film${motionFilm ? ' factory-film--motion' : ''}${documentary ? ' factory-film--documentary' : ''}`}>
     <div className="factory-film-copy">
       <span className="factory-eyebrow">{en ? 'LAUTE / INSIDE THE FACTORY' : kz ? 'LAUTE / ӨНДІРІС ІШІНДЕ' : block.badge}</span>
-      <div className="factory-wordmark" aria-hidden="true"><img src={resolveMediaUrl('official-laute-logo.png')} alt=""/></div>
       <h1>{en ? 'Inside the factory.' : kz ? 'Зауыттың ішкі әлемі.' : block.title}</h1>
       <p>{en ? 'Behind every product: metal, technology and people. A short visit to LAUTE production, from brass blanks to surface finishing.' : kz ? 'Әр бұйымның артында металл, технология және адамдар тұр. LAUTE өндірісіне қысқа саяхат: жез дайындамадан бетті өңдеуге дейін.' : block.subtitle}</p>
       <a className="btn btn-primary" href={isSafeActionLink(block.buttonLink) ? (block.buttonLink?.startsWith('/') ? resolveMediaUrl(block.buttonLink.slice(1)) : block.buttonLink || resolveMediaUrl('partners')) : '#'} onClick={onLink}><span>{en ? 'Become a partner' : kz ? 'Серіктес болу' : block.buttonText}</span><ArrowUpRight size={18}/></a>
       <div className="factory-film-index"><span>LAUTE / 01</span><span>{en ? 'MATERIAL / TECHNOLOGY / PEOPLE' : kz ? 'МАТЕРИАЛ / ТЕХНОЛОГИЯ / АДАМДАР' : 'МАТЕРИАЛ / ТЕХНОЛОГИИ / ЛЮДИ'}</span></div>
-      {documentary && <p className="factory-film-note">{en ? 'Actual factory footage. Original sound. English subtitles.' : kz ? 'Өндірістегі шынайы кадрлар. Түпнұсқа дыбыс. Ағылшынша субтитрлер.' : 'Реальные кадры производства. Живой звук. Английские субтитры.'}</p>}
+      {documentary && <p className="factory-film-note">{en ? 'A film from the factory floor. 49 seconds.' : kz ? 'Өндірістен түсірілген фильм. 49 секунд.' : 'Фильм из производственных цехов. 49 секунд.'}</p>}
     </div>
     <figure className="factory-film-player">
-      <video key={`${videoUrl}-${lang}`} controls playsInline preload="none" poster={resolveMediaUrl(poster)} aria-label={en ? 'Inside LAUTE production' : kz ? 'LAUTE өндірісі' : 'Экскурсия по производству LAUTE'} onError={() => setFailed(true)}>
+      <div className="factory-film-screen">
+      <video ref={videoRef} key={`${videoUrl}-${lang}`} controls playsInline preload="metadata" poster={resolveMediaUrl(documentary ? `${poster}?v=editorial-20261027-final` : poster)} aria-label={en ? 'Inside LAUTE production' : kz ? 'LAUTE өндірісі' : 'Экскурсия по производству LAUTE'} onLoadedData={() => setFailed(false)} onPlay={() => { setStarted(true); setFailed(false); }} onEnded={() => setStarted(false)} onError={() => setFailed(true)}>
+        {!isEditor && documentary && <source src={resolveMediaUrl('media/laute-factory-mobile.mp4?v=editorial-20261027-final')} media="(max-width: 600px)" type="video/mp4"/>}
         {!isEditor && <source src={resolveMediaUrl(videoUrl)} type="video/mp4"/>}
         {block.videoUrl === 'media/laute-factory-film.mp4' && <>
           <track kind="subtitles" src={resolveMediaUrl('media/laute-factory-ru.vtt')} srcLang="ru" label="Русский" default={!en}/>
           <track kind="subtitles" src={resolveMediaUrl('media/laute-factory-en.vtt')} srcLang="en" label="English" default={en}/>
         </>}
         {documentary && <>
-          <track kind="subtitles" src={resolveMediaUrl('media/laute-documentary-ru.vtt')} srcLang="ru" label="Русский"/>
-          <track kind="subtitles" src={resolveMediaUrl('media/laute-documentary-en.vtt')} srcLang="en" label="English" default/>
+          <track kind="subtitles" src={resolveMediaUrl('media/laute-documentary-ru.vtt?v=editorial-20261027-final')} srcLang="ru" label="Русский"/>
+          <track kind="subtitles" src={resolveMediaUrl('media/laute-documentary-en.vtt?v=editorial-20261027-final')} srcLang="en" label="English" default={en}/>
         </>}
       </video>
+      {!isEditor && !started && !failed && <button type="button" className="factory-film-play" onClick={() => videoRef.current?.play().catch(() => setFailed(true))}><Play size={22} aria-hidden="true"/><span>{en ? 'Watch the film' : kz ? 'Фильмді көру' : 'Смотреть фильм'}</span></button>}
+      </div>
       <figcaption><Play size={13}/><span>{motionFilm ? (en ? 'BRAND FILM / ARTISTIC 3D VISUALIZATION' : 'БРЕНД-ФИЛЬМ / ХУДОЖЕСТВЕННАЯ 3D-ВИЗУАЛИЗАЦИЯ') : (en ? 'FACTORY JOURNAL' : kz ? 'ӨНДІРІС КҮНДЕЛІГІ' : 'ДНЕВНИК ПРОИЗВОДСТВА')}</span><span>{documentary ? '00:49 · RU / EN' : 'RU / EN'}</span></figcaption>
       {failed && <p role="alert">{en ? 'Video unavailable.' : kz ? 'Бейне жүктелмеді.' : 'Видео не загрузилось.'} <a href={resolveMediaUrl(videoUrl)}>{en ? 'Open video file' : kz ? 'Бейнені ашу' : 'Открыть видеофайл'}</a></p>}
     </figure>
