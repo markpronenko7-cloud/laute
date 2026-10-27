@@ -17,14 +17,14 @@ export const CompanyPage = () => {
   const blocks = rawBlocks.map((source, idx) => {
     const block = idx === 0 && source.type === 'hero' ? { ...source, title: intro.h1 || source.title, subtitle: intro.description || source.subtitle } : source;
     const cleanBadge = typeof block.badge === 'string' ? block.badge.replace(/LAUTEк\s*/gi, 'LAUTE') : block.badge;
-    if (lang !== 'ru' && block.id === 'blk-comp-story' && block.title === 'Безупречное качество без компромиссов') {
+    if (lang !== 'ru' && block.id === 'blk-comp-story' && block.title === 'Точность, которую замечаешь.') {
       return { ...block,
         badge: lang === 'en' ? 'THE LAUTE APPROACH' : 'LAUTE ҰСТАНЫМЫ',
-        title: lang === 'en' ? 'Quality in every detail.' : 'Әр бөлшектегі сапа.',
-        subtitle: lang === 'en' ? 'Engineering for reliability and durability' : 'Сенімділік пен ұзақ қызметке арналған инженерия',
+        title: lang === 'en' ? 'Precision you can feel.' : 'Сезілетін дәлдік.',
+        subtitle: lang === 'en' ? 'Material. Geometry. Surface.' : 'Материал. Геометрия. Бет.',
         content: lang === 'en'
-          ? 'LAUTE is built for plumbing professionals. Our approach combines material selection, precise processing and quality control. Brass CW617N, Sedal Group cartridges and pressure testing are part of the production standards described by the factory.'
-          : 'LAUTE сантехника саласының мамандарына арналған. Біздің ұстанымымыз — материал таңдау, дәл өңдеу және сапаны бақылау. CW617N жезі, Sedal Group картридждері және қысыммен сынау зауыт сипаттайтын өндіріс стандарттарына кіреді.',
+          ? 'A product’s character comes from small decisions: the line of its body, the transition between surfaces, the feel of metal in your hand. We see these details as a whole, from the first form to the final touch.'
+          : 'Бұйымның мінезі шағын шешімдерден құралады: корпус сызығы, беттердің түйісуі және қолдағы металдың сезімі. Біз бұл бөлшектерді алғашқы пішіннен соңғы штрихқа дейін тұтас қарастырамыз.',
         buttonText: lang === 'en' ? 'Become a partner' : 'Серіктес болу'
       };
     }
@@ -58,14 +58,14 @@ export const CompanyPage = () => {
     <div className="page-wrapper company-page-wrap">
       {blocks.length > 0 ? (
         blocks.map((block, idx) => (
-          block.id === 'blk-comp-prod-gallery' && block.type === 'gallery' ? <FactoryGallery key={block.id} block={block}/> : <BlockRenderer
+          block.id === 'blk-comp-prod-gallery' && block.type === 'gallery' ? <FactoryGallery key={block.id} block={block}/> : <React.Fragment key={block.id || idx}><BlockRenderer
             key={block.id || idx}
             block={block}
             index={idx}
             totalBlocks={blocks.length}
             isEditor={false}
             resolvePageLinks
-          />
+          />{block.isVisible !== false && block.imageUrl === 'images/factory/craft-study.webp' && <div className="container factory-visual-disclosure"><p>{lang === 'en' ? 'Image: AI-generated conceptual illustration.' : lang === 'kz' ? 'Сурет: ЖИ көмегімен жасалған көркем бейне.' : 'Изображение: концептуальная AI-визуализация.'}</p></div>}</React.Fragment>
         ))
       ) : (
         <div className="container" style={{ padding: '80px 20px', textAlign: 'center' }}>

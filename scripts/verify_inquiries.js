@@ -75,3 +75,27 @@ test('Завод: сохранённые блоки остаются редак�
  assert.equal(upgraded.filter(b=>b.type==='factory_history').length,1);
  assert.equal(getCompanyBlocks(upgraded),upgraded);
 });
+
+test('Завод: новая медиасерия заменяет только штатные материалы и сохраняет правки сотрудников', () => {
+  const source = createRequire(import.meta.url)('../public/data/custom_pages.json').find(page => page.slug === 'company');
+  const upgraded = getCompanyBlocks(source.blocks);
+  const gallery = upgraded.find(block => block.id === 'blk-comp-prod-gallery');
+  assert.equal(gallery.items.length, 2);
+  assert.ok(gallery.items.every(item => item.imageUrl.endsWith('-study.webp')));
+  assert.match(gallery.subtitle, /созданы с помощью ИИ/);
+  assert.equal(getCompanyBlocks(upgraded), upgraded);
+
+  const edited = structuredClone(source.blocks);
+  const editedGallery = edited.find(block => block.id === 'blk-comp-prod-gallery');
+  editedGallery.items[0].desc = 'Описание, подготовленное сотрудником';
+  const editedStory = edited.find(block => block.id === 'blk-comp-story');
+  editedStory.content = 'Согласованный текст сотрудника';
+  const result = getCompanyBlocks(edited);
+  assert.equal(result.find(block => block.id === editedGallery.id), editedGallery);
+  assert.equal(result.find(block => block.id === editedStory.id).content, editedStory.content);
+  const customFilm = {...FACTORY_FILM, videoUrl:'media/laute-factory-film.mp4', imageUrl:'uploads/staff-cover.jpg', title:'Авторский заголовок', isVisible:false};
+  const migratedFilm = getCompanyBlocks([customFilm, FACTORY_HISTORY])[0];
+  assert.equal(migratedFilm.imageUrl, customFilm.imageUrl);
+  assert.equal(migratedFilm.title, customFilm.title);
+  assert.equal(migratedFilm.isVisible, false);
+});

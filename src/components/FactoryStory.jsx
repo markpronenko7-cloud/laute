@@ -14,34 +14,32 @@ export function FactoryFilm({ block, isEditor, onLink }) {
   const motionFilm = block.videoUrl === 'media/laute-factory-film.mp4';
   const documentary = block.videoUrl === 'media/laute-factory-documentary.mp4';
   React.useEffect(() => { setFailed(false); setStarted(false); }, [block.videoUrl, lang]);
-  const videoUrl = documentary ? `${block.videoUrl}?v=editorial-20261027-final` : motionFilm ? `${block.videoUrl}?v=motion-20261022` : block.videoUrl;
+  const videoUrl = documentary ? `${block.videoUrl}?v=director-cut-20261027-r2` : motionFilm ? `${block.videoUrl}?v=motion-20261022` : block.videoUrl;
   const poster = motionFilm && block.imageUrl === 'images/factory/robot.jpg' ? 'images/factory/motion-poster.jpg' : block.imageUrl;
   return <div className={`factory-film${motionFilm ? ' factory-film--motion' : ''}${documentary ? ' factory-film--documentary' : ''}`}>
     <div className="factory-film-copy">
       <span className="factory-eyebrow">{en ? 'LAUTE / INSIDE THE FACTORY' : kz ? 'LAUTE / ӨНДІРІС ІШІНДЕ' : block.badge}</span>
-      <h1>{en ? 'Inside the factory.' : kz ? 'Зауыттың ішкі әлемі.' : block.title}</h1>
-      <p>{en ? 'Behind every product: metal, technology and people. A short visit to LAUTE production, from brass blanks to surface finishing.' : kz ? 'Әр бұйымның артында металл, технология және адамдар тұр. LAUTE өндірісіне қысқа саяхат: жез дайындамадан бетті өңдеуге дейін.' : block.subtitle}</p>
+      <h1>{en ? 'Character begins in the details.' : kz ? 'Мінез бөлшектерден басталады.' : block.title}</h1>
+      <p>{en ? 'Metal, precise processing and attention to the surface. A brief look at LAUTE production, alongside a visual study of materials.' : kz ? 'Металл, дәл өңдеу және бетке назар. LAUTE өндірісіне қысқаша шолу және материалдардың көркем бейнесі.' : block.subtitle}</p>
       <a className="btn btn-primary" href={isSafeActionLink(block.buttonLink) ? (block.buttonLink?.startsWith('/') ? resolveMediaUrl(block.buttonLink.slice(1)) : block.buttonLink || resolveMediaUrl('partners')) : '#'} onClick={onLink}><span>{en ? 'Become a partner' : kz ? 'Серіктес болу' : block.buttonText}</span><ArrowUpRight size={18}/></a>
       <div className="factory-film-index"><span>LAUTE / 01</span><span>{en ? 'MATERIAL / TECHNOLOGY / PEOPLE' : kz ? 'МАТЕРИАЛ / ТЕХНОЛОГИЯ / АДАМДАР' : 'МАТЕРИАЛ / ТЕХНОЛОГИИ / ЛЮДИ'}</span></div>
-      {documentary && <p className="factory-film-note">{en ? 'A film from the factory floor. 49 seconds.' : kz ? 'Өндірістен түсірілген фильм. 49 секунд.' : 'Фильм из производственных цехов. 49 секунд.'}</p>}
+      {documentary && <p className="factory-film-note">{en ? '20 seconds. Sound from the factory floor.' : kz ? '20 секунд. Өндірістің дыбысы.' : '20 секунд. Звук производства.'}</p>}
     </div>
     <figure className="factory-film-player">
       <div className="factory-film-screen">
-      <video ref={videoRef} key={`${videoUrl}-${lang}`} controls playsInline preload="metadata" poster={resolveMediaUrl(documentary ? `${poster}?v=editorial-20261027-final` : poster)} aria-label={en ? 'Inside LAUTE production' : kz ? 'LAUTE өндірісі' : 'Экскурсия по производству LAUTE'} onLoadedData={() => setFailed(false)} onPlay={() => { setStarted(true); setFailed(false); }} onEnded={() => setStarted(false)} onError={() => setFailed(true)}>
-        {!isEditor && documentary && <source src={resolveMediaUrl('media/laute-factory-mobile.mp4?v=editorial-20261027-final')} media="(max-width: 600px)" type="video/mp4"/>}
+      <video ref={videoRef} key={`${videoUrl}-${lang}`} controls playsInline preload="metadata" poster={resolveMediaUrl(documentary ? `${poster}?v=director-cut-20261027-r2` : poster)} aria-label={en ? 'Inside LAUTE production' : kz ? 'LAUTE өндірісі' : 'Экскурсия по производству LAUTE'} onLoadedData={() => setFailed(false)} onPlay={() => { setStarted(true); setFailed(false); }} onEnded={() => setStarted(false)} onError={() => setFailed(true)}>
+        {!isEditor && documentary && <source src={resolveMediaUrl('media/laute-factory-mobile.mp4?v=director-cut-20261027-r2')} media="(max-width: 600px)" type="video/mp4"/>}
         {!isEditor && <source src={resolveMediaUrl(videoUrl)} type="video/mp4"/>}
         {block.videoUrl === 'media/laute-factory-film.mp4' && <>
           <track kind="subtitles" src={resolveMediaUrl('media/laute-factory-ru.vtt')} srcLang="ru" label="Русский" default={!en}/>
           <track kind="subtitles" src={resolveMediaUrl('media/laute-factory-en.vtt')} srcLang="en" label="English" default={en}/>
         </>}
-        {documentary && <>
-          <track kind="subtitles" src={resolveMediaUrl('media/laute-documentary-ru.vtt?v=editorial-20261027-final')} srcLang="ru" label="Русский"/>
-          <track kind="subtitles" src={resolveMediaUrl('media/laute-documentary-en.vtt?v=editorial-20261027-final')} srcLang="en" label="English" default={en}/>
-        </>}
+
       </video>
       {!isEditor && !started && !failed && <button type="button" className="factory-film-play" onClick={() => videoRef.current?.play().catch(() => setFailed(true))}><Play size={22} aria-hidden="true"/><span>{en ? 'Watch the film' : kz ? 'Фильмді көру' : 'Смотреть фильм'}</span></button>}
       </div>
-      <figcaption><Play size={13}/><span>{motionFilm ? (en ? 'BRAND FILM / ARTISTIC 3D VISUALIZATION' : 'БРЕНД-ФИЛЬМ / ХУДОЖЕСТВЕННАЯ 3D-ВИЗУАЛИЗАЦИЯ') : (en ? 'FACTORY JOURNAL' : kz ? 'ӨНДІРІС КҮНДЕЛІГІ' : 'ДНЕВНИК ПРОИЗВОДСТВА')}</span><span>{documentary ? '00:49 · RU / EN' : 'RU / EN'}</span></figcaption>
+      <figcaption><Play size={13}/><span>{motionFilm ? (en ? 'BRAND FILM / ARTISTIC 3D VISUALIZATION' : 'БРЕНД-ФИЛЬМ / ХУДОЖЕСТВЕННАЯ 3D-ВИЗУАЛИЗАЦИЯ') : (en ? 'FACTORY JOURNAL' : kz ? 'ӨНДІРІС КҮНДЕЛІГІ' : 'КОРОТКИЙ ФИЛЬМ / РЕАЛЬНЫЕ СЪЁМКИ')}</span><span>{documentary ? '00:20' : 'RU / EN'}</span></figcaption>
+      {documentary && /-study\.webp$/.test(poster || '') && <p className="factory-cover-note">{en ? 'Cover image: AI-generated conceptual illustration. The film contains actual footage.' : kz ? 'Мұқаба — ЖИ көмегімен жасалған көркем бейне. Фильмде шынайы кадрлар.' : 'Обложка — концептуальная AI-визуализация. В фильме — реальные съёмки.'}</p>}
       {failed && <p role="alert">{en ? 'Video unavailable.' : kz ? 'Бейне жүктелмеді.' : 'Видео не загрузилось.'} <a href={resolveMediaUrl(videoUrl)}>{en ? 'Open video file' : kz ? 'Бейнені ашу' : 'Открыть видеофайл'}</a></p>}
     </figure>
   </div>;
@@ -71,7 +69,15 @@ export function FactoryHistory({ block }) {
 export function FactoryGallery({ block }) {
   const { lang } = useApp();
   const en = lang === 'en', kz = lang === 'kz';
-  const captions = en ? [
+  const visualStudy = (block.items || []).length > 0 && block.items.every(item => /-study\.webp$/.test(item.imageUrl || ''));
+  const studyCaptions = en ? [
+    ['It starts with the material.', 'Warm brass, the geometry of a blank and the trace of a tool. A visual exploration of form.'],
+    ['Form meets precision.', 'The rhythm of machining and attention to the surface. A conceptual scene inspired by metalworking.']
+  ] : kz ? [
+    ['Бәрі материалдан басталады.', 'Жездің жылы реңкі, дайындаманың геометриясы және құрал ізі. Пішінді көркем зерттеу.'],
+    ['Пішін дәлдікке ие болады.', 'Өңдеу ырғағы және бетке назар. Металмен жұмыс істеуден шабыт алған көркем көрініс.']
+  ] : null;
+  const captions = visualStudy ? studyCaptions : en ? [
     ['The first form', 'Brass blanks at the start of their production journey.'],
     ['Production tooling', 'Moulds and working parts of the factory equipment.'],
     ['Robotic polishing', 'Automation in surface finishing.'],
@@ -90,13 +96,13 @@ export function FactoryGallery({ block }) {
   return <section className="factory-production" id={block.anchor || block.id}>
     <div className="container">
       <div className="factory-production-heading">
-        <span className="factory-eyebrow">{en ? 'MATERIAL / PROCESS / PEOPLE' : kz ? 'МАТЕРИАЛ / ҮДЕРІС / АДАМДАР' : block.badge}</span>
-        <h2>{en ? 'A closer look at production.' : kz ? 'Өндіріске жақынырақ.' : block.title}</h2>
-        <p>{en ? 'Real moments from the factory floor, captured during production.' : kz ? 'Өндіріс кезінде түсірілген шынайы кадрлар.' : block.subtitle}</p>
+        <span className="factory-eyebrow">{en ? (visualStudy ? 'MATERIAL STUDIES' : 'MATERIAL / PROCESS / PEOPLE') : kz ? (visualStudy ? 'МАТЕРИАЛДАРДЫҢ КӨРКЕМ БЕЙНЕСІ' : 'МАТЕРИАЛ / ҮДЕРІС / АДАМДАР') : block.badge}</span>
+        <h2>{en ? (visualStudy ? 'Material and form.' : 'A closer look at production.') : kz ? (visualStudy ? 'Материал және пішін.' : 'Өндіріске жақынырақ.') : block.title}</h2>
+        <p>{en ? (visualStudy ? 'An illustrative series about metal and machining. Images created with AI.' : 'Real moments from the factory floor, captured during production.') : kz ? (visualStudy ? 'Металл мен өңдеу туралы көркем серия. Суреттер ЖИ көмегімен жасалған.' : 'Өндіріс кезінде түсірілген шынайы кадрлар.') : block.subtitle}</p>
       </div>
       <div className="factory-production-grid">{(block.items || []).map((item, index) => <figure key={`${item.imageUrl}-${index}`}>
-        <div className="factory-production-image"><img src={resolveMediaUrl(item.imageUrl)} alt={captions?.[index]?.[0] || item.title} loading="lazy" decoding="async" width="720" height="960"/><span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span></div>
-        <figcaption><h3>{captions?.[index]?.[0] || item.title}</h3><p>{captions?.[index]?.[1] || item.desc}</p></figcaption>
+        <div className="factory-production-image"><img src={resolveMediaUrl(item.imageUrl)} alt={captions?.[index]?.[0] || item.title} loading="lazy" decoding="async" width="1672" height="941"/><span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span></div>
+        <figcaption><h3>{captions?.[index]?.[0] || item.title}</h3><p>{captions?.[index]?.[1] || item.desc}</p>{/-study\.webp$/.test(item.imageUrl || '') && <small>{en ? 'AI-generated conceptual illustration' : kz ? 'ЖИ көмегімен жасалған көркем бейне' : 'Концептуальная AI-визуализация'}</small>}</figcaption>
       </figure>)}</div>
     </div>
   </section>;
