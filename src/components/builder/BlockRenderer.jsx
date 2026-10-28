@@ -1,5 +1,6 @@
 import { InquiryFeedback } from '../InquiryFeedback';
 import { FactoryFilm, FactoryHistory } from '../FactoryStory';
+import { CompanySection } from '../CompanySection';
 import React, { useState, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
@@ -126,6 +127,7 @@ export const BlockRenderer = ({
 
   // Sub-renderers for each block type
   const renderContent = () => {
+    if (block.companySection) return <CompanySection block={block} isEditor={isEditor}/>;
     switch (block.type) {
       case 'factory_film':
         return <FactoryFilm block={block} isEditor={isEditor} onLink={e => handleLinkClick(e, block.buttonLink)} />;
@@ -556,7 +558,7 @@ export const BlockRenderer = ({
     <section
       data-editor-block={isEditor ? block.id : undefined}
       id={block.anchor || (block.type === 'form_lead' ? 'lead-form' : block.id)}
-      className={`builder-block-wrapper ${isEditor ? 'editor-mode' : ''} ${isSelected ? 'is-selected' : ''}`}
+      className={`builder-block-wrapper ${block.companySection ? `company-block company-block--${block.companySection}` : ''} ${isEditor ? 'editor-mode' : ''} ${isSelected ? 'is-selected' : ''}`}
       style={{
         background: sectionBg,
         padding: ['system_page','system_section'].includes(block.type) ? 0 : sectionPadding,

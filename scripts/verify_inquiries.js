@@ -4,7 +4,7 @@ import { build } from 'esbuild';
 import { createRequire } from 'node:module';
 import { REGIONS_CONFIG } from '../src/data/regionsData.js';
 import { resolveInquiryRecipient, validateInquiryRouting, DEFAULT_INQUIRY_EMAIL } from '../src/utils/inquiryRouting.js';
-import { getCompanyBlocks, FACTORY_FILM, FACTORY_HISTORY } from '../src/data/factoryStory.js';
+import { getCompanyBlocks, COMPANY_BLOCKS, localizeCompanyBlock } from '../src/data/factoryStory.js';
 import { getEditableBlocks } from '../src/utils/pagePublication.js';
 
 const types = ['partner', 'service', 'order'];
@@ -40,7 +40,7 @@ test('Заявки: опубликованные настройки управл
   };
   try {
     for(const r of REGIONS_CONFIG){cache.set('laute_region',r.id);
-      for(const source of ['partner_modal','home_b2b_lead','partner','service_modal','service_page']){
+      for(const source of ['partner_modal','company_partner','home_b2b_lead','partner','service_modal','service_page']){
         const type=source.includes('service')?'service':'partner';await api.submitLeadInquiry({source,name:'QA',email:'qa@example.com'});
         assert.equal(sent.at(-1).recipient,`${type}-${r.id}@example.com`);assert.equal(sent.at(-1).body.email,'qa@example.com');assert.match(sent.at(-1).body.message,new RegExp(r.id));
       }
@@ -63,39 +63,36 @@ test('Заявки: опубликованные настройки управл
 test('Завод: сохранённые блоки остаются редактируемыми, история не дублируется, прежние блоки сохраняются', () => {
  const story={id:'old-story',type:'text',content:'История завода'};
  const blocks=getCompanyBlocks([{id:'blk-comp-hero',type:'hero'},story,{id:'cta',type:'cta_banner'}]);
- assert.equal(blocks[0].type,'factory_film');assert.equal(blocks.filter(b=>b.type==='factory_history').length,1);assert.equal(blocks.find(b=>b.id==='old-story'),story);
+ assert.equal(blocks[0].companySection,'hero');assert.equal(blocks.filter(b=>b.type==='factory_history').length,1);assert.equal(blocks.find(b=>b.id==='old-story'),story);
+ assert.equal(blocks.some(b=>b.type==='factory_film'),false);
  assert.equal(getCompanyBlocks(blocks),blocks);
- const edited=[{...FACTORY_FILM,title:'Свой заголовок',videoUrl:'https://example.com/film.mp4',isVisible:false},{...FACTORY_HISTORY,items:[{year:'2027',title:'Следующий этап',desc:'Описание'}]}];
+ const edited=COMPANY_BLOCKS.map(b=>b.companySection==='hero'?{...b,title:'Свой заголовок',isVisible:false}:b);
  assert.equal(getCompanyBlocks(edited),edited);assert.equal(getEditableBlocks({slug:'company',blocks:edited}),edited);
- const legacy={...FACTORY_FILM,videoUrl:'media/laute-factory-film.mp4',title:'Заголовок сотрудника',isVisible:false};
+ const legacy={id:'laute-factory-film',type:'factory_film',videoUrl:'media/laute-factory-film.mp4',title:'Старый фильм',isVisible:false};
  const upgraded=getCompanyBlocks([legacy,story]);
- assert.equal(upgraded[0].videoUrl,FACTORY_FILM.videoUrl);
- assert.equal(upgraded[0].title,legacy.title);assert.equal(upgraded[0].isVisible,false);
+ assert.equal(upgraded[0].companySection,'hero');
+ assert.equal(upgraded.some(b=>b.type==='factory_film'),false);
  assert.equal(legacy.videoUrl,'media/laute-factory-film.mp4');
  assert.equal(upgraded.filter(b=>b.type==='factory_history').length,1);
  assert.equal(getCompanyBlocks(upgraded),upgraded);
+ for(const lang of ['ru','en','kz']) {
+   const localized=COMPANY_BLOCKS.map(b=>localizeCompanyBlock(b,lang));
+   assert.equal(localized.find(b=>b.companySection==='history').items.length,11);
+   assert.equal(localized.find(b=>b.companySection==='production').items.length,6);
+   assert.equal(localized.find(b=>b.companySection==='geography').items.length,10);
+   assert.equal(localized.find(b=>b.companySection==='inquiry').items.length,12);
+   assert.ok(localized.every(b=>b.title&&b.subtitle));
+ }
 });
 
-test('Завод: новая медиасерия заменяет только штатные материалы и сохраняет правки сотрудников', () => {
-  const source = createRequire(import.meta.url)('../public/data/custom_pages.json').find(page => page.slug === 'company');
-  const upgraded = getCompanyBlocks(source.blocks);
-  const gallery = upgraded.find(block => block.id === 'blk-comp-prod-gallery');
-  assert.equal(gallery.items.length, 2);
-  assert.ok(gallery.items.every(item => item.imageUrl.endsWith('-study.webp')));
-  assert.match(gallery.subtitle, /созданы с помощью ИИ/);
-  assert.equal(getCompanyBlocks(upgraded), upgraded);
-
-  const edited = structuredClone(source.blocks);
-  const editedGallery = edited.find(block => block.id === 'blk-comp-prod-gallery');
-  editedGallery.items[0].desc = 'Описание, подготовленное сотрудником';
-  const editedStory = edited.find(block => block.id === 'blk-comp-story');
-  editedStory.content = 'Согласованный текст сотрудника';
-  const result = getCompanyBlocks(edited);
-  assert.equal(result.find(block => block.id === editedGallery.id), editedGallery);
-  assert.equal(result.find(block => block.id === editedStory.id).content, editedStory.content);
-  const customFilm = {...FACTORY_FILM, videoUrl:'media/laute-factory-film.mp4', imageUrl:'uploads/staff-cover.jpg', title:'Авторский заголовок', isVisible:false};
-  const migratedFilm = getCompanyBlocks([customFilm, FACTORY_HISTORY])[0];
-  assert.equal(migratedFilm.imageUrl, customFilm.imageUrl);
-  assert.equal(migratedFilm.title, customFilm.title);
-  assert.equal(migratedFilm.isVisible, false);
+test('Завод: миграция реальной штатной страницы убирает фильм и иллюстрации, затем сохраняет правки CMS', () => {
+ const source=createRequire(import.meta.url)('../public/data/custom_pages.json').find(page=>page.slug==='company');
+ const result=getCompanyBlocks(source.blocks);
+ assert.equal(result.some(block=>block.type==='factory_film'),false);
+ const gallery=result.find(block=>block.companySection==='production');
+ assert.equal(gallery.items.length,6);
+ assert.ok(gallery.items.every(item=>item.imageUrl.startsWith('images/factory/laute-')));
+ const edited=result.map(block=>block.companySection==='history'?{...block,title:'История сотрудника',isVisible:false}:block);
+ assert.equal(getCompanyBlocks(edited),edited);
+ assert.equal(getEditableBlocks({slug:'company',blocks:edited}),edited);
 });

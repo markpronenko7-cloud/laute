@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { uploadSingleImage, resolveMediaUrl } from '../../services/adminApi';
 import { Image as ImageIcon, X, Upload } from 'lucide-react';
+import { localizeCompanyBlock } from '../../data/factoryStory';
 const labels = {
   title: 'Заголовок',
   subtitle: 'Описание',
@@ -75,12 +76,33 @@ export function StudioInspector({
   const {
     lang
   } = useApp();
+  const [companyLang, setCompanyLang] = useState('ru');
   if (!block) return <div className="studio-inspector-empty"><ImageIcon size={28} /><h3>Выбери блок</h3></div>;
   const patch = (key, value) => onChange({
     ...block,
     [key]: value
   });
   const field = (key, value, change, label = labels[key] || key) => <label className="studio-field" key={key}><span>{label}</span>{/subtitle|content|Text|desc|answer|address/i.test(key) && key !== 'buttonText' ? <textarea rows={4} value={value || ''} onChange={e => change(e.target.value)} /> : <input value={value ?? ''} onChange={e => change(e.target.value)} />}</label>;
+  if (block.companySection) {
+    const view = localizeCompanyBlock(block, companyLang);
+    const editText = (value, changes) => companyLang === 'ru' ? { ...value, ...changes } : { ...value, translations: { ...value.translations, [companyLang]: { ...value.translations?.[companyLang], ...changes } } };
+    return <div className="studio-inspector-content"><h3>{view.title}</h3>
+      <label className="studio-field"><span>Язык текста</span><select value={companyLang} onChange={e=>setCompanyLang(e.target.value)}><option value="ru">Русский</option><option value="en">English</option><option value="kz">Қазақша</option></select></label>
+      {['title','subtitle', ...(block.content && companyLang==='ru' ? ['content'] : [])].map(key=>field(key, view[key], value=>onChange(editText(block,{[key]:value}))))}
+      {block.imageUrl !== undefined && <PhotoInput value={block.imageUrl} onChange={v=>patch('imageUrl',v)} onMedia={onOpenMediaPicker}/>}
+      {block.buttonText !== undefined && field('buttonText',view.buttonText,value=>onChange(editText(block,{buttonText:value})))}
+      {block.buttonLink !== undefined && <LinkInput value={block.buttonLink} onChange={v=>patch('buttonLink',v)} pages={availablePages}/>}
+      {block.items?.map((item,index)=><details key={index}><summary>{view.items[index].title}</summary>
+        {block.companySection==='history' && field('year',item.year,value=>patch('items',block.items.map((x,i)=>i===index?{...x,year:value}:x)))}
+        {['title','desc'].map(key=>field(key,view.items[index][key],value=>patch('items',block.items.map((x,i)=>i===index?editText(x,{[key]:value}):x))))}
+        {item.imageUrl && <PhotoInput value={item.imageUrl} onChange={value=>patch('items',block.items.map((x,i)=>i===index?{...x,imageUrl:value}:x))} onMedia={onOpenMediaPicker}/>}
+        {item.link !== undefined && <LinkInput value={item.link} onChange={value=>patch('items',block.items.map((x,i)=>i===index?{...x,link:value}:x))} pages={availablePages}/>}
+        {['lat','lng'].filter(key=>item[key]!==undefined).map(key=>field(key,item[key],value=>patch('items',block.items.map((x,i)=>i===index?{...x,[key]:Number(value)}:x)),key==='lat'?'Широта':'Долгота'))}
+        <button className="admin-btn admin-btn-danger" onClick={()=>patch('items',block.items.filter((_,i)=>i!==index))}>Удалить пункт</button>
+      </details>)}
+      {block.items && <button className="admin-btn admin-btn-outline" onClick={()=>patch('items',[...block.items,{...block.items[0],title:'Новый пункт',desc:'',year:'',translations:{}}])}>Добавить пункт</button>}
+    </div>;
+  }
   if (block.type === 'system_section' || block.type === 'system_page') {
     if (!selectedField || selectedField.blockId !== block.id) return <div className="studio-inspector-empty"><h3>{block.title}</h3><p>Нажми текст, кнопку или фото на странице.</p></div>;
     const stored = block.nativeEdits?.[selectedField.key]?.[lang] || {};
