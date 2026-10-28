@@ -2,7 +2,7 @@
 // These are source-reported figures, not independently verified 2026 statistics.
 const row = (year, title, desc, enTitle, enDesc, kzTitle, kzDesc) => ({ year, title, desc, translations: { en: { title: enTitle, desc: enDesc }, kz: { title: kzTitle, desc: kzDesc } } });
 const section = (name, type, title, subtitle, enTitle, enSubtitle, kzTitle, kzSubtitle, extra = {}) => ({
-  id: `company-v2-${name}`, companySection: name, type, title, subtitle,
+  id: `company-v2-${name}`, anchor: `company-v2-${name}`, companySection: name, type, title, subtitle,
   translations: { en: { title: enTitle, subtitle: enSubtitle }, kz: { title: kzTitle, subtitle: kzSubtitle } },
   style: { background: 'deep', padding: 'lg' }, ...extra
 });

@@ -65,6 +65,7 @@ test('Завод: сохранённые блоки остаются редак�
  const blocks=getCompanyBlocks([{id:'blk-comp-hero',type:'hero'},story,{id:'cta',type:'cta_banner'}]);
  assert.equal(blocks[0].companySection,'hero');assert.equal(blocks.filter(b=>b.type==='factory_history').length,1);assert.equal(blocks.find(b=>b.id==='old-story'),story);
  assert.equal(blocks.some(b=>b.type==='factory_film'),false);
+ assert.equal(blocks.find(b=>b.companySection==='hero').buttonLink,'#'+blocks.find(b=>b.companySection==='inquiry').anchor);
  assert.equal(getCompanyBlocks(blocks),blocks);
  const edited=COMPANY_BLOCKS.map(b=>b.companySection==='hero'?{...b,title:'Свой заголовок',isVisible:false}:b);
  assert.equal(getCompanyBlocks(edited),edited);assert.equal(getEditableBlocks({slug:'company',blocks:edited}),edited);
