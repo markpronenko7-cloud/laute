@@ -1,3 +1,27 @@
+# Current production illustrations — 29 October 2026
+
+The About LAUTE page now uses six new conceptual AI illustrations as selectable process slides. Each generated slide is visibly labeled as an AI illustration. These assets illustrate processes; they are not documentary evidence of LAUTE equipment, product geometry or factory installations. The existing 20-second supplied-footage film is available separately through “Посмотреть съёмку с производства”. It is not a new film or generated video.
+
+Warranty and care are visible without expanding a disclosure. On mobile, the selected process image appears directly below its process description; on desktop, the preview sits alongside the stage list.
+
+All six images were generated using the built-in imagegen tool, visually inspected, and encoded as 1536 × 1024 WebP assets without cropping. The first casting candidate was rejected for implausible open-mold geometry and replaced by the closed-mold illustration below.
+
+## Current assets and prompt set
+
+Common visual direction: Use case: photorealistic-natural. Generate one high-quality landscape 3:2 editorial photograph-style educational illustration for a premium plumbing company's production page. This is a conceptual illustration of a manufacturing step, not a photograph documenting any specific company or factory. Tightly framed operation, plausible engineering, soft neutral light, restrained brass and gray palette, realistic wear and texture. No text, logos, certificates, collage or science-fiction machinery.
+
+- `public/images/factory/laute-process-casting-v2.webp`: A restrained molten-brass stream pours into the pouring cup of a closed two-part sand mold; the casting cavity is invisible. A rough unmachined brass blank rests nearby. No pouring onto an existing finished part and no machined threads on the blank.
+- `public/images/factory/laute-process-machining-v2.webp`: Close editorial view inside a CNC machine: one brass faucet body clamped firmly in a realistic steel fixture, a single milling cutter cutting a bore, a modest amount of brass swarf and coolant. Mechanically plausible axes and fixture.
+- `public/images/factory/laute-process-polishing-v2.webp`: Close editorial view of a real industrial robotic gripper holding a brass faucet body securely against a fabric buffing wheel. Only one small section of the yellow robot wrist is visible. Realistic clearance, contact and modest polishing dust, no sparks.
+- `public/images/factory/laute-process-inspection-v2.webp`: Close editorial view of a technician’s two anatomically correct hands in clean fine gray industrial gloves measuring the bore of a brass faucet body with a stainless vernier caliper. Physically correct caliper jaws contact the part; no legible numerals.
+- `public/images/factory/laute-process-plating-v2.webp`: Close editorial view of a row of identical small brass faucet bodies hanging individually from copper plating rack hooks above a realistic enclosed electroplating bath. One coherent orderly production detail. Muted silver metal and warm brass, no rainbow liquid, no dramatic fumes.
+- `public/images/factory/laute-process-testing-v2.webp`: Close editorial view of one assembled chrome faucet firmly connected to a clean practical water-test bench with braided hoses and sealed brass connectors. A small controlled clear stream flows from the faucet into a drain. A pressure gauge exists softly out of focus with no legible digits. No electronics fantasy.
+
+---
+
+The following section records the earlier media package and remains for provenance. Its four conceptual material studies are legacy assets, not the six current process slides.
+
+
 # Factory media direction — 27 October 2026
 
 The page combines **conceptual AI still illustrations** with a separate **20-second documentary insert**. The generated stills do not document a particular real factory, machine installation, product SKU or production capacity. The page labels the cover and illustrations accordingly. No AI-generated video is claimed. The available session tools generate still images only; no still-image animation is substituted for video generation.

@@ -420,7 +420,7 @@ export const BlockRenderer = ({
                 />
                 <input
                   type="text"
-                  placeholder="Название компании / Город"
+                  placeholder={['service', 'contact'].includes(block.formType) ? 'Название компании / Город' : lang === 'en' ? 'Company name' : lang === 'kz' ? 'Компания атауы' : 'Название компании'}
                   className="admin-input"
                   value={formData.company}
                   onChange={e => setFormData({ ...formData, company: e.target.value })}
