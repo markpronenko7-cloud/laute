@@ -1,3 +1,4 @@
+import { PARTNER_REGIONS, getPartnerRegion } from '../data/regionsData';
 import { InquiryFeedback } from '../components/InquiryFeedback';
 import { EditableNode, EditableSection, NativeSectionGate } from '../components/builder/NativeContent';
 import { SiteAction } from '../components/SiteAction';
@@ -24,13 +25,14 @@ import { withBrandWord } from '../utils/brandFormatter';
 import { submitLeadInquiry } from '../services/adminApi';
 
 export const HomePage = ({ heroSlidesOverride } = {}) => {
-  const { navigateTo, openPartnerModal, openServiceModal, startAIPartnerAnalysis, t, siteContent, lang } = useApp();
+  const { navigateTo, openPartnerModal, openServiceModal, startAIPartnerAnalysis, t, siteContent, lang, region } = useApp();
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState('');
   const sendingRef = useRef(false);
   const baseUrl = import.meta.env.BASE_URL;
 
   const [leadForm, setLeadForm] = useState({
+    region: getPartnerRegion(region || 'siberia'),
     name: '',
     company: '',
     phone: '',
@@ -555,6 +557,9 @@ export const HomePage = ({ heroSlidesOverride } = {}) => {
                 </div>
               ) : (
                 <form onSubmit={handleLeadSubmit} className="b2b-lead-form light-lead-form">
+                  <label className="form-field-group"><span className="field-label light-field-label">{lang === 'en' ? 'Request region' : lang === 'kz' ? 'Өтініш өңірі' : 'Регион обращения'}</span>
+                    <select className="form-input light-form-input" value={leadForm.region} onChange={e => setLeadForm({ ...leadForm, region: e.target.value })}>{PARTNER_REGIONS.map(r => <option key={r.id} value={r.id}>{r.names[lang] || r.names.ru}</option>)}</select>
+                  </label>
             <InquiryFeedback sending={isSending} error={sendError} />
                   <div className="form-field-group">
                     <label htmlFor="lead-name" className="field-label light-field-label">

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { build } from 'esbuild';
 import { createRequire } from 'node:module';
-import { REGIONS_CONFIG } from '../src/data/regionsData.js';
+import { REGIONS_CONFIG, PARTNER_REGIONS, getPartnerRegion } from '../src/data/regionsData.js';
 import { resolveInquiryRecipient, validateInquiryRouting, DEFAULT_INQUIRY_EMAIL } from '../src/utils/inquiryRouting.js';
 import { getCompanyBlocks, COMPANY_BLOCKS, localizeCompanyBlock } from '../src/data/factoryStory.js';
 import { getEditableBlocks } from '../src/utils/pagePublication.js';
@@ -48,6 +48,12 @@ test('Заявки: опубликованные настройки управл
       assert.equal(sent.at(-1).recipient,`order-${r.id}@example.com`);
     }
     await api.submitLeadInquiry({source:'service_page',regionInquiry:'almaty'});assert.equal(sent.at(-1).recipient,'service-almaty@example.com');
+    for (const r of PARTNER_REGIONS) {
+      await api.submitLeadInquiry({source:'company_partner',region:r.id,city:'QA city'});
+      assert.equal(sent.at(-1).recipient, r.id === 'other' ? 'partner@example.com' : `partner-${r.id}@example.com`);
+      assert.match(sent.at(-1).body.message,/QA city/);
+      assert.match(sent.at(-1).body.message,new RegExp(r.id));
+    }
     const sentBefore=sent.length;contentFailure=true;await assert.rejects(api.submitLeadInquiry({source:'service_page'}));assert.equal(sent.length,sentBefore);contentFailure=false;
     const before=cache.get('laute_leads_log');
     for(const response of [{success:false,message:'Please activate your email'},{success:'false'},{}]){mailResult=response;await assert.rejects(api.submitLeadInquiry({source:'partner_modal'}));assert.equal(cache.get('laute_leads_log'),before);}
@@ -78,9 +84,9 @@ test('Завод: сохранённые блоки остаются редак�
  assert.equal(getCompanyBlocks(upgraded),upgraded);
  for(const lang of ['ru','en','kz']) {
    const localized=COMPANY_BLOCKS.map(b=>localizeCompanyBlock(b,lang));
-   assert.equal(localized.find(b=>b.companySection==='history').items.length,11);
+   assert.equal(localized.find(b=>b.companySection==='history').items.length,13);
    assert.equal(localized.find(b=>b.companySection==='production').items.length,6);
-   assert.equal(localized.find(b=>b.companySection==='geography').items.length,10);
+   assert.equal(localized.find(b=>b.companySection==='geography').items.length,11);
    assert.equal(localized.find(b=>b.companySection==='inquiry').items.length,12);
    assert.ok(localized.every(b=>b.title&&b.subtitle));
  }
@@ -96,4 +102,11 @@ test('Завод: миграция реальной штатной страни�
  const edited=result.map(block=>block.companySection==='history'?{...block,title:'История сотрудника',isVisible:false}:block);
  assert.equal(getCompanyBlocks(edited),edited);
  assert.equal(getEditableBlocks({slug:'company',blocks:edited}),edited);
+});
+
+test('Регионы сотрудничества не ограничивают город заявителя', () => {
+ assert.deepEqual(PARTNER_REGIONS.map(r=>r.id), ['siberia','kz','uae','usa','china','other']);
+ assert.equal(getPartnerRegion('almaty'),'kz');
+ assert.equal(getPartnerRegion('moscow'),'other');
+ assert.equal(getPartnerRegion('usa'),'usa');
 });

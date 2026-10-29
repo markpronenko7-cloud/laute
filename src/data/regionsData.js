@@ -121,3 +121,13 @@ export const getRegionName = (regionId, lang = 'ru') => {
   const reg = getRegionConfig(regionId);
   return reg.names[lang] || reg.names.ru;
 };
+
+// Enquiry choices are broader than the warehouse and site-region selectors.
+export const PARTNER_REGIONS = [
+  { id: 'siberia', names: { ru: 'Сибирь', en: 'Siberia', kz: 'Сібір' } },
+  ...['kz', 'uae', 'usa', 'china'].map(id => REGIONS_CONFIG.find(region => region.id === id)),
+  { id: 'other', names: { ru: 'Другое', en: 'Other', kz: 'Басқа' } }
+];
+
+export const getPartnerRegion = region => region === 'almaty' ? 'kz'
+  : PARTNER_REGIONS.some(option => option.id === region) ? region : 'other';

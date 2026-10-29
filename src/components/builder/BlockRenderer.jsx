@@ -1,3 +1,4 @@
+import { PARTNER_REGIONS, getPartnerRegion } from '../../data/regionsData';
 import { InquiryFeedback } from '../InquiryFeedback';
 import { FactoryFilm, FactoryHistory } from '../FactoryStory';
 import { CompanySection } from '../CompanySection';
@@ -41,12 +42,12 @@ export const BlockRenderer = ({
   onAddBelow,
   onInlineUpdate
 }) => {
-  const { lang, navigateTo, openPartnerModal, openServiceModal, catalogList = [], products = [] } = useApp();
+  const { lang, region, navigateTo, openPartnerModal, openServiceModal, catalogList = [], products = [] } = useApp();
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState('');
   const sendingRef = useRef(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
-  const [formData, setFormData] = useState({ name: '', company: '', phone: '', email: '', message: '' });
+  const [formData, setFormData] = useState({ name: '', company: '', city: '', phone: '', email: '', message: '', region: ['service', 'contact'].includes(block?.formType) ? region : getPartnerRegion(region || 'siberia') });
   const [openFaqIndices, setOpenFaqIndices] = useState([0]);
 
   if (!block) return null;
@@ -401,6 +402,12 @@ export const BlockRenderer = ({
               </div>
             ) : (
               <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {!['service', 'contact'].includes(block.formType) && <>
+                  <label>{lang === 'en' ? 'Request region' : lang === 'kz' ? 'Өтініш өңірі' : 'Регион обращения'}
+                    <select className="admin-input" value={formData.region} onChange={e => setFormData({ ...formData, region: e.target.value })}>{PARTNER_REGIONS.map(r => <option key={r.id} value={r.id}>{r.names[lang] || r.names.ru}</option>)}</select>
+                  </label>
+                  <input className="admin-input" autoComplete="address-level2" maxLength={160} aria-label={lang === 'en' ? 'City' : lang === 'kz' ? 'Қала' : 'Город'} placeholder={lang === 'en' ? 'City' : lang === 'kz' ? 'Қала' : 'Город'} value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })}/>
+                </>}
             <InquiryFeedback sending={isSending} error={sendError} />
                 <input
                   type="text"

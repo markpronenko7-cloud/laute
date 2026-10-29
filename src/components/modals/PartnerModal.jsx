@@ -1,5 +1,5 @@
 import { InquiryFeedback } from '../InquiryFeedback';
-import { REGIONS_CONFIG } from '../../data/regionsData';
+import { PARTNER_REGIONS, getPartnerRegion } from '../../data/regionsData';
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { X, Send, CheckCircle2 } from 'lucide-react';
@@ -12,7 +12,7 @@ export const PartnerModal = () => {
   const sendingRef = useRef(false);
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
-    region: region || 'siberia',
+    region: getPartnerRegion(region || 'siberia'),
     companyName: '',
     inn: '',
     city: '',
@@ -23,7 +23,7 @@ export const PartnerModal = () => {
   });
 
   useEffect(() => {
-    if (isPartnerModalOpen && !sendingRef.current) { setSubmitted(false); setSendError(''); setFormData(prev => ({ ...prev, region })); }
+    if (isPartnerModalOpen && !sendingRef.current) { setSubmitted(false); setSendError(''); setFormData(prev => ({ ...prev, region: getPartnerRegion(region) })); }
   }, [isPartnerModalOpen, region]);
 
   if (!isPartnerModalOpen) return null;
@@ -82,7 +82,7 @@ export const PartnerModal = () => {
             <InquiryFeedback sending={isSending} error={sendError} />
             <label className="form-group">{lang === 'en' ? 'Request region' : lang === 'kz' ? 'Өтініш өңірі' : 'Регион обращения'}
               <select className="form-select" value={formData.region} onChange={e => setFormData({ ...formData, region: e.target.value })}>
-                {REGIONS_CONFIG.map(r => <option key={r.id} value={r.id}>{r.names[lang] || r.names.ru}</option>)}
+                {PARTNER_REGIONS.map(r => <option key={r.id} value={r.id}>{r.names[lang] || r.names.ru}</option>)}
               </select>
             </label>
             <div className="form-group">
