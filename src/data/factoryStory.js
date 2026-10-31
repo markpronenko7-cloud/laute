@@ -30,14 +30,15 @@ export const COMPANY_BLOCKS = [
     row('2025', 'Расширение коллекций LAUTE', 'Расширяем коллекции флагманского бренда LAUTE. Solana, Ethereum и Bitcoin отсылают к миру Web3 и интересу бренда к технологиям будущего, включая AI.', 'Expanding LAUTE collections', 'The flagship LAUTE collections expand. Solana, Ethereum and Bitcoin reference Web3 and the brand’s interest in future technologies, including AI.', 'LAUTE коллекцияларын кеңейту', 'LAUTE негізгі брендінің коллекциялары кеңейеді. Solana, Ethereum және Bitcoin Web3 әлеміне және брендтің AI қоса болашақ технологияларына қызығушылығына сілтейді.'),
     row('2026', 'Склад в Алматы', 'Открываем склад в Алматы — на историческом Шёлковом пути. Развиваем логистику в Центральной Азии, чтобы быть ближе к партнёрам.', 'A warehouse in Almaty', 'A warehouse opens in Almaty on the historic Silk Road, bringing Central Asian logistics closer to our partners.', 'Алматыдағы қойма', 'Тарихи Жібек жолындағы Алматыда қойма ашылады. Серіктестерге жақын болу үшін Орталық Азиядағы логистиканы дамытамыз.')
   ] }),
-  section('production', 'gallery', "Прежде чем открыть воду", "От литья корпуса до испытаний готового смесителя. Посмотрите, как устроена работа на производстве.", "Before the water flows", "From casting a body to testing an assembled faucet. Explore the work behind the finished product.", "Суды ашқанға дейін", "Корпусты құюдан дайын араластырғышты сынауға дейін. Өндіріс жұмысымен танысыңыз.", { items: [
-    { ...row('', 'Литьё корпуса', 'Расплавленный металл принимает форму будущего корпуса. Так начинается путь смесителя.', 'Casting the body', 'Molten metal takes the shape of the future body. This is where a faucet begins.', 'Корпусты құю', 'Балқыған металл болашақ корпустың пішінін алады. Араластырғыштың жолы осылай басталады.'), mediaKind: 'illustration', imageUrl: 'images/factory/laute-process-casting-v2.webp' },
-    { ...row('', 'Роботизированная обработка', 'Роботизированное оборудование обрабатывает корпуса перед следующими этапами отделки.', 'Robotic machining', 'Robotic equipment machines the bodies before the next finishing stages.', 'Роботпен өңдеу', 'Робот араластырғыш корпустарын өңдейді.'), mediaKind: 'illustration', imageUrl: 'images/factory/laute-process-machining-v2.webp' },
-    { ...row('', 'Автоматическая полировка', 'Поверхность полируют на автоматическом оборудовании до гладкого состояния.', 'Automatic polishing', 'Automatic equipment polishes the surfaces to a smooth finish.', 'Автоматты жылтырату', 'Автоматты жабдық беттерді тегіс болғанша жылтыратады.'), mediaKind: 'illustration', imageUrl: 'images/factory/laute-process-polishing-v2.webp' },
-    { ...row('', 'Контроль ОТК', 'Сотрудники отдела технического контроля проверяют качество продукции.', 'Quality inspection', 'Quality control staff inspect the products.', 'Сапаны тексеру', 'Техникалық бақылау бөлімінің қызметкерлері өнім сапасын тексереді.'), mediaKind: 'illustration', imageUrl: 'images/factory/laute-process-inspection-v2.webp' },
-    { ...row('', 'Защитное покрытие', 'Никелевое и хромовое покрытия защищают смесители от коррозии.', 'Protective plating', 'Nickel and chrome plating protect the faucets against corrosion.', 'Қорғаныш жабыны', 'Никель және хром жабындары араластырғыштарды коррозиядан қорғайды.'), mediaKind: 'illustration', imageUrl: 'images/factory/laute-process-plating-v2.webp' },
-    { ...row('', 'Испытания после сборки', 'Проверка давлением: воздухом свыше 0,75 МПа и водой свыше 1,6 МПа.', 'Testing after assembly', 'Pressure tests: air above 0.75 MPa and water above 1.6 MPa.', 'Құрастырғаннан кейінгі сынақ', 'Қысыммен сынау: ауа — 0,75 МПа-дан жоғары, су — 1,6 МПа-дан жоғары.'), mediaKind: 'illustration', imageUrl: 'images/factory/laute-process-testing-v2.webp' }
-  ] }),
+  section('production', 'gallery', "Прежде чем открыть воду", "Смесители и мойки: металл, работа оборудования и ручная доводка. Семь процессов — в деталях и в движении.", "Before the water flows", "Faucets and sinks: metal, machinery and hand finishing. Seven processes, in detail and in motion.", "Суды ашқанға дейін", "Араластырғыштар мен жуғыштар: металл, жабдық жұмысы және қолмен өңдеу. Жеті үдеріс — бөлшектерімен және қозғалыста.", { processMediaVersion: 1, items: [
+    { ...row('', 'Литьё заготовок', 'Расплавленный металл переносят из печи в форму. В кадре — заливка и работа с литейной оснасткой.', 'Casting the blanks', 'Molten metal is transferred from the furnace into a mould. The footage shows pouring and work at the casting station.', 'Дайындамаларды құю', 'Балқыған металл пештен қалыпқа құйылады. Кадрда құю және қалыппен жұмыс көрсетілген.'), processId: 'casting', durationLabel: '0:11' },
+    { ...row('', 'Обрезка отливок', 'На прессе отделяют лишний металл от отливки. Затем заготовки собирают в производственную тару для дальнейшей обработки.', 'Trimming the castings', 'A press removes excess metal from the castings. The blanks are then collected for further processing.', 'Құймаларды кесу', 'Пресс құймадағы артық металды алып тастайды. Дайындамалар келесі өңдеуге жиналады.'), processId: 'trimming', durationLabel: '0:10' },
+    { ...row('', 'Механическая обработка', 'Режущий инструмент обрабатывает металлическую заготовку. Крупный план показывает рабочую зону станка, стружку и детали после операции.', 'Machining the blanks', 'A cutting tool machines the metal blank. A close view shows the working area, metal chips and parts after machining.', 'Механикалық өңдеу', 'Кескіш құрал металл дайындаманы өңдейді. Жақын планда станоктың жұмыс аймағы, жоңқа және өңделген бөлшектер көрінеді.'), processId: 'machining', durationLabel: '0:08' },
+    { ...row('', 'Роботизированная полировка', 'Манипулятор подводит корпус к полировальному кругу и меняет положение детали. Общий и крупный планы показывают одну и ту же операцию с разных точек.', 'Robotic polishing', 'A robot brings the body to the polishing wheel and changes its position. Wide and close views show the same operation from different angles.', 'Роботпен жылтырату', 'Робот корпусты жылтырату дөңгелегіне жақындатып, оның қалпын өзгертеді. Үдеріс әртүрлі нүктеден көрсетілген.'), processId: 'robot-polishing', durationLabel: '0:14' },
+    { ...row('', 'Ручная обработка моек', 'Мастер последовательно обрабатывает поверхность и края мойки ручным инструментом. Здесь важны доступ к углам и контроль каждого движения.', 'Hand finishing the sinks', 'An operator works the sink surface and edges with a handheld tool, reaching the corners and controlling each pass.', 'Жуғыштарды қолмен өңдеу', 'Шебер жуғыштың беті мен жиектерін қол құралымен өңдейді, бұрыштарға жетіп, әр қозғалысты бақылайды.'), processId: 'sink-finishing', durationLabel: '0:14' },
+    { ...row('', 'Нанесение герметика', 'На обратной стороне мойки мастер наносит состав вдоль стыка. Крупный план сохраняет весь рабочий жест — от движения пистолета до готовой полосы.', 'Applying sealant', 'An operator applies sealant along a joint on the underside of the sink. The close view follows the application along the seam.', 'Герметик жағу', 'Шебер жуғыштың артқы жағындағы түйіспеге герметик жағады. Жақын план жағу қозғалысын көрсетеді.'), processId: 'sealing', durationLabel: '0:10' },
+    { ...row('', 'Комплектация и упаковка', 'Смеситель и комплектующие размещают в формованном вкладыше, затем закрывают коробку. Отдельный ролик показывает работу упаковочного участка.', 'Kitting and packing', 'The faucet and accessories are placed into a moulded insert before the box is closed. A dedicated edit follows the packing operation.', 'Жинақтау және орау', 'Араластырғыш пен бөлшектер қалыпталған төсемге орналастырылып, қорап жабылады. Жеке бейне орау жұмысын көрсетеді.'), processId: 'packing', durationLabel: '0:15' }
+  ].map(item => ({ ...item, mediaKind: 'documentary', imageUrl: `images/factory/processes/${item.processId}.webp`, posterUrl: `images/factory/processes/${item.processId}-poster.webp`, videoUrl: `media/processes/${item.processId}.mp4` })) }),
   section('range', 'features', "Для дома, в котором живут", "Смесители для кухни и ванной, душевые системы, мойки и комплектующие. Выберите то, что подходит вашему пространству и привычкам.", "For the home you live in", "Kitchen and bathroom faucets, shower systems, sinks and components. Find what fits your space and your daily routine.", "Өмірге толы үйге арналған", "Асүй мен ванна араластырғыштары, душ жүйелері, жуғыштар және бөлшектер. Кеңістігіңіз бен әдеттеріңізге сай өнімді таңдаңыз.", { buttonText: 'Перейти в каталог', buttonLink: '/catalog', items: [
     row('', 'LAUTE · до 10 лет', 'Гарантия на смесители LAUTE. Условия — в талоне вашей модели.', 'LAUTE · up to 10 years', 'Warranty for LAUTE faucets. See your model’s warranty card for terms.', 'LAUTE · 10 жылға дейін', 'LAUTE араластырғыштарына кепілдік. Шарттары модель талонында көрсетілген.'),
     row('', 'Oute · до 7 лет', 'Гарантия на смесители Oute. Условия — в талоне вашей модели.', 'Oute · up to 7 years', 'Factory-stated warranty for Oute faucets.', 'Oute · 7 жылға дейін', 'Oute араластырғыштарына зауыт мәлімдеген кепілдік.'),
@@ -69,9 +70,28 @@ export function localizeCompanyBlock(block, lang) {
 }
 
 // Migrate the previous system presentation once; employee-added blocks survive.
-// Saved v2 blocks remain authoritative, including their order and visibility.
+// Saved blocks retain their order and visibility; shipped illustrations upgrade.
 export function getCompanyBlocks(blocks = []) {
-  if (blocks.some(b => b.companySection)) return blocks;
+  if (blocks.some(b => b.companySection)) {
+    let migrated = false;
+    const upgraded = blocks.map(block => {
+      // Upgrade only the shipped six-image presentation, never employee media.
+      const legacyIllustrations = block.companySection === 'production' && block.items?.length === 6 && block.items.every(item => /^images\/factory\/laute-process-[a-z]+-v2\.webp$/.test(item.imageUrl || ''));
+      if (!legacyIllustrations) return block;
+      migrated = true;
+      const production = COMPANY_BLOCKS.find(item => item.companySection === 'production');
+      return {
+        ...block, items: production.items, subtitle: production.subtitle,
+        translations: {
+          ...block.translations,
+          en: { ...block.translations?.en, subtitle: production.translations.en.subtitle },
+          kz: { ...block.translations?.kz, subtitle: production.translations.kz.subtitle }
+        },
+        processMediaVersion: production.processMediaVersion
+      };
+    });
+    return migrated ? upgraded : blocks;
+  }
   return [...COMPANY_BLOCKS, ...blocks.filter(b => !b.id?.startsWith('blk-comp-') && !['factory_film', 'factory_history'].includes(b.type))];
 }
 

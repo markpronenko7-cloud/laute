@@ -47,29 +47,35 @@ function CompanyInquiry({ block, isEditor, w }) {
 
 function CompanyProduction({ items = [], label, lang }) {
   const [selected, setSelected] = useState(0);
-  const [showFilm, setShowFilm] = useState(false);
   const id = useId();
-  const active = Math.min(selected, Math.max(0, items.length - 1));
+  const active = selected === null ? null : Math.min(selected, Math.max(0, items.length - 1));
   if (!items.length) return null;
-  const illustration = lang === 'en' ? 'AI illustration of the process' : lang === 'kz' ? 'Өндіріс кезеңінің AI иллюстрациясы' : 'AI-иллюстрация производственного этапа';
-  const picture = className => <figure className={`company-process-view ${className}`}>
-    <img key={items[active].imageUrl} src={resolveMediaUrl(items[active].imageUrl)} alt={items[active].title} loading="lazy" decoding="async" width="1536" height="1024"/>
-    <figcaption><span>{String(active + 1).padStart(2, '0')} / {String(items.length).padStart(2, '0')} · {items[active].title}</span>{items[active].mediaKind === 'illustration' && <span>{illustration}</span>}</figcaption>
-  </figure>;
-  const film = lang === 'en' ? 'Watch production footage' : lang === 'kz' ? 'Өндіріс түсірілімін көру' : 'Посмотреть съёмку с производства';
-  return <div className="company-workshop"><div className="company-process-list" aria-label={label}>{items.map((item, i) =>
-    <div className={active === i ? 'is-active' : ''} key={i}>
-      <button type="button" aria-expanded={active === i} aria-controls={id + '-stage-' + i} onClick={() => setSelected(i)}>
-        <span>{String(i + 1).padStart(2, '0')}</span><strong>{item.title}</strong><Plus size={18} aria-hidden="true"/>
-      </button>
-      <div id={id + '-stage-' + i} hidden={active !== i}><p>{item.desc}</p>{active === i && picture('company-process-inline')}</div>
-    </div>)}</div><div className="company-production-media">{picture('company-process-desktop')}<div className="company-production-film">
-      <button type="button" className="company-text-link" aria-expanded={showFilm} aria-controls={id + '-film'} onClick={() => setShowFilm(v => !v)}>{film}<Plus size={18} aria-hidden="true"/></button>
-      <div id={id + '-film'} hidden={!showFilm}>{showFilm && <video controls playsInline preload="metadata" poster={resolveMediaUrl('images/factory/documentary-poster.jpg')} aria-label={film}>
-        <source src={resolveMediaUrl('media/laute-factory-mobile.mp4')} type="video/mp4" media="(max-width: 767px)"/>
-        <source src={resolveMediaUrl('media/laute-factory-documentary.mp4')} type="video/mp4"/>
-      </video>}</div>
-    </div></div></div>;
+  const w = {
+    ru: { photo: 'Деталь процесса', film: 'Процесс в движении', note: 'Заводская съёмка · без звука', index: 'Внутри производства', count: 'процессов', watch: 'Видео' },
+    en: { photo: 'Process detail', film: 'The process in motion', note: 'Factory footage · no audio', index: 'Inside production', count: 'processes', watch: 'Video' },
+    kz: { photo: 'Үдеріс бөлшегі', film: 'Үдеріс қозғалыста', note: 'Зауыт түсірілімі · дыбыссыз', index: 'Өндіріс ішінде', count: 'үдеріс', watch: 'Бейне' }
+  }[lang] || { photo: 'Деталь процесса', film: 'Процесс в движении', note: 'Заводская съёмка · без звука', index: 'Внутри производства', count: 'процессов', watch: 'Видео' };
+  return <div className="company-processes" aria-label={label}>
+    <div className="company-processes-index"><span>{w.index}</span><span>{String(items.length).padStart(2, '0')} / {w.count}</span></div>
+    {items.map((item, i) => <article className={`company-process${active === i ? ' is-open' : ''}`} key={item.processId || i}>
+      <h3><button className="company-process-trigger" type="button" id={`${id}-trigger-${i}`} aria-expanded={active === i} aria-controls={`${id}-stage-${i}`} onClick={() => setSelected(active === i ? null : i)}>
+        <span className="company-process-number">{String(i + 1).padStart(2, '0')}</span><span className="company-process-title">{item.title}</span>
+        {item.videoUrl && <span className="company-process-length">{w.watch} · {item.durationLabel}</span>}<Plus size={20} aria-hidden="true"/>
+      </button></h3>
+      <div id={`${id}-stage-${i}`} role="region" aria-labelledby={`${id}-trigger-${i}`} hidden={active !== i}>
+        {active === i && <div className="company-process-body">
+          <div className="company-process-story"><span className="company-process-eyebrow">{w.photo}</span><p>{item.desc}</p>
+            <figure><img src={resolveMediaUrl(item.imageUrl)} alt={item.title} loading="lazy" decoding="async" width="960" height="720"/><figcaption>{item.title}</figcaption></figure>
+          </div>
+          {item.videoUrl && <figure className="company-process-film"><div className="company-process-film-heading"><span>{w.film}</span><span>{item.durationLabel}</span></div>
+            <video key={item.videoUrl} controls playsInline preload="none" poster={resolveMediaUrl(item.posterUrl || item.imageUrl)} aria-label={`${w.watch}: ${item.title}`}>
+              <source src={resolveMediaUrl(item.videoUrl)} type="video/mp4"/>
+            </video><figcaption>{w.note}</figcaption>
+          </figure>}
+        </div>}
+      </div>
+    </article>)}
+  </div>;
 }
 
 function CompanyMap({ items = [], label, lang }) {

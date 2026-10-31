@@ -1,4 +1,38 @@
-# Current production illustrations — 29 October 2026
+# Process documentary package — 31 October 2026
+
+The production accordion now has seven distinct real-footage edits, seven extracted photographic details and seven portrait posters. It no longer presents synthetic images or a shared film as evidence of different processes. Existing legacy files remain available to other CMS blocks.
+
+Source: the user-supplied `Видео с заводов-1-001.zip` (25 videos, 2 photographs). All video files were inventoried and their visual contact sheets examined across their duration at three-second intervals. Both photographs were inspected; neither provides the seven process details, so the stills come from the corresponding videos. This is sampled visual review, **not a claim of continuous full-speed viewing**.
+
+## Evidence and edit decisions
+
+| Published process | Sources | What is visible |
+| --- | --- | --- |
+| Casting blanks | IMG_5791.MOV | Furnace, ladle and casting workstations |
+| Trimming castings | IMG_5792.MOV, IMG_5793.MOV | Operator at a trimming press and collected castings |
+| Machining | IMG_5795.MOV | Cutting spindle, metal chips and machined parts |
+| Robotic polishing | IMG_3566.MOV, IMG_3567.MOV, IMG_3568.MOV | Robot and polishing wheel, with several viewpoints |
+| Hand finishing sinks | IMG_8237.MOV | Handheld surface/edge finishing at multiple benches |
+| Applying sealant | IMG_8238.MOV | Gun applying material along a sink joint |
+| Kitting and packing | IMG_3570.MOV | Product placed in an insert and box closed |
+
+Other archive material was examined and excluded from the published edits: IMG_3555.MOV and sd1780478908_2.mp4 show showroom demonstrations, not pressure tests; IMG_3556.MP4, IMG_3557.MOV, IMG_3558.MOV and IMG_3559.MOV show factory aisles/machining departments; IMG_3560.MOV, IMG_3561.MOV and IMG_3562.MOV show handheld blank examples; IMG_3563.MOV shows work-in-progress storage; IMG_3564.MOV and IMG_3565.MOV show the furnace department from the tour route; IMG_3569.MOV shows packing and stacks of boxes; IMG_5790.MOV shows metal stock; IMG_8239.MOV shows manual sink surface work without enough evidence to name a separate operation. IMG_3556.HEIC shows a factory aisle; camphoto_824023566.jpg is an incidental photograph.
+
+No dedicated footage establishes OTK inspection, nickel/chrome deposition or post-assembly pressure tests. These entries were removed from this media sequence. This does not assert those operations are absent from the factory. A showroom faucet running water must not be described as a calibrated pressure test. Product markings in the packing footage are retained; supplied footage does not independently establish the brand of each item or ownership of every facility.
+
+Authoring: `scripts/build_factory_stages.py` contains source timecodes, photographic frames and crop anchors. Outputs are H.264 MP4, 720 × 960, 30 fps, fast-start, without audio. Source HLG is converted to SDR; there is restrained contrast/saturation adjustment. The 3:4 edit retains substantially more of the portrait originals than a landscape crop. There is no generated footage, motion interpolation, stock machinery sound or narration. Metadata including source GPS is removed from outputs. The sealant operation remains one continuous shot; other edits use direct cuts between the operation and its details.
+
+First edits were inspected through half-second visual sequences, then shortened to remove unnecessary walking shots and abrupt camera movements. This review covers framing and sequence, with the limitation that real-time playback has not been visually observed. Final sequences and all photographs were reviewed again after revision. Source handheld shake, uneven factory lighting and optical resolution remain limitations.
+
+## Verification boundary
+
+The browser control tool stopped because it could not determine the Chrome URL reliably enough to enforce its policy. No alternate UI automation was used to bypass that stop. Desktop/mobile rendered appearance, live accordion interaction, console output and full-speed playback still require browser verification. Successful builds, tests, file decoding and HTTP checks do not establish those results.
+
+The runtime upgrades only the shipped six-illustration production presentation. Employee media, custom sections, block order and visibility remain authoritative. Each inactive panel unmounts its player; opening an item cannot leave the previous player running. `preload="none"` avoids fetching every video on page load.
+
+---
+
+# Historical production illustrations — 29 October 2026
 
 The About LAUTE page now uses six new conceptual AI illustrations as selectable process slides. Each generated slide is visibly labeled as an AI illustration. These assets illustrate processes; they are not documentary evidence of LAUTE equipment, product geometry or factory installations. The existing 20-second supplied-footage film is available separately through “Посмотреть съёмку с производства”. It is not a new film or generated video.
 

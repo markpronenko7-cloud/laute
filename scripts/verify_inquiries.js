@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { build } from 'esbuild';
 import { createRequire } from 'node:module';
+import { statSync } from 'node:fs';
 import { REGIONS_CONFIG, PARTNER_REGIONS, getPartnerRegion } from '../src/data/regionsData.js';
 import { resolveInquiryRecipient, validateInquiryRouting, DEFAULT_INQUIRY_EMAIL } from '../src/utils/inquiryRouting.js';
 import { getCompanyBlocks, COMPANY_BLOCKS, localizeCompanyBlock } from '../src/data/factoryStory.js';
@@ -85,7 +86,7 @@ test('Завод: сохранённые блоки остаются редак�
  for(const lang of ['ru','en','kz']) {
    const localized=COMPANY_BLOCKS.map(b=>localizeCompanyBlock(b,lang));
    assert.equal(localized.find(b=>b.companySection==='history').items.length,13);
-   assert.equal(localized.find(b=>b.companySection==='production').items.length,6);
+   assert.equal(localized.find(b=>b.companySection==='production').items.length,7);
    assert.equal(localized.find(b=>b.companySection==='geography').items.length,11);
    assert.equal(localized.find(b=>b.companySection==='inquiry').items.length,12);
    assert.ok(localized.every(b=>b.title&&b.subtitle));
@@ -97,11 +98,24 @@ test('Завод: миграция реальной штатной страни�
  const result=getCompanyBlocks(source.blocks);
  assert.equal(result.some(block=>block.type==='factory_film'),false);
  const gallery=result.find(block=>block.companySection==='production');
- assert.equal(gallery.items.length,6);
- assert.ok(gallery.items.every(item=>item.imageUrl.startsWith('images/factory/laute-')));
+ assert.equal(gallery.items.length,7);
+ assert.ok(gallery.items.every(item=>item.imageUrl.startsWith('images/factory/processes/') && item.videoUrl.startsWith('media/processes/') && item.mediaKind === 'documentary'));
  const edited=result.map(block=>block.companySection==='history'?{...block,title:'История сотрудника',isVisible:false}:block);
  assert.equal(getCompanyBlocks(edited),edited);
  assert.equal(getEditableBlocks({slug:'company',blocks:edited}),edited);
+});
+
+test('Производство: миграция штатных иллюстраций сохраняет пользовательские блоки и новые медиа', () => {
+ const legacy={id:'company-v2-production',companySection:'production',title:'Заголовок сотрудника',isVisible:false,items:['casting','machining','polishing','inspection','plating','testing'].map(name=>({imageUrl:`images/factory/laute-process-${name}-v2.webp`}))};
+ const custom={companySection:'production',items:[{title:'Свой процесс',imageUrl:'images/employee.webp',videoUrl:'media/employee.mp4'}]};
+ const other={id:'custom',type:'text',content:'Текст сотрудника'};
+ const result=getCompanyBlocks([legacy,custom,other]);
+ assert.equal(result[0].title,legacy.title);assert.equal(result[0].isVisible,false);assert.equal(result[0].items.length,7);
+ assert.equal(result[1],custom);assert.equal(result[2],other);assert.equal(legacy.items.length,6);assert.equal(getCompanyBlocks(result),result);
+ const production=COMPANY_BLOCKS.find(block=>block.companySection==='production');
+ assert.equal(new Set(production.items.map(item=>item.videoUrl)).size,7);
+ assert.equal(new Set(production.items.map(item=>item.imageUrl)).size,7);
+ for (const item of production.items) for (const key of ['imageUrl','posterUrl','videoUrl']) assert.ok(statSync(new URL(`../public/${item[key]}`,import.meta.url)).size > 1000);
 });
 
 test('Регионы сотрудничества не ограничивают город заявителя', () => {
