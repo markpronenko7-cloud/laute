@@ -43,7 +43,9 @@ def build(source, ffmpeg):
             parts.append(part)
         listing = work/f'{name}.txt'
         listing.write_text('\n'.join("file '"+p.resolve().as_posix()+"'" for p in parts), encoding='utf8')
-        run(['-f', 'concat', '-safe', '0', '-i', listing, '-c', 'copy', '-map_metadata', '-1', '-movflags', '+faststart', output/f'{name}.mp4'])
+        # Rebase the stitched timeline: source frame rates differ slightly from
+        # 30 fps and stream-copy concatenation can otherwise duplicate a DTS.
+        run(['-f', 'concat', '-safe', '0', '-i', listing, '-an', '-vf', 'fps=30,setpts=N/(30*TB)', '-c:v', 'libx264', '-preset', 'fast', '-crf', '19', '-pix_fmt', 'yuv420p', '-video_track_timescale', '30000', '-map_metadata', '-1', '-movflags', '+faststart', output/f'{name}.mp4'])
         p = find(photo[0]); vf = grade(p) + f'scale=1080:1920,crop=1080:810:0:(ih-oh)*{photo[2]},scale=960:720:flags=lanczos'
         run(['-ss', photo[1], '-i', p, '-frames:v', '1', '-vf', vf, '-c:v', 'libwebp', '-quality', '88', '-map_metadata', '-1', photos/f'{name}.webp'])
         # Separate, correctly composed portrait poster avoids stretching a still.
