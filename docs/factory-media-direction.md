@@ -1,3 +1,39 @@
+# Current package: generated stills and third documentary edit — 31 October 2026
+
+Seven new images were generated with the built-in image_gen tool using seven individual reference frames from the supplied factory videos. They replace the former extracted stage images and thumbnails. Current assets, references and generation specifications are in `docs/factory-image-prompts-v3.md`. The seven illustrated scenes deliberately retain the real workshop level and equipment. They are visibly labelled as AI illustrations based on footage; the separate videos are real source footage. Generated stills are not inserted into the films or animated to impersonate factory footage.
+
+The stills are now 1536 × 1024 and displayed without changing their 3:2 composition. Custom employee media is retained by the versioned upgrade; only shipped image paths are replaced. Version 1/2 production blocks upgrade to version 3 without replacing unrelated block order, visibility, text or custom video URLs. The two inaccurate shipped process descriptions are corrected.
+
+## Correction of the second and third process descriptions
+
+Closer inspection of the actual IMG_5792 reference establishes manual work with a simple bench casting mould/fixture. It does not establish the hydraulic trimming press claimed in the earlier notes below. The stage is now **Working with the casting mould / Работа с литейной формой**. Its image preserves the visible mould and baskets. Old trimming/press descriptions below are historical and must not be reused as verified evidence.
+
+The blue equipment in IMG_5795 is presented as the actual working area and fixtures of the machine shop. Neither the illustration nor copy invents an unseen cutting tool or replaces it with a modern CNC machine. The Russian title is **Станочная обработка**; descriptions concentrate on equipment and batches of blanks visible in the source.
+
+## Editorial treatment of all seven films
+
+`scripts/build_factory_stages.py` now records the selected in/out points, crop strengths, title and phase captions for every edit. Each film begins with a short two-line process introduction over moving source footage, then follows labelled operational phases with a restrained phase indicator, and ends with an actual source result/detail plus a short final hold. These are process labels, not fabricated production specifications. Titles have a Russian heading and a short English process name. The page descriptions remain available in Russian, English and Kazakh.
+
+- Casting establishes the furnace, moves to ladle/melt and the casting workstation, then ends on a blank. These are departmental views, not a claimed single batch or verified alloy identity.
+- Mould work follows manual bench work and then collected castings. It is principally one camera viewpoint; tighter crops are not claimed as new cameras.
+- The machine shop moves from the department to the blue machine, a closer fixture view and the collected blanks. No invisible cutter contact is asserted.
+- Robotic polishing establishes preparation/loading, holds the wheel-contact operation, changes viewpoint for the manipulator motion and ends on the working cell.
+- Sink finishing establishes the bench, follows the handheld tool, moves closer to the surface, then ends on edge work.
+- Sealant application follows continuous source time through positioning, application and the visible corner seam. This is a single original viewpoint with three deliberate framings, not multicamera footage.
+- Packing follows the product/insert, placing the product, accessories and closing the box. The ending is after the closure, rather than in the middle of the action.
+
+Direct cuts preserve working gestures; no arbitrary glitch, flash, wipe, generated action or synthetic motion is used. Bounded translation stabilization and common SDR color handling remain supporting corrections. A final 0.6 second hold uses the final real video frame. Opening posters are extracted from the fully edited introduction so the player displays the edited film, not an unrelated illustration. The generated pictures remain separate labelled companions.
+
+All videos are intentionally silent. No narration, fabricated factory sound or unreviewed speech mix was added. Handheld shake, original optical resolution and available camera angles limit what the footage can support; no new camera coverage is invented.
+
+## Verification scope
+
+The current files are checked in an isolated Chromium browser with a fresh profile against the actual local page and the published page. Checks include all seven disclosures, Enter/Space, playback/pause, native fullscreen entry/exit, reopening with a reset player, mobile viewport states and console/page errors. Touch emulation checks open/play/close. Every film is played at normal speed to its natural end and replayed; screenshots sample real playback for visual inspection of framing, order, caption timing and transitions. Automated completion is not treated as proof of artistic quality or continuous human viewing. Physical phones and Safari are outside this verification.
+
+The following records describe earlier versions. Their statement that source stills remain current, that the second stage is trimming, or that the browser is unavailable does not describe this version.
+
+---
+
 # Accordion and second edit — 31 October 2026
 
 The process accordion now uses photographic preview cards, circular chevrons and a dark open media composition. The main portrait player has a visible play action, with description and a separate real photographic detail alongside it. On mobile the player precedes the description. Closing or switching an item removes the old player. Playback starts only after an explicit action; errors retain native controls and show a localized message. Existing photos remain real source frames, not generated replacements.

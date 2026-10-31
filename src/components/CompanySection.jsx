@@ -71,12 +71,12 @@ function CompanyProduction({ items = [], label, lang }) {
   const active = selected === null ? null : Math.min(selected, Math.max(0, items.length - 1));
   if (!items.length) return null;
   const w = {
-    ru: { photo: 'В деталях', note: 'Заводская съёмка · без звука', index: 'Внутри производства', count: 'процессов', watch: 'Смотреть процесс', error: 'Не удалось запустить видео. Попробуй ещё раз.' },
-    en: { photo: 'A closer look', note: 'Factory footage · no audio', index: 'Inside production', count: 'processes', watch: 'Watch the process', error: 'Unable to start the video. Please try again.' },
-    kz: { photo: 'Жақыннан қарау', note: 'Зауыт түсірілімі · дыбыссыз', index: 'Өндіріс ішінде', count: 'үдеріс', watch: 'Үдерісті көру', error: 'Бейне іске қосылмады. Қайталап көріңіз.' }
+    ru: { photo: 'В деталях', illustration: 'AI-иллюстрация по съёмке', media: 'AI-иллюстрации по кадрам · реальная видеосъёмка', note: 'Заводская съёмка · без звука', index: 'Внутри производства', count: 'процессов', watch: 'Смотреть процесс', error: 'Не удалось запустить видео. Попробуй ещё раз.' },
+    en: { photo: 'A closer look', illustration: 'AI illustration based on footage', media: 'AI illustrations from frames · real video footage', note: 'Factory footage · no audio', index: 'Inside production', count: 'processes', watch: 'Watch the process', error: 'Unable to start the video. Please try again.' },
+    kz: { photo: 'Жақыннан қарау', illustration: 'Түсірілім негізіндегі AI иллюстрация', media: 'Кадрлар негізіндегі AI суреттер · нақты бейне', note: 'Зауыт түсірілімі · дыбыссыз', index: 'Өндіріс ішінде', count: 'үдеріс', watch: 'Үдерісті көру', error: 'Бейне іске қосылмады. Қайталап көріңіз.' }
   }[lang === 'en' || lang === 'kz' ? lang : 'ru'];
   return <div className="company-processes" aria-label={label}>
-    <div className="company-processes-index"><span>{w.index}</span><span>{String(items.length).padStart(2, '0')} / {w.count}</span></div>
+    <div className="company-processes-index"><span>{w.index}</span><span>{String(items.length).padStart(2, '0')} / {w.count}</span></div>{items.some(item => item.mediaKind === 'illustration') && <p className="company-processes-note">{w.media}</p>}
     {items.map((item, i) => <article className={`company-process${active === i ? ' is-open' : ''}`} key={item.processId || i}>
       <h3><button className="company-process-trigger" type="button" id={`${id}-trigger-${i}`} aria-expanded={active === i} aria-controls={`${id}-stage-${i}`} onClick={() => setSelected(active === i ? null : i)}>
         <span className="company-process-thumb" aria-hidden="true"><img src={resolveMediaUrl(item.imageUrl)} alt="" loading="lazy" decoding="async" width="120" height="90"/></span>
@@ -87,7 +87,7 @@ function CompanyProduction({ items = [], label, lang }) {
         {active === i && <div className="company-process-body">
           {item.videoUrl && <CompanyProcessVideo key={item.videoUrl} item={item} w={w}/>}
           <div className="company-process-story"><span className="company-process-eyebrow">{w.photo}</span><p>{item.desc}</p>
-            <figure><img src={resolveMediaUrl(item.imageUrl)} alt={item.title} loading="lazy" decoding="async" width="960" height="720"/><figcaption><span>{item.title}</span><span>{String(i + 1).padStart(2, '0')} / {String(items.length).padStart(2, '0')}</span></figcaption></figure>
+            <figure><img src={resolveMediaUrl(item.imageUrl)} alt={item.mediaKind === 'illustration' ? `${w.illustration}: ${item.title}` : item.title} loading="lazy" decoding="async" width="1536" height="1024"/><figcaption><span>{item.mediaKind === 'illustration' ? w.illustration : item.title}</span><span>{String(i + 1).padStart(2, '0')} / {String(items.length).padStart(2, '0')}</span></figcaption></figure>
           </div>
         </div>}
       </div>

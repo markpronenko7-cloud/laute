@@ -99,7 +99,7 @@ test('Завод: миграция реальной штатной страни�
  assert.equal(result.some(block=>block.type==='factory_film'),false);
  const gallery=result.find(block=>block.companySection==='production');
  assert.equal(gallery.items.length,7);
- assert.ok(gallery.items.every(item=>item.imageUrl.startsWith('images/factory/processes/') && item.videoUrl.startsWith('media/processes/') && item.mediaKind === 'documentary'));
+ assert.ok(gallery.items.every(item=>item.imageUrl.startsWith('images/factory/processes/') && item.videoUrl.startsWith('media/processes/') && item.mediaKind === 'illustration' && item.videoKind === 'documentary'));
  const edited=result.map(block=>block.companySection==='history'?{...block,title:'История сотрудника',isVisible:false}:block);
  assert.equal(getCompanyBlocks(edited),edited);
  assert.equal(getEditableBlocks({slug:'company',blocks:edited}),edited);
@@ -129,7 +129,19 @@ test('Производство: новый монтаж обновляет дл�
  const production=COMPANY_BLOCKS.find(block=>block.companySection==='production');
  const saved={...production,processMediaVersion:1,items:production.items.map((item,index)=>({...item,title:'Текст сотрудника',videoUrl:index===0?'media/custom.mp4':item.videoUrl.split('?')[0],durationLabel:'0:01'}))};
  const [updated]=getCompanyBlocks([saved]);
- assert.equal(updated.processMediaVersion,2);assert.equal(updated.items[0].videoUrl,'media/custom.mp4');assert.equal(updated.items[0].durationLabel,'0:01');
+ assert.equal(updated.processMediaVersion,3);assert.equal(updated.items[0].videoUrl,'media/custom.mp4');assert.equal(updated.items[0].durationLabel,'0:01');
  for(let i=1;i<updated.items.length;i++){assert.equal(updated.items[i].title,'Текст сотрудника');assert.equal(updated.items[i].videoUrl,production.items[i].videoUrl);assert.equal(updated.items[i].durationLabel,production.items[i].durationLabel);}
  assert.equal(saved.processMediaVersion,1);assert.equal(getCompanyBlocks([updated])[0],updated);
+});
+
+test('Производство: семь генераций заменяют штатные фотокадры версии 2, фотография сотрудника остаётся', () => {
+ const production=COMPANY_BLOCKS.find(block=>block.companySection==='production');
+ const saved={...production,processMediaVersion:2,items:production.items.map(item=>({...item,imageUrl:`images/factory/processes/${item.processId}.webp`,mediaKind:'documentary',videoUrl:`media/processes/${item.processId}.mp4?cut=2`}))};
+ saved.items[0]={...saved.items[0],imageUrl:'images/employee-real.webp',title:'Текст сотрудника'};
+ saved.items[1]={...saved.items[1],title:'Обрезка отливок'};
+ const [result]=getCompanyBlocks([saved]);
+ assert.equal(result.processMediaVersion,3);assert.equal(result.items[0].imageUrl,'images/employee-real.webp');assert.equal(result.items[0].mediaKind,'documentary');assert.equal(result.items[0].title,'Текст сотрудника');
+ for(let i=1;i<result.items.length;i++){assert.equal(result.items[i].imageUrl,production.items[i].imageUrl);assert.equal(result.items[i].mediaKind,'illustration');assert.equal(result.items[i].videoKind,'documentary');}
+ assert.equal(result.items[1].title,'Работа с литейной формой');assert.equal(result.items[1].translations.en.title,production.items[1].translations.en.title);
+ assert.equal(saved.items[1].imageUrl,'images/factory/processes/trimming.webp');assert.equal(saved.processMediaVersion,2);
 });
