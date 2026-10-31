@@ -68,7 +68,7 @@ body:has(.company-page-v2) .header .select-trigger :is(.select-icon,.arrow-icon)
 .company-section--production>.company-section-heading { max-width:720px; }
 .company-processes { --process-radius:24px; }
 .company-processes-index { display:flex; justify-content:space-between; gap:20px; margin-bottom:20px; color:var(--company-muted); font-size:10px; letter-spacing:.14em; text-transform:uppercase; }
-.company-process { margin-top:12px; border:1px solid #182a2917; border-radius:var(--process-radius); background:#fff9; overflow:hidden; transition:background-color .25s,border-color .25s; }
+.company-process { margin-top:12px; border:1px solid #182a2917; border-radius:var(--process-radius); background:#fff9; overflow:hidden; transition:border-color .25s; }
 .company-process-trigger { width:100%; display:flex; align-items:center; gap:24px; padding:18px 24px 18px 18px; border:0; background:transparent; color:var(--company-ink); cursor:pointer; font:inherit; text-align:left; }
 .company-process-thumb { display:block; flex:0 0 100px; height:76px; overflow:hidden; border-radius:12px; background:#d1d8cd; }
 .company-process-thumb img { width:100%; height:100%; display:block; object-fit:cover; transition:transform .35s; }
