@@ -1,3 +1,23 @@
+# Accordion and second edit — 31 October 2026
+
+The process accordion now uses photographic preview cards, circular chevrons and a dark open media composition. The main portrait player has a visible play action, with description and a separate real photographic detail alongside it. On mobile the player precedes the description. Closing or switching an item removes the old player. Playback starts only after an explicit action; errors retain native controls and show a localized message. Existing photos remain real source frames, not generated replacements.
+
+Every process film was re-edited. The source timecodes and per-shot crop magnification are recorded in `scripts/build_factory_stages.py`. Casting now establishes the furnace before the ladle and casting station, ending on a raw blank; this is a department overview, not a claim that all shots show the same alloy or batch. Trimming holds the press action before collected castings. Machining establishes the spindle, moves into a tighter tool view and ends on the parts. Robotic polishing moves from the working cell to the contact area and back to the wider robot. Sink finishing establishes the bench, then hand/tool and edge detail. Sealant application follows continuous source time, with closer framing during the gesture. Packing ends after the box is closed.
+
+Stabilization uses two-pass vidstab analysis and bounded translation correction: 8-frame smoothing, at most 14 output pixels, no rotation, a fixed 5 percent safety crop. There is no dynamic zoom pumping, generated scene or synthesized intermediate motion. Each edit has brief head/tail fades; direct cuts preserve the working action. Existing restrained SDR color handling is retained. Actual encoded durations determine end fades; published labels are updated to the new lengths. Shipped CMS media receives a new cache key without replacing employee text, visibility, custom media or block order.
+
+## Current verification
+
+An isolated headless Chromium test browser with a fresh temporary profile successfully rendered the actual local page. It did not attach to or operate the user's open Chrome window, whose URL could not be established in the earlier run.
+
+All seven disclosures were exercised on 1440 and 390 pixel viewports: open/close, Enter and Space, explicit playback, native pause/resume, native fullscreen entry/exit, reopening with reset playback state, and absence of horizontal page overflow. Actual page errors were collected. Each film played to its natural end at playbackRate 1, then replayed from the native control. Screenshots sampled the real playback sequence roughly once per second and were visually examined across every film; this is not a claim of continuous human viewing of every frame at full motion. Translation/crop artifacts, framing and the sequence of shots were checked in those captures. All media is intentionally silent; decoded audio bytes are zero and the player states that there is no audio. No listening-based mix assessment is claimed.
+
+Russian, English and Kazakh stage titles fit at 320, 390 and 1440 pixel widths without horizontal clipping or page overflow. Physical phones and Safari were not used. Desktop and mobile page screenshots were visually inspected. Automated rendered behavior and sampled visual inspection are recorded separately from subjective approval of the montage.
+
+The following section records the first documentary revision and its source inventory. Its browser limitation describes that earlier run, not the isolated Chromium checks above.
+
+---
+
 # Process documentary package — 31 October 2026
 
 The production accordion now has seven distinct real-footage edits, seven extracted photographic details and seven portrait posters. It no longer presents synthetic images or a shared film as evidence of different processes. Existing legacy files remain available to other CMS blocks.

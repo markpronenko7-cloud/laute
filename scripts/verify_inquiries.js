@@ -124,3 +124,12 @@ test('Регионы сотрудничества не ограничивают 
  assert.equal(getPartnerRegion('moscow'),'other');
  assert.equal(getPartnerRegion('usa'),'usa');
 });
+
+test('Производство: новый монтаж обновляет длительности и кеш только штатных роликов, сохраняя тексты CMS', () => {
+ const production=COMPANY_BLOCKS.find(block=>block.companySection==='production');
+ const saved={...production,processMediaVersion:1,items:production.items.map((item,index)=>({...item,title:'Текст сотрудника',videoUrl:index===0?'media/custom.mp4':item.videoUrl.split('?')[0],durationLabel:'0:01'}))};
+ const [updated]=getCompanyBlocks([saved]);
+ assert.equal(updated.processMediaVersion,2);assert.equal(updated.items[0].videoUrl,'media/custom.mp4');assert.equal(updated.items[0].durationLabel,'0:01');
+ for(let i=1;i<updated.items.length;i++){assert.equal(updated.items[i].title,'Текст сотрудника');assert.equal(updated.items[i].videoUrl,production.items[i].videoUrl);assert.equal(updated.items[i].durationLabel,production.items[i].durationLabel);}
+ assert.equal(saved.processMediaVersion,1);assert.equal(getCompanyBlocks([updated])[0],updated);
+});

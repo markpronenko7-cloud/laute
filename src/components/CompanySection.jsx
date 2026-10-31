@@ -1,5 +1,5 @@
 import React, { useId, useRef, useState } from 'react';
-import { ArrowDown, ArrowUpRight, CheckCircle2, Plus } from 'lucide-react';
+import { ArrowDown, ArrowUpRight, CheckCircle2, ChevronDown, Play, Plus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { resolveMediaUrl, submitLeadInquiry } from '../services/adminApi';
 import { PARTNER_REGIONS, getPartnerRegion } from '../data/regionsData';
@@ -45,33 +45,50 @@ function CompanyInquiry({ block, isEditor, w }) {
   </div>;
 }
 
+function CompanyProcessVideo({ item, w }) {
+  const player = useRef(null);
+  const [started, setStarted] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const play = async () => {
+    setFailed(false);
+    try { await player.current?.play(); }
+    catch { setStarted(true); setFailed(true); }
+  };
+  return <figure className="company-process-film">
+    <div className="company-process-player">
+      <video ref={player} controls={started} playsInline preload="none" poster={resolveMediaUrl(item.posterUrl || item.imageUrl)} aria-label={`${w.watch}: ${item.title}`} onPlay={() => setStarted(true)} onError={() => { setStarted(true); setFailed(true); }}>
+        <source src={resolveMediaUrl(item.videoUrl)} type="video/mp4"/>
+      </video>
+      {!started && <button type="button" className="company-process-play" onClick={play} aria-label={`${w.watch}: ${item.title}`}><span><Play size={27} fill="currentColor" aria-hidden="true"/></span><span>{w.watch}<small>{item.durationLabel}</small></span></button>}
+    </div>
+    <figcaption><span>{failed ? w.error : w.note}</span><span>{item.durationLabel}</span></figcaption>
+  </figure>;
+}
+
 function CompanyProduction({ items = [], label, lang }) {
   const [selected, setSelected] = useState(0);
   const id = useId();
   const active = selected === null ? null : Math.min(selected, Math.max(0, items.length - 1));
   if (!items.length) return null;
   const w = {
-    ru: { photo: 'Деталь процесса', film: 'Процесс в движении', note: 'Заводская съёмка · без звука', index: 'Внутри производства', count: 'процессов', watch: 'Видео' },
-    en: { photo: 'Process detail', film: 'The process in motion', note: 'Factory footage · no audio', index: 'Inside production', count: 'processes', watch: 'Video' },
-    kz: { photo: 'Үдеріс бөлшегі', film: 'Үдеріс қозғалыста', note: 'Зауыт түсірілімі · дыбыссыз', index: 'Өндіріс ішінде', count: 'үдеріс', watch: 'Бейне' }
-  }[lang] || { photo: 'Деталь процесса', film: 'Процесс в движении', note: 'Заводская съёмка · без звука', index: 'Внутри производства', count: 'процессов', watch: 'Видео' };
+    ru: { photo: 'В деталях', note: 'Заводская съёмка · без звука', index: 'Внутри производства', count: 'процессов', watch: 'Смотреть процесс', error: 'Не удалось запустить видео. Попробуй ещё раз.' },
+    en: { photo: 'A closer look', note: 'Factory footage · no audio', index: 'Inside production', count: 'processes', watch: 'Watch the process', error: 'Unable to start the video. Please try again.' },
+    kz: { photo: 'Жақыннан қарау', note: 'Зауыт түсірілімі · дыбыссыз', index: 'Өндіріс ішінде', count: 'үдеріс', watch: 'Үдерісті көру', error: 'Бейне іске қосылмады. Қайталап көріңіз.' }
+  }[lang === 'en' || lang === 'kz' ? lang : 'ru'];
   return <div className="company-processes" aria-label={label}>
     <div className="company-processes-index"><span>{w.index}</span><span>{String(items.length).padStart(2, '0')} / {w.count}</span></div>
     {items.map((item, i) => <article className={`company-process${active === i ? ' is-open' : ''}`} key={item.processId || i}>
       <h3><button className="company-process-trigger" type="button" id={`${id}-trigger-${i}`} aria-expanded={active === i} aria-controls={`${id}-stage-${i}`} onClick={() => setSelected(active === i ? null : i)}>
-        <span className="company-process-number">{String(i + 1).padStart(2, '0')}</span><span className="company-process-title">{item.title}</span>
-        {item.videoUrl && <span className="company-process-length">{w.watch} · {item.durationLabel}</span>}<Plus size={20} aria-hidden="true"/>
+        <span className="company-process-thumb" aria-hidden="true"><img src={resolveMediaUrl(item.imageUrl)} alt="" loading="lazy" decoding="async" width="120" height="90"/></span>
+        <span className="company-process-title"><span className="company-process-number">{String(i + 1).padStart(2, '0')} / LAUTE</span><span>{item.title}</span></span>
+        {item.videoUrl && <span className="company-process-length"><Play size={12} fill="currentColor" aria-hidden="true"/>{item.durationLabel}</span>}<span className="company-process-toggle"><ChevronDown size={20} aria-hidden="true"/></span>
       </button></h3>
       <div id={`${id}-stage-${i}`} role="region" aria-labelledby={`${id}-trigger-${i}`} hidden={active !== i}>
         {active === i && <div className="company-process-body">
+          {item.videoUrl && <CompanyProcessVideo key={item.videoUrl} item={item} w={w}/>}
           <div className="company-process-story"><span className="company-process-eyebrow">{w.photo}</span><p>{item.desc}</p>
-            <figure><img src={resolveMediaUrl(item.imageUrl)} alt={item.title} loading="lazy" decoding="async" width="960" height="720"/><figcaption>{item.title}</figcaption></figure>
+            <figure><img src={resolveMediaUrl(item.imageUrl)} alt={item.title} loading="lazy" decoding="async" width="960" height="720"/><figcaption><span>{item.title}</span><span>{String(i + 1).padStart(2, '0')} / {String(items.length).padStart(2, '0')}</span></figcaption></figure>
           </div>
-          {item.videoUrl && <figure className="company-process-film"><div className="company-process-film-heading"><span>{w.film}</span><span>{item.durationLabel}</span></div>
-            <video key={item.videoUrl} controls playsInline preload="none" poster={resolveMediaUrl(item.posterUrl || item.imageUrl)} aria-label={`${w.watch}: ${item.title}`}>
-              <source src={resolveMediaUrl(item.videoUrl)} type="video/mp4"/>
-            </video><figcaption>{w.note}</figcaption>
-          </figure>}
         </div>}
       </div>
     </article>)}
