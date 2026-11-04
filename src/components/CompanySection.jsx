@@ -6,6 +6,8 @@ import { PARTNER_REGIONS, getPartnerRegion } from '../data/regionsData';
 import { localizeCompanyBlock } from '../data/factoryStory';
 import { InquiryFeedback } from './InquiryFeedback';
 import { isSafeActionLink } from './SiteAction';
+import { CompanyMedia } from './CompanyMedia';
+import { CompanyMap } from './CompanyMap';
 import './company-page.css';
 
 const words = {
@@ -45,24 +47,13 @@ function CompanyInquiry({ block, isEditor, w }) {
   </div>;
 }
 
-function CompanyProcessVideo({ item, w }) {
-  const player = useRef(null);
-  const [started, setStarted] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const play = async () => {
-    setFailed(false);
-    try { await player.current?.play(); }
-    catch { setStarted(true); setFailed(true); }
-  };
-  return <figure className="company-process-film">
-    <div className="company-process-player">
-      <video ref={player} controls={started} playsInline preload="none" poster={resolveMediaUrl(item.posterUrl || item.imageUrl)} aria-label={`${w.watch}: ${item.title}`} onPlay={() => setStarted(true)} onError={() => { setStarted(true); setFailed(true); }}>
-        <source src={resolveMediaUrl(item.videoUrl)} type="video/mp4"/>
-      </video>
-      {!started && <button type="button" className="company-process-play" onClick={play} aria-label={`${w.watch}: ${item.title}`}><span><Play size={27} fill="currentColor" aria-hidden="true"/></span><span>{w.watch}<small>{item.durationLabel}</small></span></button>}
-    </div>
-    <figcaption><span>{failed ? w.error : w.note}</span><span>{item.durationLabel}</span></figcaption>
-  </figure>;
+function CompanyProcessVideo({ item, w, lang }) {
+  return <figure className="company-process-film"><div className="company-process-player">
+    <CompanyMedia video videoUrl={item.videoUrl.startsWith('media/processes/') ? `${item.videoUrl}${item.videoUrl.includes('?') ? '&' : '?'}music=1` : item.videoUrl} posterUrl={item.posterUrl || item.imageUrl} title={item.title} lang={lang}>
+      <img className="company-process-preview" src={resolveMediaUrl(item.posterUrl || item.imageUrl)} alt="" loading="lazy" width="720" height="960"/>
+      <span className="company-process-play"><span><Play size={27} fill="currentColor" aria-hidden="true"/></span><span>{w.watch}<small>{item.durationLabel}</small></span></span>
+    </CompanyMedia>
+  </div><figcaption><span>{w.note}</span><span>{item.durationLabel}</span></figcaption></figure>;
 }
 
 function CompanyProduction({ items = [], label, lang }) {
@@ -71,9 +62,9 @@ function CompanyProduction({ items = [], label, lang }) {
   const active = selected === null ? null : Math.min(selected, Math.max(0, items.length - 1));
   if (!items.length) return null;
   const w = {
-    ru: { photo: 'В деталях', illustration: 'AI-иллюстрация по съёмке', media: 'AI-иллюстрации по кадрам · реальная видеосъёмка', note: 'Заводская съёмка · без звука', index: 'Внутри производства', count: 'процессов', watch: 'Смотреть процесс', error: 'Не удалось запустить видео. Попробуй ещё раз.' },
-    en: { photo: 'A closer look', illustration: 'AI illustration based on footage', media: 'AI illustrations from frames · real video footage', note: 'Factory footage · no audio', index: 'Inside production', count: 'processes', watch: 'Watch the process', error: 'Unable to start the video. Please try again.' },
-    kz: { photo: 'Жақыннан қарау', illustration: 'Түсірілім негізіндегі AI иллюстрация', media: 'Кадрлар негізіндегі AI суреттер · нақты бейне', note: 'Зауыт түсірілімі · дыбыссыз', index: 'Өндіріс ішінде', count: 'үдеріс', watch: 'Үдерісті көру', error: 'Бейне іске қосылмады. Қайталап көріңіз.' }
+    ru: { photo: 'В деталях', illustration: 'AI-иллюстрация по съёмке', media: 'AI-иллюстрации по кадрам · реальная видеосъёмка', note: 'Съёмка производства · фоновая музыка', index: 'Внутри производства', count: 'процессов', watch: 'Смотреть процесс', error: 'Не удалось запустить видео. Попробуй ещё раз.' },
+    en: { photo: 'A closer look', illustration: 'AI illustration based on footage', media: 'AI illustrations from frames · real video footage', note: 'Production footage · background music', index: 'Inside production', count: 'processes', watch: 'Watch the process', error: 'Unable to start the video. Please try again.' },
+    kz: { photo: 'Жақыннан қарау', illustration: 'Түсірілім негізіндегі AI иллюстрация', media: 'Кадрлар негізіндегі AI суреттер · нақты бейне', note: 'Өндіріс түсірілімі · фондық музыка', index: 'Өндіріс ішінде', count: 'үдеріс', watch: 'Үдерісті көру', error: 'Бейне іске қосылмады. Қайталап көріңіз.' }
   }[lang === 'en' || lang === 'kz' ? lang : 'ru'];
   return <div className="company-processes" aria-label={label}>
     <div className="company-processes-index"><span>{w.index}</span><span>{String(items.length).padStart(2, '0')} / {w.count}</span></div>{items.some(item => item.mediaKind === 'illustration') && <p className="company-processes-note">{w.media}</p>}
@@ -85,28 +76,14 @@ function CompanyProduction({ items = [], label, lang }) {
       </button></h3>
       <div id={`${id}-stage-${i}`} role="region" aria-labelledby={`${id}-trigger-${i}`} hidden={active !== i}>
         {active === i && <div className="company-process-body">
-          {item.videoUrl && <CompanyProcessVideo key={item.videoUrl} item={item} w={w}/>}
+          {item.videoUrl && <CompanyProcessVideo key={item.videoUrl} item={item} w={w} lang={lang}/>}
           <div className="company-process-story"><span className="company-process-eyebrow">{w.photo}</span><p>{item.desc}</p>
-            <figure><img src={resolveMediaUrl(item.imageUrl)} alt={item.mediaKind === 'illustration' ? `${w.illustration}: ${item.title}` : item.title} loading="lazy" decoding="async" width="1536" height="1024"/><figcaption><span>{item.mediaKind === 'illustration' ? w.illustration : item.title}</span><span>{String(i + 1).padStart(2, '0')} / {String(items.length).padStart(2, '0')}</span></figcaption></figure>
+            <figure><CompanyMedia imageUrl={item.imageUrl} title={item.mediaKind === 'illustration' ? `${w.illustration}: ${item.title}` : item.title} lang={lang}><img src={resolveMediaUrl(item.imageUrl)} alt={item.mediaKind === 'illustration' ? `${w.illustration}: ${item.title}` : item.title} loading="lazy" decoding="async" width="1536" height="1024"/></CompanyMedia><figcaption><span>{item.mediaKind === 'illustration' ? w.illustration : item.title}</span><span>{String(i + 1).padStart(2, '0')} / {String(items.length).padStart(2, '0')}</span></figcaption></figure>
           </div>
         </div>}
       </div>
     </article>)}
   </div>;
-}
-
-function CompanyMap({ items = [], label, lang }) {
-  const [selected, setSelected] = useState(0);
-  const id = useId();
-  const locationName = item => item.title.split(' / ')[lang === 'en' ? 1 : lang === 'kz' && item.title.split(' / ')[2] ? 2 : 0] || item.title;
-  return <><div className="company-map" aria-label={label}><svg viewBox="0 0 1000 420" role="group" aria-label={label}>
-    <defs><pattern id={id} width="83.333" height="70" patternUnits="userSpaceOnUse"><path d="M83.333 0H0V70" fill="none" stroke="#ffffff12"/></pattern></defs><rect width="1000" height="420" fill={`url(#${id})`}/>
-    <image href={resolveMediaUrl('images/factory/world-outline.svg')} width="1000" height="420"/>
-    {items.map((item, i) => <g key={i} role="button" tabIndex={0} aria-label={locationName(item)} aria-pressed={selected === i} onClick={() => setSelected(i)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelected(i); } }} transform={`translate(${(item.lng + 180) / 360 * 1000},${(90 - item.lat) / 180 * 420})`}>
-      <circle r="13" pointerEvents="none" fill={selected === i ? '#d8bd9377' : '#c8a77422'}/><circle r="5" fill="#d8bd93"/>
-    </g>)}
-    </svg><span>{label}</span><div className="company-map-address" aria-live="polite">{selected !== null && items[selected] ? <><h3>{locationName(items[selected])}</h3><p>{items[selected].desc}</p></> : <p>{lang === 'en' ? 'Select a point or a city to see its address.' : lang === 'kz' ? 'Мекенжайды көру үшін нүктені немесе қаланы таңдаңыз.' : 'Выбери точку или город, чтобы увидеть адрес.'}</p>}</div></div>
-    <div className="company-location-tags">{items.map((item, i) => <button type="button" key={i} aria-pressed={selected === i} onClick={() => setSelected(i)}>{locationName(item)}</button>)}</div></>;
 }
 
 export function CompanySection({ block: source, isEditor = false }) {
@@ -115,18 +92,18 @@ export function CompanySection({ block: source, isEditor = false }) {
   const section = block.companySection;
   const link = (href, label, primary = false) => <a className={`btn btn-${primary ? 'primary' : 'outline'}`} href={href.startsWith('/') ? resolveMediaUrl(href.slice(1)) : href} onClick={e => {
     if (isEditor) { e.preventDefault(); return; }
-    if (href.startsWith('#')) { e.preventDefault(); document.getElementById(href.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    if (href.startsWith('#')) { e.preventDefault(); document.getElementById(href.slice(1))?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' }); return; }
     if (href.startsWith('/') && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) { e.preventDefault(); navigateTo(href.slice(1)); }
   }}><span>{label}</span><ArrowUpRight size={18}/></a>;
   const labels = { ru: { SCALE: 'МАСШТАБ', HISTORY: 'НАША ИСТОРИЯ', PRODUCTION: 'ПРОИЗВОДСТВО', 'PRODUCTS & CARE': 'КОЛЛЕКЦИИ И СЕРВИС', GEOGRAPHY: 'ГЕОГРАФИЯ' }, kz: { SCALE: 'АУҚЫМ', HISTORY: 'БІЗДІҢ ТАРИХ', PRODUCTION: 'ӨНДІРІС', 'PRODUCTS & CARE': 'КОЛЛЕКЦИЯЛАР ЖӘНЕ СЕРВИС', GEOGRAPHY: 'ГЕОГРАФИЯ' } };
   const heading = (number, label) => <div className="company-section-heading"><span className="company-kicker">{number} / {labels[lang]?.[label] || label}</span><h2>{block.title}</h2><p>{block.subtitle}</p></div>;
   const actionHref = isSafeActionLink(block.buttonLink) ? block.buttonLink : null;
   return <div className={`company-section company-section--${section}`}>
-    {section === 'hero' && <div className="company-hero"><div className="company-hero-top"><span className="company-kicker">{lang === 'ru' ? block.badge : lang === 'kz' ? 'LAUTE ТУРАЛЫ' : 'ABOUT LAUTE'}</span><span className="company-edition">1998 — {new Date().getFullYear()}</span></div><div className="company-hero-copy"><h1>{block.title}</h1><div><p>{block.subtitle}</p><div className="company-actions">{actionHref && link(actionHref, block.buttonText || w.partner, true)}<a className="company-text-link" href="#company-v2-production" onClick={e => { e.preventDefault(); if (!isEditor) document.getElementById('company-v2-production')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>{w.production}<ArrowDown size={16}/></a></div></div></div><figure><img src={resolveMediaUrl(block.imageUrl)} width="1376" height="768" fetchpriority="high" alt={lang === 'en' ? 'Faucet in a bathroom interior' : lang === 'kz' ? 'Ванна бөлмесіндегі араластырғыш' : 'Смеситель в интерьере ванной комнаты'}/><span className="company-wordmark" aria-hidden="true">Laute</span><figcaption>{lang === 'en' ? 'KITCHEN / BATHROOM / EVERY DAY' : lang === 'kz' ? 'АСҮЙ / ВАННА / КҮН САЙЫН' : 'КУХНЯ / ВАННАЯ / КАЖДЫЙ ДЕНЬ'}</figcaption></figure></div>}
+    {section === 'hero' && <div className="company-hero"><div className="company-hero-top"><span className="company-kicker">{lang === 'ru' ? block.badge : lang === 'kz' ? 'LAUTE ТУРАЛЫ' : 'ABOUT LAUTE'}</span><span className="company-edition">1998 — {new Date().getFullYear()}</span></div><div className="company-hero-copy"><h1>{block.title}</h1><div><p>{block.subtitle}</p><div className="company-actions">{actionHref && link(actionHref, block.buttonText || w.partner, true)}<a className="company-text-link" href="#company-v2-production" onClick={e => { e.preventDefault(); if (!isEditor) document.getElementById('company-v2-production')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' }); }}>{w.production}<ArrowDown size={16}/></a></div></div></div><figure><CompanyMedia imageUrl={block.imageUrl} title={block.title} lang={lang}><img src={resolveMediaUrl(block.imageUrl)} width="1376" height="768" fetchpriority="high" alt={lang === 'en' ? 'Faucet in a bathroom interior' : lang === 'kz' ? 'Ванна бөлмесіндегі араластырғыш' : 'Смеситель в интерьере ванной комнаты'}/></CompanyMedia><span className="company-wordmark" aria-hidden="true">Laute</span><figcaption>{lang === 'en' ? 'KITCHEN / BATHROOM / EVERY DAY' : lang === 'kz' ? 'АСҮЙ / ВАННА / КҮН САЙЫН' : 'КУХНЯ / ВАННАЯ / КАЖДЫЙ ДЕНЬ'}</figcaption></figure></div>}
     {section === 'scale' && <><div className="company-scale-intro">{heading('01', 'SCALE')}</div><div className="company-stats">{block.items?.map((x, i) => <article key={i}><strong>{x.title}</strong><p>{x.desc}</p></article>)}</div><p className="company-data-note">{lang === 'en' ? 'Figures from the LAUTE factory presentation.' : lang === 'kz' ? 'LAUTE зауыт таныстырылымындағы көрсеткіштер.' : 'Показатели из презентации завода LAUTE.'}</p></>}
     {section === 'history' && <>{heading('02', 'HISTORY')}<ol className="company-milestones">{block.items?.filter(x => ['1998', '2003', '2025', '2026'].includes(x.year)).map((x, i) => <li key={i}><span className="company-year">{x.year}</span><h3>{x.title}</h3><p>{x.desc}</p></li>)}</ol><div className="company-history-details"><h3>{lang === 'en' ? 'The full story' : lang === 'kz' ? 'Толық тарих' : 'Вся история LAUTE'}</h3><ol className="company-timeline">{block.items?.map((x, i) => <li key={i}><span className="company-year">{x.year}</span><div><h3>{x.title}</h3><p>{x.desc}</p></div></li>)}</ol></div></>}
     {section === 'production' && <>{heading('03', 'PRODUCTION')}<CompanyProduction items={block.items} label={block.title} lang={lang}/></>}
-    {section === 'range' && <><div className="company-range-layout"><img className="company-range-image" src={resolveMediaUrl('images/collections/coll-bathroom.jpg')} alt={lang === 'en' ? 'Bathroom interior' : lang === 'kz' ? 'Ванна бөлмесінің интерьері' : 'Интерьер ванной комнаты'} loading="lazy" decoding="async" width="1200" height="896"/><div>{heading('04', 'PRODUCTS & CARE')}<div className="company-actions">{actionHref && link(actionHref, block.buttonText || w.catalog, true)}</div></div></div><section className="company-warranty"><h3 className="company-warranty-heading">{lang === 'en' ? 'Warranty and care' : lang === 'kz' ? 'Кепілдік және күтім' : 'Гарантия и уход'}</h3><div className="company-guarantees">{block.items?.map((x, i) => <article key={i}><h3>{x.title}</h3><p>{x.desc}</p></article>)}</div><div className="company-care"><p>{lang === 'ru' ? block.content?.slice(block.content.indexOf('Гарантия конкретной')) || w.care : w.care}</p><div className="company-actions">{link('/service', w.service)}</div></div></section></>}
+    {section === 'range' && <><div className="company-range-layout"><CompanyMedia imageUrl="images/collections/coll-bathroom.jpg" title={lang === 'en' ? 'Bathroom interior' : lang === 'kz' ? 'Ванна бөлмесінің интерьері' : 'Интерьер ванной комнаты'} lang={lang}><img className="company-range-image" src={resolveMediaUrl('images/collections/coll-bathroom.jpg')} alt={lang === 'en' ? 'Bathroom interior' : lang === 'kz' ? 'Ванна бөлмесінің интерьері' : 'Интерьер ванной комнаты'} loading="lazy" decoding="async" width="1200" height="896"/></CompanyMedia><div>{heading('04', 'PRODUCTS & CARE')}<div className="company-actions">{actionHref && link(actionHref, block.buttonText || w.catalog, true)}</div></div></div><section className="company-warranty"><h3 className="company-warranty-heading">{lang === 'en' ? 'Warranty and care' : lang === 'kz' ? 'Кепілдік және күтім' : 'Гарантия и уход'}</h3><div className="company-guarantees">{block.items?.map((x, i) => <article key={i}><h3>{x.title}</h3><p>{x.desc}</p></article>)}</div><div className="company-care"><p>{lang === 'ru' ? block.content?.slice(block.content.indexOf('Гарантия конкретной')) || w.care : w.care}</p><div className="company-actions">{link('/service', w.service)}</div></div></section></>}
     {section === 'geography' && <>{heading('05', 'GEOGRAPHY')}<CompanyMap items={block.items} label={w.map} lang={lang}/><details className="company-addresses"><summary>{w.more}</summary><div>{block.items?.map((x, i) => <article key={i}><h3>{x.title}</h3><p>{x.desc}</p></article>)}</div></details>{actionHref && link(actionHref, block.buttonText || w.contacts)}</>}
     {section === 'inquiry' && <><CompanyInquiry block={block} isEditor={isEditor} w={w}/><details className="company-sources"><summary>{w.source}</summary><a href="https://laute.ltd/company" target="_blank" rel="noopener noreferrer">LAUTE / COMPANY ↗</a><a href="https://laute.ltd/service" target="_blank" rel="noopener noreferrer">SERVICE ↗</a></details></>}
   </div>;

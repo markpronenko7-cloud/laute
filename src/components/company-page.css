@@ -232,3 +232,44 @@ body:has(.company-page-v2) .header .select-trigger :is(.select-icon,.arrow-icon)
 .company-warranty { border-top:1px solid var(--company-line); padding-top:28px; }
 .company-warranty-heading { margin-bottom:24px!important; }
 .company-location-tags button { min-height:44px; padding-block:10px; text-align:left; }
+
+/* Media branding belongs to the viewer, never to the equipment in the source. */
+.company-section .company-media-trigger { position:relative; display:block; width:100%; padding:0; margin:0; border:0; background:transparent; color:inherit; cursor:zoom-in; text-align:left; }
+.company-media-expand { position:absolute; right:16px; bottom:16px; display:grid; place-items:center; width:40px; height:40px; background:#f7f7f2ed; color:#182a29; border:1px solid #182a2926; }
+.company-section .company-media-film-trigger { cursor:pointer; padding-right:54px; }
+.company-media-film-trigger .company-media-expand { right:0; bottom:4px; }
+.company-process-player .company-media-film-trigger { padding:0; }
+.company-process-preview { display:block; width:100%; aspect-ratio:3/4; object-fit:cover; }
+.company-process-body { animation:company-media-enter 220ms ease-out; }
+.company-process-view img { animation:company-media-enter 240ms ease-out; }
+.company-media-dialog { width:min(1100px,calc(100vw - 32px)); max-width:none; max-height:calc(100dvh - 32px); padding:0; border:1px solid #ffffff24; background:#152622; color:#f7f7f2; overflow:auto; box-shadow:0 30px 100px #0007; }
+.company-media-dialog::backdrop { background:#07130fbd; animation:company-backdrop-enter 200ms ease-out; }
+.company-media-dialog[open] { animation:company-media-enter 220ms ease-out; }
+.company-media-dialog.is-closing { animation:company-media-exit 180ms ease-in forwards; }
+.company-media-dialog.is-closing::backdrop { animation:company-backdrop-exit 180ms ease-in forwards; }
+.company-media-panel header { display:flex; align-items:center; justify-content:space-between; padding:12px 18px; }
+.company-media-panel header img { width:100px; height:auto; filter:brightness(0) invert(1); }
+.company-media-panel header button { display:grid; place-items:center; width:44px; height:44px; border:1px solid #ffffff50; background:transparent; color:inherit; cursor:pointer; }
+.company-media-panel :is(button,video):focus-visible { outline:3px solid #a9c6ff; outline-offset:-3px; }
+.company-media-full,.company-media-panel video { display:block; width:100%; max-height:calc(100dvh - 180px); object-fit:contain; background:#0b1713; }
+.company-media-panel p { margin:0; padding:12px 18px; font-family:inherit; font-size:13px; line-height:1.5; }
+.company-media-panel .company-music-credit { font-size:11px; color:#c1cdc3; }
+.company-music-credit a { color:inherit; text-decoration:underline; text-underline-offset:3px; }
+.company-map-canvas { overflow:hidden; touch-action:none; cursor:grab; background:radial-gradient(ellipse at 50% 40%,#2e5249,#122b27); border:1px solid #ffffff26; box-shadow:0 14px 35px #071b1850,inset 0 1px #ffffff20; }
+.company-map-canvas:active { cursor:grabbing; }
+.company-map-canvas:focus-visible { outline:3px solid #d8bd93; outline-offset:3px; }
+.company-map-toolbar { display:flex; align-items:center; gap:8px; margin-bottom:14px; }
+.company-map-toolbar button { display:grid; place-items:center; width:44px; height:44px; border:1px solid #ffffff50; background:#ffffff0d; color:#f3f4eb; cursor:pointer; }
+.company-map-toolbar svg { width:18px; height:18px; }
+.company-map-toolbar button:disabled { opacity:.4; cursor:default; }
+.company-map-toolbar output { font-size:12px; margin-left:auto; color:var(--company-muted); }
+.company-section .company-map-hint { font-size:11px; line-height:1.6; margin-top:12px; }
+.company-map a { text-decoration:underline; text-underline-offset:3px; }
+.company-map-address a { display:inline-block; padding-block:12px; font-size:13px; }
+@keyframes company-media-enter { from { opacity:0; transform:translateY(8px) scale(.99); } to { opacity:1; transform:none; } }
+@keyframes company-media-exit { to { opacity:0; transform:translateY(6px) scale(.99); } }
+@keyframes company-backdrop-enter { from { opacity:0; } to { opacity:1; } }
+@keyframes company-backdrop-exit { to { opacity:0; } }
+@media (prefers-reduced-motion:reduce) {
+ .company-process-body,.company-process-view img,.company-media-dialog[open],.company-media-dialog::backdrop,.company-media-dialog.is-closing,.company-media-dialog.is-closing::backdrop { animation:none; }
+}

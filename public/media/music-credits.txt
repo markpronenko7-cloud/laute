@@ -1,0 +1,18 @@
+Music: "Meditation Impromptu 01" by Kevin MacLeod (incompetech.com).
+Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0).
+License: https://creativecommons.org/licenses/by/4.0/
+Track: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100163
+Source audio: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Meditation%20Impromptu%2001.mp3
+ISRC: USUAN1100163
+Retrieved: 2026-11-04
+Source SHA-256: AC1332A12FE020CBEEE206C7F33A82E29109D5CE63636E3302454E3BDFC36187
+
+Used in laute-factory-documentary.mp4 and laute-factory-mobile.mp4.
+Changes: first 20 seconds excerpted, background level adjusted to -30 LUFS,
+1.5-second fade in, 3-second fade out, mixed with the existing machinery audio,
+AAC encoding. Original video stream and montage unchanged.
+The artist does not endorse LAUTE. No additional restrictions are imposed on the music.
+
+The author's track page supplies a CC BY 4.0 attribution notice.
+The license permits sharing and adaptation, including commercial use,
+subject to attribution, a license link and indication of changes.
