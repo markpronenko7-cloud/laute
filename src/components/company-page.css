@@ -273,3 +273,63 @@ body:has(.company-page-v2) .header .select-trigger :is(.select-icon,.arrow-icon)
 @media (prefers-reduced-motion:reduce) {
  .company-process-body,.company-process-view img,.company-media-dialog[open],.company-media-dialog::backdrop,.company-media-dialog.is-closing,.company-media-dialog.is-closing::backdrop { animation:none; }
 }
+
+/* A real atlas, with a separate directory that also works without map tiles. */
+.company-section--geography { display:block; }
+.company-section--geography>.company-section-heading { display:grid; grid-template-columns:1fr 1fr; gap:14px 8%; margin-bottom:38px; }
+.company-section--geography>.company-section-heading>.company-kicker { grid-column:1/-1; margin-bottom:4px; }
+.company-section--geography>.company-section-heading>p { margin:0; align-self:end; }
+.company-atlas { background:#f3f3eb; border:1px solid #ffffff28; color:#19362d; box-shadow:0 24px 64px #061c1a26; margin-bottom:34px; }
+.company-atlas-top { display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; padding:20px 24px; background:#122923; color:#d9eadb; font-size:10px; letter-spacing:.12em; border-bottom:1px solid #d4e5d822; }
+.company-atlas-layout { display:grid; grid-template-columns:minmax(0,1fr) 310px; }
+.company-atlas-stage { position:relative; min-width:0; min-height:580px; isolation:isolate; }
+.company-atlas-map { position:absolute; inset:0; height:100%; width:100%; background:#d9e1d8; z-index:0; }
+.company-atlas-map .leaflet-tile-pane { filter:grayscale(.65) saturate(.45); }
+.company-atlas-map .leaflet-control-attribution { background:#fffffff0; font:10px/1.6 Arial,sans-serif; color:#263d33; }
+.company-atlas-map .leaflet-control-attribution a { color:#1d4a38; }
+.company-atlas-map :focus-visible { outline:3px solid #1d4ed8; outline-offset:3px; }
+.company-atlas-pin { border:0; background:transparent; }
+.company-atlas-pin>span { display:grid; place-items:center; width:44px; height:44px; border-radius:50%; border:2px solid white; background:#17382e; color:white; font:600 11px/1 Arial,sans-serif; box-shadow:0 4px 12px #18362d55; transition:background .18s,box-shadow .18s; }
+.company-atlas-pin.is-selected>span { background:#c5e7a7; color:#17382e; box-shadow:0 0 0 7px #c5e7a74d,0 6px 18px #18362d66; }
+.company-atlas-map.is-overview .company-atlas-pin>span { width:16px; height:16px; margin:14px; font-size:0; border-width:2px; }
+.company-atlas-controls { position:absolute; top:20px; left:20px; z-index:500; display:flex; gap:6px; }
+.company-atlas-controls button { display:flex; align-items:center; justify-content:center; gap:8px; height:44px; min-width:44px; padding:0 12px; background:#fffffff5; color:#18382d; border:1px solid #234e3326; box-shadow:0 3px 9px #18362d18; cursor:pointer; }
+.company-atlas-controls button:disabled { color:#7f8c80; cursor:default; }
+.company-atlas-controls svg { width:18px; height:18px; }
+.company-atlas-overview span { font-size:11px; }
+.company-atlas-map-label { position:absolute; bottom:33px; left:22px; z-index:450; padding:12px 16px; background:#f9fbf3e8; color:#153b2b; font:27px/1.1 Georgia,serif; pointer-events:none; box-shadow:0 2px 15px #14352d0d; }
+.company-atlas-map-label span { display:block; margin-top:5px; font:8px/1.4 Arial,sans-serif; letter-spacing:.15em; }
+.company-atlas-sidebar { display:flex; flex-direction:column; min-width:0; padding:24px; border-left:1px solid #19362d20; }
+.company-atlas-cities { display:grid; grid-template-columns:1fr 1fr; gap:3px 14px; padding-bottom:20px; border-bottom:1px solid #19362d26; }
+.company-atlas-cities button { display:flex; align-items:center; gap:8px; min-height:44px; padding:8px 0; border:0; background:transparent; color:#42584c; font-family:inherit; font-size:11px; line-height:1.4; text-align:left; cursor:pointer; }
+.company-atlas-cities button>span { color:#78917a; font-size:9px; }
+.company-atlas-cities button>svg { margin-left:auto; opacity:0; flex-shrink:0; }
+.company-atlas-cities button[aria-pressed=true] { color:#123b27; font-weight:700; }
+.company-atlas-cities button[aria-pressed=true]>svg { opacity:1; }
+.company-atlas-detail { padding-top:24px; margin-top:auto; }
+.company-section .company-atlas-detail h3 { font-size:25px; line-height:1.2; color:#19362d; margin-bottom:14px; }
+.company-section .company-atlas-detail p { font-size:12px; line-height:1.7; color:#596a5d; overflow-wrap:anywhere; margin-top:8px; }
+.company-atlas-detail-number { display:block; margin-bottom:10px; font-size:9px; letter-spacing:.12em; color:#57735a; }
+.company-atlas-route { display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:44px; margin-top:18px; padding:12px 16px; background:#193b2d; color:#f8faf0; font-size:12px; }
+.company-atlas-select { display:none; }
+.company-atlas-footer { display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:16px 24px; border-top:1px solid #19362d26; }
+.company-section .company-atlas-footer p,.company-atlas-footer a { font-size:10px; color:#506356; line-height:1.6; }
+.company-atlas-footer a { text-decoration:underline; text-underline-offset:3px; }
+.company-section .company-atlas-note { padding:0 24px 18px; color:#69766b; font-size:10px; }
+.company-section .company-atlas-loading { position:absolute; top:90px; left:24px; padding:10px 14px; background:#f9fbf3ed; font-size:12px; color:#244b32; z-index:450; }
+@media(max-width:1000px) { .company-atlas-layout { grid-template-columns:minmax(0,1fr) 280px; } .company-atlas-sidebar { padding:20px; } .company-atlas-cities { gap:2px 10px; } }
+@media(max-width:767px) {
+ .company-section--geography>.company-section-heading { grid-template-columns:1fr; gap:16px; }
+ .company-atlas-layout { grid-template-columns:1fr; }
+ .company-atlas-top { padding:18px; font-size:8px; }
+ .company-atlas-stage { min-height:360px; }
+ .company-atlas-sidebar { padding:22px; border-left:0; border-top:1px solid #19362d26; }
+ .company-atlas-cities { display:none; }
+ .company-atlas-select { display:grid; gap:10px; font-size:11px; color:#4d6553; }
+ .company-atlas-select select { width:100%; min-height:48px; padding:12px; background:#fff; border:1px solid #a1b69f; color:#19362d; font:inherit; }
+ .company-atlas-detail { margin:0; padding-top:22px; }
+ .company-atlas-controls { top:14px; left:14px; }
+ .company-atlas-footer { padding:16px 22px; }
+ .company-atlas-map-label { left:14px; bottom:30px; font-size:21px; }
+}
+@media(prefers-reduced-motion:reduce) { .company-atlas-pin>span { transition:none; } }

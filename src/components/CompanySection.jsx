@@ -3,11 +3,11 @@ import { ArrowDown, ArrowUpRight, CheckCircle2, ChevronDown, Play, Plus } from '
 import { useApp } from '../context/AppContext';
 import { resolveMediaUrl, submitLeadInquiry } from '../services/adminApi';
 import { PARTNER_REGIONS, getPartnerRegion } from '../data/regionsData';
-import { localizeCompanyBlock } from '../data/factoryStory';
+import { getCompanyProcessMedia, localizeCompanyBlock } from '../data/factoryStory';
 import { InquiryFeedback } from './InquiryFeedback';
 import { isSafeActionLink } from './SiteAction';
 import { CompanyMedia } from './CompanyMedia';
-import { CompanyMap } from './CompanyMap';
+import { CompanyMap } from './CompanyAtlas';
 import './company-page.css';
 
 const words = {
@@ -49,22 +49,23 @@ function CompanyInquiry({ block, isEditor, w }) {
 
 function CompanyProcessVideo({ item, w, lang }) {
   return <figure className="company-process-film"><div className="company-process-player">
-    <CompanyMedia video videoUrl={item.videoUrl.startsWith('media/processes/') ? `${item.videoUrl}${item.videoUrl.includes('?') ? '&' : '?'}music=1` : item.videoUrl} posterUrl={item.posterUrl || item.imageUrl} title={item.title} lang={lang}>
+    <CompanyMedia video videoUrl={item.videoUrl} posterUrl={item.posterUrl || item.imageUrl} title={item.title} lang={lang}>
       <img className="company-process-preview" src={resolveMediaUrl(item.posterUrl || item.imageUrl)} alt="" loading="lazy" width="720" height="960"/>
       <span className="company-process-play"><span><Play size={27} fill="currentColor" aria-hidden="true"/></span><span>{w.watch}<small>{item.durationLabel}</small></span></span>
     </CompanyMedia>
   </div><figcaption><span>{w.note}</span><span>{item.durationLabel}</span></figcaption></figure>;
 }
 
-function CompanyProduction({ items = [], label, lang }) {
+function CompanyProduction({ items: sourceItems = [], label, lang }) {
+  const items = sourceItems.map(getCompanyProcessMedia);
   const [selected, setSelected] = useState(0);
   const id = useId();
   const active = selected === null ? null : Math.min(selected, Math.max(0, items.length - 1));
   if (!items.length) return null;
   const w = {
-    ru: { photo: 'В деталях', illustration: 'AI-иллюстрация по съёмке', media: 'AI-иллюстрации по кадрам · реальная видеосъёмка', note: 'Съёмка производства · фоновая музыка', index: 'Внутри производства', count: 'процессов', watch: 'Смотреть процесс', error: 'Не удалось запустить видео. Попробуй ещё раз.' },
-    en: { photo: 'A closer look', illustration: 'AI illustration based on footage', media: 'AI illustrations from frames · real video footage', note: 'Production footage · background music', index: 'Inside production', count: 'processes', watch: 'Watch the process', error: 'Unable to start the video. Please try again.' },
-    kz: { photo: 'Жақыннан қарау', illustration: 'Түсірілім негізіндегі AI иллюстрация', media: 'Кадрлар негізіндегі AI суреттер · нақты бейне', note: 'Өндіріс түсірілімі · фондық музыка', index: 'Өндіріс ішінде', count: 'үдеріс', watch: 'Үдерісті көру', error: 'Бейне іске қосылмады. Қайталап көріңіз.' }
+    ru: { photo: 'В деталях', illustration: 'AI-иллюстрация по съёмке', media: 'AI-иллюстрации по кадрам · реальная видеосъёмка', note: 'Рекламный монтаж · LAUTE', index: 'Внутри производства', count: 'процессов', watch: 'Смотреть процесс', error: 'Не удалось запустить видео. Попробуй ещё раз.' },
+    en: { photo: 'A closer look', illustration: 'AI illustration based on footage', media: 'AI illustrations from frames · real video footage', note: 'Advertising edit · LAUTE', index: 'Inside production', count: 'processes', watch: 'Watch the process', error: 'Unable to start the video. Please try again.' },
+    kz: { photo: 'Жақыннан қарау', illustration: 'Түсірілім негізіндегі AI иллюстрация', media: 'Кадрлар негізіндегі AI суреттер · нақты бейне', note: 'Жарнамалық монтаж · LAUTE', index: 'Өндіріс ішінде', count: 'үдеріс', watch: 'Үдерісті көру', error: 'Бейне іске қосылмады. Қайталап көріңіз.' }
   }[lang === 'en' || lang === 'kz' ? lang : 'ru'];
   return <div className="company-processes" aria-label={label}>
     <div className="company-processes-index"><span>{w.index}</span><span>{String(items.length).padStart(2, '0')} / {w.count}</span></div>{items.some(item => item.mediaKind === 'illustration') && <p className="company-processes-note">{w.media}</p>}
