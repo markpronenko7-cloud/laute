@@ -1,25 +1,17 @@
-Music: "Airport Lounge" by Kevin MacLeod (incompetech.com).
+Music: "Dream Culture" by Kevin MacLeod (incompetech.com).
 Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0).
 License: https://creativecommons.org/licenses/by/4.0/
-Track: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100806
-Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Airport%20Lounge.mp3
-ISRC: USUAN1100806
+Track: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1300046
+Source audio: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Dream%20Culture.mp3
+ISRC: USUAN1300046
 Retrieved: 2026-11-04
-Source SHA-256: E20D316B541C72690A3B0311C9F3D40FD00717359AB7567D7DF82A9316C1DEC4
+Source SHA-256: F12CBB52BD4B92BD6CF8A343645567C119627E9CBF98108A3EB6AC2CC275EE46
 
-Used in seven real-footage process films, edit 5:
-casting: source music 32s, edit 19s
-trimming: source music 48s, edit 15.5s
-machining: source music 64s, edit 18.5s
-robot-polishing: source music 84s, edit 23s
-sink-finishing: source music 112s, edit 23.5s
-sealing: source music 140s, edit 10.5s
-packing: source music 160s, edit 28s
+Used in all seven public/media/processes/*.mp4 process films, edit 6.
+One identical excerpt starts at 32s and lasts 13.0667s (392 video frames).
+Changes: excerpt, 7kHz low-pass, loudness normalization targeting -25 LUFS,
+true peak ceiling -4 dBTP, 0.35s fade in, 0.8s fade out, AAC encoding.
+The same encoded soundtrack is used in every film; no source conversations.
 
-Changes: excerpts, loudness normalization targeting -25 LUFS, true peak
-ceiling -4 dBTP, 0.7s fade in, 1.2s fade out, AAC encoding.
-No source conversations are used. No synthetic scenes or synthetic narration.
 The artist does not endorse LAUTE. No additional restrictions on the music.
-
-Earlier edits (superseded): "Newer Wave" and "Meditation Impromptu 01",
-also by Kevin MacLeod, CC BY 4.0. These are not used in edit 5.
+Superseded tracks Airport Lounge and Newer Wave are not used in edit 6.

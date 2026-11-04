@@ -46,7 +46,7 @@ test('Advertising cache refresh preserves custom employee films, posters and tex
   assert.equal(getCompanyProcessMedia(custom), custom);
   const shipped = getCompanyProcessMedia({ ...custom, videoUrl: 'media/processes/casting.mp4?cut=3' });
   assert.equal(shipped.title, custom.title); assert.equal(shipped.posterUrl, custom.posterUrl);
-  assert.equal(shipped.durationLabel, '0:19'); assert.equal(shipped.videoUrl, 'media/processes/casting.mp4?edit=5');
+  assert.equal(shipped.durationLabel, '0:13'); assert.equal(shipped.videoUrl, 'media/processes/casting.mp4?edit=6');
 });
 
 test('Employee films do not inherit the shipped soundtrack attribution', async () => {

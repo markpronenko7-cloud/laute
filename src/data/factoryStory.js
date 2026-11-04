@@ -73,9 +73,9 @@ export function localizeCompanyBlock(block, lang) {
 export function getCompanyProcessMedia(item) {
   const match = item.videoUrl?.match(/^media\/processes\/(casting|trimming|machining|robot-polishing|sink-finishing|sealing|packing)\.mp4(?:\?|$)/);
   if (!match) return item;
-  const durations = { casting: '0:19', trimming: '0:16', machining: '0:19', 'robot-polishing': '0:23', 'sink-finishing': '0:24', sealing: '0:11', packing: '0:28' };
+  const durations = Object.fromEntries(['casting', 'trimming', 'machining', 'robot-polishing', 'sink-finishing', 'sealing', 'packing'].map(id => [id, '0:13']));
   const id = match[1], shippedPoster = `images/factory/processes/${id}-poster.webp`;
-  return { ...item, videoUrl: `media/processes/${id}.mp4?edit=5`, durationLabel: durations[id], posterUrl: item.posterUrl?.split('?')[0] === shippedPoster ? `${shippedPoster}?edit=5` : item.posterUrl };
+  return { ...item, videoUrl: `media/processes/${id}.mp4?edit=6`, durationLabel: durations[id], posterUrl: item.posterUrl?.split('?')[0] === shippedPoster ? `${shippedPoster}?edit=6` : item.posterUrl };
 }
 
 // Migrate the previous system presentation once; employee-added blocks survive.
