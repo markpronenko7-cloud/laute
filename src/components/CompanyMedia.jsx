@@ -9,6 +9,7 @@ export function CompanyMedia({ children, title, lang = 'ru', imageUrl, video = f
   const [open, setOpen] = useState(false), [closing, setClosing] = useState(false);
   const [failed, setFailed] = useState(false);
   const id = useId();
+  const processFilm = /^media\/processes\/(casting|trimming|machining|robot-polishing|sink-finishing|sealing|packing)\.mp4(?:\?|$)/.test(videoUrl || '');
   const closeLabel = lang === 'en' ? 'Close' : lang === 'kz' ? 'Жабу' : 'Закрыть';
   const openLabel = lang === 'en' ? 'Open media' : lang === 'kz' ? 'Медианы ашу' : 'Открыть медиа';
   const close = () => {
@@ -31,8 +32,8 @@ export function CompanyMedia({ children, title, lang = 'ru', imageUrl, video = f
           <source src={resolveMediaUrl(videoUrl)} type="video/mp4"/>
         </video> : <img className="company-media-full" src={resolveMediaUrl(imageUrl)} alt={title}/>}
         {failed && <p role="alert">{lang === 'en' ? 'Unable to load the video. Close and try again.' : lang === 'kz' ? 'Бейне жүктелмеді. Жауып, қайталап көріңіз.' : 'Не удалось загрузить видео. Закрой окно и попробуй ещё раз.'}</p>}
-        <p id={id}>{title}</p>{video && <p>{lang === 'en' ? 'A LAUTE advertising edit of supplied footage. Ownership of the equipment shown is unconfirmed.' : lang === 'kz' ? 'Берілген кадрлардан LAUTE жарнамалық монтажы. Көрсетілген жабдықтың иесі расталмаған.' : 'Рекламный монтаж LAUTE из предоставленных кадров. Принадлежность показанного оборудования не подтверждена.'}</p>}
-        {video && <p className="company-music-credit">{lang === 'en' ? 'Music' : lang === 'kz' ? 'Музыка' : 'Музыка'}: <a href="https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN2000024" target="_blank" rel="noopener noreferrer">Newer Wave — Kevin MacLeod (incompetech.com)</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. {lang === 'en' ? 'Excerpt, fades and mix.' : lang === 'kz' ? 'Үзінді, біртіндеп кіру/шығу және микс.' : 'Фрагмент, плавный вход/выход и сведение.'} <a href={resolveMediaUrl('media/music-credits.txt')} target="_blank" rel="noopener noreferrer">Credits ↗</a></p>}
+        <p id={id}>{title}</p>{video && <p>{lang === 'en' ? 'Supplied production footage, edited by LAUTE.' : lang === 'kz' ? 'Берілген өндіріс кадрлары, LAUTE монтажы.' : 'Предоставленная производственная съёмка · монтаж LAUTE.'}</p>}
+        {video && processFilm && <p className="company-music-credit">{lang === 'en' ? 'Music' : lang === 'kz' ? 'Музыка' : 'Музыка'}: <a href="https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100806" target="_blank" rel="noopener noreferrer">Airport Lounge — Kevin MacLeod (incompetech.com)</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. {lang === 'en' ? 'Excerpt, fades and mix.' : lang === 'kz' ? 'Үзінді, біртіндеп кіру/шығу және микс.' : 'Фрагмент, плавный вход/выход и сведение.'} <a href={resolveMediaUrl('media/music-credits.txt')} target="_blank" rel="noopener noreferrer">Credits ↗</a></p>}
       </div>
     </dialog>, document.body)}
   </>;

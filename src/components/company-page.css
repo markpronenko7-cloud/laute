@@ -69,7 +69,14 @@ body:has(.company-page-v2) .header .select-trigger :is(.select-icon,.arrow-icon)
 .company-processes { --process-radius:24px; }
 .company-processes-index { display:flex; justify-content:space-between; gap:20px; margin-bottom:20px; color:var(--company-muted); font-size:10px; letter-spacing:.14em; text-transform:uppercase; }
 .company-section .company-processes-note { margin:-9px 0 24px; font-size:11px; line-height:1.6; color:var(--company-muted); }
-.company-process { margin-top:12px; border:1px solid #182a2917; border-radius:var(--process-radius); background:#fff9; overflow:hidden; transition:border-color .25s; }
+.company-process { margin-top:16px; border:1px solid #182a2926; border-radius:var(--process-radius); background:#fff9; overflow:hidden; scroll-margin-top:110px; transition:border-color .25s,background .35s; }
+.company-process-reveal { display:grid; grid-template-rows:0fr; visibility:hidden; transition:grid-template-rows .42s cubic-bezier(.2,.7,.2,1),visibility .42s; }
+.company-process.is-open .company-process-reveal { grid-template-rows:1fr; visibility:visible; }
+.company-process-clip { min-height:0; overflow:hidden; }
+.company-process-reveal .company-process-body { opacity:0; transform:translateY(12px); transition:opacity .3s,transform .4s; animation:none; }
+.company-process.is-open .company-process-body { opacity:1; transform:none; }
+.company-process-action { font-size:11px; line-height:1.5; letter-spacing:0; font-weight:400; color:#596661; }
+.company-process.is-open .company-process-action { color:#c9d9c6; }
 .company-process-trigger { width:100%; display:flex; align-items:center; gap:24px; padding:18px 24px 18px 18px; border:0; background:transparent; color:var(--company-ink); cursor:pointer; font:inherit; text-align:left; }
 .company-process-thumb { display:block; flex:0 0 100px; height:76px; overflow:hidden; border-radius:12px; background:#d1d8cd; }
 .company-process-thumb img { width:100%; height:100%; display:block; object-fit:cover; transition:transform .35s; }
@@ -80,6 +87,7 @@ body:has(.company-page-v2) .header .select-trigger :is(.select-icon,.arrow-icon)
 .company-process-toggle svg { transition:transform .25s; }
 .company-process-trigger:hover .company-process-toggle { background:#e6ebe2; }
 .company-process-trigger:hover .company-process-thumb img { transform:scale(1.045); }
+.company-section .company-process-trigger:focus-visible { outline-offset:-5px; }
 .company-process.is-open { background:#19332d; border-color:#19332d; }
 .company-process.is-open .company-process-trigger { color:#f6f7ee; padding-bottom:24px; }
 .company-process.is-open .company-process-number { color:#b5c5b7; }
@@ -282,9 +290,11 @@ body:has(.company-page-v2) .header .select-trigger :is(.select-icon,.arrow-icon)
 .company-atlas { background:#f3f3eb; border:1px solid #ffffff28; color:#19362d; box-shadow:0 24px 64px #061c1a26; margin-bottom:34px; }
 .company-atlas-top { display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; padding:20px 24px; background:#122923; color:#d9eadb; font-size:10px; letter-spacing:.12em; border-bottom:1px solid #d4e5d822; }
 .company-atlas-layout { display:grid; grid-template-columns:minmax(0,1fr) 310px; }
-.company-atlas-stage { position:relative; min-width:0; min-height:580px; isolation:isolate; }
+.company-atlas-stage { position:relative; min-width:0; min-height:580px; isolation:isolate; overflow:hidden; contain:paint; }
 .company-atlas-map { position:absolute; inset:0; height:100%; width:100%; background:#d9e1d8; z-index:0; }
 .company-atlas-map .leaflet-tile-pane { filter:grayscale(.65) saturate(.45); }
+/* Leaflet owns all geographic transforms. Only the inner pin may be styled. */
+.company-atlas-map .leaflet-tile { max-width:none!important; max-height:none!important; }
 .company-atlas-map .leaflet-control-attribution { background:#fffffff0; font:10px/1.6 Arial,sans-serif; color:#263d33; }
 .company-atlas-map .leaflet-control-attribution a { color:#1d4a38; }
 .company-atlas-map :focus-visible { outline:3px solid #1d4ed8; outline-offset:3px; }
@@ -332,4 +342,4 @@ body:has(.company-page-v2) .header .select-trigger :is(.select-icon,.arrow-icon)
  .company-atlas-footer { padding:16px 22px; }
  .company-atlas-map-label { left:14px; bottom:30px; font-size:21px; }
 }
-@media(prefers-reduced-motion:reduce) { .company-atlas-pin>span { transition:none; } }
+@media(prefers-reduced-motion:reduce) { .company-atlas-pin>span,.company-process-reveal,.company-process-reveal .company-process-body { transition:none; } }

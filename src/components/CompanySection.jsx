@@ -58,30 +58,40 @@ function CompanyProcessVideo({ item, w, lang }) {
 
 function CompanyProduction({ items: sourceItems = [], label, lang }) {
   const items = sourceItems.map(getCompanyProcessMedia);
-  const [selected, setSelected] = useState(0);
+  const [expanded, setExpanded] = useState(() => new Set([0]));
+  const triggers = useRef([]);
   const id = useId();
-  const active = selected === null ? null : Math.min(selected, Math.max(0, items.length - 1));
+  const toggle = index => setExpanded(current => {
+    const next = new Set(current);
+    if (next.has(index)) next.delete(index); else next.add(index);
+    return next;
+  });
+  const moveFocus = (event, index) => {
+    const target = { ArrowDown: (index + 1) % items.length, ArrowUp: (index - 1 + items.length) % items.length, Home: 0, End: items.length - 1 }[event.key];
+    if (target === undefined) return;
+    event.preventDefault(); triggers.current[target]?.focus();
+  };
   if (!items.length) return null;
   const w = {
-    ru: { photo: 'В деталях', illustration: 'AI-иллюстрация по съёмке', media: 'AI-иллюстрации по кадрам · реальная видеосъёмка', note: 'Рекламный монтаж · LAUTE', index: 'Внутри производства', count: 'процессов', watch: 'Смотреть процесс', error: 'Не удалось запустить видео. Попробуй ещё раз.' },
-    en: { photo: 'A closer look', illustration: 'AI illustration based on footage', media: 'AI illustrations from frames · real video footage', note: 'Advertising edit · LAUTE', index: 'Inside production', count: 'processes', watch: 'Watch the process', error: 'Unable to start the video. Please try again.' },
-    kz: { photo: 'Жақыннан қарау', illustration: 'Түсірілім негізіндегі AI иллюстрация', media: 'Кадрлар негізіндегі AI суреттер · нақты бейне', note: 'Жарнамалық монтаж · LAUTE', index: 'Өндіріс ішінде', count: 'үдеріс', watch: 'Үдерісті көру', error: 'Бейне іске қосылмады. Қайталап көріңіз.' }
+    ru: { photo: 'В деталях', illustration: 'AI-иллюстрация по съёмке', media: 'AI-иллюстрации по кадрам · реальная видеосъёмка', note: 'Монтаж реальной съёмки · LAUTE', index: 'Внутри производства', count: 'процессов', watch: 'Смотреть процесс', error: 'Не удалось запустить видео. Попробуй ещё раз.' },
+    en: { photo: 'A closer look', illustration: 'AI illustration based on footage', media: 'AI illustrations from frames · real video footage', note: 'Real footage · LAUTE edit', index: 'Inside production', count: 'processes', watch: 'Watch the process', error: 'Unable to start the video. Please try again.' },
+    kz: { photo: 'Жақыннан қарау', illustration: 'Түсірілім негізіндегі AI иллюстрация', media: 'Кадрлар негізіндегі AI суреттер · нақты бейне', note: 'Нақты түсірілім · LAUTE монтажы', index: 'Өндіріс ішінде', count: 'үдеріс', watch: 'Үдерісті көру', error: 'Бейне іске қосылмады. Қайталап көріңіз.' }
   }[lang === 'en' || lang === 'kz' ? lang : 'ru'];
   return <div className="company-processes" aria-label={label}>
     <div className="company-processes-index"><span>{w.index}</span><span>{String(items.length).padStart(2, '0')} / {w.count}</span></div>{items.some(item => item.mediaKind === 'illustration') && <p className="company-processes-note">{w.media}</p>}
-    {items.map((item, i) => <article className={`company-process${active === i ? ' is-open' : ''}`} key={item.processId || i}>
-      <h3><button className="company-process-trigger" type="button" id={`${id}-trigger-${i}`} aria-expanded={active === i} aria-controls={`${id}-stage-${i}`} onClick={() => setSelected(active === i ? null : i)}>
+    {items.map((item, i) => <article className={`company-process${expanded.has(i) ? ' is-open' : ''}`} key={item.processId || i}>
+      <h3><button ref={node => { triggers.current[i] = node; }} className="company-process-trigger" type="button" id={`${id}-trigger-${i}`} aria-expanded={expanded.has(i)} aria-controls={`${id}-stage-${i}`} onClick={() => toggle(i)} onKeyDown={event => moveFocus(event, i)}>
         <span className="company-process-thumb" aria-hidden="true"><img src={resolveMediaUrl(item.imageUrl)} alt="" loading="lazy" decoding="async" width="120" height="90"/></span>
-        <span className="company-process-title"><span className="company-process-number">{String(i + 1).padStart(2, '0')} / LAUTE</span><span>{item.title}</span></span>
+        <span className="company-process-title"><span className="company-process-number">{String(i + 1).padStart(2, '0')} / LAUTE</span><span>{item.title}</span><span className="company-process-action">{lang === 'en' ? (expanded.has(i) ? 'Close details' : 'Explore this process') : lang === 'kz' ? (expanded.has(i) ? 'Жабу' : 'Үдерісті ашу') : (expanded.has(i) ? 'Свернуть подробности' : 'Открыть процесс')}</span></span>
         {item.videoUrl && <span className="company-process-length"><Play size={12} fill="currentColor" aria-hidden="true"/>{item.durationLabel}</span>}<span className="company-process-toggle"><ChevronDown size={20} aria-hidden="true"/></span>
       </button></h3>
-      <div id={`${id}-stage-${i}`} role="region" aria-labelledby={`${id}-trigger-${i}`} hidden={active !== i}>
-        {active === i && <div className="company-process-body">
+      <div className="company-process-reveal" id={`${id}-stage-${i}`} role="region" aria-labelledby={`${id}-trigger-${i}`} aria-hidden={!expanded.has(i)} inert={expanded.has(i) ? undefined : ''}>
+        <div className="company-process-clip"><div className="company-process-body">
           {item.videoUrl && <CompanyProcessVideo key={item.videoUrl} item={item} w={w} lang={lang}/>}
           <div className="company-process-story"><span className="company-process-eyebrow">{w.photo}</span><p>{item.desc}</p>
             <figure><CompanyMedia imageUrl={item.imageUrl} title={item.mediaKind === 'illustration' ? `${w.illustration}: ${item.title}` : item.title} lang={lang}><img src={resolveMediaUrl(item.imageUrl)} alt={item.mediaKind === 'illustration' ? `${w.illustration}: ${item.title}` : item.title} loading="lazy" decoding="async" width="1536" height="1024"/></CompanyMedia><figcaption><span>{item.mediaKind === 'illustration' ? w.illustration : item.title}</span><span>{String(i + 1).padStart(2, '0')} / {String(items.length).padStart(2, '0')}</span></figcaption></figure>
           </div>
-        </div>}
+        </div></div>
       </div>
     </article>)}
   </div>;

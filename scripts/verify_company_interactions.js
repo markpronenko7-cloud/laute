@@ -46,7 +46,14 @@ test('Advertising cache refresh preserves custom employee films, posters and tex
   assert.equal(getCompanyProcessMedia(custom), custom);
   const shipped = getCompanyProcessMedia({ ...custom, videoUrl: 'media/processes/casting.mp4?cut=3' });
   assert.equal(shipped.title, custom.title); assert.equal(shipped.posterUrl, custom.posterUrl);
-  assert.equal(shipped.durationLabel, '0:13'); assert.equal(shipped.videoUrl, 'media/processes/casting.mp4?ad=4');
+  assert.equal(shipped.durationLabel, '0:19'); assert.equal(shipped.videoUrl, 'media/processes/casting.mp4?edit=5');
+});
+
+test('Employee films do not inherit the shipped soundtrack attribution', async () => {
+  const h = await harness('src/components/CompanyMedia.jsx', { video: true, videoUrl: 'media/employee-film.mp4', title: 'Employee film', lang: 'en' });
+  h.find(n => n.type === 'button').props.onClick(); h.render();
+  assert.equal(h.find(n => n.props.className === 'company-music-credit'), undefined);
+  h.unmount();
 });
 
 test('Atlas: real tiles, source coordinates, zoom controls and teardown', async () => {
@@ -54,6 +61,9 @@ test('Atlas: real tiles, source coordinates, zoom controls and teardown', async 
   assert.equal(h.stats.tiles.url, 'https://tile.openstreetmap.org/{z}/{x}/{y}.png');
   assert.match(h.stats.tiles.options.attribution, /OpenStreetMap/);
   assert.equal(h.stats.mapOptions.touchZoom, true); assert.equal(h.stats.mapOptions.dragging, true); assert.equal(h.stats.mapOptions.keyboard, true);
+  assert.equal(h.stats.mapOptions.worldCopyJump, false);
+  assert.equal(h.stats.tiles.options.noWrap, true);
+  assert.deepEqual(Array.from(h.stats.mapOptions.maxBounds[1]), [85, 180]);
   assert.equal(h.stats.markers.length, 2); assert.equal(h.stats.markers[0].coords[0], locations[0].lat);
   h.find(byLabel('Zoom in')).props.onClick(); h.render(); assert.equal(h.find(byLabel('Zoom out')).props.disabled, false);
   h.stats.wheel({ ctrlKey: false, preventDefault() { throw Error('Page scrolling was captured'); } });

@@ -37,9 +37,9 @@ export function CompanyMap({ items = [], label, lang = 'ru' }) {
         const module = await import('leaflet');
         if (disposed) return;
         const L = module.default || module;
-        instance = L.map(node, { center: [32, 20], zoom: 2, minZoom: 1, maxZoom: 18, zoomControl: false, scrollWheelZoom: false, dragging: true, touchZoom: true, keyboard: true, attributionControl: true, worldCopyJump: true, zoomAnimation: !reduced(), fadeAnimation: !reduced(), markerZoomAnimation: !reduced() });
+        instance = L.map(node, { center: [32, 20], zoom: 2, minZoom: 1, maxZoom: 18, maxBounds: [[-85, -180], [85, 180]], maxBoundsViscosity: 1, zoomControl: false, scrollWheelZoom: false, dragging: true, touchZoom: true, keyboard: true, attributionControl: true, worldCopyJump: false, zoomAnimation: !reduced(), fadeAnimation: !reduced(), markerZoomAnimation: !reduced() });
         map.current = instance;
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors', updateWhenIdle: true, keepBuffer: 1 }).on('tileerror', () => { if (!disposed) setTileError(true); }).on('tileload', () => { if (!disposed) setTileError(false); }).addTo(instance);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, noWrap: true, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors', updateWhenIdle: true, keepBuffer: 1 }).on('tileerror', () => { if (!disposed) setTileError(true); }).on('tileload', () => { if (!disposed) setTileError(false); }).addTo(instance);
         markers.current = items.map((item, index) => {
           if (!validLocation(item)) return null;
           const marker = L.marker([Number(item.lat), Number(item.lng)], { title: locationName(item, lang), alt: locationName(item, lang), keyboard: true, icon: L.divIcon({ className: 'company-atlas-pin', html: `<span>${String(index + 1).padStart(2, '0')}</span>`, iconSize: [44, 44], iconAnchor: [22, 22] }) }).addTo(instance).on('click', () => setSelected(index));

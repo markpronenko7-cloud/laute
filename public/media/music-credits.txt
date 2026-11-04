@@ -1,21 +1,25 @@
-Music: "Newer Wave" by Kevin MacLeod (incompetech.com).
+Music: "Airport Lounge" by Kevin MacLeod (incompetech.com).
 Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0).
 License: https://creativecommons.org/licenses/by/4.0/
-Track: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN2000024
-Source audio: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Newer%20Wave.mp3
-ISRC: USUAN2000024
+Track: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100806
+Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Airport%20Lounge.mp3
+ISRC: USUAN1100806
 Retrieved: 2026-11-04
-Source SHA-256: EF26589E066CC2F60F9523F8A3C17E543F57FC9E1145EFC3BC46F7E5DB92D0BC
+Source SHA-256: E20D316B541C72690A3B0311C9F3D40FD00717359AB7567D7DF82A9316C1DEC4
 
-Used in public/media/processes/{casting,machining,packing,robot-polishing,
-sealing,sink-finishing,trimming}.mp4 (seven advertising process films).
-Changes: excerpt beginning at 4.363636 seconds (eight beats at 110 BPM),
-trimmed to the new 13.0667-second edits, normalised to -19 LUFS,
-0.16-second fade in, 0.65-second fade out, AAC encoding.
-The supplied source conversations are not used in the advertising films.
-Available source speech is conversational factory-tour speech, not approved narration.
+Used in seven real-footage process films, edit 5:
+casting: source music 32s, edit 19s
+trimming: source music 48s, edit 15.5s
+machining: source music 64s, edit 18.5s
+robot-polishing: source music 84s, edit 23s
+sink-finishing: source music 112s, edit 23.5s
+sealing: source music 140s, edit 10.5s
+packing: source music 160s, edit 28s
 
-The artist does not endorse LAUTE. No additional restrictions are imposed on the music.
-The author's track page supplies a CC BY 4.0 attribution notice.
-The license permits commercial sharing and adaptation, subject to attribution,
-a license link and indication of changes.
+Changes: excerpts, loudness normalization targeting -25 LUFS, true peak
+ceiling -4 dBTP, 0.7s fade in, 1.2s fade out, AAC encoding.
+No source conversations are used. No synthetic scenes or synthetic narration.
+The artist does not endorse LAUTE. No additional restrictions on the music.
+
+Earlier edits (superseded): "Newer Wave" and "Meditation Impromptu 01",
+also by Kevin MacLeod, CC BY 4.0. These are not used in edit 5.
