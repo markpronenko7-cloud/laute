@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { ArrowDown, ArrowUpRight, ChevronLeft, ChevronRight, BadgeCheck, Layers3, TrendingUp } from 'lucide-react';
+import { ArrowDown, ArrowUpRight, BadgeCheck, Layers3, TrendingUp } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { BlockRenderer } from '../components/builder/BlockRenderer';
 import { InquiryFeedback } from '../components/InquiryFeedback';
@@ -94,8 +94,6 @@ function PartnershipForm({ copy, lang, role, setRole }) {
 export const PartnersPage = () => {
   const { pagesList = [], lang, t, products, openProductModal } = useApp();
   const copy = partnership[lang] || partnership.ru;
-  const [heroModel, setHeroModel] = useState(1);
-  const hero = models[heroModel];
   const [expanded, setExpanded] = useState('');
   const [role, setRole] = useState('');
   const published = getPublishedPage(pagesList.find(page => page.slug === 'partners' || page.published?.slug === 'partners'), true);
@@ -113,17 +111,11 @@ export const PartnersPage = () => {
             <Jump secondary>{copy.discuss}</Jump>
           </div>
         </div>
-        <figure className="partnership-hero-gallery">
+        <figure className="partnership-hero-feature">
           <div className="partnership-hero-photo">
-            <img key={hero.article} src={photo(hero.article.toLowerCase())} alt={'LAUTE ' + hero.collection + ' ' + hero.article} fetchPriority="high" />
+            <img src={photo('eth103d')} alt="LAUTE Ethereum ETH103D" fetchPriority="high" />
           </div>
-          <figcaption>
-            <span aria-live="polite"><strong>LAUTE {hero.collection}</strong><small>{hero.article} · {copy.finishes[hero.finish]}</small></span>
-            <div className="partnership-gallery-controls">
-              <button type="button" aria-label={copy.previousPhoto} onClick={() => setHeroModel(current => (current + models.length - 1) % models.length)}><ChevronLeft size={19} aria-hidden="true" /></button>
-              <button type="button" aria-label={copy.nextPhoto} onClick={() => setHeroModel(current => (current + 1) % models.length)}><ChevronRight size={19} aria-hidden="true" /></button>
-            </div>
-          </figcaption>
+          <figcaption><strong>LAUTE Ethereum</strong><span>ETH103D · {copy.finishes[0]}</span></figcaption>
         </figure>
       </div>
     </header>
@@ -200,6 +192,7 @@ export const PartnersPage = () => {
           </article>;
         })}
       </div>
+      <a className="partnership-catalog-link" href={base + 'catalog'}>{copy.catalog} <ArrowUpRight size={16} aria-hidden="true" /></a>
     </section>
 
     <section className="container partnership-section">

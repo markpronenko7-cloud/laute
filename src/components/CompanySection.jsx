@@ -58,14 +58,10 @@ function CompanyProcessVideo({ item, w, lang }) {
 
 function CompanyProduction({ items: sourceItems = [], label, lang }) {
   const items = sourceItems.map(getCompanyProcessMedia);
-  const [expanded, setExpanded] = useState(() => new Set([0]));
+  const [expanded, setExpanded] = useState(0);
   const triggers = useRef([]);
   const id = useId();
-  const toggle = index => setExpanded(current => {
-    const next = new Set(current);
-    if (next.has(index)) next.delete(index); else next.add(index);
-    return next;
-  });
+  const toggle = index => setExpanded(current => current === index ? null : index);
   const moveFocus = (event, index) => {
     const target = { ArrowDown: (index + 1) % items.length, ArrowUp: (index - 1 + items.length) % items.length, Home: 0, End: items.length - 1 }[event.key];
     if (target === undefined) return;
@@ -79,13 +75,13 @@ function CompanyProduction({ items: sourceItems = [], label, lang }) {
   }[lang === 'en' || lang === 'kz' ? lang : 'ru'];
   return <div className="company-processes" aria-label={label}>
     <div className="company-processes-index"><span>{w.index}</span><span>{String(items.length).padStart(2, '0')} / {w.count}</span></div>{items.some(item => item.mediaKind === 'illustration') && <p className="company-processes-note">{w.media}</p>}
-    {items.map((item, i) => <article className={`company-process${expanded.has(i) ? ' is-open' : ''}`} key={item.processId || i}>
-      <h3><button ref={node => { triggers.current[i] = node; }} className="company-process-trigger" type="button" id={`${id}-trigger-${i}`} aria-expanded={expanded.has(i)} aria-controls={`${id}-stage-${i}`} onClick={() => toggle(i)} onKeyDown={event => moveFocus(event, i)}>
+    {items.map((item, i) => <article className={`company-process${expanded === i ? ' is-open' : ''}`} key={item.processId || i}>
+      <h3><button ref={node => { triggers.current[i] = node; }} className="company-process-trigger" type="button" id={`${id}-trigger-${i}`} aria-expanded={expanded === i} aria-controls={`${id}-stage-${i}`} onClick={() => toggle(i)} onKeyDown={event => moveFocus(event, i)}>
         <span className="company-process-thumb" aria-hidden="true"><img src={resolveMediaUrl(item.imageUrl)} alt="" loading="lazy" decoding="async" width="120" height="90"/></span>
-        <span className="company-process-title"><span className="company-process-number">{String(i + 1).padStart(2, '0')} / LAUTE</span><span>{item.title}</span><span className="company-process-action">{lang === 'en' ? (expanded.has(i) ? 'Close details' : 'Explore this process') : lang === 'kz' ? (expanded.has(i) ? 'Жабу' : 'Үдерісті ашу') : (expanded.has(i) ? 'Свернуть подробности' : 'Открыть процесс')}</span></span>
+        <span className="company-process-title"><span className="company-process-number">{String(i + 1).padStart(2, '0')} / LAUTE</span><span>{item.title}</span><span className="company-process-action">{lang === 'en' ? (expanded === i ? 'Close details' : 'Explore this process') : lang === 'kz' ? (expanded === i ? 'Жабу' : 'Үдерісті ашу') : (expanded === i ? 'Свернуть подробности' : 'Открыть процесс')}</span></span>
         {item.videoUrl && <span className="company-process-length"><Play size={12} fill="currentColor" aria-hidden="true"/>{item.durationLabel}</span>}<span className="company-process-toggle"><ChevronDown size={20} aria-hidden="true"/></span>
       </button></h3>
-      <div className="company-process-reveal" id={`${id}-stage-${i}`} role="region" aria-labelledby={`${id}-trigger-${i}`} aria-hidden={!expanded.has(i)} inert={expanded.has(i) ? undefined : ''}>
+      <div className="company-process-reveal" id={`${id}-stage-${i}`} role="region" aria-labelledby={`${id}-trigger-${i}`} aria-hidden={expanded !== i} inert={expanded === i ? undefined : ''}>
         <div className="company-process-clip"><div className="company-process-body">
           {item.videoUrl && <CompanyProcessVideo key={item.videoUrl} item={item} w={w} lang={lang}/>}
           <div className="company-process-story"><span className="company-process-eyebrow">{w.photo}</span><p>{item.desc}</p>

@@ -117,37 +117,36 @@
   from { opacity: .65; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.partnership-hero-gallery {
-  border: 1px solid #ffffff38;
-  padding: clamp(.65rem, 1.4vw, 1.2rem);
-  border-radius: 14px;
-  background: #ffffff09;
-  box-shadow: 0 24px 70px #0003;
-}
-.partnership-hero-photo { overflow: hidden; }
-.partnership-hero-gallery img { aspect-ratio: 6/5; }
-.partnership-hero-gallery figcaption {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: .5rem;
-  padding: .9rem .2rem .15rem;
-  color: #f5f6f7;
-}
-.partnership-hero-gallery figcaption small { display: block; margin-top: .15rem; color: #c9d1dd; }
-.partnership-gallery-controls { display: flex; gap: .45rem; }
-.partnership-gallery-controls button {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
+.partnership-hero-feature { position: relative; isolation: isolate; }
+.partnership-hero-feature .partnership-hero-photo {
+  overflow: hidden;
   border: 1px solid #ffffff55;
-  border-radius: 50%;
-  background: transparent;
-  color: white;
-  cursor: pointer;
+  background: radial-gradient(ellipse at 61% 24%, #fff 5%, #dbe1e5 62%, #a8b4bf 100%);
 }
-.partnership-gallery-controls button:hover { background: #ffffff22; }
+.partnership-hero-feature img {
+  aspect-ratio: 6/5;
+  padding: clamp(1rem, 2vw, 1.8rem);
+  object-fit: cover;
+  object-position: 61% 42%;
+}
+.partnership-hero-feature figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .35rem 1rem;
+  padding: .85rem 0 0;
+  color: #e2e7ed;
+}
+.partnership-hero-feature figcaption span { color: #c6cfd9; }
+.partnership-catalog-link {
+  display: inline-flex;
+  gap: .4rem;
+  align-items: center;
+  margin-top: 1rem;
+  color: var(--partner-accent);
+  font-weight: 650;
+}
 .partnership-section .partnership-study {
   padding: .75rem;
   border: 1px solid #dfd9cf;
@@ -161,11 +160,6 @@
 .partnership-product > div { padding: .9rem .55rem .65rem; }
 
 @media (prefers-reduced-motion: no-preference) {
-  .partnership-hero-gallery img { animation: partnership-gallery-in 320ms ease-out both; }
   .partnership-product { transition: box-shadow 260ms, border-color 260ms; }
   .partnership-product:hover { border-color: #8ba0ba; box-shadow: 0 12px 30px #17355b18; }
-}
-@keyframes partnership-gallery-in {
-  from { opacity: .25; transform: translateX(10px) scale(.99); }
-  to { opacity: 1; transform: none; }
 }
