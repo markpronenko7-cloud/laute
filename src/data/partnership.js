@@ -15,7 +15,7 @@ export const partnership = {
       'Сплочённая, творческая и уверенная в своих возможностях команда Завода Laute осуществляет свою деятельность в СНГ с 2005 года. Мы предлагаем широкий выбор смесителей, приносящих высокий уровень прибыли нашим клиентам и агентам структуры продаж.',
       'В связи с динамичным расширением и освоением новых рынков мы заинтересованы в сотрудничестве с опытными и амбициозными партнёрами.'
     ],
-    caption: 'Механическая обработка на производстве',
+    caption: 'Дизайн смесителя и его детали · иллюстрация ИИ', previousPhoto: 'Предыдущая модель', nextPhoto: 'Следующая модель',
     benefitsTitle: 'Топ 3 причины работать с нами',
     benefits: [
       'Максимально высокий уровень качества и гарантий; доступная конечная стоимость для потребителя',
@@ -58,7 +58,7 @@ export const partnership = {
       'The close-knit, creative and confident LAUTE factory team has worked in the CIS since 2005. We offer a broad range of faucets that deliver high margins for our customers and sales agents.',
       'As we expand and enter new markets, we are looking to work with experienced, ambitious partners.'
     ],
-    caption: 'Machining on the factory floor',
+    caption: 'Faucet design and components · AI illustration', previousPhoto: 'Previous model', nextPhoto: 'Next model',
     benefitsTitle: 'Three reasons to work with us',
     benefits: ['High standards of quality and warranty coverage, with accessible retail pricing', 'Collections continually expanded with current design trends', 'Market-leading retail margins and partner bonuses'],
     rolesTitle: 'Choose your partnership format', rolesQuestion: 'How would you like to grow with LAUTE?',
@@ -97,7 +97,7 @@ export const partnership = {
       'Laute зауытының ұйымшыл, шығармашыл және өз мүмкіндігіне сенімді командасы ТМД-да 2005 жылдан бері жұмыс істейді. Біз клиенттеріміз бен сату агенттеріне жоғары пайда әкелетін араластырғыштардың кең ассортиментін ұсынамыз.',
       'Қарқынды дамып, жаңа нарықтарды игеру барысында тәжірибелі әрі өршіл серіктестермен жұмыс істеуге мүдделіміз.'
     ],
-    caption: 'Өндірістегі механикалық өңдеу',
+    caption: 'Араластырғыш дизайны мен бөлшектері · ЖИ иллюстрациясы', previousPhoto: 'Алдыңғы модель', nextPhoto: 'Келесі модель',
     benefitsTitle: 'Бізбен жұмыс істеудің үш себебі',
     benefits: ['Сапа мен кепілдіктің жоғары деңгейі, тұтынушыға қолжетімді баға', 'Топтамалар заманауи дизайнерлік шешімдермен үнемі толықтырылады', 'Сауда үстемесі мен серіктес бонустары бойынша нарықтағы жетекші көрсеткіштер'],
     rolesTitle: 'Серіктестік форматын таңдаңыз', rolesQuestion: 'LAUTE-пен қалай дамығыңыз келеді?',

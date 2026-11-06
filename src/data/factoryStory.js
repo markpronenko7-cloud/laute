@@ -74,8 +74,8 @@ export function getCompanyProcessMedia(item) {
   const match = item.videoUrl?.match(/^media\/processes\/(casting|trimming|machining|robot-polishing|sink-finishing|sealing|packing)\.mp4(?:\?|$)/);
   if (!match) return item;
   const id = match[1], shippedPoster = `images/factory/processes/${id}-poster.webp`;
-  const revision = ['packing', 'robot-polishing'].includes(id) ? 'brand=8' : 'edit=6';
-  return { ...item, videoUrl: `media/processes/${id}.mp4?${revision}`, durationLabel: id === 'packing' ? '0:10' : '0:13', posterUrl: item.posterUrl?.split('?')[0] === shippedPoster ? `${shippedPoster}?${revision}` : item.posterUrl };
+  const revision = ['packing', 'robot-polishing'].includes(id) ? 'brand=9' : 'edit=6';
+  return { ...item, videoUrl: `media/processes/${id}.mp4?${revision}`, durationLabel: '0:13', posterUrl: item.posterUrl?.split('?')[0] === shippedPoster ? `${shippedPoster}?${revision}` : item.posterUrl };
 }
 
 // Migrate the previous system presentation once; employee-added blocks survive.

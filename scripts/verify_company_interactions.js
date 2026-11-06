@@ -48,11 +48,11 @@ test('Advertising cache refresh preserves custom employee films, posters and tex
   assert.equal(shipped.title, custom.title); assert.equal(shipped.posterUrl, custom.posterUrl);
   assert.equal(shipped.durationLabel, '0:13'); assert.equal(shipped.videoUrl, 'media/processes/casting.mp4?edit=6');
   const packing = getCompanyProcessMedia({ videoUrl: 'media/processes/packing.mp4?edit=6', posterUrl: 'images/factory/processes/packing-poster.webp?edit=6' });
-  assert.equal(packing.videoUrl, 'media/processes/packing.mp4?brand=8');
-  assert.equal(packing.durationLabel, '0:10');
-  assert.equal(packing.posterUrl, 'images/factory/processes/packing-poster.webp?brand=8');
+  assert.equal(packing.videoUrl, 'media/processes/packing.mp4?brand=9');
+  assert.equal(packing.durationLabel, '0:13');
+  assert.equal(packing.posterUrl, 'images/factory/processes/packing-poster.webp?brand=9');
   const robot = getCompanyProcessMedia({ videoUrl: 'media/processes/robot-polishing.mp4?edit=6' });
-  assert.equal(robot.videoUrl, 'media/processes/robot-polishing.mp4?brand=8');
+  assert.equal(robot.videoUrl, 'media/processes/robot-polishing.mp4?brand=9');
   assert.equal(robot.durationLabel, '0:13');
 });
 
