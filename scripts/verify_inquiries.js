@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import { statSync } from 'node:fs';
 import { REGIONS_CONFIG, PARTNER_REGIONS, getPartnerRegion } from '../src/data/regionsData.js';
 import { resolveInquiryRecipient, validateInquiryRouting, DEFAULT_INQUIRY_EMAIL } from '../src/utils/inquiryRouting.js';
-import { getCompanyBlocks, COMPANY_BLOCKS, localizeCompanyBlock } from '../src/data/factoryStory.js';
+import { getCompanyBlocks, COMPANY_BLOCKS, getCompanyMilestones, getVisibleCompanyProcesses, localizeCompanyBlock } from '../src/data/factoryStory.js';
 import { getEditableBlocks } from '../src/utils/pagePublication.js';
 
 const types = ['partner', 'service', 'order'];
@@ -129,7 +129,7 @@ test('Производство: новый монтаж обновляет дл�
  const production=COMPANY_BLOCKS.find(block=>block.companySection==='production');
  const saved={...production,processMediaVersion:1,items:production.items.map((item,index)=>({...item,title:'Текст сотрудника',videoUrl:index===0?'media/custom.mp4':item.videoUrl.split('?')[0],durationLabel:'0:01'}))};
  const [updated]=getCompanyBlocks([saved]);
- assert.equal(updated.processMediaVersion,4);assert.equal(updated.items[0].videoUrl,'media/custom.mp4');assert.equal(updated.items[0].durationLabel,'0:01');
+ assert.equal(updated.processMediaVersion,5);assert.equal(updated.items[0].videoUrl,'media/custom.mp4');assert.equal(updated.items[0].durationLabel,'0:01');
  for(let i=1;i<updated.items.length;i++){assert.equal(updated.items[i].title,'Текст сотрудника');assert.equal(updated.items[i].videoUrl,production.items[i].videoUrl);assert.equal(updated.items[i].durationLabel,production.items[i].durationLabel);}
  assert.equal(saved.processMediaVersion,1);assert.equal(getCompanyBlocks([updated])[0],updated);
 });
@@ -140,7 +140,7 @@ test('Производство: семь генераций заменяют ш�
  saved.items[0]={...saved.items[0],imageUrl:'images/employee-real.webp',title:'Текст сотрудника'};
  saved.items[1]={...saved.items[1],title:'Обрезка отливок'};
  const [result]=getCompanyBlocks([saved]);
- assert.equal(result.processMediaVersion,4);assert.equal(result.items[0].imageUrl,'images/employee-real.webp');assert.equal(result.items[0].mediaKind,'documentary');assert.equal(result.items[0].title,'Текст сотрудника');
+ assert.equal(result.processMediaVersion,5);assert.equal(result.items[0].imageUrl,'images/employee-real.webp');assert.equal(result.items[0].mediaKind,'documentary');assert.equal(result.items[0].title,'Текст сотрудника');
  for(let i=1;i<result.items.length;i++){assert.equal(result.items[i].imageUrl,production.items[i].imageUrl);assert.equal(result.items[i].mediaKind,production.items[i].mediaKind);assert.equal(result.items[i].videoKind,'documentary');}
  assert.equal(result.items[1].title,'Работа с литейной формой');assert.equal(result.items[1].translations.en.title,production.items[1].translations.en.title);
  assert.equal(saved.items[1].imageUrl,'images/factory/processes/trimming.webp');assert.equal(saved.processMediaVersion,2);
@@ -171,4 +171,39 @@ test('Производство: версия 3 получает новый пр�
  const [customPacking] = getCompanyBlocks([{ ...saved, items: [{ ...stockPacking, videoUrl: custom.videoUrl }] }]);
  assert.equal(customPacking.items[1].videoUrl, custom.videoUrl);
  assert.equal(customPacking.items[1].title, stockPacking.title);
+});
+
+test('История: лента использует опубликованные даты и сохраняет редакционные версии', () => {
+ const history = COMPANY_BLOCKS.find(block => block.companySection === 'history');
+ for (const lang of ['ru', 'en', 'kz']) {
+  const localized = localizeCompanyBlock(history, lang);
+  const original = structuredClone(localized.items);
+  const milestones = getCompanyMilestones(localized.items, lang);
+  assert.deepEqual(milestones.map(item => item.year), ['1998', '2002', '2003', '2005', '2015', '2025', '2026']);
+  assert.ok(milestones.every(item => item.summary && statSync(new URL(`../public/${item.imageUrl}`, import.meta.url)).size > 1000));
+  assert.deepEqual(localized.items, original);
+ }
+ const [custom] = getCompanyMilestones([{ ...history.items[0], desc: 'Правка редактора', imageUrl: 'custom.webp' }]);
+ assert.equal(custom.summary, 'Правка редактора');
+ assert.equal(custom.imageUrl, 'custom.webp');
+});
+
+test('Производство: версия 4 обновляет сталь и скрывает только отвергнутую штатную упаковку', () => {
+ const production = COMPANY_BLOCKS.find(block => block.companySection === 'production');
+ const steel = production.items.find(item => item.processId === 'steel-finishing');
+ const stock = {
+  ...steel, videoUrl: 'media/processes/steel-finishing.mp4?edit=11', posterUrl: 'media/editor.webp',
+  durationLabel: '0:13', desc: 'Оператор в перчатках подводит корпус смесителя к вращающемуся кругу и вручную обрабатывает поверхность. Рядом в деревянных лотках лежат корпуса.',
+  translations: { en: { title: 'Custom title', desc: 'Custom description' } }
+ };
+ const [updated] = getCompanyBlocks([{ ...production, processMediaVersion: 4, items: production.items.map(item => item === steel ? stock : item) }]);
+ const revised = updated.items.find(item => item.processId === 'steel-finishing');
+ assert.equal(updated.processMediaVersion, 5);
+ assert.equal(revised.videoUrl, steel.videoUrl);
+ assert.equal(revised.durationLabel, '0:24');
+ assert.equal(revised.desc, steel.desc);
+ assert.equal(revised.posterUrl, stock.posterUrl);
+ assert.deepEqual(revised.translations.en, stock.translations.en);
+ assert.equal(getVisibleCompanyProcesses(updated.items).length, 7);
+ assert.deepEqual(getVisibleCompanyProcesses([{ processId: 'packing', videoUrl: 'media/editor.mp4' }]), [{ processId: 'packing', videoUrl: 'media/editor.mp4' }]);
 });

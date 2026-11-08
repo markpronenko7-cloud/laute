@@ -1,9 +1,9 @@
-import React, { useId, useRef, useState } from 'react';
-import { ArrowDown, ArrowUpRight, CheckCircle2, ChevronDown, Play, Plus } from 'lucide-react';
+import React, { useEffect, useId, useRef, useState } from 'react';
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, CheckCircle2, ChevronDown, Play, Plus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { resolveMediaUrl, submitLeadInquiry } from '../services/adminApi';
 import { PARTNER_REGIONS, getPartnerRegion } from '../data/regionsData';
-import { getCompanyProcessMedia, localizeCompanyBlock } from '../data/factoryStory';
+import { getCompanyMilestones, getCompanyProcessMedia, getVisibleCompanyProcesses, localizeCompanyBlock } from '../data/factoryStory';
 import { InquiryFeedback } from './InquiryFeedback';
 import { isSafeActionLink } from './SiteAction';
 import { CompanyMedia } from './CompanyMedia';
@@ -57,7 +57,7 @@ function CompanyProcessVideo({ item, w, lang }) {
 }
 
 function CompanyProduction({ items: sourceItems = [], label, lang }) {
-  const items = sourceItems.map(getCompanyProcessMedia);
+  const items = getVisibleCompanyProcesses(sourceItems).map(getCompanyProcessMedia);
   const [expanded, setExpanded] = useState(0);
   const triggers = useRef([]);
   const id = useId();
@@ -93,6 +93,66 @@ function CompanyProduction({ items: sourceItems = [], label, lang }) {
   </div>;
 }
 
+function CompanyMilestones({ items, lang }) {
+  const track = useRef(null);
+  const id = useId();
+  const [ends, setEnds] = useState({ start: true, end: false });
+  const cards = getCompanyMilestones(items, lang);
+  const [label, previous, next] = {
+    ru: ['Ключевые вехи LAUTE', 'Предыдущие события', 'Следующие события'],
+    en: ['LAUTE milestones', 'Previous milestones', 'Next milestones'],
+    kz: ['LAUTE тарихындағы маңызды кезеңдер', 'Алдыңғы оқиғалар', 'Келесі оқиғалар']
+  }[lang] || ['LAUTE milestones', 'Previous milestones', 'Next milestones'];
+
+  const measure = () => {
+    const list = track.current;
+    if (!list) return;
+    const start = list.scrollLeft <= 1;
+    const end = list.scrollLeft + list.clientWidth >= list.scrollWidth - 1;
+    setEnds(current => current.start === start && current.end === end ? current : { start, end });
+  };
+  useEffect(() => {
+    if (!track.current) return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(track.current);
+    measure();
+    return () => observer.disconnect();
+  }, [cards.length]);
+
+  const move = key => {
+    const list = track.current;
+    if (!list) return;
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth';
+    if (key === 'Home' || key === 'End') {
+      list.scrollTo({ left: key === 'Home' ? 0 : list.scrollWidth, behavior });
+      return;
+    }
+    const [first, second] = list.children;
+    if (second) list.scrollBy({ left: (second.offsetLeft - first.offsetLeft) * (key === 'ArrowRight' ? 1 : -1), behavior });
+  };
+  if (!cards.length) return null;
+  return <div className="company-milestone-strip">
+    <div className="company-milestone-nav">
+      <h3 id={id + '-title'}>{label}</h3>
+      <div>
+        <button type="button" aria-label={previous} aria-controls={id} aria-disabled={ends.start} onClick={() => { if (!ends.start) move('ArrowLeft'); }}><ArrowLeft size={20} aria-hidden="true" /></button>
+        <button type="button" aria-label={next} aria-controls={id} aria-disabled={ends.end} onClick={() => { if (!ends.end) move('ArrowRight'); }}><ArrowRight size={20} aria-hidden="true" /></button>
+      </div>
+    </div>
+    <ol ref={track} className="company-milestones" id={id} aria-labelledby={id + '-title'} tabIndex={0} onScroll={measure} onKeyDown={event => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      event.preventDefault();
+      move(event.key);
+    }}>
+      {cards.map((item, index) => <li key={item.year + '-' + index}>
+        <span className="company-year">{item.year}</span>
+        <img src={resolveMediaUrl(item.imageUrl)} alt="" loading="lazy" decoding="async" width="480" height="320" />
+        <h3>{item.title}</h3><p>{item.summary}</p>
+      </li>)}
+    </ol>
+  </div>;
+}
+
 export function CompanySection({ block: source, isEditor = false }) {
   const { lang, navigateTo } = useApp();
   const block = localizeCompanyBlock(source, lang), w = words[lang] || words.ru;
@@ -106,9 +166,17 @@ export function CompanySection({ block: source, isEditor = false }) {
   const heading = (number, label) => <div className="company-section-heading"><span className="company-kicker">{number} / {labels[lang]?.[label] || label}</span><h2>{block.title}</h2><p>{block.subtitle}</p></div>;
   const actionHref = isSafeActionLink(block.buttonLink) ? block.buttonLink : null;
   return <div className={`company-section company-section--${section}`}>
-    {section === 'hero' && <div className="company-hero"><div className="company-hero-top"><span className="company-kicker">{lang === 'ru' ? block.badge : lang === 'kz' ? 'LAUTE ТУРАЛЫ' : 'ABOUT LAUTE'}</span><span className="company-edition">1998 — {new Date().getFullYear()}</span></div><div className="company-hero-copy"><h1>{block.title}</h1><div><p>{block.subtitle}</p><div className="company-actions">{actionHref && link(actionHref, block.buttonText || w.partner, true)}<a className="company-text-link" href="#company-v2-production" onClick={e => { e.preventDefault(); if (!isEditor) document.getElementById('company-v2-production')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' }); }}>{w.production}<ArrowDown size={16}/></a></div></div></div><figure><CompanyMedia imageUrl={block.imageUrl} title={block.title} lang={lang}><img src={resolveMediaUrl(block.imageUrl)} width="1376" height="768" fetchpriority="high" alt={lang === 'en' ? 'Faucet in a bathroom interior' : lang === 'kz' ? 'Ванна бөлмесіндегі араластырғыш' : 'Смеситель в интерьере ванной комнаты'}/></CompanyMedia><span className="company-wordmark" aria-hidden="true">Laute</span><figcaption>{lang === 'en' ? 'KITCHEN / BATHROOM / EVERY DAY' : lang === 'kz' ? 'АСҮЙ / ВАННА / КҮН САЙЫН' : 'КУХНЯ / ВАННАЯ / КАЖДЫЙ ДЕНЬ'}</figcaption></figure></div>}
+    {section === 'hero' && <div className="company-hero"><div className="company-hero-top"><span className="company-kicker">{lang === 'ru' ? block.badge : lang === 'kz' ? 'LAUTE ТУРАЛЫ' : 'ABOUT LAUTE'}</span><span className="company-edition">1998 — {new Date().getFullYear()}</span></div><div className="company-hero-copy"><h1>{block.title}</h1><div><p>{block.subtitle}</p><div className="company-actions">{actionHref && link(actionHref, block.buttonText || w.partner, true)}<a className="company-text-link" href="#company-v2-production" onClick={e => { e.preventDefault(); if (!isEditor) document.getElementById('company-v2-production')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' }); }}>{w.production}<ArrowDown size={16}/></a></div></div></div>
+      <figure>
+        <img className="company-hero-image" src={resolveMediaUrl(block.imageUrl)} width="1376" height="768" fetchpriority="high" alt={lang === 'en' ? 'Faucet in a bathroom interior' : lang === 'kz' ? 'Ванна бөлмесіндегі араластырғыш' : 'Смеситель в интерьере ванной комнаты'} />
+        <figcaption>
+          <img className="company-wordmark" src={resolveMediaUrl('laute-logo.png')} width="859" height="278" alt="LAUTE" />
+          <span>{lang === 'en' ? 'Kitchen. Bathroom. Every day.' : lang === 'kz' ? 'Асүй. Ванна. Күн сайын.' : 'Кухня. Ванная. Каждый день.'}</span>
+        </figcaption>
+      </figure>
+    </div>}
     {section === 'scale' && <><div className="company-scale-intro">{heading('01', 'SCALE')}</div><div className="company-stats">{block.items?.map((x, i) => <article key={i}><strong>{x.title}</strong><p>{x.desc}</p></article>)}</div><p className="company-data-note">{lang === 'en' ? 'Figures from the LAUTE factory presentation.' : lang === 'kz' ? 'LAUTE зауыт таныстырылымындағы көрсеткіштер.' : 'Показатели из презентации завода LAUTE.'}</p></>}
-    {section === 'history' && <>{heading('02', 'HISTORY')}<ol className="company-milestones">{block.items?.filter(x => ['1998', '2003', '2025', '2026'].includes(x.year)).map((x, i) => <li key={i}><span className="company-year">{x.year}</span><h3>{x.title}</h3><p>{x.desc}</p></li>)}</ol><div className="company-history-details"><h3>{lang === 'en' ? 'The full story' : lang === 'kz' ? 'Толық тарих' : 'Вся история LAUTE'}</h3><ol className="company-timeline">{block.items?.map((x, i) => <li key={i}><span className="company-year">{x.year}</span><div><h3>{x.title}</h3><p>{x.desc}</p></div></li>)}</ol></div></>}
+    {section === 'history' && <>{heading('02', 'HISTORY')}<CompanyMilestones items={block.items} lang={lang} /><div className="company-history-details"><h3>{lang === 'en' ? 'The full story' : lang === 'kz' ? 'Толық тарих' : 'Вся история LAUTE'}</h3><ol className="company-timeline">{block.items?.map((x, i) => <li key={i}><span className="company-year">{x.year}</span><div><h3>{x.title}</h3><p>{x.desc}</p></div></li>)}</ol></div></>}
     {section === 'production' && <>{heading('03', 'PRODUCTION')}<CompanyProduction items={block.items} label={block.title} lang={lang}/></>}
     {section === 'range' && <><div className="company-range-layout"><CompanyMedia imageUrl="images/collections/coll-bathroom.jpg" title={lang === 'en' ? 'Bathroom interior' : lang === 'kz' ? 'Ванна бөлмесінің интерьері' : 'Интерьер ванной комнаты'} lang={lang}><img className="company-range-image" src={resolveMediaUrl('images/collections/coll-bathroom.jpg')} alt={lang === 'en' ? 'Bathroom interior' : lang === 'kz' ? 'Ванна бөлмесінің интерьері' : 'Интерьер ванной комнаты'} loading="lazy" decoding="async" width="1200" height="896"/></CompanyMedia><div>{heading('04', 'PRODUCTS & CARE')}<div className="company-actions">{actionHref && link(actionHref, block.buttonText || w.catalog, true)}</div></div></div><section className="company-warranty"><h3 className="company-warranty-heading">{lang === 'en' ? 'Warranty and care' : lang === 'kz' ? 'Кепілдік және күтім' : 'Гарантия и уход'}</h3><div className="company-guarantees">{block.items?.map((x, i) => <article key={i}><h3>{x.title}</h3><p>{x.desc}</p></article>)}</div><div className="company-care"><p>{lang === 'ru' ? block.content?.slice(block.content.indexOf('Гарантия конкретной')) || w.care : w.care}</p><div className="company-actions">{link('/service', w.service)}</div></div></section></>}
     {section === 'geography' && <>{heading('05', 'GEOGRAPHY')}<CompanyMap items={block.items} label={w.map} lang={lang}/><details className="company-addresses"><summary>{w.more}</summary><div>{block.items?.map((x, i) => <article key={i}><h3>{x.title}</h3><p>{x.desc}</p></article>)}</div></details>{actionHref && link(actionHref, block.buttonText || w.contacts)}</>}

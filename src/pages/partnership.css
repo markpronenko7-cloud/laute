@@ -30,6 +30,17 @@ body:has(.partnership) .header:not(.header-scrolled) { background: #222d37; }
   padding-top: calc(var(--header-height) + var(--sat, 0px) + clamp(1.6rem, 3.5vw, 3.8rem));
   padding-bottom: clamp(2.25rem, 5vw, 5rem);
 }
+.partnership-hero::after {
+  content: '';
+  display: block;
+  width: min(100%, 1312px);
+  height: clamp(18px, 2.2vw, 34px);
+  margin: clamp(1.5rem, 3vw, 2.75rem) auto calc(-1 * clamp(2.25rem, 5vw, 5rem));
+  background:
+    radial-gradient(ellipse at 70% 135%, #99c9d9 0%, transparent 62%),
+    radial-gradient(ellipse at 40% 125%, #e8f4f4 0%, transparent 65%),
+    radial-gradient(ellipse at 68% -50%, #c1d9e2 0%, transparent 55%);
+}
 .partnership-hero-layout {
   display: grid;
   grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);

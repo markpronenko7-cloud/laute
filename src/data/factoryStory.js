@@ -27,6 +27,8 @@ const newProcessImages = {
   packing: 'images/factory/processes/packing-pouches.webp'
 };
 const newProcessRevision = 'edit=11';
+const steelProcessRevision = 'edit=12';
+const previousSteelCopy = row('', 'Ручная обработка нержавеющей стали', 'Оператор в перчатках подводит корпус смесителя к вращающемуся кругу и вручную обрабатывает поверхность. Рядом в деревянных лотках лежат корпуса.', 'Hand finishing stainless steel', 'A gloved operator brings a faucet body up to a rotating wheel and finishes its surface by hand. More bodies sit in wooden trays nearby.', 'Тот баспайтын болатты қолмен өңдеу', 'Оператор қолғап киіп, араластырғыш корпусын айналмалы дөңгелекке жақындатып, бетін қолмен өңдейді. Жанындағы ағаш науаларда басқа корпустар жатыр.');
 
 export const COMPANY_BLOCKS = [
   section('hero', 'image_text', "Вода — часть жизни. Производство смесителей — наша работа.", "Мы создаём смесители и сантехнику для кухни и ванной. За каждым изделием LAUTE — производство, работа инженеров и опыт, который начинается в 1998 году.", "Water is part of life. Making faucets is our work.", "We make faucets and fittings for kitchens and bathrooms. Behind LAUTE are manufacturing, engineering and a story that began in 1998.", "Су — өмірдің бір бөлігі. Араластырғыштар жасау — біздің жұмысымыз.", "Біз асүй мен ваннаға арналған араластырғыштар мен сантехника жасаймыз. LAUTE артында өндіріс, инженерлер еңбегі және 1998 жылдан басталған тәжірибе тұр.", { badge: 'О LAUTE', imageUrl: 'images/hero/hero-slide-1.jpg', buttonText: 'Обсудить сотрудничество', buttonLink: '#company-v2-inquiry' }),
@@ -51,18 +53,18 @@ export const COMPANY_BLOCKS = [
     row('2025', 'Расширение коллекций LAUTE', 'Расширяем коллекции флагманского бренда LAUTE. Solana, Ethereum и Bitcoin отсылают к миру Web3 и интересу бренда к технологиям будущего, включая AI.', 'Expanding LAUTE collections', 'The flagship LAUTE collections expand. Solana, Ethereum and Bitcoin reference Web3 and the brand’s interest in future technologies, including AI.', 'LAUTE коллекцияларын кеңейту', 'LAUTE негізгі брендінің коллекциялары кеңейеді. Solana, Ethereum және Bitcoin Web3 әлеміне және брендтің AI қоса болашақ технологияларына қызығушылығына сілтейді.'),
     row('2026', 'Склад в Алматы', 'Открываем склад в Алматы — на историческом Шёлковом пути. Развиваем логистику в Центральной Азии, чтобы быть ближе к партнёрам.', 'A warehouse in Almaty', 'A warehouse opens in Almaty on the historic Silk Road, bringing Central Asian logistics closer to our partners.', 'Алматыдағы қойма', 'Тарихи Жібек жолындағы Алматыда қойма ашылады. Серіктестерге жақын болу үшін Орталық Азиядағы логистиканы дамытамыз.')
   ] }),
-  section('production', 'gallery', 'Прежде чем открыть воду', productionIntro.ru, 'Before the water flows', productionIntro.en, 'Суды ашқанға дейін', productionIntro.kz, { processMediaVersion: 4, items: [
+  section('production', 'gallery', 'Прежде чем открыть воду', productionIntro.ru, 'Before the water flows', productionIntro.en, 'Суды ашқанға дейін', productionIntro.kz, { processMediaVersion: 5, items: [
     { ...row('', 'Литьё заготовок', 'Расплавленный металл переносят из печи в форму. В кадре — заливка и работа с литейной оснасткой.', 'Casting the blanks', 'Molten metal is transferred from the furnace into a mould. The footage shows pouring and work at the casting station.', 'Дайындамаларды құю', 'Балқыған металл пештен қалыпқа құйылады. Кадрда құю және қалыппен жұмыс көрсетілген.'), processId: 'casting', durationLabel: '0:14' },
     { ...row('', 'Работа с литейной формой', 'Мастер вручную работает с металлической формой на столе. Показываем оснастку, рабочий жест и собранные отливки — без подмены этой операции другим процессом.', 'Working with the casting mould', 'An operator works with a metal casting mould at the bench. The edit shows the fixture, the manual operation and collected castings.', 'Құю қалыбымен жұмыс', 'Шебер үстелдегі металл қалыппен қолмен жұмыс істейді. Бейнеде қалып, жұмыс қимылы және жиналған құймалар көрсетілген.'), processId: 'trimming', durationLabel: '0:11' },
     { ...row('', 'Станочная обработка', 'Станочный участок, рабочая зона оборудования и партии заготовок. Крупные планы показывают видимую оснастку и детали.', 'The machine shop', 'The machine shop, the equipment working area and batches of blanks. Close views show the actual fixtures and parts.', 'Станокта өңдеу', 'Станок учаскесі, жабдықтың жұмыс аймағы және дайындамалар. Жақын планда нақты жабдық пен бөлшектер көрінеді.'), processId: 'machining', durationLabel: '0:11' },
     { ...row('', 'Роботизированная полировка', 'Манипулятор подводит корпус к полировальному кругу и меняет положение детали. Общий и крупный планы показывают одну и ту же операцию с разных точек.', 'Robotic polishing', 'A robot brings the body to the polishing wheel and changes its position. Wide and close views show the same operation from different angles.', 'Роботпен жылтырату', 'Робот корпусты жылтырату дөңгелегіне жақындатып, оның қалпын өзгертеді. Үдеріс әртүрлі нүктеден көрсетілген.'), processId: 'robot-polishing', durationLabel: '0:15' },
     { ...row('', 'Ручная обработка моек', 'Мастер последовательно обрабатывает поверхность и края мойки ручным инструментом. Здесь важны доступ к углам и контроль каждого движения.', 'Hand finishing the sinks', 'An operator works the sink surface and edges with a handheld tool, reaching the corners and controlling each pass.', 'Жуғыштарды қолмен өңдеу', 'Шебер жуғыштың беті мен жиектерін қол құралымен өңдейді, бұрыштарға жетіп, әр қозғалысты бақылайды.'), processId: 'sink-finishing', durationLabel: '0:13' },
     { ...row('', 'Нанесение герметика', 'На обратной стороне мойки мастер наносит состав вдоль стыка. Крупный план сохраняет весь рабочий жест — от движения пистолета до готовой полосы.', 'Applying sealant', 'An operator applies sealant along a joint on the underside of the sink. The close view follows the application along the seam.', 'Герметик жағу', 'Шебер жуғыштың артқы жағындағы түйіспеге герметик жағады. Жақын план жағу қозғалысын көрсетеді.'), processId: 'sealing', durationLabel: '0:09' },
-    { ...row('', 'Ручная обработка нержавеющей стали', 'Оператор в перчатках подводит корпус смесителя к вращающемуся кругу и вручную обрабатывает поверхность. Рядом в деревянных лотках лежат корпуса.', 'Hand finishing stainless steel', 'A gloved operator brings a faucet body up to a rotating wheel and finishes its surface by hand. More bodies sit in wooden trays nearby.', 'Тот баспайтын болатты қолмен өңдеу', 'Оператор қолғап киіп, араластырғыш корпусын айналмалы дөңгелекке жақындатып, бетін қолмен өңдейді. Жанындағы ағаш науаларда басқа корпустар жатыр.'), processId: 'steel-finishing', durationLabel: '0:13' },
+    { ...row('', previousSteelCopy.title, 'На одном участке мастера руками устанавливают стальные детали в оснастку. На другом мастер в перчатках поворачивает корпус смесителя и шлифует его поверхность на вращающемся круге.', previousSteelCopy.translations.en.title, 'At one station, workers position the steel parts in fixtures by hand. At another, a gloved worker turns the faucet body against a rotating wheel to finish its surface.', previousSteelCopy.translations.kz.title, 'Бір учаскеде шеберлер болат бөлшектерді бекіткішке қолмен орнатады. Басқа учаскеде шебер қолғаппен араластырғыш корпусын бұрып, бетін айналмалы дөңгелекте тегістейді.'), processId: 'steel-finishing', durationLabel: '0:24' },
     { ...row('', 'Защитная упаковка', 'На упаковочном участке видны корпуса смесителей и тканевые чехлы на завязках. Крупные планы показывают детали и чехлы в транспортном ящике.', 'Protective packing', 'The packing area holds faucet bodies and fabric drawstring pouches. Close-ups show the parts and pouches in a transport crate.', 'Қорғаныш қаптама', 'Орау учаскесінде араластырғыш корпустары мен баулы мата қаптар көрінеді. Ірі планда тасымалдау жәшігіндегі бөлшектер мен қаптар көрсетілген.'), processId: 'packing', durationLabel: '0:13' }
   ].map(item => {
     const image = newProcessImages[item.processId];
-    const revision = image ? newProcessRevision : 'cut=3';
+    const revision = item.processId === 'steel-finishing' ? steelProcessRevision : image ? newProcessRevision : 'cut=3';
     return {
       ...item,
       mediaKind: item.processId === 'packing' ? 'documentary' : 'illustration',
@@ -102,17 +104,43 @@ export function localizeCompanyBlock(block, lang) {
   return { ...block, buttonText: buttons[lang]?.[block.companySection] || block.buttonText, ...block.translations?.[lang], items: block.items?.map(item => ({ ...item, ...item.translations?.[lang] })) };
 }
 
+const milestoneMedia = {
+  1998: ['images/factory/history/hanover.webp', 'В Ганновере открывается мастерская кухонной мебели.', 'A kitchen furniture workshop opens in Hanover.', 'Ганноверде асүй жиһазы шеберханасы ашылады.'],
+  2002: ['images/factory/history/wenzhou.webp', 'В Вэньчжоу открывается завод кухонной мебели.', 'A kitchen furniture factory opens in Wenzhou.', 'Вэньчжоуда асүй жиһазы зауыты ашылады.'],
+  2003: ['images/factory/metal-study.webp', 'Начинается работа над созданием завода смесителей.', 'Work begins on establishing a faucet factory.', 'Араластырғыштар зауытын құру жұмысы басталады.'],
+  2005: ['images/factory/history/distribution.webp', 'Открываются представительство в СНГ и первый склад смесителей LAUTE.', 'The CIS office and the first LAUTE faucet warehouse open.', 'ТМД-дағы өкілдік пен алғашқы LAUTE қоймасы ашылады.'],
+  2015: ['images/factory/craft-study.webp', 'Растут вложения в завод. Инженеры усиливают контроль качества.', 'Factory investment grows and engineers strengthen quality control.', 'Зауытқа инвестиция артып, инженерлер сапа бақылауын күшейтеді.'],
+  2025: ['images/partnership/ethereum-interior-v2.webp', 'LAUTE расширяет коллекции Solana, Ethereum и Bitcoin.', 'LAUTE expands its Solana, Ethereum and Bitcoin collections.', 'LAUTE Solana, Ethereum және Bitcoin коллекцияларын кеңейтеді.'],
+  2026: ['images/factory/history/almaty.webp', 'Новый склад в Алматы развивает логистику в Центральной Азии.', 'A new warehouse in Almaty supports Central Asian logistics.', 'Алматыдағы жаңа қойма Орталық Азиядағы логистиканы дамытады.']
+};
+
+export function getCompanyMilestones(items, lang = 'ru') {
+  const history = localizeCompanyBlock(COMPANY_BLOCKS.find(block => block.companySection === 'history'), lang);
+  return (items || []).filter(item => Object.hasOwn(milestoneMedia, item.year)).map(item => {
+    const [imageUrl, ru, en, kz] = milestoneMedia[item.year];
+    const stock = history.items.find(entry => entry.year === String(item.year));
+    const summary = item.desc === stock.desc ? ({ ru, en, kz }[lang] || ru) : item.desc;
+    return { ...item, imageUrl: item.imageUrl || imageUrl, summary };
+  });
+}
+
 const processFilmPattern = /^media\/processes\/(casting|trimming|machining|robot-polishing|sink-finishing|sealing|steel-finishing|packing)\.mp4(?:\?|$)/;
 
 export const isShippedProcessFilm = url => processFilmPattern.test(url || '');
+
+// Keep the retired stock card in the CMS, but publish only an employee replacement.
+export function getVisibleCompanyProcesses(items) {
+  return items.filter(item => item.videoUrl?.split('?')[0] !== 'media/processes/packing.mp4');
+}
 
 // Refresh shipped process films without overwriting employee media or CMS text.
 export function getCompanyProcessMedia(item) {
   const match = item.videoUrl?.match(processFilmPattern);
   if (!match) return item;
   const id = match[1], shippedPoster = `images/factory/processes/${id}-poster.webp`;
-  const revision = newProcessImages[id] ? newProcessRevision : id === 'robot-polishing' ? 'brand=10' : 'edit=6';
-  return { ...item, videoUrl: `media/processes/${id}.mp4?${revision}`, durationLabel: '0:13', posterUrl: item.posterUrl?.split('?')[0] === shippedPoster ? `${shippedPoster}?${revision}` : item.posterUrl };
+  const revision = id === 'steel-finishing' ? steelProcessRevision : newProcessImages[id] ? newProcessRevision : id === 'robot-polishing' ? 'brand=10' : 'edit=6';
+  const durationLabel = id === 'steel-finishing' ? '0:24' : '0:13';
+  return { ...item, videoUrl: `media/processes/${id}.mp4?${revision}`, durationLabel, posterUrl: item.posterUrl?.split('?')[0] === shippedPoster ? `${shippedPoster}?${revision}` : item.posterUrl };
 }
 
 function refreshStockCopy(saved, previous, current) {
@@ -136,6 +164,17 @@ function refreshProcessCopy(item, previous, current) {
   return {
     ...refreshStockCopy(item, { title: previous.title, desc: previous.desc }, current),
     translations: refreshTranslations(item.translations, previous.translations, current.translations)
+  };
+}
+
+function refreshSteelProcess(block, latest) {
+  const steel = latest.items.find(item => item.processId === 'steel-finishing');
+  return {
+    ...block,
+    items: block.items?.map(item => item.videoUrl?.split('?')[0] === 'media/processes/steel-finishing.mp4'
+      ? getCompanyProcessMedia(refreshProcessCopy(item, previousSteelCopy, steel))
+      : item),
+    processMediaVersion: latest.processMediaVersion
   };
 }
 
@@ -172,6 +211,10 @@ export function getCompanyBlocks(blocks = []) {
     let migrated = false;
     const upgraded = blocks.map(block => {
       if (block.companySection !== 'production') return block;
+      if (block.processMediaVersion === 4) {
+        migrated = true;
+        return refreshSteelProcess(block, latest);
+      }
       if ([1, 2, 3].includes(block.processMediaVersion)) {
         const items = block.processMediaVersion === 3 ? block.items : block.items?.map(item => {
           const current = latest.items.find(row => row.processId === item.processId);
@@ -189,7 +232,7 @@ export function getCompanyBlocks(blocks = []) {
           return previous ? refreshProcessCopy(updated, previous, current) : updated;
         });
         migrated = true;
-        return upgradeProcessGallery({ ...block, items }, latest);
+        return refreshSteelProcess(upgradeProcessGallery({ ...block, items }, latest), latest);
       }
       // Upgrade only the shipped six-image presentation, never employee media.
       const legacyIllustrations = block.items?.length === 6 && block.items.every(item => /^images\/factory\/laute-process-[a-z]+-v2\.webp$/.test(item.imageUrl || ''));

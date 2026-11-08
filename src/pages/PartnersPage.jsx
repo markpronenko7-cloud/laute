@@ -22,7 +22,7 @@ const regions = [
 ];
 
 function Jump({ target = 'partnership-form', children, secondary = false, onClick }) {
-  return <a href={'#' + target} className={secondary ? 'partnership-jump partnership-jump-alt' : 'partnership-jump'} onClick={event => {
+  return <a href={'#' + target} className={secondary ? 'partnership-jump partnership-jump-alt' : 'partnership-jump water-cta'} onClick={event => {
     event.preventDefault();
     onClick?.();
     const section = document.getElementById(target);
@@ -83,7 +83,7 @@ function PartnershipForm({ copy, lang, role, setRole }) {
             <label className="partnership-form-wide">{copy.experience}<textarea className="form-input" name="comment" rows={4} maxLength={3000} required={role !== 'RAP'} placeholder={copy.comment} /></label>
           </fieldset>
           <InquiryFeedback sending={status === 'sending'} error={status === 'error' ? copy.error : ''} />
-          <button type="submit" className="partnership-jump" disabled={status === 'sending'}>{copy.submit}<ArrowUpRight size={16} aria-hidden="true" /></button>
+          <button type="submit" className="partnership-jump water-cta" disabled={status === 'sending'}>{copy.submit}<ArrowUpRight size={16} aria-hidden="true" /></button>
         </form>}
       </div>
     </div>

@@ -275,7 +275,7 @@ export const Header = () => {
           {/* Main Wholesale Partner CTA */}
           <SiteAction controlId="header-2"
             type="button"
-            className="btn btn-primary btn-partner-cta"
+            className="btn btn-primary btn-partner-cta water-cta"
             onClick={openPartnerModal}
           >
             <span>{t.nav.requestQuote || 'Стать партнёром'}</span>
@@ -368,7 +368,7 @@ export const Header = () => {
               </SiteAction>
               <SiteAction controlId="header-4"
                 type="button"
-                className="btn btn-primary btn-full"
+                className="btn btn-primary btn-full water-cta"
                 onClick={() => {
                   setIsMobileMenuOpen(false);
                   openPartnerModal();
