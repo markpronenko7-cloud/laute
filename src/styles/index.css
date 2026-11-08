@@ -7576,6 +7576,15 @@ img {
    ========================================================================== */
 
 /* Product Detail Modal */
+.product-detail-modal > .modal-close-btn {
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  background: var(--bg-surface);
+}
+
 .product-modal-grid {
   display: grid;
   grid-template-columns: 1fr 1.15fr;
