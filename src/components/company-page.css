@@ -68,7 +68,6 @@ body:has(.company-page-v2) .header .select-trigger :is(.select-icon,.arrow-icon)
 .company-section--production>.company-section-heading { max-width:720px; }
 .company-processes { --process-radius:24px; }
 .company-processes-index { display:flex; justify-content:space-between; gap:20px; margin-bottom:20px; color:var(--company-muted); font-size:10px; letter-spacing:.14em; text-transform:uppercase; }
-.company-section .company-processes-note { margin:-9px 0 24px; font-size:11px; line-height:1.6; color:var(--company-muted); }
 .company-process { margin-top:16px; border:1px solid #182a2926; border-radius:var(--process-radius); background:#fff9; overflow:hidden; scroll-margin-top:110px; transition:border-color .25s,background .35s; }
 .company-process-reveal { display:grid; grid-template-rows:0fr; visibility:hidden; transition:grid-template-rows .42s cubic-bezier(.2,.7,.2,1),visibility .42s; }
 .company-process.is-open .company-process-reveal { grid-template-rows:1fr; visibility:visible; }

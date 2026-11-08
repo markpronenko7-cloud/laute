@@ -7,7 +7,7 @@ ISRC: USUAN1300046
 Retrieved: 2026-11-04
 Source SHA-256: F12CBB52BD4B92BD6CF8A343645567C119627E9CBF98108A3EB6AC2CC275EE46
 
-Used in all seven public/media/processes/*.mp4 process films, edit 6.
+Used in all eight public/media/processes/*.mp4 process films.
 One identical excerpt starts at 32s and lasts 13.0667s (392 video frames).
 Changes: excerpt, 7kHz low-pass, loudness normalization targeting -25 LUFS,
 true peak ceiling -4 dBTP, 0.35s fade in, 0.8s fade out, AAC encoding.

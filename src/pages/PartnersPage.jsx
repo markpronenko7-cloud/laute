@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { ArrowDown, ArrowUpRight, BadgeCheck, Layers3, TrendingUp } from 'lucide-react';
+import { ArrowDown, ArrowUpRight, ChevronDown } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { BlockRenderer } from '../components/builder/BlockRenderer';
 import { InquiryFeedback } from '../components/InquiryFeedback';
@@ -16,7 +16,6 @@ const models = [
   { article: 'ETH163GQ', collection: 'Ethereum', finish: 1 },
   { article: 'A0163', collection: 'A01', finish: 2 }
 ];
-const benefitIcons = [BadgeCheck, Layers3, TrendingUp];
 const regions = [
   ...REGIONS_CONFIG,
   PARTNER_REGIONS.find(option => option.id === 'other')
@@ -92,7 +91,7 @@ function PartnershipForm({ copy, lang, role, setRole }) {
 }
 
 export const PartnersPage = () => {
-  const { pagesList = [], lang, t, products, openProductModal } = useApp();
+  const { pagesList = [], lang, products, openProductModal, openAuthModal } = useApp();
   const copy = partnership[lang] || partnership.ru;
   const [expanded, setExpanded] = useState('');
   const [role, setRole] = useState('');
@@ -101,58 +100,41 @@ export const PartnersPage = () => {
 
   return <div className="partnership">
     <header className="partnership-hero">
-      <div className="container partnership-split">
-        <div>
-          <span className="partnership-eyebrow">LAUTE / {t.nav.partners}</span>
+      <div className="container partnership-hero-layout">
+        <div className="partnership-hero-copy">
           <h1>{copy.title}</h1>
           <p>{copy.subtitle}</p>
           <div className="partnership-actions">
             <Jump target="partnership-roles">{copy.choose}</Jump>
             <Jump secondary>{copy.discuss}</Jump>
           </div>
+          <button type="button" className="partnership-account" onClick={openAuthModal}>{copy.account} <ArrowUpRight size={15} aria-hidden="true" /></button>
         </div>
         <figure className="partnership-hero-feature">
           <div className="partnership-hero-photo">
-            <img src={photo('eth103d')} alt="LAUTE Ethereum ETH103D" fetchPriority="high" />
+            <img src={photo('ethereum-interior-v2')} alt={copy.heroAlt} width="1536" height="1024" fetchPriority="high" />
           </div>
           <figcaption><strong>LAUTE Ethereum</strong><span>ETH103D · {copy.finishes[0]}</span></figcaption>
         </figure>
       </div>
     </header>
 
-    <section className="container partnership-section partnership-split">
-      <div>
-        <h2>{copy.about}</h2>
-        {copy.story.map(paragraph => <p key={paragraph}>{paragraph}</p>)}
-      </div>
-      <figure className="partnership-study">
-        <img src={photo('design-study')} alt="" loading="lazy" />
-        <figcaption>{copy.caption}</figcaption>
-      </figure>
-    </section>
-
-    <section className="container partnership-section partnership-benefits">
-      <h2>{copy.benefitsTitle}</h2>
-      <ul className="partnership-grid partnership-three">
-        {copy.benefits.map((benefit, index) => {
-          const Icon = benefitIcons[index];
-          return <li key={benefit}><Icon size={30} aria-hidden="true" /><p>{benefit}</p></li>;
-        })}
-      </ul>
-    </section>
-
     <section className="partnership-role-wrap" id="partnership-roles" tabIndex={-1}>
-      <div className="container partnership-section">
-        <h2>{copy.rolesTitle}</h2>
-        <p>{copy.rolesQuestion}</p>
-        <div className="partnership-grid partnership-role-grid">
+      <div className="container partnership-section partnership-split">
+        <div>
+          <h2>{copy.rolesTitle}</h2>
+          <p>{copy.rolesQuestion}</p>
+        </div>
+        <div className="partnership-role-list">
           {copy.roles.map(([name, tagline, description], index) => {
             const code = ROLE_CODES[index];
             const open = expanded === code;
             return <article className="partnership-role" data-open={open} key={code}>
               <h3><button type="button" aria-expanded={open} aria-controls={'partnership-role-' + code}
                 onClick={() => { setExpanded(open ? '' : code); setRole(code); }}>
-                <span>{name}</span><span className="partnership-role-code">{code}</span><small>{tagline}</small>
+                <span className="partnership-role-code">{code}</span>
+                <span>{name}<small>{tagline}</small></span>
+                <ChevronDown size={19} aria-hidden="true" />
               </button></h3>
               <div id={'partnership-role-' + code} hidden={!open} className="partnership-role-details">
                 <small lang="en">{ROLE_EXPANSIONS[index]}</small>
@@ -165,10 +147,31 @@ export const PartnersPage = () => {
       </div>
     </section>
 
+    <section className="container partnership-section partnership-split partnership-story">
+      <div>
+        <h2>{copy.about}</h2>
+        {copy.story.map(paragraph => <p key={paragraph}>{paragraph}</p>)}
+      </div>
+      <figure>
+        <img src={photo('design-study')} alt="" loading="lazy" />
+        <figcaption>{copy.caption}</figcaption>
+      </figure>
+    </section>
+
+    <section className="container partnership-section partnership-benefits">
+      <h2>{copy.benefitsTitle}</h2>
+      <ol className="partnership-grid partnership-three">
+        {copy.benefits.map((benefit, index) => <li key={benefit}>
+          <span aria-hidden="true" className="partnership-eyebrow">{String(index + 1).padStart(2, '0')}</span>
+          <p>{benefit}</p>
+        </li>)}
+      </ol>
+    </section>
+
     <section className="partnership-banner">
       <div className="container partnership-split">
-        <div><h2>{copy.banner}</h2><p>{copy.bannerText}</p><Jump>{copy.bannerCta}</Jump></div>
-        <img src={photo('eth163gq')} alt="" loading="lazy" />
+        <div><h2>{copy.banner}</h2><p>{copy.bannerText}</p></div>
+        <Jump>{copy.bannerCta}</Jump>
       </div>
     </section>
 

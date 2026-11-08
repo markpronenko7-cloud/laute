@@ -30,7 +30,6 @@ body:has(.company-page-wrap) .header .select-trigger :is(.select-icon,.arrow-ico
 .factory-film-player figcaption>span:last-child{margin-left:auto;white-space:nowrap}
 .factory-film-player>p{padding:20px 24px;font-size:14px;color:#202b34}
 .factory-film-player>p a{color:#1d4ed8;text-decoration:underline}
-.factory-film-player>.factory-cover-note{margin:0;padding:0 clamp(24px,5vw,80px) 16px;font-size:11px;color:#73808a;line-height:1.6}
 .company-page-wrap .section-title{color:#202b34;letter-spacing:-.035em;font-weight:500}
 .company-page-wrap .section-badge{background:transparent;color:#66757e;border:0;padding:0;letter-spacing:.14em;font-size:11px}
 .company-page-wrap .builder-image-text-block{gap:clamp(32px,7vw,110px)!important;align-items:center}
@@ -78,7 +77,6 @@ body:has(.company-page-wrap) .header .select-trigger :is(.select-icon,.arrow-ico
  .factory-film-index{display:none}
  .factory-film-player video{aspect-ratio:4/5;object-fit:cover}
  .factory-film-player figcaption{padding:16px 22px 10px;font-size:8px;letter-spacing:.06em}
- .factory-film-player>.factory-cover-note{padding:0 22px 18px;font-size:10px}
  .factory-visual-disclosure{text-align:left;margin-top:-36px;padding-bottom:36px;font-size:10px}
  .factory-production-heading{grid-template-columns:minmax(0,1fr);gap:18px;margin-bottom:32px}
  .factory-production-grid{gap:48px}

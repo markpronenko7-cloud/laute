@@ -7,6 +7,27 @@ const section = (name, type, title, subtitle, enTitle, enSubtitle, kzTitle, kzSu
   style: { background: 'deep', padding: 'lg' }, ...extra
 });
 
+const legacyPacking = row('', 'Комплектация и упаковка', 'Смеситель и комплектующие размещают в формованном вкладыше, затем закрывают коробку. Отдельный ролик показывает работу упаковочного участка.', 'Kitting and packing', 'The faucet and accessories are placed into a moulded insert before the box is closed. A dedicated edit follows the packing operation.', 'Жинақтау және орау', 'Араластырғыш пен бөлшектер қалыпталған төсемге орналастырылып, қорап жабылады. Жеке бейне орау жұмысын көрсетеді.');
+const legacyMachiningCopy = {
+  trimming: row('', 'Обрезка отливок', 'На прессе отделяют лишний металл от отливки. Затем заготовки собирают в производственную тару для дальнейшей обработки.', 'Trimming the castings', 'A press removes excess metal from the castings. The blanks are then collected for further processing.', 'Құймаларды кесу', 'Пресс құймадағы артық металды алып тастайды. Дайындамалар келесі өңдеуге жиналады.'),
+  machining: row('', 'Механическая обработка', 'Режущий инструмент обрабатывает металлическую заготовку. Крупный план показывает рабочую зону станка, стружку и детали после операции.', 'Machining the blanks', 'A cutting tool machines the metal blank. A close view shows the working area, metal chips and parts after machining.', 'Механикалық өңдеу', 'Кескіш құрал металл дайындаманы өңдейді. Жақын планда станоктың жұмыс аймағы, жоңқа және өңделген бөлшектер көрінеді.')
+};
+const previousProductionIntro = {
+  ru: 'Смесители и мойки: металл, работа оборудования и ручная доводка. Семь процессов — в деталях и в движении.',
+  en: 'Faucets and sinks: metal, machinery and hand finishing. Seven processes, in detail and in motion.',
+  kz: 'Араластырғыштар мен жуғыштар: металл, жабдық жұмысы және қолмен өңдеу. Жеті үдеріс — бөлшектерімен және қозғалыста.'
+};
+const productionIntro = {
+  ru: 'Смесители и мойки: металл, работа оборудования и ручная доводка.',
+  en: 'Faucets and sinks: metal, machinery and hand finishing.',
+  kz: 'Араластырғыштар мен жуғыштар: металл, жабдық жұмысы және қолмен өңдеу.'
+};
+const newProcessImages = {
+  'steel-finishing': 'images/factory/processes/steel-finishing.webp',
+  packing: 'images/factory/processes/packing-pouches.webp'
+};
+const newProcessRevision = 'edit=11';
+
 export const COMPANY_BLOCKS = [
   section('hero', 'image_text', "Вода — часть жизни. Производство смесителей — наша работа.", "Мы создаём смесители и сантехнику для кухни и ванной. За каждым изделием LAUTE — производство, работа инженеров и опыт, который начинается в 1998 году.", "Water is part of life. Making faucets is our work.", "We make faucets and fittings for kitchens and bathrooms. Behind LAUTE are manufacturing, engineering and a story that began in 1998.", "Су — өмірдің бір бөлігі. Араластырғыштар жасау — біздің жұмысымыз.", "Біз асүй мен ваннаға арналған араластырғыштар мен сантехника жасаймыз. LAUTE артында өндіріс, инженерлер еңбегі және 1998 жылдан басталған тәжірибе тұр.", { badge: 'О LAUTE', imageUrl: 'images/hero/hero-slide-1.jpg', buttonText: 'Обсудить сотрудничество', buttonLink: '#company-v2-inquiry' }),
   section('scale', 'features', "От производства до вашего проекта", "Заводы, склады и партнёры — одна сеть, которая связывает производство с магазинами и покупателями.", "From the factory to your project", "Factories, warehouses and partners connect manufacturing with stores and customers.", "Өндірістен сіздің жобаңызға дейін", "Зауыттар, қоймалар мен серіктестер өндірісті дүкендермен және сатып алушылармен байланыстырады.", { items: [
@@ -30,15 +51,27 @@ export const COMPANY_BLOCKS = [
     row('2025', 'Расширение коллекций LAUTE', 'Расширяем коллекции флагманского бренда LAUTE. Solana, Ethereum и Bitcoin отсылают к миру Web3 и интересу бренда к технологиям будущего, включая AI.', 'Expanding LAUTE collections', 'The flagship LAUTE collections expand. Solana, Ethereum and Bitcoin reference Web3 and the brand’s interest in future technologies, including AI.', 'LAUTE коллекцияларын кеңейту', 'LAUTE негізгі брендінің коллекциялары кеңейеді. Solana, Ethereum және Bitcoin Web3 әлеміне және брендтің AI қоса болашақ технологияларына қызығушылығына сілтейді.'),
     row('2026', 'Склад в Алматы', 'Открываем склад в Алматы — на историческом Шёлковом пути. Развиваем логистику в Центральной Азии, чтобы быть ближе к партнёрам.', 'A warehouse in Almaty', 'A warehouse opens in Almaty on the historic Silk Road, bringing Central Asian logistics closer to our partners.', 'Алматыдағы қойма', 'Тарихи Жібек жолындағы Алматыда қойма ашылады. Серіктестерге жақын болу үшін Орталық Азиядағы логистиканы дамытамыз.')
   ] }),
-  section('production', 'gallery', "Прежде чем открыть воду", "Смесители и мойки: металл, работа оборудования и ручная доводка. Семь процессов — в деталях и в движении.", "Before the water flows", "Faucets and sinks: metal, machinery and hand finishing. Seven processes, in detail and in motion.", "Суды ашқанға дейін", "Араластырғыштар мен жуғыштар: металл, жабдық жұмысы және қолмен өңдеу. Жеті үдеріс — бөлшектерімен және қозғалыста.", { processMediaVersion: 3, items: [
+  section('production', 'gallery', 'Прежде чем открыть воду', productionIntro.ru, 'Before the water flows', productionIntro.en, 'Суды ашқанға дейін', productionIntro.kz, { processMediaVersion: 4, items: [
     { ...row('', 'Литьё заготовок', 'Расплавленный металл переносят из печи в форму. В кадре — заливка и работа с литейной оснасткой.', 'Casting the blanks', 'Molten metal is transferred from the furnace into a mould. The footage shows pouring and work at the casting station.', 'Дайындамаларды құю', 'Балқыған металл пештен қалыпқа құйылады. Кадрда құю және қалыппен жұмыс көрсетілген.'), processId: 'casting', durationLabel: '0:14' },
     { ...row('', 'Работа с литейной формой', 'Мастер вручную работает с металлической формой на столе. Показываем оснастку, рабочий жест и собранные отливки — без подмены этой операции другим процессом.', 'Working with the casting mould', 'An operator works with a metal casting mould at the bench. The edit shows the fixture, the manual operation and collected castings.', 'Құю қалыбымен жұмыс', 'Шебер үстелдегі металл қалыппен қолмен жұмыс істейді. Бейнеде қалып, жұмыс қимылы және жиналған құймалар көрсетілген.'), processId: 'trimming', durationLabel: '0:11' },
     { ...row('', 'Станочная обработка', 'Станочный участок, рабочая зона оборудования и партии заготовок. Крупные планы показывают видимую оснастку и детали.', 'The machine shop', 'The machine shop, the equipment working area and batches of blanks. Close views show the actual fixtures and parts.', 'Станокта өңдеу', 'Станок учаскесі, жабдықтың жұмыс аймағы және дайындамалар. Жақын планда нақты жабдық пен бөлшектер көрінеді.'), processId: 'machining', durationLabel: '0:11' },
     { ...row('', 'Роботизированная полировка', 'Манипулятор подводит корпус к полировальному кругу и меняет положение детали. Общий и крупный планы показывают одну и ту же операцию с разных точек.', 'Robotic polishing', 'A robot brings the body to the polishing wheel and changes its position. Wide and close views show the same operation from different angles.', 'Роботпен жылтырату', 'Робот корпусты жылтырату дөңгелегіне жақындатып, оның қалпын өзгертеді. Үдеріс әртүрлі нүктеден көрсетілген.'), processId: 'robot-polishing', durationLabel: '0:15' },
     { ...row('', 'Ручная обработка моек', 'Мастер последовательно обрабатывает поверхность и края мойки ручным инструментом. Здесь важны доступ к углам и контроль каждого движения.', 'Hand finishing the sinks', 'An operator works the sink surface and edges with a handheld tool, reaching the corners and controlling each pass.', 'Жуғыштарды қолмен өңдеу', 'Шебер жуғыштың беті мен жиектерін қол құралымен өңдейді, бұрыштарға жетіп, әр қозғалысты бақылайды.'), processId: 'sink-finishing', durationLabel: '0:13' },
     { ...row('', 'Нанесение герметика', 'На обратной стороне мойки мастер наносит состав вдоль стыка. Крупный план сохраняет весь рабочий жест — от движения пистолета до готовой полосы.', 'Applying sealant', 'An operator applies sealant along a joint on the underside of the sink. The close view follows the application along the seam.', 'Герметик жағу', 'Шебер жуғыштың артқы жағындағы түйіспеге герметик жағады. Жақын план жағу қозғалысын көрсетеді.'), processId: 'sealing', durationLabel: '0:09' },
-    { ...row('', 'Комплектация и упаковка', 'Смеситель и комплектующие размещают в формованном вкладыше, затем закрывают коробку. Отдельный ролик показывает работу упаковочного участка.', 'Kitting and packing', 'The faucet and accessories are placed into a moulded insert before the box is closed. A dedicated edit follows the packing operation.', 'Жинақтау және орау', 'Араластырғыш пен бөлшектер қалыпталған төсемге орналастырылып, қорап жабылады. Жеке бейне орау жұмысын көрсетеді.'), processId: 'packing', durationLabel: '0:19' }
-  ].map(item => ({ ...item, mediaKind: 'illustration', videoKind: 'documentary', imageUrl: `images/factory/processes/illustrations-v3/${item.processId}.webp`, posterUrl: `images/factory/processes/${item.processId}-poster.webp?cut=3`, videoUrl: `media/processes/${item.processId}.mp4?cut=3` })) }),
+    { ...row('', 'Ручная обработка нержавеющей стали', 'Оператор в перчатках подводит корпус смесителя к вращающемуся кругу и вручную обрабатывает поверхность. Рядом в деревянных лотках лежат корпуса.', 'Hand finishing stainless steel', 'A gloved operator brings a faucet body up to a rotating wheel and finishes its surface by hand. More bodies sit in wooden trays nearby.', 'Тот баспайтын болатты қолмен өңдеу', 'Оператор қолғап киіп, араластырғыш корпусын айналмалы дөңгелекке жақындатып, бетін қолмен өңдейді. Жанындағы ағаш науаларда басқа корпустар жатыр.'), processId: 'steel-finishing', durationLabel: '0:13' },
+    { ...row('', 'Защитная упаковка', 'На упаковочном участке видны корпуса смесителей и тканевые чехлы на завязках. Крупные планы показывают детали и чехлы в транспортном ящике.', 'Protective packing', 'The packing area holds faucet bodies and fabric drawstring pouches. Close-ups show the parts and pouches in a transport crate.', 'Қорғаныш қаптама', 'Орау учаскесінде араластырғыш корпустары мен баулы мата қаптар көрінеді. Ірі планда тасымалдау жәшігіндегі бөлшектер мен қаптар көрсетілген.'), processId: 'packing', durationLabel: '0:13' }
+  ].map(item => {
+    const image = newProcessImages[item.processId];
+    const revision = image ? newProcessRevision : 'cut=3';
+    return {
+      ...item,
+      mediaKind: item.processId === 'packing' ? 'documentary' : 'illustration',
+      videoKind: 'documentary',
+      imageUrl: image || `images/factory/processes/illustrations-v3/${item.processId}.webp`,
+      posterUrl: `images/factory/processes/${item.processId}-poster.webp?${revision}`,
+      videoUrl: `media/processes/${item.processId}.mp4?${revision}`
+    };
+  }) }),
   section('range', 'features', "Для дома, в котором живут", "Смесители для кухни и ванной, душевые системы, мойки и комплектующие. Выберите то, что подходит вашему пространству и привычкам.", "For the home you live in", "Kitchen and bathroom faucets, shower systems, sinks and components. Find what fits your space and your daily routine.", "Өмірге толы үйге арналған", "Асүй мен ванна араластырғыштары, душ жүйелері, жуғыштар және бөлшектер. Кеңістігіңіз бен әдеттеріңізге сай өнімді таңдаңыз.", { buttonText: 'Перейти в каталог', buttonLink: '/catalog', items: [
     row('', 'LAUTE · до 10 лет', 'Гарантия на смесители LAUTE. Условия — в талоне вашей модели.', 'LAUTE · up to 10 years', 'Warranty for LAUTE faucets. See your model’s warranty card for terms.', 'LAUTE · 10 жылға дейін', 'LAUTE араластырғыштарына кепілдік. Шарттары модель талонында көрсетілген.'),
     row('', 'Oute · до 7 лет', 'Гарантия на смесители Oute. Условия — в талоне вашей модели.', 'Oute · up to 7 years', 'Factory-stated warranty for Oute faucets.', 'Oute · 7 жылға дейін', 'Oute араластырғыштарына зауыт мәлімдеген кепілдік.'),
@@ -69,54 +102,107 @@ export function localizeCompanyBlock(block, lang) {
   return { ...block, buttonText: buttons[lang]?.[block.companySection] || block.buttonText, ...block.translations?.[lang], items: block.items?.map(item => ({ ...item, ...item.translations?.[lang] })) };
 }
 
+const processFilmPattern = /^media\/processes\/(casting|trimming|machining|robot-polishing|sink-finishing|sealing|steel-finishing|packing)\.mp4(?:\?|$)/;
+
+export const isShippedProcessFilm = url => processFilmPattern.test(url || '');
+
 // Refresh shipped process films without overwriting employee media or CMS text.
 export function getCompanyProcessMedia(item) {
-  const match = item.videoUrl?.match(/^media\/processes\/(casting|trimming|machining|robot-polishing|sink-finishing|sealing|packing)\.mp4(?:\?|$)/);
+  const match = item.videoUrl?.match(processFilmPattern);
   if (!match) return item;
   const id = match[1], shippedPoster = `images/factory/processes/${id}-poster.webp`;
-  const revision = ['packing', 'robot-polishing'].includes(id) ? 'brand=10' : 'edit=6';
+  const revision = newProcessImages[id] ? newProcessRevision : id === 'robot-polishing' ? 'brand=10' : 'edit=6';
   return { ...item, videoUrl: `media/processes/${id}.mp4?${revision}`, durationLabel: '0:13', posterUrl: item.posterUrl?.split('?')[0] === shippedPoster ? `${shippedPoster}?${revision}` : item.posterUrl };
+}
+
+function refreshStockCopy(saved, previous, current) {
+  const updated = { ...saved };
+  for (const field of Object.keys(previous)) {
+    if (saved[field] === previous[field]) updated[field] = current[field];
+  }
+  return updated;
+}
+
+function refreshTranslations(saved, previous, current) {
+  if (!saved) return saved;
+  const translations = { ...saved };
+  for (const lang of ['en', 'kz']) {
+    if (saved[lang]) translations[lang] = refreshStockCopy(saved[lang], previous[lang], current[lang]);
+  }
+  return translations;
+}
+
+function refreshProcessCopy(item, previous, current) {
+  return {
+    ...refreshStockCopy(item, { title: previous.title, desc: previous.desc }, current),
+    translations: refreshTranslations(item.translations, previous.translations, current.translations)
+  };
+}
+
+function upgradeProcessGallery(block, latest) {
+  const packing = latest.items.find(item => item.processId === 'packing');
+  const steel = latest.items.find(item => item.processId === 'steel-finishing');
+  const items = (block.items || []).map(item => {
+    if (item.processId !== 'packing' || item.videoUrl?.split('?')[0] !== 'media/processes/packing.mp4') return item;
+    const updated = getCompanyProcessMedia(refreshProcessCopy(item, legacyPacking, packing));
+    if (item.imageUrl === 'images/factory/processes/illustrations-v3/packing.webp') {
+      updated.imageUrl = packing.imageUrl;
+      updated.mediaKind = packing.mediaKind;
+    }
+    return updated;
+  });
+  if (!items.some(item => item.processId === steel.processId)) {
+    const packingIndex = items.findIndex(item => item.processId === 'packing');
+    items.splice(packingIndex === -1 ? items.length : packingIndex, 0, steel);
+  }
+  const intro = lang => ({ subtitle: previousProductionIntro[lang] });
+  return {
+    ...refreshStockCopy(block, intro('ru'), latest),
+    translations: refreshTranslations(block.translations, { en: intro('en'), kz: intro('kz') }, latest.translations),
+    items,
+    processMediaVersion: latest.processMediaVersion
+  };
 }
 
 // Migrate the previous system presentation once; employee-added blocks survive.
 // Saved blocks retain their order and visibility; shipped illustrations upgrade.
 export function getCompanyBlocks(blocks = []) {
   if (blocks.some(b => b.companySection)) {
+    const latest = COMPANY_BLOCKS.find(item => item.companySection === 'production');
     let migrated = false;
     const upgraded = blocks.map(block => {
-      if (block.companySection === 'production' && [1, 2].includes(block.processMediaVersion)) {
-        const latest = COMPANY_BLOCKS.find(item => item.companySection === 'production');
-        const items = block.items?.map(item => {
+      if (block.companySection !== 'production') return block;
+      if ([1, 2, 3].includes(block.processMediaVersion)) {
+        const items = block.processMediaVersion === 3 ? block.items : block.items?.map(item => {
           const current = latest.items.find(row => row.processId === item.processId);
           if (!current) return item;
           let updated = item;
           if (item.videoUrl?.split('?')[0] === `media/processes/${item.processId}.mp4`) {
-            updated = { ...updated, videoUrl: current.videoUrl, posterUrl: current.posterUrl, videoKind: current.videoKind, durationLabel: current.durationLabel };
+            const stockPoster = `images/factory/processes/${item.processId}-poster.webp`;
+            updated = { ...updated, videoUrl: current.videoUrl, videoKind: current.videoKind, durationLabel: current.durationLabel };
+            if (!item.posterUrl || item.posterUrl.split('?')[0] === stockPoster) updated.posterUrl = current.posterUrl;
           }
           if (item.imageUrl === `images/factory/processes/${item.processId}.webp`) {
             updated = { ...updated, imageUrl: current.imageUrl, mediaKind: current.mediaKind };
           }
-          if (['Обрезка отливок', 'Механическая обработка'].includes(item.title)) {
-            updated = { ...updated, title: current.title, desc: current.desc, translations: current.translations };
-          }
-          return updated;
+          const previous = legacyMachiningCopy[item.processId];
+          return previous ? refreshProcessCopy(updated, previous, current) : updated;
         });
         migrated = true;
-        return { ...block, items, processMediaVersion: latest.processMediaVersion };
+        return upgradeProcessGallery({ ...block, items }, latest);
       }
       // Upgrade only the shipped six-image presentation, never employee media.
-      const legacyIllustrations = block.companySection === 'production' && block.items?.length === 6 && block.items.every(item => /^images\/factory\/laute-process-[a-z]+-v2\.webp$/.test(item.imageUrl || ''));
+      const legacyIllustrations = block.items?.length === 6 && block.items.every(item => /^images\/factory\/laute-process-[a-z]+-v2\.webp$/.test(item.imageUrl || ''));
       if (!legacyIllustrations) return block;
       migrated = true;
-      const production = COMPANY_BLOCKS.find(item => item.companySection === 'production');
       return {
-        ...block, items: production.items, subtitle: production.subtitle,
+        ...block, items: latest.items, subtitle: block.subtitle || latest.subtitle,
         translations: {
           ...block.translations,
-          en: { ...block.translations?.en, subtitle: production.translations.en.subtitle },
-          kz: { ...block.translations?.kz, subtitle: production.translations.kz.subtitle }
+          en: { subtitle: latest.translations.en.subtitle, ...block.translations?.en },
+          kz: { subtitle: latest.translations.kz.subtitle, ...block.translations?.kz }
         },
-        processMediaVersion: production.processMediaVersion
+        processMediaVersion: latest.processMediaVersion
       };
     });
     return migrated ? upgraded : blocks;

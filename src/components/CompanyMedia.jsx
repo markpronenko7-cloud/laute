@@ -2,6 +2,7 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Expand, X } from 'lucide-react';
 import { resolveMediaUrl } from '../services/adminApi';
+import { isShippedProcessFilm } from '../data/factoryStory';
 
 // Native dialog supplies focus containment, Escape handling and an inert background.
 export function CompanyMedia({ children, title, lang = 'ru', imageUrl, video = false, videoUrl, posterUrl }) {
@@ -9,7 +10,7 @@ export function CompanyMedia({ children, title, lang = 'ru', imageUrl, video = f
   const [open, setOpen] = useState(false), [closing, setClosing] = useState(false);
   const [failed, setFailed] = useState(false);
   const id = useId();
-  const processFilm = /^media\/processes\/(casting|trimming|machining|robot-polishing|sink-finishing|sealing|packing)\.mp4(?:\?|$)/.test(videoUrl || '');
+  const processFilm = isShippedProcessFilm(videoUrl);
   const closeLabel = lang === 'en' ? 'Close' : lang === 'kz' ? 'Жабу' : 'Закрыть';
   const openLabel = lang === 'en' ? 'Open media' : lang === 'kz' ? 'Медианы ашу' : 'Открыть медиа';
   const close = () => {

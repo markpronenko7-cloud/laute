@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import { test } from 'node:test';
 import { transform } from 'esbuild';
-import { getCompanyProcessMedia } from '../src/data/factoryStory.js';
+import { getCompanyProcessMedia, isShippedProcessFilm } from '../src/data/factoryStory.js';
 
 async function harness(file, props) {
   const slots = [], effects = [], timers = [];
@@ -26,7 +26,7 @@ async function harness(file, props) {
   let mapZoom = 2;
   const instance = { fitBounds: (coords, options) => { stats.bounds = coords; stats.boundsOptions = options; }, flyTo: (coords, zoom, options) => { stats.fly = { coords, zoom, options }; }, getZoom: () => mapZoom, zoomIn: () => { mapZoom++; stats.mapEvents.zoomend?.(); }, zoomOut: () => { mapZoom--; stats.mapEvents.zoomend?.(); }, on: (name, fn) => { stats.mapEvents[name] = fn; }, remove: () => { stats.removed = true; }, invalidateSize() {}, mouseEventToLatLng: () => [1, 2], setZoomAround: (point, zoom) => { stats.wheelZoom = zoom; mapZoom = zoom; } };
   const Leaflet = { map: (node, options) => { stats.mapOptions = options; return instance; }, tileLayer: (url, options) => { stats.tiles = { url, options }; const layer = { on: (name, fn) => { stats.tileEvents[name] = fn; return layer; }, addTo: () => layer }; return layer; }, divIcon: x => x, marker: (coords, options) => { const record = { coords, options, attributes: {} }; const marker = { addTo: () => marker, on: (_, fn) => { record.click = fn; return marker; }, getElement: () => ({ setAttribute: (k, v) => { record.attributes[k] = v; }, classList: { toggle: (name, value) => { record[name] = value; } } }) }; stats.markers.push(record); return marker; } };
-  vm.runInNewContext(code, { exports: module.exports, module, require: name => name === 'leaflet' ? Leaflet : name === 'react' ? React : name === 'react-dom' ? { createPortal: x => x } : name === 'lucide-react' ? icons : { resolveMediaUrl: x => '/laute/' + x }, document, IntersectionObserver: class { constructor(fn) { this.fn = fn; } observe() { this.fn([{ isIntersecting: true }]); } disconnect() {} }, ResizeObserver: class { observe() {} disconnect() {} }, window: { matchMedia: () => ({ matches: reduced }) }, setTimeout: (fn, delay) => { stats.delay = delay; timers.push(fn); return timers.length; }, clearTimeout: () => {} });
+  vm.runInNewContext(code, { exports: module.exports, module, require: name => name === 'leaflet' ? Leaflet : name === 'react' ? React : name === 'react-dom' ? { createPortal: x => x } : name === 'lucide-react' ? icons : name === '../data/factoryStory' ? { isShippedProcessFilm } : { resolveMediaUrl: x => '/laute/' + x }, document, IntersectionObserver: class { constructor(fn) { this.fn = fn; } observe() { this.fn([{ isIntersecting: true }]); } disconnect() {} }, ResizeObserver: class { observe() {} disconnect() {} }, window: { matchMedia: () => ({ matches: reduced }) }, setTimeout: (fn, delay) => { stats.delay = delay; timers.push(fn); return timers.length; }, clearTimeout: () => {} });
   const exports = module.exports;
   const Component = exports[Object.keys(exports).find(x => x.startsWith('Company'))];
   function walk(node) { if (!node || typeof node !== 'object') return []; return [node, ...(node.children || []).flatMap(walk)]; }
@@ -48,9 +48,10 @@ test('Advertising cache refresh preserves custom employee films, posters and tex
   assert.equal(shipped.title, custom.title); assert.equal(shipped.posterUrl, custom.posterUrl);
   assert.equal(shipped.durationLabel, '0:13'); assert.equal(shipped.videoUrl, 'media/processes/casting.mp4?edit=6');
   const packing = getCompanyProcessMedia({ videoUrl: 'media/processes/packing.mp4?edit=6', posterUrl: 'images/factory/processes/packing-poster.webp?edit=6' });
-  assert.equal(packing.videoUrl, 'media/processes/packing.mp4?brand=10');
+  assert.equal(packing.videoUrl, 'media/processes/packing.mp4?edit=11');
   assert.equal(packing.durationLabel, '0:13');
-  assert.equal(packing.posterUrl, 'images/factory/processes/packing-poster.webp?brand=10');
+  assert.equal(packing.posterUrl, 'images/factory/processes/packing-poster.webp?edit=11');
+  assert.equal(isShippedProcessFilm('media/processes/steel-finishing.mp4?edit=11'), true);
   const robot = getCompanyProcessMedia({ videoUrl: 'media/processes/robot-polishing.mp4?edit=6' });
   assert.equal(robot.videoUrl, 'media/processes/robot-polishing.mp4?brand=10');
   assert.equal(robot.durationLabel, '0:13');

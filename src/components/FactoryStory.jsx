@@ -39,7 +39,6 @@ export function FactoryFilm({ block, isEditor, onLink }) {
       {!isEditor && !started && !failed && <button type="button" className="factory-film-play" onClick={() => videoRef.current?.play().catch(() => setFailed(true))}><Play size={22} aria-hidden="true"/><span>{en ? 'Watch the film' : kz ? 'Фильмді көру' : 'Смотреть фильм'}</span></button>}
       </div>
       <figcaption><Play size={13}/><span>{motionFilm ? (en ? 'BRAND FILM / ARTISTIC 3D VISUALIZATION' : 'БРЕНД-ФИЛЬМ / ХУДОЖЕСТВЕННАЯ 3D-ВИЗУАЛИЗАЦИЯ') : (en ? 'FACTORY JOURNAL' : kz ? 'ӨНДІРІС КҮНДЕЛІГІ' : 'КОРОТКИЙ ФИЛЬМ / РЕАЛЬНЫЕ СЪЁМКИ')}</span><span>{documentary ? '00:20' : 'RU / EN'}</span></figcaption>
-      {documentary && /-study\.webp$/.test(poster || '') && <p className="factory-cover-note">{en ? 'Cover image: AI-generated conceptual illustration. The film contains actual footage.' : kz ? 'Мұқаба — ЖИ көмегімен жасалған көркем бейне. Фильмде шынайы кадрлар.' : 'Обложка — концептуальная AI-визуализация. В фильме — реальные съёмки.'}</p>}
       {failed && <p role="alert">{en ? 'Video unavailable.' : kz ? 'Бейне жүктелмеді.' : 'Видео не загрузилось.'} <a href={resolveMediaUrl(videoUrl)}>{en ? 'Open video file' : kz ? 'Бейнені ашу' : 'Открыть видеофайл'}</a></p>}
     </figure>
   </div>;
@@ -98,11 +97,11 @@ export function FactoryGallery({ block }) {
       <div className="factory-production-heading">
         <span className="factory-eyebrow">{en ? (visualStudy ? 'MATERIAL STUDIES' : 'MATERIAL / PROCESS / PEOPLE') : kz ? (visualStudy ? 'МАТЕРИАЛДАРДЫҢ КӨРКЕМ БЕЙНЕСІ' : 'МАТЕРИАЛ / ҮДЕРІС / АДАМДАР') : block.badge}</span>
         <h2>{en ? (visualStudy ? 'Material and form.' : 'A closer look at production.') : kz ? (visualStudy ? 'Материал және пішін.' : 'Өндіріске жақынырақ.') : block.title}</h2>
-        <p>{en ? (visualStudy ? 'An illustrative series about metal and machining. Images created with AI.' : 'Real moments from the factory floor, captured during production.') : kz ? (visualStudy ? 'Металл мен өңдеу туралы көркем серия. Суреттер ЖИ көмегімен жасалған.' : 'Өндіріс кезінде түсірілген шынайы кадрлар.') : block.subtitle}</p>
+        <p>{en ? (visualStudy ? 'Metal and machining in detail.' : 'Real moments from the factory floor, captured during production.') : kz ? (visualStudy ? 'Металл және оны өңдеу.' : 'Өндіріс кезінде түсірілген шынайы кадрлар.') : block.subtitle}</p>
       </div>
       <div className="factory-production-grid">{(block.items || []).map((item, index) => <figure key={`${item.imageUrl}-${index}`}>
         <div className="factory-production-image"><img src={resolveMediaUrl(item.imageUrl)} alt={captions?.[index]?.[0] || item.title} loading="lazy" decoding="async" width="1672" height="941"/><span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span></div>
-        <figcaption><h3>{captions?.[index]?.[0] || item.title}</h3><p>{captions?.[index]?.[1] || item.desc}</p>{/-study\.webp$/.test(item.imageUrl || '') && <small>{en ? 'AI-generated conceptual illustration' : kz ? 'ЖИ көмегімен жасалған көркем бейне' : 'Концептуальная AI-визуализация'}</small>}</figcaption>
+        <figcaption><h3>{captions?.[index]?.[0] || item.title}</h3><p>{captions?.[index]?.[1] || item.desc}</p></figcaption>
       </figure>)}</div>
     </div>
   </section>;

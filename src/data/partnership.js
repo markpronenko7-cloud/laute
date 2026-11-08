@@ -7,22 +7,22 @@ export const ROLE_EXPANSIONS = [
 
 export const partnership = {
   ru: {
-    title: 'Ваш рынок. Ваша команда. Ваш масштаб.',
+    title: 'Партнёрство с LAUTE', heroAlt: 'Хромированный смеситель Ethereum ETH103D на светлой каменной столешнице',
     subtitle: 'Развивайте бизнес с Заводом смесителей LAUTE. Выберите своё направление — от рекомендации продукции до собственной агентской структуры.',
-    choose: 'Выбрать формат партнёрства', discuss: 'Обсудить мой регион',
-    about: 'Кратко о партнерстве с Заводом смесителей Laute',
+    choose: 'Выбрать формат партнёрства', discuss: 'Обсудить мой регион', account: 'Кабинет партнёра',
+    about: 'Как мы работаем с партнёрами',
     story: [
       'Сплочённая, творческая и уверенная в своих возможностях команда Завода Laute осуществляет свою деятельность в СНГ с 2005 года. Мы предлагаем широкий выбор смесителей, приносящих высокий уровень прибыли нашим клиентам и агентам структуры продаж.',
       'В связи с динамичным расширением и освоением новых рынков мы заинтересованы в сотрудничестве с опытными и амбициозными партнёрами.'
     ],
-    caption: 'Дизайн смесителя и его детали · иллюстрация ИИ', catalog: 'Открыть весь каталог',
-    benefitsTitle: 'Топ 3 причины работать с нами',
+    caption: 'Форма и детали смесителя', catalog: 'Открыть весь каталог',
+    benefitsTitle: 'Что получает партнёр',
     benefits: [
       'Максимально высокий уровень качества и гарантий; доступная конечная стоимость для потребителя',
       'Постоянное расширение коллекций трендовыми, дизайнерскими решениями',
       'Лидирующие рыночные показатели по торговой наценке и партнёрским бонусам'
     ],
-    rolesTitle: 'Выберите свой формат партнёрства', rolesQuestion: 'Как вы хотите развиваться с LAUTE?',
+    rolesTitle: 'Форматы партнёрства', rolesQuestion: 'Как вы хотите развиваться с LAUTE?',
     roles: [
       ['Владелец агентской структуры', 'Создавать команду', 'Имеет возможность:\n• создания собственной структуры от 1 до 10 агентов-дилеров;\n• осуществления личных продаж как агент-дилер.'],
       ['Агент-дилер', 'Развивать территорию', 'Отвечает за развитие продаж на закрепленной за ним территории; привлекает, мотивирует и контролирует деятельность агентов по продажам и расширяет pro-агентскую сеть.'],
@@ -33,7 +33,7 @@ export const partnership = {
     discussRole: 'Обсудить этот формат',
     banner: 'Вы знаете свой рынок. Давайте обсудим его возможности.',
     bannerText: 'Расскажите о регионе, опыте и направлении, которое хотите развивать. Вместе определим подходящий формат сотрудничества с LAUTE.',
-    bannerCta: 'Обсудить возможности', showcase: 'Продукт, с которого начинается ваш бизнес.',
+    bannerCta: 'Обсудить возможности', showcase: 'Смесители LAUTE',
     model: 'Смотреть в каталоге', finishes: ['Глянцевый хром', 'Матовое золото', 'Поворотный излив'],
     stagesTitle: 'Как будет происходить сотрудничество?',
     stages: [
@@ -50,7 +50,7 @@ export const partnership = {
     success: 'Почтовый сервис принял заявку. Команда LAUTE свяжется с вами.', error: 'Не удалось отправить заявку. Попробуйте ещё раз.'
   },
   en: {
-    title: 'Your market. Your team. Your scale.',
+    title: 'Partner with LAUTE', heroAlt: 'Chrome Ethereum ETH103D faucet on a pale stone countertop', account: 'Partner account',
     subtitle: 'Grow your business with the LAUTE faucet factory. Choose a direction, from recommending products to building your own dealer network.',
     choose: 'Choose a partnership format', discuss: 'Discuss my region',
     about: 'Partnership with the LAUTE faucet factory',
@@ -58,7 +58,7 @@ export const partnership = {
       'The close-knit, creative and confident LAUTE factory team has worked in the CIS since 2005. We offer a broad range of faucets that deliver high margins for our customers and sales agents.',
       'As we expand and enter new markets, we are looking to work with experienced, ambitious partners.'
     ],
-    caption: 'Faucet design and components · AI illustration', catalog: 'Explore the full catalog',
+    caption: 'Faucet form and details', catalog: 'Explore the full catalog',
     benefitsTitle: 'Three reasons to work with us',
     benefits: ['High standards of quality and warranty coverage, with accessible retail pricing', 'Collections continually expanded with current design trends', 'Market-leading retail margins and partner bonuses'],
     rolesTitle: 'Choose your partnership format', rolesQuestion: 'How would you like to grow with LAUTE?',
@@ -89,7 +89,7 @@ export const partnership = {
     success: 'The mail service accepted your enquiry. The LAUTE team will contact you.', error: 'Your enquiry could not be sent. Please try again.'
   },
   kz: {
-    title: 'Сіздің нарығыңыз. Сіздің командаңыз. Сіздің ауқымыңыз.',
+    title: 'LAUTE-пен серіктестік', heroAlt: 'Ашық түсті тас үстелдегі хромдалған Ethereum ETH103D араластырғышы', account: 'Серіктес кабинеті',
     subtitle: 'LAUTE араластырғыштар зауытымен бизнесіңізді дамытыңыз. Өнімді ұсынудан жеке агенттік құрылым құруға дейінгі бағытты таңдаңыз.',
     choose: 'Серіктестік форматын таңдау', discuss: 'Өңірімді талқылау',
     about: 'Laute араластырғыштар зауытымен серіктестік туралы',
@@ -97,7 +97,7 @@ export const partnership = {
       'Laute зауытының ұйымшыл, шығармашыл және өз мүмкіндігіне сенімді командасы ТМД-да 2005 жылдан бері жұмыс істейді. Біз клиенттеріміз бен сату агенттеріне жоғары пайда әкелетін араластырғыштардың кең ассортиментін ұсынамыз.',
       'Қарқынды дамып, жаңа нарықтарды игеру барысында тәжірибелі әрі өршіл серіктестермен жұмыс істеуге мүдделіміз.'
     ],
-    caption: 'Араластырғыш дизайны мен бөлшектері · ЖИ иллюстрациясы', catalog: 'Толық каталогты ашу',
+    caption: 'Араластырғыштың пішіні мен бөлшектері', catalog: 'Толық каталогты ашу',
     benefitsTitle: 'Бізбен жұмыс істеудің үш себебі',
     benefits: ['Сапа мен кепілдіктің жоғары деңгейі, тұтынушыға қолжетімді баға', 'Топтамалар заманауи дизайнерлік шешімдермен үнемі толықтырылады', 'Сауда үстемесі мен серіктес бонустары бойынша нарықтағы жетекші көрсеткіштер'],
     rolesTitle: 'Серіктестік форматын таңдаңыз', rolesQuestion: 'LAUTE-пен қалай дамығыңыз келеді?',

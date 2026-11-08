@@ -86,7 +86,7 @@ test('Завод: сохранённые блоки остаются редак�
  for(const lang of ['ru','en','kz']) {
    const localized=COMPANY_BLOCKS.map(b=>localizeCompanyBlock(b,lang));
    assert.equal(localized.find(b=>b.companySection==='history').items.length,13);
-   assert.equal(localized.find(b=>b.companySection==='production').items.length,7);
+   assert.equal(localized.find(b=>b.companySection==='production').items.length,8);
    assert.equal(localized.find(b=>b.companySection==='geography').items.length,11);
    assert.equal(localized.find(b=>b.companySection==='inquiry').items.length,12);
    assert.ok(localized.every(b=>b.title&&b.subtitle));
@@ -98,8 +98,8 @@ test('Завод: миграция реальной штатной страни�
  const result=getCompanyBlocks(source.blocks);
  assert.equal(result.some(block=>block.type==='factory_film'),false);
  const gallery=result.find(block=>block.companySection==='production');
- assert.equal(gallery.items.length,7);
- assert.ok(gallery.items.every(item=>item.imageUrl.startsWith('images/factory/processes/') && item.videoUrl.startsWith('media/processes/') && item.mediaKind === 'illustration' && item.videoKind === 'documentary'));
+ assert.equal(gallery.items.length,8);
+ assert.ok(gallery.items.every(item=>item.imageUrl.startsWith('images/factory/processes/') && item.videoUrl.startsWith('media/processes/') && item.videoKind === 'documentary'));
  const edited=result.map(block=>block.companySection==='history'?{...block,title:'История сотрудника',isVisible:false}:block);
  assert.equal(getCompanyBlocks(edited),edited);
  assert.equal(getEditableBlocks({slug:'company',blocks:edited}),edited);
@@ -110,11 +110,11 @@ test('Производство: миграция штатных иллюстра
  const custom={companySection:'production',items:[{title:'Свой процесс',imageUrl:'images/employee.webp',videoUrl:'media/employee.mp4'}]};
  const other={id:'custom',type:'text',content:'Текст сотрудника'};
  const result=getCompanyBlocks([legacy,custom,other]);
- assert.equal(result[0].title,legacy.title);assert.equal(result[0].isVisible,false);assert.equal(result[0].items.length,7);
+ assert.equal(result[0].title,legacy.title);assert.equal(result[0].isVisible,false);assert.equal(result[0].items.length,8);
  assert.equal(result[1],custom);assert.equal(result[2],other);assert.equal(legacy.items.length,6);assert.equal(getCompanyBlocks(result),result);
  const production=COMPANY_BLOCKS.find(block=>block.companySection==='production');
- assert.equal(new Set(production.items.map(item=>item.videoUrl)).size,7);
- assert.equal(new Set(production.items.map(item=>item.imageUrl)).size,7);
+ assert.equal(new Set(production.items.map(item=>item.videoUrl)).size,8);
+ assert.equal(new Set(production.items.map(item=>item.imageUrl)).size,8);
  for (const item of production.items) for (const key of ['imageUrl','posterUrl','videoUrl']) assert.ok(statSync(new URL(`../public/${item[key]}`,import.meta.url)).size > 1000);
 });
 
@@ -129,7 +129,7 @@ test('Производство: новый монтаж обновляет дл�
  const production=COMPANY_BLOCKS.find(block=>block.companySection==='production');
  const saved={...production,processMediaVersion:1,items:production.items.map((item,index)=>({...item,title:'Текст сотрудника',videoUrl:index===0?'media/custom.mp4':item.videoUrl.split('?')[0],durationLabel:'0:01'}))};
  const [updated]=getCompanyBlocks([saved]);
- assert.equal(updated.processMediaVersion,3);assert.equal(updated.items[0].videoUrl,'media/custom.mp4');assert.equal(updated.items[0].durationLabel,'0:01');
+ assert.equal(updated.processMediaVersion,4);assert.equal(updated.items[0].videoUrl,'media/custom.mp4');assert.equal(updated.items[0].durationLabel,'0:01');
  for(let i=1;i<updated.items.length;i++){assert.equal(updated.items[i].title,'Текст сотрудника');assert.equal(updated.items[i].videoUrl,production.items[i].videoUrl);assert.equal(updated.items[i].durationLabel,production.items[i].durationLabel);}
  assert.equal(saved.processMediaVersion,1);assert.equal(getCompanyBlocks([updated])[0],updated);
 });
@@ -140,8 +140,35 @@ test('Производство: семь генераций заменяют ш�
  saved.items[0]={...saved.items[0],imageUrl:'images/employee-real.webp',title:'Текст сотрудника'};
  saved.items[1]={...saved.items[1],title:'Обрезка отливок'};
  const [result]=getCompanyBlocks([saved]);
- assert.equal(result.processMediaVersion,3);assert.equal(result.items[0].imageUrl,'images/employee-real.webp');assert.equal(result.items[0].mediaKind,'documentary');assert.equal(result.items[0].title,'Текст сотрудника');
- for(let i=1;i<result.items.length;i++){assert.equal(result.items[i].imageUrl,production.items[i].imageUrl);assert.equal(result.items[i].mediaKind,'illustration');assert.equal(result.items[i].videoKind,'documentary');}
+ assert.equal(result.processMediaVersion,4);assert.equal(result.items[0].imageUrl,'images/employee-real.webp');assert.equal(result.items[0].mediaKind,'documentary');assert.equal(result.items[0].title,'Текст сотрудника');
+ for(let i=1;i<result.items.length;i++){assert.equal(result.items[i].imageUrl,production.items[i].imageUrl);assert.equal(result.items[i].mediaKind,production.items[i].mediaKind);assert.equal(result.items[i].videoKind,'documentary');}
  assert.equal(result.items[1].title,'Работа с литейной формой');assert.equal(result.items[1].translations.en.title,production.items[1].translations.en.title);
  assert.equal(saved.items[1].imageUrl,'images/factory/processes/trimming.webp');assert.equal(saved.processMediaVersion,2);
+});
+
+test('Производство: версия 3 получает новый процесс и упаковку без потери редакционных настроек', () => {
+ const production = COMPANY_BLOCKS.find(block => block.companySection === 'production');
+ const packing = production.items.find(item => item.processId === 'packing');
+ const stockPacking = {
+  ...packing, title: 'Комплектация и упаковка', videoUrl: 'media/processes/packing.mp4?brand=10',
+  imageUrl: 'images/factory/processes/illustrations-v3/packing.webp', posterUrl: 'images/employee-poster.webp',
+  translations: { en: { title: 'Employee translation', desc: 'The faucet and accessories are placed into a moulded insert before the box is closed. A dedicated edit follows the packing operation.' } }
+ };
+ const custom = { processId: 'custom', title: 'Свой процесс', videoUrl: 'media/employee.mp4' };
+ const saved = { ...production, processMediaVersion: 3, isVisible: false, subtitle: 'Текст сотрудника', items: [stockPacking, custom] };
+ const [updated] = getEditableBlocks({ slug: 'company', blocks: [saved] });
+ assert.deepEqual(updated.items.map(item => item.processId), ['steel-finishing', 'packing', 'custom']);
+ assert.equal(updated.isVisible, false);
+ assert.equal(updated.subtitle, saved.subtitle);
+ assert.equal(updated.items[2], custom);
+ assert.equal(updated.items[1].videoUrl, packing.videoUrl);
+ assert.equal(updated.items[1].imageUrl, packing.imageUrl);
+ assert.equal(updated.items[1].posterUrl, stockPacking.posterUrl);
+ assert.equal(updated.items[1].title, packing.title);
+ assert.equal(updated.items[1].translations.en.title, 'Employee translation');
+ assert.equal(updated.items[1].translations.en.desc, packing.translations.en.desc);
+ assert.equal(getCompanyBlocks([updated])[0], updated);
+ const [customPacking] = getCompanyBlocks([{ ...saved, items: [{ ...stockPacking, videoUrl: custom.videoUrl }] }]);
+ assert.equal(customPacking.items[1].videoUrl, custom.videoUrl);
+ assert.equal(customPacking.items[1].title, stockPacking.title);
 });
