@@ -1,7 +1,7 @@
 import { EditableNode, EditableSection, NativeSectionGate } from '../components/builder/NativeContent';
 import { PageText } from '../components/PageText';
 import { SiteAction } from '../components/SiteAction';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { fetchCategories } from '../services/adminApi';
 import { useApp } from '../context/AppContext';
 import { 
@@ -52,10 +52,11 @@ export const CatalogPage = () => {
     getStockForSku
   } = useApp();
 
-  const [catalogView, setCatalogView] = useState('products'); // 'products' | 'categories'
+  const [catalogView, setCatalogView] = useState('categories');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMounting, setSelectedMounting] = useState('all');
+  const catalogToolbar = useRef(null);
 
   const [categorySettings, setCategorySettings] = useState([]);
   useEffect(() => { let active = true; fetchCategories().then(data => { if (active) setCategorySettings(data); }); return () => { active = false; }; }, []);
@@ -370,7 +371,6 @@ export const CatalogPage = () => {
         sourceCategory,
         name: sourceCategory,
         image,
-        imageSku: sourceProduct?.article,
         mounting: 'other',
         count: activeProducts.filter(p => normalizeCategory(p.category) === sourceCategory).length
       };
@@ -380,7 +380,6 @@ export const CatalogPage = () => {
       ...item,
       sourceCategory,
       image,
-      imageSku: sourceProduct?.article,
       count: activeProducts.filter(p => normalizeCategory(p.category) === sourceCategory).length,
       name: tr.name?.[lang] || tr.name?.ru || item.id,
       badge: tr.badge?.[lang] || tr.badge?.ru || '',
@@ -516,10 +515,25 @@ export const CatalogPage = () => {
       <EditableSection sectionKey="catalog-3" className="catalog-main-section">
         <div className="container">
           {/* View switcher + Cart summary bar */}
-          <div className="catalog-view-switcher-bar">
+          <div className="catalog-view-switcher-bar" ref={catalogToolbar} tabIndex={-1}>
             <div className="view-toggle-group">
+              <EditableNode as="button" editKey={"catalogpage-9"} kind="button"
+                type="button"
+                aria-pressed={catalogView === 'categories'}
+                className={`view-toggle-btn ${catalogView === 'categories' ? 'active' : ''}`}
+                onClick={() => {
+                  setCatalogView('categories');
+                  setSelectedCategory('all');
+                  setSelectedMounting('all');
+                  setSearchQuery('');
+                }}
+              >
+                <Layers size={15} />
+                <span>{(cat.allCategories || 'Все категории').replace(/\s*\(\d+\)\s*$/, '')} ({categories.length})</span>
+              </EditableNode>
               <EditableNode as="button" editKey={"catalogpage-8"} kind="button"
                 type="button"
+                aria-pressed={catalogView === 'products'}
                 className={`view-toggle-btn ${catalogView === 'products' ? 'active' : ''}`}
                 onClick={() => {
                   setCatalogView('products');
@@ -531,20 +545,6 @@ export const CatalogPage = () => {
                 <span>
                   {cat.allProductsTab || 'Вся номенклатура'} ({activeProducts.length})
                 </span>
-              </EditableNode>
-
-              <EditableNode as="button" editKey={"catalogpage-9"} kind="button"
-                type="button"
-                className={`view-toggle-btn ${catalogView === 'categories' ? 'active' : ''}`}
-                onClick={() => {
-                  setCatalogView('categories');
-                  setSelectedCategory('all');
-                  setSelectedMounting('all');
-                  setSearchQuery('');
-                }}
-              >
-                <Layers size={15} />
-                <span>{(cat.allCategories || 'Все категории').replace(/\s*\(\d+\)\s*$/, '')} ({categories.length})</span>
               </EditableNode>
             </div>
 
@@ -578,8 +578,13 @@ export const CatalogPage = () => {
               <input
                 type="text"
                 placeholder={cat.searchPlaceholder || 'Поиск по номенклатуре или артикулу...'}
+                aria-label={cat.searchPlaceholder || 'Поиск по номенклатуре или артикулу'}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  const query = e.target.value;
+                  setSearchQuery(query);
+                  if (catalogView === 'categories' && query.trim()) setCatalogView('products');
+                }}
                 className="search-input"
               />
             </div>
@@ -885,34 +890,30 @@ export const CatalogPage = () => {
           {/* VIEW 2: CATEGORIES WITH CURRENT PRODUCTS */}
           {catalogView === 'categories' && (
             <div className="catalog-grid">
-              {filteredCategories.map((cItem, idx) => (
-                <div key={cItem.id} className="catalog-card">
+              {filteredCategories.map(cItem => (
+                <article key={cItem.id} className="catalog-card">
                   <div className={`card-media ${cItem.image ? '' : 'card-media-empty'}`}>
-                    {cItem.image && <img src={cItem.image} alt={`${cItem.sourceCategory}: ${cItem.imageSku}`} className="card-product-img" loading="lazy" />}
+                    {cItem.image && <img src={cItem.image} alt="" className="card-product-img" loading="lazy" />}
                     <span className="card-badge">
                       {cItem.count} {lang === 'en' ? 'models' : lang === 'kz' ? 'модель' : 'мод.'}
                     </span>
                   </div>
 
                   <div className="card-content">
-                    <div className="card-cat-number">
-                      {lang === 'kz'
-                        ? `Санат #${idx + 1}`
-                        : lang === 'en'
-                        ? `Category #${idx + 1}`
-                        : `Категория #${idx + 1}`}
-                    </div>
                     <h3 className="card-title">{cItem.name}</h3>
-                    {cItem.image && <span className="card-image-note">{lang === 'en' ? 'Product photo' : lang === 'kz' ? 'Тауар фотосы' : 'Фото товара'} · {cItem.imageSku}</span>}
+                    {cItem.desc && <p className="card-desc">{cItem.desc}</p>}
 
                     <div className="card-footer">
                       <SiteAction controlId="catalog-4"
                         type="button"
-                        className="btn btn-outline btn-sm btn-full"
+                        className="btn btn-primary btn-sm category-open"
+                        aria-label={lang === 'en' ? `Browse ${cItem.name}` : lang === 'kz' ? `${cItem.name} модельдерін көру` : `Смотреть модели: ${cItem.name}`}
                         onClick={() => {
                           setCatalogView('products');
                           setSelectedCategory(cItem.sourceCategory);
                           setSearchQuery('');
+                          catalogToolbar.current?.focus({ preventScroll: true });
+                          catalogToolbar.current?.scrollIntoView({ block: 'start' });
                         }}
                       >
                         <span>
@@ -920,13 +921,13 @@ export const CatalogPage = () => {
                             ? 'Модельдерді көру'
                             : lang === 'en'
                             ? 'Browse Models'
-                            : 'Смотреть модели в каталоге'}
+                            : 'Смотреть модели'}
                         </span>
                         <ArrowRight size={14} />
                       </SiteAction>
                     </div>
                   </div>
-                </div>
+                </article>
               ))}
             </div>
           )}
