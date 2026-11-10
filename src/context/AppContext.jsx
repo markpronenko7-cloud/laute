@@ -360,8 +360,8 @@ export const AppProvider = ({ children }) => {
     };
   }, [products]);
 
-  const startComparison = useCallback((itemA, itemB) => {
-    setComparisonItems([itemA, itemB]);
+  const startComparison = useCallback((...items) => {
+    setComparisonItems(items.filter(Boolean));
   }, []);
 
   const closeComparisonModal = useCallback(() => {

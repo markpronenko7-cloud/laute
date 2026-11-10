@@ -108,10 +108,10 @@ const milestoneMedia = {
   1998: ['images/factory/history/hanover.webp', 'В Ганновере открывается мастерская кухонной мебели.', 'A kitchen furniture workshop opens in Hanover.', 'Ганноверде асүй жиһазы шеберханасы ашылады.'],
   2002: ['images/factory/history/wenzhou.webp', 'В Вэньчжоу открывается завод кухонной мебели.', 'A kitchen furniture factory opens in Wenzhou.', 'Вэньчжоуда асүй жиһазы зауыты ашылады.'],
   2003: ['images/factory/metal-study.webp', 'Начинается работа над созданием завода смесителей.', 'Work begins on establishing a faucet factory.', 'Араластырғыштар зауытын құру жұмысы басталады.'],
-  2005: ['images/factory/history/distribution.webp', 'Открываются представительство в СНГ и первый склад смесителей LAUTE.', 'The CIS office and the first LAUTE faucet warehouse open.', 'ТМД-дағы өкілдік пен алғашқы LAUTE қоймасы ашылады.'],
+  2005: ['images/factory/history/distribution-laute.webp', 'Открываются представительство в СНГ и первый склад смесителей LAUTE.', 'The CIS office and the first LAUTE faucet warehouse open.', 'ТМД-дағы өкілдік пен алғашқы LAUTE қоймасы ашылады.'],
   2015: ['images/factory/craft-study.webp', 'Растут вложения в завод. Инженеры усиливают контроль качества.', 'Factory investment grows and engineers strengthen quality control.', 'Зауытқа инвестиция артып, инженерлер сапа бақылауын күшейтеді.'],
   2025: ['images/partnership/ethereum-interior-v2.webp', 'LAUTE расширяет коллекции Solana, Ethereum и Bitcoin.', 'LAUTE expands its Solana, Ethereum and Bitcoin collections.', 'LAUTE Solana, Ethereum және Bitcoin коллекцияларын кеңейтеді.'],
-  2026: ['images/factory/history/almaty.webp', 'Новый склад в Алматы развивает логистику в Центральной Азии.', 'A new warehouse in Almaty supports Central Asian logistics.', 'Алматыдағы жаңа қойма Орталық Азиядағы логистиканы дамытады.']
+  2026: ['images/factory/history/almaty-laute.webp', 'Новый склад в Алматы развивает логистику в Центральной Азии.', 'A new warehouse in Almaty supports Central Asian logistics.', 'Алматыдағы жаңа қойма Орталық Азиядағы логистиканы дамытады.']
 };
 
 export function getCompanyMilestones(items, lang = 'ru') {
@@ -120,7 +120,8 @@ export function getCompanyMilestones(items, lang = 'ru') {
     const [imageUrl, ru, en, kz] = milestoneMedia[item.year];
     const stock = history.items.find(entry => entry.year === String(item.year));
     const summary = item.desc === stock.desc ? ({ ru, en, kz }[lang] || ru) : item.desc;
-    return { ...item, imageUrl: item.imageUrl || imageUrl, summary };
+    const usesStockImage = !item.imageUrl || item.imageUrl === imageUrl.replace('-laute.webp', '.webp');
+    return { ...item, imageUrl: usesStockImage ? imageUrl : item.imageUrl, summary };
   });
 }
 

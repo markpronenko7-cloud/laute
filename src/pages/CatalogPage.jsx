@@ -16,7 +16,6 @@ import {
   Layers,
   CheckCircle2,
   Warehouse,
-  Ruler,
   ShoppingBag,
   Plus,
   Minus,
@@ -423,14 +422,12 @@ export const CatalogPage = () => {
         <div className="container">
           <div className="page-header-content catalog-header-grid">
             <div className="catalog-header-text">
-              <EditableNode as="span" editKey={"catalogpage-1"} kind="text" className="section-badge">{cat.badge || 'Номенклатура продукции'}</EditableNode>
+              <EditableNode as="span" editKey={"catalogpage-1"} kind="text" className="catalog-kicker">{cat.badge || 'Каталог LAUTE'}</EditableNode>
               <EditableNode as="h1" editKey={"catalogpage-2"} kind="text"  introRoute="catalog" introField="h1" className="page-title">{cat.title || 'Номенклатура продукции LAUTE'}</EditableNode>
               <EditableNode as="p" editKey={"catalogpage-3"} kind="text" introRoute="catalog" introField="description" className="page-subtitle">
                 {cat.subtitle || 'Полноразмерный каталог сантехники, сформированный по назначению изделий и архитектурным сериям.'}
               </EditableNode>
-            </div>
-
-            <div className="catalog-header-actions">
+              <div className="catalog-header-actions">
               <EditableNode as={SiteAction} editKey={"catalogpage-4"} kind="button" controlId="catalog-1"
                 type="button"
                 className="btn btn-primary catalog-cart-trigger-btn"
@@ -457,7 +454,12 @@ export const CatalogPage = () => {
                   <span>{cat.authBtn || 'Авторизоваться для просмотра остатков'}</span>
                 </EditableNode>
               )}
+              </div>
             </div>
+            <figure className="catalog-hero-photo">
+              <img src={`${baseUrl}images/products/interiors/btc103s.webp`} alt="" fetchPriority="high" />
+              <figcaption>LAUTE · Bitcoin</figcaption>
+            </figure>
           </div>
         </div>
       </EditableSection>
@@ -675,8 +677,12 @@ export const CatalogPage = () => {
                       role="button"
                       tabIndex={0}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') openProductModal(p);
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          openProductModal(p);
+                        }
                       }}
+                      aria-label={`${displayInfo.title}, ${p.article}`}
                     >
                       <img
                         src={mainPhotoSrc}
@@ -687,25 +693,17 @@ export const CatalogPage = () => {
                           e.currentTarget.src = `${baseUrl}images/cat_laute_brand.jpg`;
                         }}
                       />
-                      <span className="sku-art-badge">
-                        {cat.skuLabel || 'АРТ.'} {p.article}
-                      </span>
                       {p.isPopular && <span className="sku-pop-badge">Лидер продаж</span>}
                       {imgInfo.drawingPhotos.length > 0 && (
-                        <span
-                          className="sku-drawing-indicator"
-                          title="В подробной карточке доступен инженерный чертёж"
-                        >
-                          <Ruler size={11} />
-                          <span>Чертёж</span>
-                        </span>
+                        <img src={imgInfo.drawingPhotos[0]} alt="" loading="lazy" className="sku-drawing-preview"
+                          onLoad={e => { e.currentTarget.dataset.ready = 'true'; }} />
                       )}
                     </div>
 
                     <div className="sku-card-content">
                       <div className="sku-meta-line">
                         <span className="sku-category-tag">{p.category}</span>
-                        {p.series && <span className="sku-series-tag">{p.series}</span>}
+                        <span className="sku-art-badge">{cat.skuLabel || 'АРТ.'} {p.article}</span>
                       </div>
 
                       <h3
@@ -719,16 +717,6 @@ export const CatalogPage = () => {
                       {displayInfo.subtitle && (
                         <div className="sku-card-subtitle">
                           <span className="sku-subtitle-badge">{displayInfo.subtitle}</span>
-                        </div>
-                      )}
-
-                      {displayInfo.cleanSpecs.length > 0 && (
-                        <div className="sku-specs-chips">
-                          {displayInfo.cleanSpecs.slice(0, 3).map((spec, sIdx) => (
-                            <span key={sIdx} className="sku-spec-chip">
-                              {spec}
-                            </span>
-                          ))}
                         </div>
                       )}
 
@@ -805,14 +793,7 @@ export const CatalogPage = () => {
                             <SiteAction controlId="catalog-compare"
                               type="button"
                               className="sku-btn-secondary sku-action-compare"
-                              onClick={() => {
-                                const other =
-                                  activeProducts.find(
-                                    (item) => item.category === p.category && item.article !== p.article
-                                  ) || activeProducts.find((item) => item.article !== p.article);
-                                if (other) startComparison(p, other);
-                              }}
-                              title="Сравнить характеристики с другой моделью"
+                              onClick={() => startComparison(p)}
                             >
                               <Scale size={14} />
                               <span>{cat.compareBtn || 'Сравнить'}</span>

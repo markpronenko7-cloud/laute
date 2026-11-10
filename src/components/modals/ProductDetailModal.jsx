@@ -29,7 +29,6 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
     updateCartQuantity,
     getCartItemQuantity,
     openCartModal,
-    products,
     getProductPrice,
     partnerAccount,
     adminSession,
@@ -40,7 +39,8 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
     lang
   } = useApp();
   const [selectedPhoto, setSelectedPhoto] = useState(0);
-  const [activeTab, setActiveTab] = useState('specs'); // 'specs' | 'drawings' | 'stock'
+  const [activeTab, setActiveTab] = useState(null);
+  const toggleTab = tab => setActiveTab(current => current === tab ? null : tab);
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const touchStartRef = useRef(null);
 
@@ -196,17 +196,17 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
   };
 
   const handleCompareClick = () => {
-    const candidate = products.find(p => p.category === selectedProduct.category && p.article !== selectedProduct.article);
-    if (candidate) {
-      startComparison(selectedProduct, candidate);
-      closeProductModal();
-    }
+    startComparison(selectedProduct);
+    closeProductModal();
   };
 
   return (
     <div className="modal-overlay" onClick={closeProductModal}>
       <div 
-        className="modal-content product-detail-modal" 
+        className="modal-content product-detail-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="product-detail-title"
         onClick={(e) => e.stopPropagation()} 
         style={{ maxWidth: '880px', width: '95%' }}
       >
@@ -274,28 +274,11 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
                 className={`quick-drawing-btn ${activeTab === 'drawings' ? 'active' : ''}`}
                 onClick={() => setActiveTab('drawings')}
               >
-                <Ruler size={15} color="#0EA5E9" />
+                <Ruler size={15} />
                 <span>Смотреть чертёж и размеры изделия</span>
               </button>
             )}
 
-            {/* Мини-панель ключевых параметров */}
-            <div className="product-meta-summary-card">
-              <div className="meta-summary-row">
-                <span className="summary-label">Гарантия завода:</span>
-                <span className="summary-val">5 лет (официальная)</span>
-              </div>
-              <div className="meta-summary-row">
-                <span className="summary-label">Стандарт:</span>
-                <span className="summary-val">Европейский EN 817</span>
-              </div>
-              {selectedProduct.material && (
-                <div className="meta-summary-row">
-                  <span className="summary-label">Материал:</span>
-                  <span className="summary-val">{selectedProduct.material}</span>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Right Column: Tabs & Product Info */}
@@ -306,7 +289,7 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
               <span className="product-article-tag">{(pm.art || 'Арт.')} {selectedProduct.article}</span>
             </div>
 
-            <h2 className="product-modal-name">{displayInfo.title}</h2>
+            <h2 className="product-modal-name" id="product-detail-title">{displayInfo.title}</h2>
 
             {displayInfo.subtitle && (
               <div className="product-modal-subtitle">
@@ -321,12 +304,78 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
               <span className="price-type-note">{partnerAccount?.role === 'partner' ? 'Твоя цена' : pm.officialBasePrice || 'Официальная базовая цена'}</span>
             </div>
 
+            {/* Modal Actions */}
+            <div className="product-actions-footer">
+              {getCartItemQuantity(selectedProduct.article) > 0 ? (
+                <div style={{ display: 'flex', gap: '10px', width: '100%', flexWrap: 'wrap' }}>
+                  <div className="laute-card-qty-stepper" style={{ flex: '0 0 auto' }}>
+                    <button
+                      type="button"
+                      className="laute-card-qty-btn"
+                      onClick={() =>
+                        updateCartQuantity(
+                          selectedProduct.article,
+                          getCartItemQuantity(selectedProduct.article) - 1
+                        )
+                      }
+                      aria-label="Уменьшить количество"
+                    >
+                      <Minus size={14} />
+                    </button>
+                    <span className="laute-card-qty-val">
+                      {getCartItemQuantity(selectedProduct.article)} шт.
+                    </span>
+                    <button
+                      type="button"
+                      className="laute-card-qty-btn"
+                      onClick={() => addToCart(selectedProduct, 1)}
+                      aria-label="Увеличить количество"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{ flex: '1 1 180px' }}
+                    onClick={() => {
+                      closeProductModal();
+                      openCartModal();
+                    }}
+                  >
+                    <ShoppingBag size={16} />
+                    <span>{t?.catalogPage?.openCartBtn || 'Корзина заявки'}</span>
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-primary btn-full"
+                  onClick={() => addToCart(selectedProduct, 1)}
+                >
+                  <ShoppingBag size={16} />
+                  <span>{t?.catalogPage?.addToCartBtn || 'Добавить в корзину'}</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="btn btn-outline btn-full btn-compare-trigger"
+                onClick={handleCompareClick}
+              >
+                <Scale size={15} />
+                <span>{pm.compare || t?.catalogPage?.compareBtn || 'Сравнить с другой моделью LAUTE'}</span>
+              </button>
+            </div>
+
             {/* TAB CONTROLS: Характеристики | Размеры и чертежи | Наличие на складах */}
             <div className="modal-tabs-header">
               <button 
                 type="button" 
                 className={`modal-tab-btn ${activeTab === 'specs' ? 'active' : ''}`}
-                onClick={() => setActiveTab('specs')}
+                aria-expanded={activeTab === 'specs'}
+                onClick={() => toggleTab('specs')}
               >
                 <FileText size={14} />
                 <span>Характеристики</span>
@@ -335,17 +384,18 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
               <button 
                 type="button" 
                 className={`modal-tab-btn ${activeTab === 'drawings' ? 'active' : ''}`}
-                onClick={() => setActiveTab('drawings')}
+                aria-expanded={activeTab === 'drawings'}
+                onClick={() => toggleTab('drawings')}
               >
                 <Ruler size={14} />
                 <span>Размеры и чертежи</span>
-                {imgInfo.drawingPhotos.length > 0 && <span className="tab-pill">1</span>}
               </button>
 
               <button 
                 type="button" 
                 className={`modal-tab-btn ${activeTab === 'stock' ? 'active' : ''}`}
-                onClick={() => setActiveTab('stock')}
+                aria-expanded={activeTab === 'stock'}
+                onClick={() => toggleTab('stock')}
               >
                 <MapPin size={14} />
                 <span>Склады</span>
@@ -360,6 +410,12 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
                 </p>
 
                 <div className="product-specs-sheet">
+                  {selectedProduct.material && (
+                    <div className="spec-row">
+                      <span className="spec-key">Материал:</span>
+                      <span className="spec-val">{selectedProduct.material}</span>
+                    </div>
+                  )}
                   {selectedProduct.dimensions && (
                     <div className="spec-row">
                       <span className="spec-key">{pm.dimensions || 'Габариты / излив:'}</span>
@@ -540,70 +596,6 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
               </div>
             )}
 
-            {/* Modal Actions */}
-            <div className="product-actions-footer">
-              {getCartItemQuantity(selectedProduct.article) > 0 ? (
-                <div style={{ display: 'flex', gap: '10px', width: '100%', flexWrap: 'wrap' }}>
-                  <div className="laute-card-qty-stepper" style={{ flex: '0 0 auto' }}>
-                    <button
-                      type="button"
-                      className="laute-card-qty-btn"
-                      onClick={() =>
-                        updateCartQuantity(
-                          selectedProduct.article,
-                          getCartItemQuantity(selectedProduct.article) - 1
-                        )
-                      }
-                      aria-label="Уменьшить количество"
-                    >
-                      <Minus size={14} />
-                    </button>
-                    <span className="laute-card-qty-val">
-                      {getCartItemQuantity(selectedProduct.article)} шт.
-                    </span>
-                    <button
-                      type="button"
-                      className="laute-card-qty-btn"
-                      onClick={() => addToCart(selectedProduct, 1)}
-                      aria-label="Увеличить количество"
-                    >
-                      <Plus size={14} />
-                    </button>
-                  </div>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    style={{ flex: '1 1 180px' }}
-                    onClick={() => {
-                      closeProductModal();
-                      openCartModal();
-                    }}
-                  >
-                    <ShoppingBag size={16} />
-                    <span>{t?.catalogPage?.openCartBtn || 'Корзина заявки'}</span>
-                    <ArrowRight size={16} />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  className="btn btn-primary btn-full"
-                  onClick={() => addToCart(selectedProduct, 1)}
-                >
-                  <ShoppingBag size={16} />
-                  <span>{t?.catalogPage?.addToCartBtn || 'Добавить в корзину'}</span>
-                </button>
-              )}
-
-              <button 
-                type="button" 
-                className="btn btn-outline btn-full btn-compare-trigger"
-                onClick={handleCompareClick}
-              >
-                <Scale size={15} />
-                <span>{pm.compare || t?.catalogPage?.compareBtn || 'Сравнить с другой моделью LAUTE'}</span>
-              </button>
-            </div>
           </div>
         </div>
 
