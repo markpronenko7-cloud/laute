@@ -91,6 +91,7 @@ import {
   exportCurrentCatalog,
   validateExcelFile,
   commitExcelImport,
+  commitExcelArchive,
   downloadErrorReport,
   fetchHistory,
   rollbackToBackup,
@@ -372,6 +373,7 @@ export const AdminPage = () => {
   const [isValidatingExcel, setIsValidatingExcel] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
   const [isCommittingExcel, setIsCommittingExcel] = useState(false);
+  const [excelMediaProgress, setExcelMediaProgress] = useState('');
   const [excelCommitStats, setExcelCommitStats] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -4122,16 +4124,17 @@ export const AdminPage = () => {
                   <div className="card-top-icon accent">
                     <Upload size={26} />
                   </div>
-                  <h3>Импорт Excel</h3>
-                  <p>Проверь изменения перед применением.</p>
+                  <h3>Импорт каталога</h3>
+                  <p>Загрузи Excel или ZIP с одной таблицей и папкой фотографий и чертежей. Пути к файлам берутся из таблицы.</p>
                   <input
                     type="file"
                     ref={fileInputRef}
-                    accept=".xlsx,.xls"
+                    accept=".zip,.xlsx,.xlsm,.xls"
                     style={{ display: 'none' }}
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
+                      e.target.value = '';
                       setExcelFile(file);
                       setIsValidatingExcel(true);
                       setValidationResult(null);
@@ -4151,10 +4154,10 @@ export const AdminPage = () => {
                     type="button" 
                     className="admin-btn admin-btn-primary admin-btn-full"
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={isValidatingExcel}
+                    disabled={isValidatingExcel || isCommittingExcel}
                   >
                     <Upload size={14} />
-                    <span>{isValidatingExcel ? 'Проверка файла...' : 'Выбрать файл XLSX'}</span>
+                    <span>{isValidatingExcel ? 'Проверка файла...' : 'Выбрать Excel или ZIP'}</span>
                   </button>
                 </div>
 
@@ -4206,13 +4209,28 @@ export const AdminPage = () => {
                       </div>
                       <div className="pill-item hidden">
                         <span className="pill-count">{validationResult.summary?.toHide || 0}</span>
-                        <span className="pill-name">Будет скрыто</span>
+                        <span className="pill-name">{validationResult.archive ? 'Сохранится скрытыми' : 'Будет скрыто'}</span>
                       </div>
+                      {validationResult.summary?.toDelete > 0 && (
+                        <div className="pill-item errors">
+                          <span className="pill-count">{validationResult.summary.toDelete}</span>
+                          <span className="pill-name">Будет удалено</span>
+                        </div>
+                      )}
                       <div className="pill-item errors">
                         <span className="pill-count">{validationResult.summary?.errorsCount || 0}</span>
                         <span className="pill-name">Ошибок в строках</span>
                       </div>
                     </div>
+                    {validationResult.archive && (
+                      <p>
+                        Связано файлов медиа — {validationResult.archive.mediaCount}.
+                        {validationResult.archive.unlinkedCount > 0 && ` Без связи с товарами — ${validationResult.archive.unlinkedCount}.`}
+                        {validationResult.archive.hidesExistingCount > 0 && ` Из них действующих карточек будет скрыто — ${validationResult.archive.hidesExistingCount}.`}
+                        {validationResult.archive.priceFromWorkbookCount > 0 && ` Цены в тенге взяты из листа «Цены и поставка» для ${validationResult.archive.priceFromWorkbookCount} позиций.`}
+                        {validationResult.archive.missingPriceCount > 0 && ` Скрытых позиций без цены — ${validationResult.archive.missingPriceCount}.`}
+                      </p>
+                    )}
                   </div>
 
                   {/* Errors Notice if any */}
@@ -4251,7 +4269,7 @@ export const AdminPage = () => {
                     <button
                       type="button"
                       className="admin-btn admin-btn-success admin-btn-lg"
-                      disabled={isCommittingExcel || !validationResult.validRows || validationResult.validRows.length === 0}
+                      disabled={isCommittingExcel || !validationResult.validRows?.length || Boolean(validationResult.archive && !validationResult.success)}
                       onClick={async () => {
                         if (isDemoMode) {
                           showNotice('В демонстрационном режиме применение импорта Excel к базе данных заблокировано.');
@@ -4259,7 +4277,11 @@ export const AdminPage = () => {
                         }
                         setIsCommittingExcel(true);
                         try {
-                          const res = await commitExcelImport(validationResult.validRows);
+                          const res = validationResult.archive
+                            ? await commitExcelArchive(validationResult, (done, total) => {
+                              setExcelMediaProgress(done < total ? `Загрузка медиа: ${done} из ${total}` : 'Сохранение каталога...');
+                            })
+                            : await commitExcelImport(validationResult.validRows);
                           setExcelCommitStats(res.stats);
                           setValidationResult(null);
                           loadCatalogData();
@@ -4267,12 +4289,13 @@ export const AdminPage = () => {
                         } catch (err) {
                           showNotice(err.message, 'error');
                         } finally {
+                          setExcelMediaProgress('');
                           setIsCommittingExcel(false);
                         }
                       }}
                     >
                       <Check size={16} />
-                      <span>{isCommittingExcel ? 'Применение изменений...' : 'Подтвердить и обновить каталог на сайте'}</span>
+                      <span aria-live="polite">{isCommittingExcel ? (excelMediaProgress || 'Применение изменений...') : 'Подтвердить и обновить каталог на сайте'}</span>
                     </button>
                   </div>
                 </div>

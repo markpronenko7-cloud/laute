@@ -2,11 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import XLSX from 'xlsx';
+import JSZip from 'jszip';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { build, transform } from 'esbuild';
 import { createRequire } from 'node:module';
 import { parseAndValidateExcelFile, applyExcelImport, createCatalogWorkbook, parseStockExcelClient, parseStockQuantity } from '../src/utils/excelManager.js';
+import { validateCatalogArchive, uploadCatalogArchiveMedia } from '../src/utils/catalogArchive.js';
 import { formatProductDisplay, classifyProductImages } from '../src/utils/imageHelper.js';
 import { getPublishedPage, getEditableBlocks } from '../src/utils/pagePublication.js';
 import { getNavigation, getNavTranslation, getPageSeo } from '../src/utils/contentSettings.js';
@@ -18,6 +20,63 @@ const workbook = rows => {
   return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 };
 const headings = ['Артикул (SKU) *', 'Название товара *', 'Категория *', 'Цена *'];
+
+test('ZIP: точные файлы, скрытые карточки, цены в тенге и продолжение после сбоя', async () => {
+  const zip = new JSZip();
+  const wb = XLSX.utils.book_new();
+  const products = [
+    [...headings, 'Статус товара', 'Фотографии (пути / ссылки)'],
+    ['SKU-1', 'Новый', CATEGORY_NAMES[0], '', 'СКРЫТ', 'media/SKU-1.jpg; media/SKU-1_scheme.png'],
+    ['SKU-2', 'Текущий', CATEGORY_NAMES[0], '', 'СКРЫТ', 'media/SKU-2.jpg']
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(products), 'Товары');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+    ['Артикул Laute', 'РРЦ Казахстан, KZT'], ['SKU-1', 12345]
+  ]), 'Цены и поставка');
+  zip.file('source/catalog.xlsm', XLSX.write(wb, { type: 'buffer', bookType: 'xlsm' }));
+  zip.file('source/images/SKU-1.jpg', Uint8Array.of(255, 216, 255));
+  zip.file('source/images/SKU-1_scheme.png', Uint8Array.of(137, 80, 78, 71, 13, 10, 26, 10));
+  zip.file('source/images/SKU-2.jpg', Uint8Array.of(255, 216, 255));
+  const existing = [{ article: 'SKU-2', price: 400, status: 'АКТИВЕН' }];
+  const result = await validateCatalogArchive(await zip.generateAsync({ type: 'uint8array' }), existing);
+  assert.equal(result.success, true);
+  assert.equal(result.archive.mediaCount, 3);
+  assert.equal(result.archive.priceFromWorkbookCount, 1);
+  assert.equal(result.archive.hidesExistingCount, 1);
+  assert.equal(result.validRows[0].price, 12345);
+  assert.equal(result.validRows[1].price, 400);
+
+  const uploaded = [];
+  const upload = async file => {
+    uploaded.push(file.name);
+    if (file.name === 'SKU-2.jpg' && uploaded.filter(name => name === file.name).length === 1) throw new Error('Сбой');
+    return { url: `https://test.invalid/${file.name}` };
+  };
+  await assert.rejects(uploadCatalogArchiveMedia(result, upload, () => {}), /SKU-2.jpg: Сбой/);
+  const rows = await uploadCatalogArchiveMedia(result, upload, () => {});
+  assert.equal(uploaded.length, 4);
+  assert.equal(rows[0].drawingUrl, 'https://test.invalid/SKU-1_scheme.png');
+  const committed = applyExcelImport([{ ...existing[0], price: 500 }], rows);
+  assert.equal(committed.find(p => p.article === 'SKU-2').price, 500);
+  assert.ok(committed.every(p => p.status === 'СКРЫТ'));
+});
+
+test('ZIP: неоднозначные или отсутствующие фотографии блокируют весь импорт', async () => {
+  const zip = new JSZip();
+  zip.file('catalog.xlsx', workbook([
+    [...headings, 'Фотографии (пути / ссылки)'],
+    ['SKU-1', 'Товар', CATEGORY_NAMES[0], 100, 'media/duplicate.jpg'],
+    ['SKU-2', 'Товар', CATEGORY_NAMES[0], 100, 'media/missing.jpg']
+  ]));
+  zip.file('first/duplicate.jpg', Uint8Array.of(255, 216, 255));
+  zip.file('second/duplicate.jpg', Uint8Array.of(255, 216, 255));
+  const result = await validateCatalogArchive(await zip.generateAsync({ type: 'uint8array' }), []);
+  assert.equal(result.success, false);
+  assert.equal(result.errors.length, 2);
+  assert.match(result.errors[0].message, /несколько файлов/);
+  assert.match(result.errors[1].message, /не найден файл/);
+  await assert.rejects(uploadCatalogArchiveMedia(result, () => assert.fail('Загрузка должна быть заблокирована'), () => {}));
+});
 
 test('Ручные остатки: матрица, филиал и массовые операции отклоняют дроби и отрицательные числа', async () => {
   const source = fs.readFileSync('src/pages/AdminPage.jsx', 'utf8');

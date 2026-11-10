@@ -932,11 +932,21 @@ export const exportCurrentCatalog = async () => {
 };
 
 export const validateExcelFile = async (file) => {
-  const products = await fetchProducts(true);
-  return await clientValidateExcel(file, products);
+  if (/\.zip$/i.test(file?.name || '')) {
+    const { validateCatalogArchive } = await import('../utils/catalogArchive.js');
+    return validateCatalogArchive(file, await fetchProducts(true, true));
+  }
+  return await clientValidateExcel(file, await fetchProducts(true));
 };
 
-export const commitExcelImport = async (validRows) => {
+export const commitExcelArchive = async (validation, onProgress) => {
+  if (!getAuthToken()) throw new Error('Требуется авторизация администратора');
+  const { uploadCatalogArchiveMedia } = await import('../utils/catalogArchive.js');
+  const rows = await uploadCatalogArchiveMedia(validation, uploadSingleImage, onProgress);
+  return commitExcelImport(rows, { countHiddenChanges: true });
+};
+
+export const commitExcelImport = async (validRows, { countHiddenChanges = false } = {}) => {
   const token = getAuthToken();
   if (!token) throw new Error('Требуется авторизация администратора');
 
@@ -976,7 +986,9 @@ export const commitExcelImport = async (validRows) => {
     const key = r.article.trim().toUpperCase();
     if (r.actionStatus === 'СКРЫТ' || r.actionStatus === 'СКРЫТЬ' || r.status === 'СКРЫТ') {
       hidden++;
-    } else if (currentMap.has(key)) {
+      if (!countHiddenChanges) return;
+    }
+    if (currentMap.has(key)) {
       updated++;
     } else {
       added++;

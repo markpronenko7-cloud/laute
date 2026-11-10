@@ -156,12 +156,13 @@ function getColumnValue(cleanRow, aliases) {
  * Автоматически находит нужный лист каталога ("Товары" / "Каталог" / лист с артикулами).
  * Возвращает { success, errors, validRows, rows, summary, stats }
  */
-export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
+export const parseAndValidateExcelFile = async (file, currentProducts = [], prepareArchive) => {
   return new Promise((resolve) => {
     const parseWorkbookData = (rawArrayBuffer) => {
       try {
         const data = rawArrayBuffer instanceof Uint8Array ? rawArrayBuffer : new Uint8Array(rawArrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
+        const archive = prepareArchive?.(workbook);
 
         if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
           resolve({
@@ -277,7 +278,7 @@ export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
         const seenArticles = new Set();
 
         rawRows.forEach((row, index) => {
-          const rowNum = index + headerRowOffset + 2; // +1 за 0-индекс, +1 за строку заголовка
+          const rowNum = (row.__rowNum__ ?? (index + headerRowOffset + 1)) + 1;
 
           // Нормализуем ключи текущей строки
           const cleanRow = {};
@@ -370,9 +371,15 @@ export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
           }
 
           // 4. Проверка цены
-          const cleanPriceStr = String(priceRaw || '').replace(/\s+/g, '').replace(',', '.');
+          const existingProd = existingMap.get(upperArticle);
+          const isExisting = Boolean(existingProd);
+          const hidden = actionStatus === 'СКРЫТ' || productStatusRaw === 'СКРЫТ';
+          const archivePrice = archive && !priceRaw ? archive.prices.get(upperArticle) : undefined;
+          const currency = getColumnValue(cleanRow, ['валюта', 'currency']);
+          const cleanPriceStr = String(priceRaw || archivePrice || '').replace(/\s+/g, '').replace(',', '.');
           const parsedPrice = /^\d+(\.\d+)?$/.test(cleanPriceStr) ? Number(cleanPriceStr) : NaN;
-          if (isNaN(parsedPrice) || parsedPrice <= 0) {
+          const missingDraftPrice = Boolean(archive && hidden && !cleanPriceStr);
+          if (!missingDraftPrice && (!Number.isFinite(parsedPrice) || parsedPrice <= 0)) {
             errors.push({
               row: rowNum,
               article,
@@ -397,14 +404,29 @@ export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
           const photoCombined = getColumnValue(cleanRow, ['фотографиипутиссылки', 'фотографиипути/ссылки', 'фотографии', 'photos', 'фото']);
           const photoParts = photoCombined ? photoCombined.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean) : [];
           
-          const rawMainPhoto = getColumnValue(cleanRow, ['основноефотосмеситель', 'основноефото', 'фотосмесителя', 'фотография1', 'photo1', 'mainphoto']) || photoParts[0] || '';
-          const rawDrawing = getColumnValue(cleanRow, ['чертёжразмеры', 'чертежразмеры', 'чертёж', 'чертеж', 'схемаразмеров', 'размерыичертежи', 'drawing', 'blueprint']) || '';
-          const rawBox = getColumnValue(cleanRow, ['упаковкакоробка', 'упаковка', 'коробка', 'box', 'packaging']) || '';
-          const rawPhoto2 = getColumnValue(cleanRow, ['дополнительныефото', 'фотография2', 'photo2']) || photoParts[1] || '';
-          const rawPhoto3 = getColumnValue(cleanRow, ['фотография3', 'photo3']) || photoParts[2] || '';
-
-          const existingProd = existingMap.get(upperArticle);
-          const isExisting = Boolean(existingProd);
+          let rawMainPhoto = getColumnValue(cleanRow, ['основноефотосмеситель', 'основноефото', 'фотосмесителя', 'фотография1', 'photo1', 'mainphoto']) || photoParts[0] || '';
+          let rawDrawing = getColumnValue(cleanRow, ['чертёжразмеры', 'чертежразмеры', 'чертёж', 'чертеж', 'схемаразмеров', 'размерыичертежи', 'drawing', 'blueprint']);
+          let rawBox = getColumnValue(cleanRow, ['упаковкакоробка', 'упаковка', 'коробка', 'box', 'packaging']);
+          let rawPhoto2 = getColumnValue(cleanRow, ['дополнительныефото', 'фотография2', 'photo2']) || photoParts[1] || '';
+          let rawPhoto3 = getColumnValue(cleanRow, ['фотография3', 'photo3']) || photoParts[2] || '';
+          const archiveRefs = new Set();
+          if (archive) {
+            const resolve = value => value.split(/[,;\n]+/).map(part => part.trim()).filter(Boolean).map(part => {
+              const url = archive.resolveMedia(part);
+              if (url !== part) archiveRefs.add(url);
+              return url;
+            }).join('; ');
+            try {
+              rawMainPhoto = resolve(rawMainPhoto);
+              rawPhoto2 = resolve(rawPhoto2);
+              rawPhoto3 = resolve([rawPhoto3, ...photoParts].join('; '));
+              rawDrawing = resolve(rawDrawing);
+              rawBox = resolve(rawBox);
+            } catch (error) {
+              errors.push({ row: rowNum, article, field: 'Медиа', message: error.message });
+              return;
+            }
+          }
 
           const stockRaw = getColumnValue(cleanRow, ['наличие', 'остаток', 'количество', 'stock', 'qty']);
           const stockNum = Number(stockRaw);
@@ -429,6 +451,10 @@ export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
           const finalPhoto3 = classified.additionalPhotos[1] || (isExisting ? existingProd?.photo3 : '') || '';
           const finalDrawing = classified.drawingPhotos[0] || rawDrawing || (isExisting ? (existingProd?.drawingUrl || existingProd?.raw_data?.drawingUrl) : '') || '';
           const finalBox = classified.boxPhotos[0] || rawBox || (isExisting ? (existingProd?.boxUrl || existingProd?.raw_data?.boxUrl) : '') || '';
+          if ([...archiveRefs].some(url => ![finalPhoto1, finalPhoto2, finalPhoto3, finalDrawing, finalBox].includes(url))) {
+            errors.push({ row: rowNum, article, field: 'Медиа', message: 'Файлы не помещаются в карточку: до трёх фото, один чертёж и одна упаковка.' });
+            return;
+          }
 
           // Проверяем, изменились ли данные по сравнению с текущей базой
           let isChanged = !isExisting;
@@ -465,8 +491,8 @@ export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
             collection: getColumnValue(cleanRow, ['коллекция', 'collection']),
             brand: getColumnValue(cleanRow, ['бренд', 'brand']) || existingProd?.brand || 'LAUTE',
             description: getColumnValue(cleanRow, ['описание', 'description']),
-            price: parsedPrice,
-            currency: getColumnValue(cleanRow, ['валюта', 'currency']) || existingProd?.currency || '₸',
+            price: missingDraftPrice ? (existingProd?.price ?? 0) : parsedPrice,
+            currency: archivePrice ? '₸' : (currency || existingProd?.currency || '₸'),
             material: getColumnValue(cleanRow, ['материал', 'material']),
             color: getColumnValue(cleanRow, ['цвет', 'color']),
             finish: getColumnValue(cleanRow, ['покрытие', 'finish']),
@@ -485,7 +511,13 @@ export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
             city: stockRaw !== '' ? (getColumnValue(cleanRow, ['город', 'city']) || 'Алматы') : '',
             stock: stockRaw !== '' ? safeStock : undefined,
             cityStock,
-            status: (actionStatus === 'СКРЫТ' || productStatusRaw === 'СКРЫТ') ? 'СКРЫТ' : 'АКТИВЕН',
+            status: hidden ? 'СКРЫТ' : 'АКТИВЕН',
+            ...(archive ? {
+              missingDraftPrice,
+              preserveDraftCurrency: missingDraftPrice && !currency,
+              priceFromWorkbook: Boolean(archivePrice),
+              hidesExisting: Boolean(hidden && existingProd && existingProd.status !== 'СКРЫТ')
+            } : {}),
             actionStatus,
             seoTitle: getColumnValue(cleanRow, ['seoзаголовок', 'seotitle']),
             seoDesc: getColumnValue(cleanRow, ['seoописание', 'seodesc']),
@@ -510,6 +542,11 @@ export const parseAndValidateExcelFile = async (file, currentProducts = []) => {
         validRows.forEach((r) => {
           if (r.actionStatus === 'УДАЛИТЬ') {
             toDelete++;
+          } else if (archive) {
+            if (!r.isExisting) toAdd++;
+            else if (r.isChanged) toUpdate++;
+            else unchanged++;
+            if (r.status === 'СКРЫТ') toHide++;
           } else if (r.actionStatus === 'СКРЫТ' || r.status === 'СКРЫТ') {
             toHide++;
           } else if (!r.isExisting || r.actionStatus === 'ДОБАВИТЬ') {
@@ -670,7 +707,7 @@ export const applyExcelImport = (currentProducts = [], validatedRows = []) => {
         collection: row.collection || '',
         brand: row.brand || 'LAUTE',
         description: row.description || '',
-        price: row.price,
+        price: row.price ?? 0,
         currency: row.currency || '₸',
         material: row.material || '',
         color: row.color || '',
