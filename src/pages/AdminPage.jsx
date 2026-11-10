@@ -4126,6 +4126,7 @@ export const AdminPage = () => {
                   </div>
                   <h3>Импорт каталога</h3>
                   <p>Загрузи Excel или ZIP с одной таблицей и папкой фотографий и чертежей. Пути к файлам берутся из таблицы.</p>
+                  <p>После подтверждения товары появятся на сайте. Чтобы скрыть товар, укажи «СКРЫТЬ» в столбце «Статус действия».</p>
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -4209,7 +4210,7 @@ export const AdminPage = () => {
                       </div>
                       <div className="pill-item hidden">
                         <span className="pill-count">{validationResult.summary?.toHide || 0}</span>
-                        <span className="pill-name">{validationResult.archive ? 'Сохранится скрытыми' : 'Будет скрыто'}</span>
+                        <span className="pill-name">Будет скрыто по действию</span>
                       </div>
                       {validationResult.summary?.toDelete > 0 && (
                         <div className="pill-item errors">
@@ -4226,11 +4227,15 @@ export const AdminPage = () => {
                       <p>
                         Связано файлов медиа — {validationResult.archive.mediaCount}.
                         {validationResult.archive.unlinkedCount > 0 && ` Без связи с товарами — ${validationResult.archive.unlinkedCount}.`}
-                        {validationResult.archive.hidesExistingCount > 0 && ` Из них действующих карточек будет скрыто — ${validationResult.archive.hidesExistingCount}.`}
-                        {validationResult.archive.priceFromWorkbookCount > 0 && ` Цены в тенге взяты из листа «Цены и поставка» для ${validationResult.archive.priceFromWorkbookCount} позиций.`}
-                        {validationResult.archive.missingPriceCount > 0 && ` Скрытых позиций без цены — ${validationResult.archive.missingPriceCount}.`}
                       </p>
                     )}
+                    {(validationResult.summary?.priceFromWorkbookCount > 0 || validationResult.summary?.missingPriceCount > 0) && (
+                      <p>
+                        {validationResult.summary.priceFromWorkbookCount > 0 && `Цены в тенге взяты из листа «Цены и поставка» для ${validationResult.summary.priceFromWorkbookCount} позиций. `}
+                        {validationResult.summary.missingPriceCount > 0 && `Позиций с ценой по запросу — ${validationResult.summary.missingPriceCount}.`}
+                      </p>
+                    )}
+                    {validationResult.summary?.hidesExistingCount > 0 && <p>Действующих карточек будет скрыто — {validationResult.summary.hidesExistingCount}.</p>}
                   </div>
 
                   {/* Errors Notice if any */}
@@ -4281,7 +4286,7 @@ export const AdminPage = () => {
                             ? await commitExcelArchive(validationResult, (done, total) => {
                               setExcelMediaProgress(done < total ? `Загрузка медиа: ${done} из ${total}` : 'Сохранение каталога...');
                             })
-                            : await commitExcelImport(validationResult.validRows);
+                            : await commitExcelImport(validationResult.validRows, { countHiddenChanges: true });
                           setExcelCommitStats(res.stats);
                           setValidationResult(null);
                           loadCatalogData();

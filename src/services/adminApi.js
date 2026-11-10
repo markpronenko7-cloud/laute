@@ -936,7 +936,7 @@ export const validateExcelFile = async (file) => {
     const { validateCatalogArchive } = await import('../utils/catalogArchive.js');
     return validateCatalogArchive(file, await fetchProducts(true, true));
   }
-  return await clientValidateExcel(file, await fetchProducts(true));
+  return await clientValidateExcel(file, await fetchProducts(true), { publishByDefault: true });
 };
 
 export const commitExcelArchive = async (validation, onProgress) => {

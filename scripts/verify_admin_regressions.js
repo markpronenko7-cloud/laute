@@ -21,7 +21,7 @@ const workbook = rows => {
 };
 const headings = ['Артикул (SKU) *', 'Название товара *', 'Категория *', 'Цена *'];
 
-test('ZIP: точные файлы, скрытые карточки, цены в тенге и продолжение после сбоя', async () => {
+test('ZIP: публикация карточек, цены в тенге, точные файлы и продолжение после сбоя', async () => {
   const zip = new JSZip();
   const wb = XLSX.utils.book_new();
   const products = [
@@ -41,8 +41,8 @@ test('ZIP: точные файлы, скрытые карточки, цены в
   const result = await validateCatalogArchive(await zip.generateAsync({ type: 'uint8array' }), existing);
   assert.equal(result.success, true);
   assert.equal(result.archive.mediaCount, 3);
-  assert.equal(result.archive.priceFromWorkbookCount, 1);
-  assert.equal(result.archive.hidesExistingCount, 1);
+  assert.equal(result.summary.priceFromWorkbookCount, 1);
+  assert.equal(result.summary.hidesExistingCount, 0);
   assert.equal(result.validRows[0].price, 12345);
   assert.equal(result.validRows[1].price, 400);
 
@@ -58,7 +58,30 @@ test('ZIP: точные файлы, скрытые карточки, цены в
   assert.equal(rows[0].drawingUrl, 'https://test.invalid/SKU-1_scheme.png');
   const committed = applyExcelImport([{ ...existing[0], price: 500 }], rows);
   assert.equal(committed.find(p => p.article === 'SKU-2').price, 500);
-  assert.ok(committed.every(p => p.status === 'СКРЫТ'));
+  assert.ok(committed.every(p => p.status === 'АКТИВЕН'));
+});
+
+test('Импорт каталога публикует карточки по умолчанию и сохраняет явное действие «СКРЫТЬ»', async () => {
+  const result = await parseAndValidateExcelFile(workbook([
+    [...headings, 'Статус товара', 'Статус действия', 'Валюта'],
+    ['NEW', 'Новый товар', CATEGORY_NAMES[0], '', 'СКРЫТ', 'ДОБАВИТЬ'],
+    ['EXISTING', 'Обновлённый товар', CATEGORY_NAMES[0], 0, 'СКРЫТ', 'ОБНОВИТЬ', '₸'],
+    ['HIDE', 'Скрыть товар', CATEGORY_NAMES[0], 100, 'АКТИВЕН', 'СКРЫТЬ'],
+    ['BAD', 'Неверная цена', CATEGORY_NAMES[0], -100, 'АКТИВЕН', 'ДОБАВИТЬ']
+  ]), [
+    { article: 'EXISTING', price: 250, currency: 'RUB', status: 'СКРЫТ' },
+    { article: 'HIDE', price: 100, status: 'АКТИВЕН' }
+  ], { publishByDefault: true });
+  assert.equal(result.summary.missingPriceCount, 1);
+  assert.equal(result.summary.hidesExistingCount, 1);
+  assert.equal(result.errors.length, 1);
+  assert.equal(result.errors[0].article, 'BAD');
+  assert.equal(result.validRows[0].status, 'АКТИВЕН');
+  assert.equal(result.validRows[0].price, 0);
+  assert.equal(result.validRows[1].status, 'АКТИВЕН');
+  assert.equal(result.validRows[1].price, 250);
+  assert.equal(result.validRows[1].currency, 'RUB');
+  assert.equal(result.validRows[2].status, 'СКРЫТ');
 });
 
 test('ZIP: неоднозначные или отсутствующие фотографии блокируют весь импорт', async () => {

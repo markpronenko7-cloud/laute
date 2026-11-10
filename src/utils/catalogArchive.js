@@ -1,5 +1,4 @@
 import JSZip from 'jszip';
-import * as XLSX from 'xlsx';
 import { parseAndValidateExcelFile } from './excelManager.js';
 
 const MB = 1024 * 1024;
@@ -32,26 +31,6 @@ function readEntry(entry, limit) {
       chunks.push(chunk);
     }).on('error', reject).on('end', () => resolve(chunks)).resume();
   });
-}
-
-function readKztPrices(workbook) {
-  const sheet = workbook.Sheets['Цены и поставка'];
-  const prices = new Map();
-  if (!sheet) return prices;
-  const [headers = [], ...rows] = XLSX.utils.sheet_to_json(sheet, { header: 1, blankrows: false });
-  const skuCol = headers.findIndex(label => /^артикул(?:\s|$)/i.test(String(label).trim()));
-  const priceCol = headers.findIndex(label => /^ррц казахстан,\s*kzt$/i.test(String(label).trim()));
-  if (skuCol === -1 || priceCol === -1) return prices;
-  for (const row of rows) {
-    const sku = String(row[skuCol] ?? '').trim().toUpperCase();
-    const price = Number(String(row[priceCol] ?? '').replace(/\s+/g, '').replace(',', '.'));
-    if (!sku || !Number.isFinite(price) || price <= 0) continue;
-    if (prices.has(sku) && prices.get(sku) !== price) {
-      throw new Error(`В листе «Цены и поставка» указаны разные цены для ${sku}.`);
-    }
-    prices.set(sku, price);
-  }
-  return prices;
 }
 
 export async function validateCatalogArchive(file, products) {
@@ -99,10 +78,10 @@ export async function validateCatalogArchive(file, products) {
   };
 
   const book = new Blob(await readEntry(books[0], 32 * MB));
-  const result = await parseAndValidateExcelFile(await book.arrayBuffer(), products, workbook => ({
-    prices: readKztPrices(workbook),
+  const result = await parseAndValidateExcelFile(await book.arrayBuffer(), products, {
+    publishByDefault: true,
     resolveMedia
-  }));
+  });
   const media = new Map();
   const urls = new Set(result.validRows.flatMap(row => mediaFields.map(field => row[field])).filter(url => references.has(url)));
   let totalSize = 0;
@@ -125,10 +104,7 @@ export async function validateCatalogArchive(file, products) {
       media,
       uploaded: new Map(),
       mediaCount: urls.size,
-      unlinkedCount: paths.size - references.size,
-      hidesExistingCount: result.validRows.filter(row => row.hidesExisting).length,
-      missingPriceCount: result.validRows.filter(row => row.missingDraftPrice && !Number(row.price)).length,
-      priceFromWorkbookCount: result.validRows.filter(row => row.priceFromWorkbook).length
+      unlinkedCount: paths.size - references.size
     }
   };
 }
@@ -156,8 +132,7 @@ export async function uploadCatalogArchiveMedia(validation, upload, onProgress) 
   await Promise.all(Array.from({ length: Math.min(4, pending.length) }, worker));
   if (failure) throw failure;
   return validation.validRows.map(row => {
-    const linked = row.missingDraftPrice ? { ...row, price: undefined } : { ...row };
-    if (row.preserveDraftCurrency) linked.currency = undefined;
+    const linked = { ...row };
     for (const field of mediaFields) {
       if (uploaded.has(row[field])) linked[field] = uploaded.get(row[field]);
     }

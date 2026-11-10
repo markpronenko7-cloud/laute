@@ -151,18 +151,38 @@ function getColumnValue(cleanRow, aliases) {
   return '';
 }
 
+function readKztPrices(workbook) {
+  const sheet = workbook.Sheets['Цены и поставка'];
+  const prices = new Map();
+  if (!sheet) return prices;
+  const [headers = [], ...rows] = XLSX.utils.sheet_to_json(sheet, { header: 1, blankrows: false });
+  const skuCol = headers.findIndex(label => /^артикул(?:\s|$)/i.test(String(label).trim()));
+  const priceCol = headers.findIndex(label => /^ррц казахстан,\s*kzt$/i.test(String(label).trim()));
+  if (skuCol === -1 || priceCol === -1) return prices;
+  for (const row of rows) {
+    const sku = String(row[skuCol] ?? '').trim().toUpperCase();
+    const price = Number(String(row[priceCol] ?? '').replace(/\s+/g, '').replace(',', '.'));
+    if (!sku || !Number.isFinite(price) || price <= 0) continue;
+    if (prices.has(sku) && prices.get(sku) !== price) {
+      throw new Error(`В листе «Цены и поставка» указаны разные цены для ${sku}.`);
+    }
+    prices.set(sku, price);
+  }
+  return prices;
+}
+
 /**
  * Парсит загруженный файл Excel и производит строгую построчную валидацию.
  * Автоматически находит нужный лист каталога ("Товары" / "Каталог" / лист с артикулами).
  * Возвращает { success, errors, validRows, rows, summary, stats }
  */
-export const parseAndValidateExcelFile = async (file, currentProducts = [], prepareArchive) => {
+export const parseAndValidateExcelFile = async (file, currentProducts = [], { publishByDefault = false, resolveMedia } = {}) => {
   return new Promise((resolve) => {
     const parseWorkbookData = (rawArrayBuffer) => {
       try {
         const data = rawArrayBuffer instanceof Uint8Array ? rawArrayBuffer : new Uint8Array(rawArrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
-        const archive = prepareArchive?.(workbook);
+        const workbookPrices = publishByDefault ? readKztPrices(workbook) : new Map();
 
         if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
           resolve({
@@ -373,13 +393,13 @@ export const parseAndValidateExcelFile = async (file, currentProducts = [], prep
           // 4. Проверка цены
           const existingProd = existingMap.get(upperArticle);
           const isExisting = Boolean(existingProd);
-          const hidden = actionStatus === 'СКРЫТ' || productStatusRaw === 'СКРЫТ';
-          const archivePrice = archive && !priceRaw ? archive.prices.get(upperArticle) : undefined;
+          const hidden = actionStatus === 'СКРЫТ' || (!publishByDefault && productStatusRaw === 'СКРЫТ');
+          const workbookPrice = !priceRaw ? workbookPrices.get(upperArticle) : undefined;
           const currency = getColumnValue(cleanRow, ['валюта', 'currency']);
-          const cleanPriceStr = String(priceRaw || archivePrice || '').replace(/\s+/g, '').replace(',', '.');
+          const cleanPriceStr = String(priceRaw || workbookPrice || '').replace(/\s+/g, '').replace(',', '.');
           const parsedPrice = /^\d+(\.\d+)?$/.test(cleanPriceStr) ? Number(cleanPriceStr) : NaN;
-          const missingDraftPrice = Boolean(archive && hidden && !cleanPriceStr);
-          if (!missingDraftPrice && (!Number.isFinite(parsedPrice) || parsedPrice <= 0)) {
+          const preservePrice = publishByDefault && (!cleanPriceStr || parsedPrice === 0);
+          if (!preservePrice && (!Number.isFinite(parsedPrice) || parsedPrice <= 0)) {
             errors.push({
               row: rowNum,
               article,
@@ -410,9 +430,9 @@ export const parseAndValidateExcelFile = async (file, currentProducts = [], prep
           let rawPhoto2 = getColumnValue(cleanRow, ['дополнительныефото', 'фотография2', 'photo2']) || photoParts[1] || '';
           let rawPhoto3 = getColumnValue(cleanRow, ['фотография3', 'photo3']) || photoParts[2] || '';
           const archiveRefs = new Set();
-          if (archive) {
+          if (resolveMedia) {
             const resolve = value => value.split(/[,;\n]+/).map(part => part.trim()).filter(Boolean).map(part => {
-              const url = archive.resolveMedia(part);
+              const url = resolveMedia(part);
               if (url !== part) archiveRefs.add(url);
               return url;
             }).join('; ');
@@ -491,8 +511,8 @@ export const parseAndValidateExcelFile = async (file, currentProducts = [], prep
             collection: getColumnValue(cleanRow, ['коллекция', 'collection']),
             brand: getColumnValue(cleanRow, ['бренд', 'brand']) || existingProd?.brand || 'LAUTE',
             description: getColumnValue(cleanRow, ['описание', 'description']),
-            price: missingDraftPrice ? (existingProd?.price ?? 0) : parsedPrice,
-            currency: archivePrice ? '₸' : (currency || existingProd?.currency || '₸'),
+            price: preservePrice ? (existingProd?.price ?? 0) : parsedPrice,
+            currency: workbookPrice ? '₸' : ((preservePrice && existingProd?.currency) || currency || existingProd?.currency || '₸'),
             material: getColumnValue(cleanRow, ['материал', 'material']),
             color: getColumnValue(cleanRow, ['цвет', 'color']),
             finish: getColumnValue(cleanRow, ['покрытие', 'finish']),
@@ -512,10 +532,9 @@ export const parseAndValidateExcelFile = async (file, currentProducts = [], prep
             stock: stockRaw !== '' ? safeStock : undefined,
             cityStock,
             status: hidden ? 'СКРЫТ' : 'АКТИВЕН',
-            ...(archive ? {
-              missingDraftPrice,
-              preserveDraftCurrency: missingDraftPrice && !currency,
-              priceFromWorkbook: Boolean(archivePrice),
+            ...(publishByDefault ? {
+              preservePrice,
+              priceFromWorkbook: Boolean(workbookPrice),
               hidesExisting: Boolean(hidden && existingProd && existingProd.status !== 'СКРЫТ')
             } : {}),
             actionStatus,
@@ -542,7 +561,7 @@ export const parseAndValidateExcelFile = async (file, currentProducts = [], prep
         validRows.forEach((r) => {
           if (r.actionStatus === 'УДАЛИТЬ') {
             toDelete++;
-          } else if (archive) {
+          } else if (publishByDefault) {
             if (!r.isExisting) toAdd++;
             else if (r.isChanged) toUpdate++;
             else unchanged++;
@@ -564,7 +583,12 @@ export const parseAndValidateExcelFile = async (file, currentProducts = [], prep
           unchanged,
           toHide,
           toDelete,
-          errorsCount: errors.length
+          errorsCount: errors.length,
+          ...(publishByDefault ? {
+            hidesExistingCount: validRows.filter(row => row.hidesExisting).length,
+            missingPriceCount: validRows.filter(row => !row.isDelete && !(Number(row.price) > 0)).length,
+            priceFromWorkbookCount: validRows.filter(row => row.priceFromWorkbook).length
+          } : {})
         };
 
         const stats = {
@@ -668,8 +692,8 @@ export const applyExcelImport = (currentProducts = [], validatedRows = []) => {
         collection: row.collection !== undefined && row.collection !== '' ? row.collection : existing.collection,
         brand: row.brand || existing.brand || 'LAUTE',
         description: row.description !== undefined && row.description !== '' ? row.description : existing.description,
-        price: row.price !== undefined ? row.price : existing.price,
-        currency: row.currency || existing.currency || '₸',
+        price: !row.preservePrice && row.price !== undefined ? row.price : existing.price,
+        currency: (row.preservePrice ? existing.currency : row.currency) || existing.currency || '₸',
         material: row.material !== undefined && row.material !== '' ? row.material : existing.material,
         color: row.color !== undefined && row.color !== '' ? row.color : existing.color,
         finish: row.finish !== undefined && row.finish !== '' ? row.finish : existing.finish,
@@ -707,7 +731,7 @@ export const applyExcelImport = (currentProducts = [], validatedRows = []) => {
         collection: row.collection || '',
         brand: row.brand || 'LAUTE',
         description: row.description || '',
-        price: row.price ?? 0,
+        price: row.preservePrice ? 0 : (row.price ?? 0),
         currency: row.currency || '₸',
         material: row.material || '',
         color: row.color || '',
