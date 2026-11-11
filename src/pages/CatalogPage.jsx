@@ -26,16 +26,16 @@ import { formatCatalogPrice } from '../utils/catalogPrice';
 
 const normalizeCategory = value => String(value || '').trim().replace(/\s+/g, ' ');
 
-const catalogTitle = title => {
-  const defaultTitles = {
-    'Каталог продукции LAUTE': 'Каталог продукции',
-    'Номенклатура продукции LAUTE': 'Каталог продукции',
-    'LAUTE өнім номенклатурасы': 'Өнімдер каталогы',
-    'LAUTE Product Catalog': 'Product Catalog',
-    'LAUTE Product Nomenclature': 'Product Catalog'
-  };
-  return defaultTitles[title.trim()] || title;
-};
+const catalogShowcase = [
+  { id: 'kitchen-mixers', image: 'kitchen', labels: { ru: 'Кухня', kz: 'Асүй', en: 'Kitchen' } },
+  { id: 'bath-mixers', image: 'bathroom', labels: { ru: 'Ванная', kz: 'Ванна', en: 'Bath' } },
+  { id: 'shower-systems', image: 'shower', labels: { ru: 'Душ', kz: 'Душ', en: 'Shower' } }
+];
+
+const defaultCatalogTitles = new Set([
+  'Каталог продукции LAUTE', 'Каталог продукции', 'Номенклатура продукции LAUTE',
+  'LAUTE өнім номенклатурасы', 'LAUTE Product Catalog', 'LAUTE Product Nomenclature'
+]);
 
 export const CatalogPage = () => {
   const { 
@@ -88,6 +88,8 @@ export const CatalogPage = () => {
 
   const baseUrl = import.meta.env.BASE_URL;
   const cat = t.catalogPage || {};
+  const shortTitle = lang === 'en' ? 'Catalog' : 'Каталог';
+  const catalogTitle = title => defaultCatalogTitles.has(title.trim()) ? shortTitle : title;
 
   const getImgUrl = (path) => {
     if (!path) return `${baseUrl}laute-logo.png`;
@@ -452,12 +454,8 @@ export const CatalogPage = () => {
       {/* Page Header */}
       <EditableSection sectionKey="catalog-1" className="page-header catalog-hero-header">
         <div className="container">
-          <div className="page-header-content catalog-header-grid">
-            <div className="catalog-header-text">
-              <EditableNode as="h1" editKey={"catalogpage-2"} kind="text" introRoute="catalog" introField="h1" formatText={catalogTitle} className="page-title">{cat.title || 'Каталог продукции'}</EditableNode>
-              <EditableNode as="p" editKey={"catalogpage-3"} kind="text" introRoute="catalog" introField="description" className="page-subtitle">
-                {cat.subtitle || 'Полноразмерный каталог сантехники, сформированный по назначению изделий и архитектурным сериям.'}
-              </EditableNode>
+          <div className="catalog-masthead">
+              <EditableNode as="h1" editKey={"catalogpage-2"} kind="text" introRoute="catalog" introField="h1" formatText={catalogTitle} className="page-title">{cat.title || shortTitle}</EditableNode>
               <div className="catalog-header-actions">
               <EditableNode as={SiteAction} editKey={"catalogpage-4"} kind="button" controlId="catalog-1"
                 type="button"
@@ -486,10 +484,20 @@ export const CatalogPage = () => {
                 </EditableNode>
               )}
               </div>
-            </div>
-            <figure className="catalog-hero-photo">
-              <img src={`${baseUrl}images/products/interiors/btc103s.webp`} alt="" fetchPriority="high" />
-            </figure>
+          </div>
+          <div className="catalog-showcase">
+            {catalogShowcase.map(({ id, image, labels }) => {
+              const category = categories.find(item => item.id === id);
+              if (!category) return null;
+              return (
+                <button type="button" className="catalog-showcase-link" key={id} onClick={() => openCategory(category.sourceCategory)}>
+                  <div className="catalog-showcase-image">
+                    <img src={`${baseUrl}images/collections/coll-${image}.jpg`} alt="" width="1200" height="896" />
+                  </div>
+                  <span className="catalog-showcase-caption">{labels[lang] || labels.ru}<ArrowRight size={17} aria-hidden="true" /></span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </EditableSection>
@@ -582,15 +590,11 @@ export const CatalogPage = () => {
             </div>
 
             <div className="catalog-toolbar-right">
-              <span className="catalog-found-counter">
-                {catalogView === 'products'
-                  ? `${filteredProducts.length} ${cat.foundModels || 'позиций в номенклатуре'}`
-                  : lang === 'kz'
-                    ? `Санаттар: ${filteredCategories.length}`
-                    : lang === 'en'
-                      ? `Categories: ${filteredCategories.length}`
-                      : `Категорий: ${filteredCategories.length}`}
-              </span>
+              {catalogView === 'products' && (
+                <span className="catalog-found-counter">
+                  {filteredProducts.length} {cat.foundModels || 'позиций в номенклатуре'}
+                </span>
+              )}
 
               <EditableNode as="button" editKey={"catalogpage-10"} kind="button"
                 type="button"
