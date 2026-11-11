@@ -22,6 +22,20 @@ import {
   Check
 } from 'lucide-react';
 import { classifyProductImages, formatProductDisplay } from '../utils/imageHelper';
+import { formatCatalogPrice } from '../utils/catalogPrice';
+
+const normalizeCategory = value => String(value || '').trim().replace(/\s+/g, ' ');
+
+const catalogTitle = title => {
+  const defaultTitles = {
+    'Каталог продукции LAUTE': 'Каталог продукции',
+    'Номенклатура продукции LAUTE': 'Каталог продукции',
+    'LAUTE өнім номенклатурасы': 'Өнімдер каталогы',
+    'LAUTE Product Catalog': 'Product Catalog',
+    'LAUTE Product Nomenclature': 'Product Catalog'
+  };
+  return defaultTitles[title.trim()] || title;
+};
 
 export const CatalogPage = () => {
   const { 
@@ -31,6 +45,7 @@ export const CatalogPage = () => {
     openAuthModal, 
     products, 
     getProductPrice,
+    getProductCurrency,
     partnerAccount,
     openProductModal, 
     startComparison,
@@ -40,7 +55,6 @@ export const CatalogPage = () => {
     openCartModal,
     cartDistinctCount,
     cartTotalUnits,
-    cartTotalKnownAmount,
     cartCurrencyTotals,
     adminSession,
     isB2BAuthorized,
@@ -52,10 +66,22 @@ export const CatalogPage = () => {
   } = useApp();
 
   const [catalogView, setCatalogView] = useState('categories');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setCategory] = useState('all');
+  const [selectedSubcategory, setSelectedSubcategory] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMounting, setSelectedMounting] = useState('all');
   const catalogToolbar = useRef(null);
+  const setSelectedCategory = (category, subcategory = '') => {
+    setCategory(category);
+    setSelectedSubcategory(subcategory);
+  };
+  const openCategory = (category, subcategory) => {
+    setCatalogView('products');
+    setSelectedCategory(category, subcategory);
+    setSearchQuery('');
+    catalogToolbar.current?.focus({ preventScroll: true });
+    catalogToolbar.current?.scrollIntoView({ block: 'start' });
+  };
 
   const [categorySettings, setCategorySettings] = useState([]);
   useEffect(() => { let active = true; fetchCategories().then(data => { if (active) setCategorySettings(data); }); return () => { active = false; }; }, []);
@@ -339,7 +365,6 @@ export const CatalogPage = () => {
     }
   };
 
-  const normalizeCategory = (value) => String(value || '').trim().replace(/\s+/g, ' ');
   const activeProducts = products.filter(p => p.status !== 'СКРЫТ' && !categorySettings.some(c => c.name === p.category && c.isVisible === false));
   const productCategories = Array.from(new Set(activeProducts.map(p => normalizeCategory(p.category)).filter(Boolean)));
 
@@ -362,7 +387,9 @@ export const CatalogPage = () => {
   ];
   const categories = productCategories.map((sourceCategory) => {
     const item = categoryDefinitions.find((candidate) => categoryTranslations[candidate.id]?.name?.ru === sourceCategory);
-    const sourceProduct = activeProducts.find(p => normalizeCategory(p.category) === sourceCategory);
+    const categoryProducts = activeProducts.filter(p => normalizeCategory(p.category) === sourceCategory);
+    const subcategories = [...new Set(categoryProducts.map(p => normalizeCategory(p.subcategory)).filter(Boolean))];
+    const sourceProduct = categoryProducts[0];
     const image = sourceProduct?.photo1 ? classifyProductImages(sourceProduct, baseUrl).mainPhoto : null;
     if (!item) {
       return {
@@ -371,7 +398,8 @@ export const CatalogPage = () => {
         name: sourceCategory,
         image,
         mounting: 'other',
-        count: activeProducts.filter(p => normalizeCategory(p.category) === sourceCategory).length
+        count: categoryProducts.length,
+        subcategories
       };
     }
     const tr = categoryTranslations[item.id] || {};
@@ -379,7 +407,8 @@ export const CatalogPage = () => {
       ...item,
       sourceCategory,
       image,
-      count: activeProducts.filter(p => normalizeCategory(p.category) === sourceCategory).length,
+      count: categoryProducts.length,
+      subcategories,
       name: tr.name?.[lang] || tr.name?.ru || item.id,
       badge: tr.badge?.[lang] || tr.badge?.ru || '',
       desc: tr.desc?.[lang] || tr.desc?.ru || '',
@@ -392,6 +421,7 @@ export const CatalogPage = () => {
     const saved = categorySettings.find(item => item.name === c.sourceCategory);
     return saved ? { ...c, name: saved.name, desc: saved.description || c.desc, image: saved.image || c.image, order: saved.order ?? 999 } : { ...c, order: 999 };
   }).sort((a,b) => a.order - b.order);
+  const subcategoryOptions = orderedCategories.find(c => c.sourceCategory === selectedCategory)?.subcategories || [];
 
   // Filter Categories
   const filteredCategories = orderedCategories.filter(c => {
@@ -406,13 +436,15 @@ export const CatalogPage = () => {
   // Filter Live Products
   const filteredProducts = activeProducts.filter(p => {
     const matchesCat = selectedCategory === 'all' || normalizeCategory(p.category) === selectedCategory;
+    const matchesSubcategory = !selectedSubcategory || normalizeCategory(p.subcategory) === selectedSubcategory;
     const matchesSearch = searchQuery === '' ||
       p.article.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      normalizeCategory(p.subcategory).toLowerCase().includes(searchQuery.toLowerCase()) ||
       (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (p.specs && p.specs.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesCat && matchesSearch;
+    return matchesCat && matchesSubcategory && matchesSearch;
   });
 
   return (
@@ -422,8 +454,7 @@ export const CatalogPage = () => {
         <div className="container">
           <div className="page-header-content catalog-header-grid">
             <div className="catalog-header-text">
-              <EditableNode as="span" editKey={"catalogpage-1"} kind="text" className="catalog-kicker">{cat.badge || 'Каталог LAUTE'}</EditableNode>
-              <EditableNode as="h1" editKey={"catalogpage-2"} kind="text"  introRoute="catalog" introField="h1" className="page-title">{cat.title || 'Номенклатура продукции LAUTE'}</EditableNode>
+              <EditableNode as="h1" editKey={"catalogpage-2"} kind="text" introRoute="catalog" introField="h1" formatText={catalogTitle} className="page-title">{cat.title || 'Каталог продукции'}</EditableNode>
               <EditableNode as="p" editKey={"catalogpage-3"} kind="text" introRoute="catalog" introField="description" className="page-subtitle">
                 {cat.subtitle || 'Полноразмерный каталог сантехники, сформированный по назначению изделий и архитектурным сериям.'}
               </EditableNode>
@@ -438,7 +469,7 @@ export const CatalogPage = () => {
                 {cartTotalUnits > 0 && (
                   <span className="catalog-cart-count-pill">
                     {cartTotalUnits} шт.
-                    {partnerAccount?.role === 'partner' ? Object.entries(cartCurrencyTotals).map(([c, v]) => ` · ${v.toLocaleString('ru-RU')} ${c}`).join('') : cartTotalKnownAmount > 0 ? ` · ${cartTotalKnownAmount.toLocaleString('ru-RU')} ₽` : ''}
+                    {Object.entries(cartCurrencyTotals).map(([currency, amount]) => ` · ${formatCatalogPrice(amount, currency)}`).join('')}
                   </span>
                 )}
               </EditableNode>
@@ -458,7 +489,6 @@ export const CatalogPage = () => {
             </div>
             <figure className="catalog-hero-photo">
               <img src={`${baseUrl}images/products/interiors/btc103s.webp`} alt="" fetchPriority="high" />
-              <figcaption>LAUTE · Bitcoin</figcaption>
             </figure>
           </div>
         </div>
@@ -509,6 +539,7 @@ export const CatalogPage = () => {
                 </select>
               </div>
             )}
+
           </div>
         </div>
       </EditableSection>
@@ -618,6 +649,20 @@ export const CatalogPage = () => {
               </div>
             )}
 
+            {catalogView === 'products' && subcategoryOptions.length > 0 && (
+              <div className="mounting-filter-group catalog-subcategory-filter">
+                <span className="filter-label">{lang === 'kz' ? 'Ішкі санат' : lang === 'en' ? 'Subcategory' : 'Подкатегория'}</span>
+                <div className="filter-chips">
+                  <button type="button" className={`chip-btn ${!selectedSubcategory ? 'active' : ''}`} aria-pressed={!selectedSubcategory} onClick={() => setSelectedSubcategory('')}>
+                    {lang === 'kz' ? 'Барлығы' : lang === 'en' ? 'All' : 'Все'}
+                  </button>
+                  {subcategoryOptions.map(name => (
+                    <button key={name} type="button" className={`chip-btn ${selectedSubcategory === name ? 'active' : ''}`} aria-pressed={selectedSubcategory === name} onClick={() => setSelectedSubcategory(name)}>{name}</button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {catalogView === 'categories' && (
               <div className="mounting-filter-group">
                 <EditableNode as="span" editKey={"catalogpage-13"} kind="text" className="filter-label">
@@ -690,7 +735,7 @@ export const CatalogPage = () => {
                         className="sku-product-img"
                         loading="lazy"
                         onError={(e) => {
-                          e.currentTarget.src = `${baseUrl}images/cat_laute_brand.jpg`;
+                          if (!e.currentTarget.src.endsWith('/laute-logo.png')) e.currentTarget.src = `${baseUrl}laute-logo.png`;
                         }}
                       />
                       {p.isPopular && <span className="sku-pop-badge">Лидер продаж</span>}
@@ -728,7 +773,7 @@ export const CatalogPage = () => {
                             </span>
                             <div className={`sku-price ${!hasKnownPrice ? 'is-on-request' : ''}`}>
                               {hasKnownPrice
-                                ? `${rawPrice.toLocaleString('ru-RU')} ${p.currency || '₽'}`
+                                ? formatCatalogPrice(rawPrice, getProductCurrency(p))
                                 : cat.priceOnRequest || 'Цена по запросу'}
                             </div>
                           </div>
@@ -883,19 +928,20 @@ export const CatalogPage = () => {
                   <div className="card-content">
                     <h3 className="card-title">{cItem.name}</h3>
                     {cItem.desc && <p className="card-desc">{cItem.desc}</p>}
+                    {cItem.subcategories.length > 0 && (
+                      <ul className="catalog-subcategory-links">
+                        {cItem.subcategories.map(name => (
+                          <li key={name}><button type="button" onClick={() => openCategory(cItem.sourceCategory, name)}>{name}</button></li>
+                        ))}
+                      </ul>
+                    )}
 
                     <div className="card-footer">
                       <SiteAction controlId="catalog-4"
                         type="button"
                         className="btn btn-primary btn-sm category-open"
                         aria-label={lang === 'en' ? `Browse ${cItem.name}` : lang === 'kz' ? `${cItem.name} модельдерін көру` : `Смотреть модели: ${cItem.name}`}
-                        onClick={() => {
-                          setCatalogView('products');
-                          setSelectedCategory(cItem.sourceCategory);
-                          setSearchQuery('');
-                          catalogToolbar.current?.focus({ preventScroll: true });
-                          catalogToolbar.current?.scrollIntoView({ block: 'start' });
-                        }}
+                        onClick={() => openCategory(cItem.sourceCategory)}
                       >
                         <span>
                           {lang === 'kz'

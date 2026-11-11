@@ -27,6 +27,7 @@ export function EditableNode({
   kind = 'text',
   introRoute,
   introField,
+  formatText,
   children,
   ...props
 }) {
@@ -88,6 +89,7 @@ export function EditableNode({
     }) : label;
     if (['button', 'link', 'submit'].includes(kind) && !replaced) content = label;
   }
+  if (formatText && typeof content === 'string') content = formatText(content);
   const imageProps = kind === 'image' ? {
     src: resolveMediaUrl(saved.src ?? props.src),
     alt: saved.alt ?? props.alt

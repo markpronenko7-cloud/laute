@@ -7,6 +7,7 @@ import { REGIONS_CONFIG, PARTNER_REGIONS, getPartnerRegion } from '../src/data/r
 import { resolveInquiryRecipient, validateInquiryRouting, DEFAULT_INQUIRY_EMAIL } from '../src/utils/inquiryRouting.js';
 import { getCompanyBlocks, COMPANY_BLOCKS, getCompanyMilestones, getVisibleCompanyProcesses, localizeCompanyBlock } from '../src/data/factoryStory.js';
 import { getEditableBlocks } from '../src/utils/pagePublication.js';
+import { formatCatalogPrice, getRegionalCurrency } from '../src/utils/catalogPrice.js';
 
 const types = ['partner', 'service', 'order'];
 const routing = { defaults: Object.fromEntries(types.map(t => [t, `${t}@example.com`])), regions: Object.fromEntries(REGIONS_CONFIG.map(r => [r.id, Object.fromEntries(types.map(t => [t, `${t}-${r.id}@example.com`]))])) };
@@ -45,8 +46,17 @@ test('Заявки: опубликованные настройки управл
         const type=source.includes('service')?'service':'partner';await api.submitLeadInquiry({source,name:'QA',email:'qa@example.com'});
         assert.equal(sent.at(-1).recipient,`${type}-${r.id}@example.com`);assert.equal(sent.at(-1).body.email,'qa@example.com');assert.match(sent.at(-1).body.message,new RegExp(r.id));
       }
-      session.clear();await api.submitCartOrderInquiry({customerName:'QA isolated',contact:'qa@example.com',city:'QA city',consent:true,items:[{article:'QA',title:'QA',quantity:1,price:100}]});
+      const currency = getRegionalCurrency(r.id);
+      session.clear();
+      const { order } = await api.submitCartOrderInquiry({
+        customerName: 'QA isolated', contact: 'qa@example.com', city: 'QA city',
+        consent: true, currency, items: [{ article: 'QA', title: 'QA', quantity: 2, price: 100 }]
+      });
+      const formattedSubtotal = formatCatalogPrice(200, currency);
+      assert.equal(order.summary.currency, currency);
       assert.equal(sent.at(-1).recipient,`order-${r.id}@example.com`);
+      assert.ok(sent.at(-1).body.message.includes(`2 шт. — ${formattedSubtotal}\n`));
+      assert.ok(sent.at(-1).body.message.includes(`Итого по известным ценам: ${formattedSubtotal}`));
     }
     await api.submitLeadInquiry({source:'service_page',regionInquiry:'almaty'});assert.equal(sent.at(-1).recipient,'service-almaty@example.com');
     for (const r of PARTNER_REGIONS) {

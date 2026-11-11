@@ -166,8 +166,9 @@ export function detectImageType(url) {
  * возвращает { mainPhoto, drawingPhotos, boxPhotos, additionalPhotos, allPhotos }
  */
 export function classifyProductImages(product, baseUrl = import.meta.env?.BASE_URL || '/') {
+  const fallback = `${baseUrl}laute-logo.png`;
+  const isOldPackaging = url => /(?:^|\/)cat_laute_brand\.jpg(?:[?#]|$)/i.test(url);
   if (!product) {
-    const fallback = `${baseUrl}images/cat_laute_brand.jpg`;
     return {
       mainPhoto: fallback,
       drawingPhotos: [],
@@ -179,10 +180,10 @@ export function classifyProductImages(product, baseUrl = import.meta.env?.BASE_U
 
   // An explicit CMS assignment takes priority over filename guesses and SKU maps.
   if (product.imageSlotsExplicit) {
-    const main = product.photo1 ? normalizeImageUrl(product.photo1, baseUrl) : '';
-    const additional = [product.photo2, product.photo3].filter(Boolean).map(url => normalizeImageUrl(url, baseUrl));
-    const boxes = product.boxUrl ? [normalizeImageUrl(product.boxUrl, baseUrl)] : [];
-    const mainPhoto = main || additional.shift() || `${baseUrl}images/cat_laute_brand.jpg`;
+    const main = product.photo1 && !isOldPackaging(product.photo1) ? normalizeImageUrl(product.photo1, baseUrl) : '';
+    const additional = [product.photo2, product.photo3].filter(url => url && !isOldPackaging(url)).map(url => normalizeImageUrl(url, baseUrl));
+    const boxes = product.boxUrl && !isOldPackaging(product.boxUrl) ? [normalizeImageUrl(product.boxUrl, baseUrl)] : [];
+    const mainPhoto = main || additional.shift() || fallback;
     return { mainPhoto, additionalPhotos: [...additional, ...boxes],
       drawingPhotos: product.drawingUrl ? [normalizeImageUrl(product.drawingUrl, baseUrl)] : [],
       boxPhotos: boxes, allPhotos: [...new Set([mainPhoto, ...additional, ...boxes])] };
@@ -213,6 +214,7 @@ export function classifyProductImages(product, baseUrl = import.meta.env?.BASE_U
       // Может быть список через запятую
       const parts = c.url.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
       parts.forEach(part => {
+        if (isOldPackaging(part)) return;
         const norm = normalizeImageUrl(part, baseUrl);
         const existing = rawImages.find(r => r.url === norm);
         if (existing && c.defaultType) existing.type = c.defaultType;
@@ -243,9 +245,7 @@ export function classifyProductImages(product, baseUrl = import.meta.env?.BASE_U
   const drawingPhotos = rawImages.filter(i => i.type === 'drawing').map(i => i.url);
   const boxPhotos = rawImages.filter(i => i.type === 'box').map(i => i.url);
 
-  // ГЛАВНОЕ ТРЕБОВАНИЕ: Основная фотография — ТОЛЬКО сам смеситель! НЕ коробка и НЕ чертёж!
-  const fallback = `${baseUrl}images/cat_laute_brand.jpg`;
-  const mainPhoto = mixerPhotos.length > 0 ? mixerPhotos[0] : (boxPhotos[0] || drawingPhotos[0] || fallback);
+  const mainPhoto = mixerPhotos[0] || fallback;
 
   // Дополнительные фото (исключая главное фото)
   const additionalPhotos = [

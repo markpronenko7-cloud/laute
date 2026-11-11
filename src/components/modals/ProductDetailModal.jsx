@@ -19,6 +19,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import { formatCatalogPrice } from '../../utils/catalogPrice';
 import { classifyProductImages, formatProductDisplay } from '../../utils/imageHelper';
 
 export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) => {
@@ -29,7 +30,7 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
     updateCartQuantity,
     getCartItemQuantity,
     openCartModal,
-    getProductPrice,
+    getProductPrice, getProductCurrency,
     partnerAccount,
     adminSession,
     isB2BAuthorized,
@@ -86,7 +87,7 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
 
   // Фотографии галереи (смеситель + дополнительные фото + упаковка)
   const galleryPhotos = imgInfo?.allPhotos || [];
-  const activePhotoSrc = galleryPhotos[selectedPhoto] || imgInfo?.mainPhoto || `${baseUrl}images/cat_laute_brand.jpg`;
+  const activePhotoSrc = galleryPhotos[selectedPhoto] || imgInfo?.mainPhoto || `${baseUrl}laute-logo.png`;
 
   // Сбор всех медиа-файлов строго ЭТОГО товара (фотографии + чертежи)
   const productMediaList = useMemo(() => {
@@ -225,7 +226,7 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
                 style={{ cursor: 'pointer' }}
                 onClick={() => openLightbox(activePhotoSrc)}
                 onError={(e) => {
-                  e.target.src = `${baseUrl}images/cat_laute_brand.jpg`;
+                  e.target.src = `${baseUrl}laute-logo.png`;
                 }}
               />
               {selectedProduct.isPopular && (
@@ -299,7 +300,7 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
 
             <div className="product-price-row">
               <div className="price-val">
-                {getProductPrice(selectedProduct) ? `${Number(getProductPrice(selectedProduct)).toLocaleString('ru-RU')} ${selectedProduct.currency || '₸'}` : (pm.onDemand || 'По запросу')}
+                {getProductPrice(selectedProduct) ? formatCatalogPrice(getProductPrice(selectedProduct), getProductCurrency(selectedProduct)) : (pm.onDemand || 'По запросу')}
               </div>
               <span className="price-type-note">{partnerAccount?.role === 'partner' ? 'Твоя цена' : pm.officialBasePrice || 'Официальная базовая цена'}</span>
             </div>

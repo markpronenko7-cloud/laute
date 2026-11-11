@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { translations } from '../i18n/translations';
 import { getPageSeo } from '../utils/contentSettings';
 import { getPublishedPage } from '../utils/pagePublication';
+import { classifyProductImages } from '../utils/imageHelper';
+import { getRegionalCurrency, getRegionalProductPrice } from '../utils/catalogPrice';
 import { DEFAULT_PRODUCTS } from '../data/catalogData';
 import { portal, getPartnerToken, clearPartnerToken } from '../services/partnerApi';
 import {
@@ -89,7 +91,11 @@ export const AppProvider = ({ children }) => {
     return () => { window.removeEventListener('laute:portal-expired', expired); window.removeEventListener('focus', refresh); };
   }, [refreshPartner, logoutPartner]);
   const getProductPrice = useCallback(product => partnerAccount?.role === 'partner'
-    ? partnerPrices[product.article]?.price ?? null : product.price, [partnerAccount, partnerPrices]);
+    ? partnerPrices[product.article]?.price ?? null : getRegionalProductPrice(product, region),
+  [partnerAccount, partnerPrices, region]);
+  const getProductCurrency = useCallback(product => partnerAccount?.role === 'partner'
+    ? partnerPrices[product.article]?.currency || product.currency || '₸' : getRegionalCurrency(region),
+  [partnerAccount, partnerPrices, region]);
 
   // Dynamic Site Content (synced from CMS backend / public content.json)
   const [siteContent, setSiteContent] = useState(() => {
@@ -402,29 +408,37 @@ export const AppProvider = ({ children }) => {
   const cartItems = useMemo(() => {
     return cartRawItems.map((entry) => {
       const liveProd = products.find(p => p.article === entry.article);
-      const rawPrice = liveProd !== undefined ? Number(getProductPrice(liveProd)) : (partnerAccount ? NaN : Number(entry.price));
+      const rawPrice = Number(getProductPrice(liveProd || entry));
       const hasKnownPrice = Number.isFinite(rawPrice) && rawPrice > 0;
       const qty = Math.max(1, Math.min(9999, parseInt(entry.quantity, 10) || 1));
 
       return {
         article: entry.article,
-        currency: liveProd?.currency || '₸',
+        currency: getProductCurrency(liveProd || entry),
         title: liveProd?.title || liveProd?.name || entry.title || entry.article,
-        series: liveProd?.series || entry.series || '',
+        series: liveProd?.collection || liveProd?.series || entry.series || '',
         category: liveProd?.category || entry.category || '',
-        image: liveProd?.image || entry.image || '',
-        images: liveProd?.images || entry.images || [],
+        image: classifyProductImages(liveProd || { ...entry, photo1: entry.photo1 || entry.image }).mainPhoto,
         price: hasKnownPrice ? rawPrice : null,
         hasKnownPrice,
         quantity: qty,
         lineSubtotal: hasKnownPrice ? rawPrice * qty : null
       };
     });
-  }, [cartRawItems, products, getProductPrice, partnerAccount]);
+  }, [cartRawItems, products, getProductPrice, getProductCurrency]);
 
   const addToCart = useCallback((product, deltaQty = 1) => {
     if (!product || !product.article) return;
     const addAmount = Math.max(1, parseInt(deltaQty, 10) || 1);
+    const snapshot = {
+      article: product.article,
+      title: product.title || product.name || product.article,
+      series: product.collection || product.series || '',
+      category: product.category || '',
+      price: product.price,
+      currency: product.currency,
+      photo1: classifyProductImages(product).mainPhoto
+    };
 
     setCartRawItems((prev) => {
       const idx = prev.findIndex(item => item.article === product.article);
@@ -432,11 +446,7 @@ export const AppProvider = ({ children }) => {
         const updated = [...prev];
         const nextQty = Math.min(9999, (parseInt(updated[idx].quantity, 10) || 1) + addAmount);
         updated[idx] = {
-          ...updated[idx],
-          title: product.title || updated[idx].title,
-          price: Number(product.price) > 0 ? Number(product.price) : null,
-          image: product.image || updated[idx].image,
-          images: product.images || updated[idx].images,
+          ...snapshot,
           quantity: nextQty
         };
         return updated;
@@ -445,13 +455,7 @@ export const AppProvider = ({ children }) => {
       return [
         ...prev,
         {
-          article: product.article,
-          title: product.title || product.article,
-          series: product.series || '',
-          category: product.category || '',
-          price: Number(product.price) > 0 ? Number(product.price) : null,
-          image: product.image || '',
-          images: Array.isArray(product.images) ? product.images : [],
+          ...snapshot,
           quantity: addAmount
         }
       ];
@@ -659,7 +663,7 @@ export const AppProvider = ({ children }) => {
     reloadSiteContent,
     reloadProducts,
     products,
-    partnerAccount, partnerManager, partnerLoading, partnerError, refreshPartner, logoutPartner, getProductPrice,
+    partnerAccount, partnerManager, partnerLoading, partnerError, refreshPartner, logoutPartner, getProductPrice, getProductCurrency,
     updateProducts,
     selectedProduct,
     openProductModal,

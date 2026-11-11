@@ -10,6 +10,7 @@ import { createRequire } from 'node:module';
 import { parseAndValidateExcelFile, applyExcelImport, createCatalogWorkbook, parseStockExcelClient, parseStockQuantity } from '../src/utils/excelManager.js';
 import { validateCatalogArchive, uploadCatalogArchiveMedia } from '../src/utils/catalogArchive.js';
 import { formatProductDisplay, classifyProductImages } from '../src/utils/imageHelper.js';
+import { formatCatalogPrice, getRegionalProductPrice } from '../src/utils/catalogPrice.js';
 import { getPublishedPage, getEditableBlocks } from '../src/utils/pagePublication.js';
 import { getNavigation, getNavTranslation, getPageSeo } from '../src/utils/contentSettings.js';
 import { CATEGORY_NAMES } from '../src/data/catalogData.js';
@@ -20,6 +21,29 @@ const workbook = rows => {
   return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 };
 const headings = ['Артикул (SKU) *', 'Название товара *', 'Категория *', 'Цена *'];
+
+test('Публичная цена применяется только в регионе с той же валютой', () => {
+  const tenge = { price: 1200, currency: '₸' };
+  const rubles = { price: 500, currency: 'RUB' };
+  assert.equal(getRegionalProductPrice(tenge, 'siberia'), null);
+  assert.equal(getRegionalProductPrice(tenge, 'kz'), 1200);
+  assert.equal(getRegionalProductPrice(rubles, 'siberia'), 500);
+  assert.equal(getRegionalProductPrice(rubles, 'kz'), null);
+  assert.equal(getRegionalProductPrice({ ...tenge, price: 0 }, 'kz'), null);
+  assert.equal(formatCatalogPrice(500, 'RUB'), '500 ₽');
+  assert.equal(formatCatalogPrice(500, 'KZT'), '500 ₸');
+});
+
+test('Устаревшая упаковка не используется как фото товара и как заглушка', () => {
+  const photo1 = 'images/cat_laute_brand.jpg';
+  const photo2 = 'images/product.jpg';
+  for (const imageSlotsExplicit of [true, false]) {
+    const product = classifyProductImages({ photo1, photo2, imageSlotsExplicit });
+    assert.equal(product.mainPhoto, '/images/product.jpg');
+    assert.deepEqual(product.allPhotos, ['/images/product.jpg']);
+  }
+  assert.equal(classifyProductImages({ boxUrl: 'images/package.jpg' }).mainPhoto, '/laute-logo.png');
+});
 
 test('ZIP: публикация карточек, цены в тенге, точные файлы и продолжение после сбоя', async () => {
   const zip = new JSZip();

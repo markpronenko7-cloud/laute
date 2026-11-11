@@ -16,6 +16,7 @@ import {
   parseStockExcelClient as clientParseStockExcel
 } from '../utils/excelManager.js';
 import { classifyProductImages } from '../utils/imageHelper.js';
+import { formatCatalogPrice } from '../utils/catalogPrice.js';
 
 // ==========================================
 // 0. SUPABASE CONFIGURATION
@@ -1786,6 +1787,7 @@ export const submitCartOrderInquiry = async ({
   consent = false,
   honeypot = '',
   items = [],
+  currency = 'RUB',
   lang = 'ru'
 }) => {
   // 1. Антиспам проверка (honeypot)
@@ -1898,7 +1900,7 @@ export const submitCartOrderInquiry = async ({
       totalUnits,
       totalKnownAmount,
       hasPriceOnRequest,
-      currency: 'RUB'
+      currency
     },
     routing: {
       status: routing.status, // 'assigned' | 'pending_assignment'
@@ -1953,9 +1955,9 @@ export const submitCartOrderInquiry = async ({
       `Менеджер: ${routing.managerName || 'Не назначен'}`,
       `Территория: ${routing.territoryName || 'Не определена'}`,
       '',
-      ...normalizedItems.map((item, index) => `${index + 1}. ${item.article} — ${item.title} — ${item.quantity} шт. — ${item.lineSubtotal == null ? 'Цена по запросу' : `${item.lineSubtotal} ₽`}`),
+      ...normalizedItems.map((item, index) => `${index + 1}. ${item.article} — ${item.title} — ${item.quantity} шт. — ${item.lineSubtotal == null ? 'Цена по запросу' : formatCatalogPrice(item.lineSubtotal, currency)}`),
       '',
-      `Итого по известным ценам: ${totalKnownAmount} ₽`
+      `Итого по известным ценам: ${formatCatalogPrice(totalKnownAmount, currency)}`
     ];
     const orderRecipient = resolveInquiryRecipient(await fetchPublishedInquiryRouting(), 'order', (typeof window !== 'undefined' ? localStorage.getItem('laute_region') : null) || 'siberia');
     await sendInquiryEmail(

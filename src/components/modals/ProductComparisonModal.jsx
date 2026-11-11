@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ArrowRight, Plus, X } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { fetchCategories } from '../../services/adminApi';
+import { formatCatalogPrice } from '../../utils/catalogPrice';
 import { classifyProductImages, formatProductDisplay } from '../../utils/imageHelper';
 
 const fields = [
@@ -19,7 +20,7 @@ const fields = [
 function Comparison({ initialItems }) {
   const {
     products, closeComparisonModal, openProductModal, getStockForSku,
-    activeWarehouse, getProductPrice, isB2BAuthorized, adminSession
+    activeWarehouse, getProductPrice, getProductCurrency, isB2BAuthorized, adminSession
   } = useApp();
   const [items, setItems] = useState(() => [...new Map(initialItems.map(item => [item.article, item])).values()]);
   const [query, setQuery] = useState('');
@@ -90,7 +91,7 @@ function Comparison({ initialItems }) {
                         <span className="compare-th-art">Арт. {item.article}</span>
                         <strong className="compare-th-title">{display.title}</strong>
                         {display.subtitle && <span className="compare-th-sub">{display.subtitle}</span>}
-                        <span className="compare-th-price">{price > 0 ? `${price.toLocaleString('ru-RU')} ${item.currency || '₸'}` : 'По запросу'}</span>
+                        <span className="compare-th-price">{price > 0 ? formatCatalogPrice(price, getProductCurrency(item)) : 'По запросу'}</span>
                       </div>
                     </th>
                   );

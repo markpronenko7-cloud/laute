@@ -2,6 +2,7 @@ import { InquirySettings } from '../components/builder/InquirySettings';
 import { ButtonSettings } from '../components/builder/ButtonSettings';
 import { PartnerManagement } from '../components/partners/PartnerManagement';
 import { getEditableBlocks } from '../utils/pagePublication';
+import { formatCatalogPrice } from '../utils/catalogPrice';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { CATEGORY_NAMES } from '../data/catalogData';
 import { getNavTranslation, getPageSeo, navigationKey } from '../utils/contentSettings';
@@ -5641,7 +5642,7 @@ export const AdminPage = () => {
                               <td>
                                 <strong>
                                   {ord.summary?.totalKnownAmount > 0
-                                    ? `${Number(ord.summary.totalKnownAmount).toLocaleString('ru-RU')} ₽`
+                                    ? formatCatalogPrice(ord.summary.totalKnownAmount, ord.summary.currency || 'RUB')
                                     : 'По запросу'}
                                 </strong>
                               </td>

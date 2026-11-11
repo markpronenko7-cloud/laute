@@ -4,6 +4,7 @@ import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { formatCatalogPrice } from '../src/utils/catalogPrice.js';
 import { 
   createExportWorkbook, 
   parseAndValidateExcelBuffer, 
@@ -1859,10 +1860,10 @@ function formatManagerEmailText(order) {
 
   (order.items || []).forEach((it, i) => {
     const priceStr = it.publicPrice
-      ? `${Number(it.publicPrice).toLocaleString('ru-RU')} ₽`
+      ? formatCatalogPrice(it.publicPrice, order.summary?.currency || 'RUB')
       : 'Цена по запросу';
     const subStr = it.lineSubtotal
-      ? `${Number(it.lineSubtotal).toLocaleString('ru-RU')} ₽`
+      ? formatCatalogPrice(it.lineSubtotal, order.summary?.currency || 'RUB')
       : 'По запросу';
     lines.push(
       `${i + 1}. [${it.article}] ${it.title} — ${it.quantity} шт. × ${priceStr} = ${subStr}`
@@ -1871,7 +1872,7 @@ function formatManagerEmailText(order) {
 
   lines.push(``);
   lines.push(
-    `ИТОГО ПО ИЗВЕСТНЫМ ЦЕНАМ: ${Number(order.summary?.totalKnownAmount || 0).toLocaleString('ru-RU')} ₽`
+    `ИТОГО ПО ИЗВЕСТНЫМ ЦЕНАМ: ${formatCatalogPrice(order.summary?.totalKnownAmount || 0, order.summary?.currency || 'RUB')}`
   );
   if (order.summary?.hasPriceOnRequest) {
     lines.push(`* В заявке присутствуют позиции со статусом «Цена по запросу».`);

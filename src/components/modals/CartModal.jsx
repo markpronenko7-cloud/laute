@@ -16,7 +16,7 @@ import {
   Send
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { classifyProductImages } from '../../utils/imageHelper';
+import { formatCatalogPrice, getRegionalCurrency } from '../../utils/catalogPrice';
 import {
   submitCartOrderInquiry,
   resolveManagerByCity,
@@ -39,6 +39,7 @@ const CartModal = () => {
     cartTotalUnits,
     cartTotalKnownAmount,
     cartCurrencyTotals,
+    region,
     cartHasPriceOnRequest,
     navigateTo,
     currentRoute,
@@ -111,18 +112,16 @@ const CartModal = () => {
         comment,
         consent,
         honeypot,
-        items: cartItems.map((it) => {
-          const { mainPhoto } = classifyProductImages(it, baseUrl);
-          return {
-            article: it.article,
-            title: it.title,
-            series: it.series,
-            category: it.category,
-            quantity: it.quantity,
-            price: it.price,
-            image: mainPhoto || ''
-          };
-        }),
+        currency: getRegionalCurrency(region),
+        items: cartItems.map((it) => ({
+          article: it.article,
+          title: it.title,
+          series: it.series,
+          category: it.category,
+          quantity: it.quantity,
+          price: it.price,
+          image: it.image
+        })),
         lang
       });
 
@@ -157,10 +156,10 @@ const CartModal = () => {
     }
   };
 
-  const formatCurrency = (val) => {
+  const formatCurrency = (val, currency = getRegionalCurrency(region)) => {
     const num = Number(val);
     if (!Number.isFinite(num) || num <= 0) return ct.priceOnRequest || 'Цена по запросу';
-    return `${num.toLocaleString('ru-RU')} ₽`;
+    return formatCatalogPrice(num, currency);
   };
 
   if (isCartModalOpen && partnerAccount?.role === 'partner') return <PartnerCart />;
@@ -187,7 +186,7 @@ const CartModal = () => {
             <span className="laute-floating-cart-title">{ct.openCartBtn || 'Корзина заявки'}</span>
             <span className="laute-floating-cart-sum">
               {partnerAccount?.role === 'partner' ? (Object.entries(cartCurrencyTotals).map(([c, v]) => `${v.toLocaleString('ru-RU')} ${c}`).join(' · ') || `${cartDistinctCount} поз.`) : cartTotalKnownAmount > 0
-                ? `${cartTotalKnownAmount.toLocaleString('ru-RU')} ₽`
+                ? formatCurrency(cartTotalKnownAmount)
                 : `${cartDistinctCount} поз.`}
             </span>
           </span>
@@ -276,8 +275,7 @@ const CartModal = () => {
                   </div>
 
                   {cartItems.map((item) => {
-                    const { mainPhoto } = classifyProductImages(item, baseUrl);
-                    const photoSrc = mainPhoto || null;
+                    const photoSrc = item.image;
 
                     return (
                       <div key={item.article} className="laute-cart-item-card">
@@ -288,7 +286,7 @@ const CartModal = () => {
                               alt={item.title}
                               loading="lazy"
                               onError={(e) => {
-                                e.currentTarget.style.display = 'none';
+                                if (!e.currentTarget.src.endsWith('/laute-logo.png')) e.currentTarget.src = baseUrl + 'laute-logo.png';
                               }}
                             />
                           ) : (
@@ -555,7 +553,7 @@ const CartModal = () => {
                       <span className="laute-inquiry-comp-qty">{it.quantity} шт.</span>
                       <strong className="laute-inquiry-comp-sum">
                         {it.hasKnownPrice
-                          ? formatCurrency(it.lineSubtotal)
+                          ? formatCurrency(it.lineSubtotal, it.currency)
                           : ct.priceOnRequest || 'Цена по запросу'}
                       </strong>
                     </div>
@@ -666,7 +664,7 @@ const CartModal = () => {
                       <span className="laute-inquiry-comp-qty">{it.quantity} шт.</span>
                       <strong className="laute-inquiry-comp-sum">
                         {it.publicPrice
-                          ? formatCurrency(it.lineSubtotal)
+                          ? formatCurrency(it.lineSubtotal, submittedOrder.summary?.currency || 'RUB')
                           : ct.priceOnRequest || 'Цена по запросу'}
                       </strong>
                     </div>
@@ -677,7 +675,7 @@ const CartModal = () => {
                 <span>{ct.cartSummaryTotal || 'Общая сумма (по известным ценам)'}:</span>
                 <strong>
                   {submittedOrder.summary?.totalKnownAmount > 0
-                    ? formatCurrency(submittedOrder.summary.totalKnownAmount)
+                    ? formatCurrency(submittedOrder.summary.totalKnownAmount, submittedOrder.summary.currency || 'RUB')
                     : ct.priceOnRequest || 'Цена по запросу'}
                 </strong>
               </div>
