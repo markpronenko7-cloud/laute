@@ -9341,7 +9341,7 @@ body:has(:is(.catalog-page, .partner-page)) .header .select-trigger :is(.select-
   background: #fff;
 }
 .product-detail-modal :is(.modal-close-btn, .product-modal-name, .spec-val, .product-price-value) { color: #182331; }
-.product-detail-modal :is(.spec-key, .product-category-crumb, .product-modal-subtitle, .product-article-tag) { color: #435369; }
+.product-detail-modal :is(.spec-key, .product-category-crumb, .product-modal-subtitle, .product-article-tag, .price-type-note) { color: #435369; }
 .product-detail-modal .tab-panel :is(p, small) { color: #435369; }
 .product-detail-modal .modal-tab-btn:not(.active) { color: #34465b; }
 .product-detail-modal .modal-tab-btn.active { color: #fff; }
