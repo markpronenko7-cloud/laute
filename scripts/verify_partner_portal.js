@@ -45,6 +45,9 @@ try {
       "utf8",
     ),
   );
+  await db.exec(await fs.readFile(
+    "supabase/migrations/20261113081837_simplify_partner_setup.sql", "utf8",
+  ));
   const profile = {
     name: "QA company",
     country: "RU",
@@ -56,6 +59,7 @@ try {
   const create = (login, role = "partner", extra = {}) =>
     rpc("save_account", "qa-admin", { login, role, profile, ...extra });
   await denied("accounts", null);
+  await denied("discount_options", null);
   const m1 = await create("qa-manager-1", "manager", { maxDiscount: 30 });
   const m2 = await create("qa-manager-2", "manager", { maxDiscount: 10 });
   check(m1.temporaryPassword.length >= 24, "Strong temporary passwords");
@@ -72,6 +76,21 @@ try {
   await denied("password", mt, { password: "short" });
   await denied("password", mt, { password: m1.temporaryPassword });
   await rpc("password", mt, { password: "QA-manager-new-password-123" });
+  const discountOptions = (await rpc("discount_options", mt)).products;
+  check(discountOptions.some((p) => p.article === "QA-RUB" && p.category === "Mixers"), "Discount picker lists active products");
+  check(!discountOptions.some((p) => p.article === "QA-HIDDEN"), "Discount picker excludes hidden products");
+  const quick = await create("qa-quick", "partner", {
+    profile: { name: "QA quick" },
+    discounts: [{ kind: "article", key: "QA-RUB", percent: 12 }, { kind: "category", key: "Mixers", percent: 5 }],
+  });
+  check(quick.temporaryPassword && quick.account.managerId === null, "Admin creates a client with name and login only");
+  const quickLogin = await rpc("login", null, { login: "qa-quick", password: quick.temporaryPassword });
+  await rpc("password", quickLogin.token, { password: "QA-quick-new-password-123" });
+  await denied("discount_options", quickLogin.token);
+  await denied("quote", quickLogin.token, { items: [{ article: "QA-RUB", quantity: 1 }] });
+  const quickPrices = (await rpc("catalog", quickLogin.token)).prices;
+  check(quickPrices.find((p) => p.article === "QA-RUB").discount === 12 &&
+    quickPrices.find((p) => p.article === "QA-KZT").discount === 5, "SKU discount overrides category only for that SKU");
   const c1 = await rpc("save_account", mt, {
     login: "qa-client-1",
     role: "partner",

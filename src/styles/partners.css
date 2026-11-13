@@ -93,6 +93,19 @@
 .portal-discounts {
   margin: 15px 0 24px;
 }
+.portal-form-details {
+  border-top: 1px solid var(--portal-border, #d9e0ea);
+  margin: 8px 0 16px;
+  padding-top: 8px;
+}
+.portal-form-details > summary {
+  cursor: pointer;
+  padding: 10px 0;
+  font-weight: 600;
+}
+.portal-form-details[open] > summary {
+  margin-bottom: 10px;
+}
 .portal-discounts h3 {
   margin-bottom: 14px;
 }

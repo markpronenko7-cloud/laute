@@ -14,7 +14,7 @@ const emptyAccount = () => ({
   discounts: [],
   profile: {
     name: "",
-    country: "RU",
+    country: "",
     organizationForm: "",
     taxId: "",
     registrationId: "",
@@ -33,8 +33,14 @@ const taxLabel = (country) =>
     US: "EIN / налоговый номер",
   })[country] || "Налоговый номер страны";
 
+const discountLabels = {
+  category: "Категория",
+  brand: "Бренд",
+  article: "Товар",
+};
+
 export function PartnerManagement({ admin = false }) {
-  const { products, partnerAccount } = useApp();
+  const { partnerAccount } = useApp();
   const [accounts, setAccounts] = useState([]),
     [orders, setOrders] = useState([]);
   const [form, setForm] = useState(null),
@@ -43,6 +49,17 @@ export function PartnerManagement({ admin = false }) {
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false),
     [search, setSearch] = useState("");
+  const [discountProducts, setDiscountProducts] = useState(null);
+  const [discountError, setDiscountError] = useState("");
+  const loadDiscountProducts = async () => {
+    setDiscountError("");
+    try {
+      const result = await portal("discount_options", {}, admin);
+      setDiscountProducts(result.products);
+    } catch (error) {
+      setDiscountError(error.message);
+    }
+  };
   const reload = useCallback(async () => {
     setError("");
     try {
@@ -111,6 +128,15 @@ export function PartnerManagement({ admin = false }) {
   const limit = admin
     ? (managers.find((a) => a.id === form?.managerId)?.maxDiscount ?? 99)
     : (partnerAccount?.maxDiscount ?? 0);
+  const discountChoices = (kind, current) => {
+    const choices = new Map();
+    for (const product of discountProducts || []) {
+      const key = product[kind];
+      if (key) choices.set(key, kind === "article" ? `${key} — ${product.name}` : key);
+    }
+    if (current && !choices.has(current)) choices.set(current, current);
+    return [...choices].sort((a, b) => a[0].localeCompare(b[0], "ru"));
+  };
   return (
     <div className="partner-workspace">
       <div className="portal-heading">
@@ -162,7 +188,11 @@ export function PartnerManagement({ admin = false }) {
         </section>
       )}
       {form && (
-        <form className="portal-section portal-form" onSubmit={save}>
+        <form key={form.id || "new"} className="portal-section portal-form" onSubmit={save}
+          onInvalidCapture={(event) => {
+            const details = event.target.closest("details");
+            if (details) details.open = true;
+          }}>
           <div className="portal-heading">
             <h2>{form.id ? "Карточка" : "Новый кабинет"}</h2>
             <button
@@ -191,7 +221,7 @@ export function PartnerManagement({ admin = false }) {
               <label>
                 {form.role === "manager"
                   ? "Имя менеджера"
-                  : "Название организации"}
+                  : "Имя или название компании"}
                 <input
                   required
                   maxLength={200}
@@ -209,11 +239,15 @@ export function PartnerManagement({ admin = false }) {
                   onChange={(e) => patch("login", e.target.value)}
                 />
               </label>
+            </div>
+            <details className="portal-form-details" open={form.role === "manager" || undefined}>
+              <summary>{form.role === "manager" ? "Контакты и настройки" : "Контакты, реквизиты и менеджер"}</summary>
+              <div className="portal-grid">
               <label>
                 Email
                 <input
                   type="email"
-                  required
+                  required={form.role === "manager"}
                   maxLength={200}
                   value={form.profile.email || ""}
                   onChange={(e) => profile("email", e.target.value)}
@@ -223,7 +257,7 @@ export function PartnerManagement({ admin = false }) {
                 Телефон
                 <input
                   type="tel"
-                  required
+                  required={form.role === "manager"}
                   maxLength={60}
                   value={form.profile.phone || ""}
                   onChange={(e) => profile("phone", e.target.value)}
@@ -234,7 +268,7 @@ export function PartnerManagement({ admin = false }) {
                   <label>
                     Страна
                     <input
-                      required
+                      required={Boolean(form.profile.taxId?.trim())}
                       pattern="[A-Za-z]{2}"
                       maxLength={2}
                       list="portal-countries"
@@ -253,7 +287,6 @@ export function PartnerManagement({ admin = false }) {
                   <label>
                     Форма организации
                     <input
-                      required
                       maxLength={100}
                       placeholder="ООО / ИП / ТОО / LLC"
                       value={form.profile.organizationForm || ""}
@@ -265,7 +298,6 @@ export function PartnerManagement({ admin = false }) {
                   <label>
                     {taxLabel(form.profile.country)}
                     <input
-                      required
                       maxLength={100}
                       value={form.profile.taxId || ""}
                       onChange={(e) => profile("taxId", e.target.value)}
@@ -293,17 +325,20 @@ export function PartnerManagement({ admin = false }) {
                     <label>
                       Менеджер
                       <select
-                        required
                         value={form.managerId || ""}
                         onChange={(e) => patch("managerId", e.target.value)}
                       >
-                        <option value="">Выбери менеджера</option>
+                        <option value="">Назначить позже</option>
+                        {form.managerId && !managers.some((m) => m.id === form.managerId) && (
+                          <option value={form.managerId} disabled>Менеджер неактивен</option>
+                        )}
                         {managers.map((m) => (
                           <option key={m.id} value={m.id}>
                             {m.profile.name}
                           </option>
                         ))}
                       </select>
+                      <small>Менеджер нужен для отправки заказов.</small>
                     </label>
                   )}
                   <label className="portal-wide">
@@ -341,10 +376,21 @@ export function PartnerManagement({ admin = false }) {
                 />
                 Доступ активен
               </label>
-            </div>
+              </div>
+            </details>
             {form.role === "partner" && (
-              <section className="portal-discounts">
-                <h3>Скидки · лимит {limit}%</h3>
+              <details className="portal-form-details portal-discounts" onToggle={(event) => {
+                if (event.currentTarget.open && discountProducts === null && !discountError) {
+                  loadDiscountProducts();
+                }
+              }}>
+                <summary>Скидки{form.discounts.length ? ` (${form.discounts.length})` : ""} · лимит {limit}%</summary>
+                {discountError ? (
+                  <div role="alert">
+                    <p>{discountError}</p>
+                    <button type="button" className="btn btn-outline btn-sm" onClick={loadDiscountProducts}>Повторить загрузку</button>
+                  </div>
+                ) : discountProducts === null ? <p role="status">Загружаем товары…</p> : null}
                 {form.discounts.map((d, index) => (
                   <div className="portal-discount-row" key={index}>
                     <select
@@ -363,10 +409,11 @@ export function PartnerManagement({ admin = false }) {
                     >
                       <option value="category">Категория</option>
                       <option value="brand">Бренд</option>
+                      <option value="article">Отдельный товар</option>
                     </select>
                     <select
                       required
-                      aria-label="Категория или бренд"
+                      aria-label={discountLabels[d.kind]}
                       value={d.key}
                       onChange={(e) =>
                         patch(
@@ -377,21 +424,10 @@ export function PartnerManagement({ admin = false }) {
                         )
                       }
                     >
-                      <option value="">Выбери</option>
-                      {[
-                        ...new Set([
-                          ...products.map((p) =>
-                            d.kind === "brand"
-                              ? p.brand || "LAUTE"
-                              : p.category,
-                          ),
-                          d.key,
-                        ]),
-                      ]
-                        .filter(Boolean)
-                        .sort()
-                        .map((key) => (
-                          <option key={key}>{key}</option>
+                      <option value="">Выбрать</option>
+                      {discountChoices(d.kind, d.key)
+                        .map(([key, label]) => (
+                          <option key={key} value={key}>{label}</option>
                         ))}
                     </select>
                     <input
@@ -407,7 +443,7 @@ export function PartnerManagement({ admin = false }) {
                           "discounts",
                           form.discounts.map((x, i) =>
                             i === index
-                              ? { ...x, percent: Number(e.target.value) }
+                              ? { ...x, percent: e.target.value === "" ? "" : Number(e.target.value) }
                               : x,
                           ),
                         )
@@ -430,16 +466,18 @@ export function PartnerManagement({ admin = false }) {
                 <button
                   type="button"
                   className="btn btn-outline btn-sm"
+                  disabled={!discountProducts?.length}
                   onClick={() =>
                     patch("discounts", [
                       ...form.discounts,
-                      { kind: "category", key: "", percent: 0 },
+                      { kind: "article", key: "", percent: "" },
                     ])
                   }
                 >
                   Добавить скидку
                 </button>
-                <label>
+                {form.discounts.some((d) => d.kind === "brand") &&
+                  form.discounts.some((d) => d.kind === "category") && <label>
                   Если совпали бренд и категория
                   <select
                     value={form.discountPolicy}
@@ -450,12 +488,12 @@ export function PartnerManagement({ admin = false }) {
                     <option value="category">Применить скидку категории</option>
                     <option value="best">Применить большую скидку</option>
                   </select>
-                </label>
-                <small>Скидки не суммируются. Правило выбирает менеджер.</small>
-              </section>
+                </label>}
+                {form.discounts.length > 0 && <small>Скидка на отдельный товар имеет приоритет.</small>}
+              </details>
             )}
             <button className="btn btn-primary" type="submit">
-              {busy ? "Сохранение…" : "Сохранить"}
+              {busy ? "Сохранение…" : form.id ? "Сохранить" : "Создать кабинет"}
             </button>
           </fieldset>
         </form>
@@ -477,13 +515,7 @@ export function PartnerManagement({ admin = false }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        {!accounts.length && (
-          <p>
-            {admin
-              ? "Сначала создай менеджера, затем клиента."
-              : "Создай первый кабинет клиента."}
-          </p>
-        )}
+        {!accounts.length && <p>Создай первый кабинет клиента.</p>}
         <div className="portal-account-list">
           {accounts
             .filter((a) =>
