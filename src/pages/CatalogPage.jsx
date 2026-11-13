@@ -432,6 +432,7 @@ export const CatalogPage = () => {
     return saved ? { ...c, name: saved.name, desc: saved.description || c.desc, image: saved.image || c.image, order: saved.order ?? 999 } : { ...c, order: 999 };
   }).sort((a,b) => a.order - b.order);
   const subcategoryOptions = orderedCategories.find(c => c.sourceCategory === selectedCategory)?.subcategories || [];
+  const featuredProduct = activeProducts.find(product => product.article === 'LEO101Q');
 
   // Filter Categories
   const filteredCategories = orderedCategories.filter(c => {
@@ -463,25 +464,8 @@ export const CatalogPage = () => {
       <EditableSection sectionKey="catalog-1" className="page-header catalog-hero-header">
         <div className="container">
           <div className="catalog-masthead">
-              <picture className="catalog-cover">
-                <source media="(max-width: 640px)" srcSet={`${baseUrl}images/hero/laute-catalog-mobile.webp`} />
-                <img src={`${baseUrl}images/hero/laute-catalog.webp`} alt="LAUTE Leo LEO101Q · Bitcoin BTC103SGQ" width="1760" height="760" fetchPriority="high" />
-              </picture>
-              <EditableNode as="h1" editKey={"catalogpage-2"} kind="text" introRoute="catalog" introField="h1" formatText={catalogTitle} className="page-title">{cat.title || shortTitle}</EditableNode>
-          </div>
-          <div className="catalog-entry-bar">
-            <nav className="catalog-showcase" aria-label={shortTitle}>
-              {catalogShowcase.map(({ id, labels }) => {
-                const category = categories.find(item => item.id === id);
-                if (!category) return null;
-                return (
-                  <button type="button" className="catalog-showcase-link" key={id} onClick={() => openCategory(category.sourceCategory)}>
-                    {labels[lang] || labels.ru}<ArrowRight size={16} aria-hidden="true" />
-                  </button>
-                );
-              })}
-            </nav>
-              <div className="catalog-header-actions">
+            <EditableNode as="h1" editKey={"catalogpage-2"} kind="text" introRoute="catalog" introField="h1" formatText={catalogTitle} className="page-title">{cat.title || shortTitle}</EditableNode>
+            <div className="catalog-header-actions">
               <EditableNode as={SiteAction} editKey={"catalogpage-4"} kind="button" controlId="catalog-1"
                 type="button"
                 className="btn btn-primary catalog-cart-trigger-btn"
@@ -508,7 +492,33 @@ export const CatalogPage = () => {
                   <span>{cat.authBtn || 'Авторизоваться для просмотра остатков'}</span>
                 </EditableNode>
               )}
-              </div>
+            </div>
+          </div>
+          <div className="catalog-entry">
+            <figure className="catalog-feature">
+              <img src={`${baseUrl}images/hero/hero-slide-1.jpg`} alt="LAUTE Leo LEO101Q" width="1376" height="768" fetchPriority="high" />
+              {featuredProduct && (
+                <figcaption>
+                  <button type="button" className="catalog-feature-link" onClick={() => openProductModal(featuredProduct)}>
+                    <span>Leo <small>{featuredProduct.article}</small></span>
+                    <ArrowRight size={18} aria-hidden="true" />
+                  </button>
+                </figcaption>
+              )}
+            </figure>
+            <nav className="catalog-showcase" aria-label={cat.allCategories || shortTitle}>
+              {catalogShowcase.map(({ id, labels }) => {
+                const category = categories.find(item => item.id === id);
+                if (!category) return null;
+                return (
+                  <button type="button" className="catalog-showcase-link" key={id} onClick={() => openCategory(category.sourceCategory)}>
+                    <span>{labels[lang] || labels.ru}</span>
+                    <small>{category.count}</small>
+                    <ArrowRight size={19} aria-hidden="true" />
+                  </button>
+                );
+              })}
+            </nav>
           </div>
         </div>
       </EditableSection>

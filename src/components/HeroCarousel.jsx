@@ -215,8 +215,7 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
           const isActive = index === activeSlide;
           const editKey = `herocarousel-1:${index}`;
           const image = content?.edits?.[editKey]?.[lang]?.src ?? slide.image;
-          const stockImage = /(?:^|\/)images\/hero\/hero-slide-[1-6]\.jpg$/.test(image);
-          const mobileLeo = stockImage && image.endsWith('/hero-slide-1.jpg');
+          const stockSlide = image.match(/(?:^|\/)images\/hero\/hero-slide-([1-6])\.jpg$/)?.[1];
           return (
             <div
               key={slide.id}
@@ -225,16 +224,9 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
             >
               <EditableNode as="div" editKey={editKey} kind="background" src={slide.image}
                 className="hero-slide-bg"
-                data-product-hero={stockImage ? '' : undefined}
-                data-leo-hero={mobileLeo ? '' : undefined}
+                data-stock-slide={stockSlide}
                 style={{ backgroundImage: `url(${slide.image})` }}
               >
-                {mobileLeo && (
-                  <picture className="hero-leo-mobile" aria-hidden="true">
-                    <source media="(max-width: 640px)" srcSet={`${baseUrl}images/hero/leo-mobile.webp`} />
-                    <img alt="" width="650" height="1250" />
-                  </picture>
-                )}
                 <div className="hero-slide-overlay"></div>
               </EditableNode>
             </div>
