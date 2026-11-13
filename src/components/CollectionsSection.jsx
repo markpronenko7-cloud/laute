@@ -39,6 +39,7 @@ export const CollectionsSection = () => {
       subtitle: t.home?.spacesEngineeringSub || 'Нержавеющая сталь SUS304, ЭКО алюминий, испанские картриджи Sedal, латунь А+ и PVD-покрытие',
       categoryBadge: (t.home?.techBadge || 'ТЕХНОЛОГИИ & МАТЕРИАЛЫ').toUpperCase(),
       image: `${baseUrl}images/collections/coll-engineering.jpg`,
+      imageAlt: 'LAUTE Solana SOL101',
       layoutClass: 'collection-card-wide'
     }
   ];
@@ -70,7 +71,7 @@ export const CollectionsSection = () => {
               <div className="collection-media-wrapper">
                 <EditableNode as="img" editKey={"collectionssection-4" + ':' + String(index)} kind="image"
                   src={item.image}
-                  alt={item.title}
+                  alt={item.imageAlt || item.title}
                   className="collection-media-img"
                   loading="lazy"
                 />
@@ -89,6 +90,7 @@ export const CollectionsSection = () => {
                 </div>
                 <EditableNode as="h3" editKey={"collectionssection-7" + ':' + String(index)} kind="text" className="collection-caption-heading">{item.title}</EditableNode>
                 <EditableNode as="p" editKey={"collectionssection-8" + ':' + String(index)} kind="text" className="collection-caption-desc">{item.subtitle}</EditableNode>
+                {item.imageAlt && <small className="collection-model-credit">{item.imageAlt}</small>}
               </div>
             </div>
           ))}

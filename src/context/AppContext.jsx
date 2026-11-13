@@ -663,7 +663,7 @@ export const AppProvider = ({ children }) => {
     reloadSiteContent,
     reloadProducts,
     products,
-    partnerAccount, partnerManager, partnerLoading, partnerError, refreshPartner, logoutPartner, getProductPrice, getProductCurrency,
+    partnerAccount, partnerManager, partnerPrices, partnerLoading, partnerError, refreshPartner, logoutPartner, getProductPrice, getProductCurrency,
     updateProducts,
     selectedProduct,
     openProductModal,

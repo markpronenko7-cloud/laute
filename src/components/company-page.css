@@ -313,7 +313,7 @@ body:has(.company-page-v2) .header .select-trigger :is(.select-icon,.arrow-icon)
 .company-atlas-sidebar { display:flex; flex-direction:column; min-width:0; padding:24px; border-left:1px solid #19283620; }
 .company-atlas-cities { display:grid; grid-template-columns:1fr 1fr; gap:3px 14px; padding-bottom:20px; border-bottom:1px solid #19283626; }
 .company-atlas-cities button { display:flex; align-items:center; gap:8px; min-height:44px; padding:8px 0; border:0; background:transparent; color:#424d58; font-family:inherit; font-size:11px; line-height:1.4; text-align:left; cursor:pointer; }
-.company-atlas-cities button>span { color:#788591; font-size:9px; }
+.company-atlas-cities button>span { color:#4d5c6a; font-size:9px; }
 .company-atlas-cities button>svg { margin-left:auto; opacity:0; flex-shrink:0; }
 .company-atlas-cities button[aria-pressed=true] { color:#12273b; font-weight:700; }
 .company-atlas-cities button[aria-pressed=true]>svg { opacity:1; }
@@ -326,7 +326,7 @@ body:has(.company-page-v2) .header .select-trigger :is(.select-icon,.arrow-icon)
 .company-atlas-footer { display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:16px 24px; border-top:1px solid #19283626; }
 .company-section .company-atlas-footer p,.company-atlas-footer a { font-size:10px; color:#505a63; line-height:1.6; }
 .company-atlas-footer a { text-decoration:underline; text-underline-offset:3px; }
-.company-section .company-atlas-note { padding:0 24px 18px; color:#697076; font-size:10px; }
+.company-section .company-atlas-note { padding:0 24px 18px; color:#4d5c6a; font-size:10px; }
 .company-section .company-atlas-loading { position:absolute; top:90px; left:24px; padding:10px 14px; background:#f3f7fbed; font-size:12px; color:#24384b; z-index:450; }
 @media(max-width:1000px) { .company-atlas-layout { grid-template-columns:minmax(0,1fr) 280px; } .company-atlas-sidebar { padding:20px; } .company-atlas-cities { gap:2px 10px; } }
 @media(max-width:767px) {

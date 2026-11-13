@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { formatCatalogPrice } from '../../utils/catalogPrice';
 import { classifyProductImages, formatProductDisplay } from '../../utils/imageHelper';
+import { getStudioProductPhoto } from '../../data/studioProductPhotos';
 
 export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) => {
   const {
@@ -86,7 +87,11 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
   const imgInfo = classifyProductImages(selectedProduct, baseUrl);
 
   // Фотографии галереи (смеситель + дополнительные фото + упаковка)
-  const galleryPhotos = imgInfo?.allPhotos || [];
+  const studioPhoto = getStudioProductPhoto(selectedProduct, baseUrl);
+  const isCabin = selectedProduct.category === 'Бюджетные душевые кабины';
+  const galleryPhotos = studioPhoto
+    ? [...new Set(isCabin ? [studioPhoto, ...imgInfo.allPhotos.slice(1)] : [imgInfo.mainPhoto, studioPhoto, ...imgInfo.additionalPhotos])]
+    : imgInfo.allPhotos;
   const activePhotoSrc = galleryPhotos[selectedPhoto] || imgInfo?.mainPhoto || `${baseUrl}laute-logo.png`;
 
   // Сбор всех медиа-файлов строго ЭТОГО товара (фотографии + чертежи)
@@ -96,14 +101,14 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
     const seen = new Set();
 
     // 1. Фотографии изделия (главное фото, дополнительные фото, упаковка)
-    if (imgInfo.allPhotos && imgInfo.allPhotos.length > 0) {
-      imgInfo.allPhotos.forEach((url, i) => {
+    if (galleryPhotos.length > 0) {
+      galleryPhotos.forEach((url, i) => {
         if (url && !seen.has(url)) {
           seen.add(url);
           list.push({
             url,
             type: 'photo',
-            title: i === 0 ? 'Основной смеситель' : `Фото #${i + 1}`
+            title: url === studioPhoto ? 'Студийное фото' : i === 0 ? 'Основное фото' : `Фото ${i + 1}`
           });
         }
       });
@@ -124,7 +129,7 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
     }
 
     return list;
-  }, [selectedProduct?.article, imgInfo]);
+  }, [galleryPhotos, imgInfo.drawingPhotos, studioPhoto]);
 
   // Сброс индекса при смене товара
   useEffect(() => {
@@ -222,7 +227,7 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
               <img 
                 src={activePhotoSrc} 
                 alt={displayInfo.title} 
-                className="main-product-img"
+                className={`main-product-img${activePhotoSrc === studioPhoto ? ' studio-product-img' : ''}`}
                 style={{ cursor: 'pointer' }}
                 onClick={() => openLightbox(activePhotoSrc)}
                 onError={(e) => {
@@ -256,7 +261,7 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
                     type="button" 
                     className={`thumb-btn ${selectedPhoto === idx ? 'active' : ''}`}
                     onClick={() => setSelectedPhoto(idx)}
-                    title={idx === 0 ? 'Основной смеситель' : `Фото #${idx + 1}`}
+                    title={ph === studioPhoto ? 'Студийное фото' : idx === 0 ? 'Основное фото' : `Фото ${idx + 1}`}
                   >
                     <img 
                       src={ph} 

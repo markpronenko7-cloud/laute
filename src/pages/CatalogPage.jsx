@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { classifyProductImages, formatProductDisplay } from '../utils/imageHelper';
 import { formatCatalogPrice } from '../utils/catalogPrice';
+import { getStudioProductPhoto } from '../data/studioProductPhotos';
 
 const normalizeCategory = value => String(value || '').trim().replace(/\s+/g, ' ');
 
@@ -400,7 +401,8 @@ export const CatalogPage = () => {
     const subcategories = [...new Set(categoryProducts.map(p => normalizeCategory(p.subcategory)).filter(Boolean))];
     const sourceProduct = categoryProducts.find(p => p.article === featuredCategoryArticles[item?.id] && p.photo1)
       || categoryProducts.find(p => p.photo1);
-    const image = sourceProduct?.photo1 ? classifyProductImages(sourceProduct, baseUrl).mainPhoto : null;
+    const studioPhoto = sourceProduct ? getStudioProductPhoto(sourceProduct, baseUrl) : '';
+    const image = sourceProduct?.photo1 ? studioPhoto || classifyProductImages(sourceProduct, baseUrl).mainPhoto : null;
     if (!item) {
       return {
         id: sourceCategory,
@@ -429,7 +431,7 @@ export const CatalogPage = () => {
 
   const orderedCategories = categories.map(c => {
     const saved = categorySettings.find(item => item.name === c.sourceCategory);
-    return saved ? { ...c, name: saved.name, desc: saved.description || c.desc, image: saved.image || c.image, order: saved.order ?? 999 } : { ...c, order: 999 };
+    return saved ? { ...c, name: saved.name, desc: saved.description || c.desc, image: c.id === 'shower-cabins' && c.image ? c.image : saved.image || c.image, order: saved.order ?? 999 } : { ...c, order: 999 };
   }).sort((a,b) => a.order - b.order);
   const subcategoryOptions = orderedCategories.find(c => c.sourceCategory === selectedCategory)?.subcategories || [];
   const featuredProduct = activeProducts.find(product => product.article === 'LEO101Q');
@@ -632,11 +634,11 @@ export const CatalogPage = () => {
           {/* Controls Bar */}
           <div className="catalog-controls-bar">
             <div className="search-box">
-              <Search size={18} className="search-icon" />
+              <Search size={18} className="search-icon" aria-hidden="true" />
               <input
                 type="text"
+                aria-label={cat.searchPlaceholder || 'Поиск по названию или артикулу'}
                 placeholder={cat.searchPlaceholder || 'Поиск по номенклатуре или артикулу...'}
-                aria-label={cat.searchPlaceholder || 'Поиск по номенклатуре или артикулу'}
                 value={searchQuery}
                 onChange={(e) => {
                   const query = e.target.value;
@@ -734,7 +736,8 @@ export const CatalogPage = () => {
                 const displayInfo = formatProductDisplay(p);
                 const imgInfo = classifyProductImages(p, baseUrl);
                 // Главной фотографией всегда должен быть сам смеситель (imgInfo.mainPhoto отфильтровывает чертежи и коробки)
-                const mainPhotoSrc = imgInfo.mainPhoto || getImgUrl(p.photo1);
+                const studioPhoto = getStudioProductPhoto(p, baseUrl);
+                const mainPhotoSrc = studioPhoto || imgInfo.mainPhoto || getImgUrl(p.photo1);
                 const qtyInCart = getCartItemQuantity(p.article);
                 const rawPrice = Number(getProductPrice(p));
                 const hasKnownPrice = Number.isFinite(rawPrice) && rawPrice > 0;
@@ -757,7 +760,7 @@ export const CatalogPage = () => {
                       <img
                         src={mainPhotoSrc}
                         alt={displayInfo.title}
-                        className="sku-product-img"
+                        className={`sku-product-img${studioPhoto ? ' studio-product-img' : ''}`}
                         loading="lazy"
                         onError={(e) => {
                           if (!e.currentTarget.src.endsWith('/laute-logo.png')) e.currentTarget.src = `${baseUrl}laute-logo.png`;
