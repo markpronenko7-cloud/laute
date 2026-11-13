@@ -48,6 +48,7 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
 
   const baseUrl = import.meta.env.BASE_URL;
   const pm = t?.productModal || {};
+  const quantityInCart = getCartItemQuantity(selectedProduct.article);
 
   // If product is flagged as not found
   if (selectedProduct?.notFound) {
@@ -294,8 +295,12 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
 
             {/* Modal Actions */}
             <div className="product-actions-footer">
-              {getCartItemQuantity(selectedProduct.article) > 0 ? (
+              {quantityInCart > 0 ? (
                 <div style={{ display: 'flex', gap: '10px', width: '100%', flexWrap: 'wrap' }}>
+                  <p key={quantityInCart} className="cart-item-confirmation product-cart-confirmation" role="status">
+                    <CheckCircle size={16} aria-hidden="true" />
+                    {t?.catalogPage?.inCartLabel || 'В корзине'}: {quantityInCart}
+                  </p>
                   <div className="laute-card-qty-stepper" style={{ flex: '0 0 auto' }}>
                     <button
                       type="button"
@@ -303,7 +308,7 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
                       onClick={() =>
                         updateCartQuantity(
                           selectedProduct.article,
-                          getCartItemQuantity(selectedProduct.article) - 1
+                          quantityInCart - 1
                         )
                       }
                       aria-label="Уменьшить количество"
@@ -311,7 +316,7 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
                       <Minus size={14} />
                     </button>
                     <span className="laute-card-qty-val">
-                      {getCartItemQuantity(selectedProduct.article)} шт.
+                      {quantityInCart} шт.
                     </span>
                     <button
                       type="button"

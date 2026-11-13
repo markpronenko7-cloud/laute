@@ -886,8 +886,8 @@ export const CatalogPage = () => {
                                 >
                                   <Minus size={14} />
                                 </button>
-                                <span className="sku-stepper-value">
-                                  <Check size={13} />
+                                <span key={qtyInCart} className="sku-stepper-value cart-item-confirmation" role="status">
+                                  <Check size={13} aria-hidden="true" />
                                   <span>{cat.inCartLabel || 'В корзине'}: {qtyInCart}</span>
                                 </span>
                                 <button

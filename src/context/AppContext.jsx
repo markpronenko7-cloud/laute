@@ -3,6 +3,7 @@ import { translations } from '../i18n/translations';
 import { getPageSeo } from '../utils/contentSettings';
 import { getPublishedPage } from '../utils/pagePublication';
 import { classifyProductImages } from '../utils/imageHelper';
+import { getStudioProductPhoto } from '../data/studioProductPhotos';
 import { getRegionalCurrency, getRegionalProductPrice } from '../utils/catalogPrice';
 import { DEFAULT_PRODUCTS } from '../data/catalogData';
 import { portal, getPartnerToken, clearPartnerToken } from '../services/partnerApi';
@@ -417,7 +418,8 @@ export const AppProvider = ({ children }) => {
         title: liveProd?.title || liveProd?.name || entry.title || entry.article,
         series: liveProd?.collection || liveProd?.series || entry.series || '',
         category: liveProd?.category || entry.category || '',
-        image: classifyProductImages(liveProd || { ...entry, photo1: entry.photo1 || entry.image }).mainPhoto,
+        image: (liveProd && getStudioProductPhoto(liveProd, import.meta.env.BASE_URL))
+          || classifyProductImages(liveProd || { ...entry, photo1: entry.photo1 || entry.image }).mainPhoto,
         price: hasKnownPrice ? rawPrice : null,
         hasKnownPrice,
         quantity: qty,
@@ -436,7 +438,7 @@ export const AppProvider = ({ children }) => {
       category: product.category || '',
       price: product.price,
       currency: product.currency,
-      photo1: classifyProductImages(product).mainPhoto
+      photo1: getStudioProductPhoto(product, import.meta.env.BASE_URL) || classifyProductImages(product).mainPhoto
     };
 
     setCartRawItems((prev) => {

@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { fetchCategories } from '../../services/adminApi';
 import { formatCatalogPrice } from '../../utils/catalogPrice';
 import { classifyProductImages, formatProductDisplay } from '../../utils/imageHelper';
+import { getStudioProductPhoto } from '../../data/studioProductPhotos';
 
 const fields = [
   ['Категория', 'category'],
@@ -87,7 +88,7 @@ function Comparison({ initialItems }) {
                         {items.length > 1 && <button type="button" className="compare-remove"
                           aria-label={`Убрать ${item.article} из сравнения`}
                           onClick={() => setItems(current => current.filter(product => product.article !== item.article))}><X size={16} /></button>}
-                        <img className="compare-th-img" src={mainPhoto} alt="" loading="lazy" />
+                        <img className="compare-th-img" src={getStudioProductPhoto(item, baseUrl) || mainPhoto} alt="" loading="lazy" />
                         <span className="compare-th-art">Арт. {item.article}</span>
                         <strong className="compare-th-title">{display.title}</strong>
                         {display.subtitle && <span className="compare-th-sub">{display.subtitle}</span>}
