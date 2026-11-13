@@ -64,6 +64,13 @@ const CartModal = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [submittedOrder, setSubmittedOrder] = useState(null);
+  const [cartPulse, setCartPulse] = useState(0);
+  const previousUnits = React.useRef(cartTotalUnits);
+
+  useEffect(() => {
+    if (cartTotalUnits > previousUnits.current) setCartPulse((value) => value + 1);
+    previousUnits.current = cartTotalUnits;
+  }, [cartTotalUnits]);
 
   useEffect(() => {
     if (isCartModalOpen) {
@@ -180,7 +187,7 @@ const CartModal = () => {
         >
           <span className="laute-floating-cart-icon">
             <ShoppingBag size={18} />
-            <span className="laute-floating-cart-badge">{cartTotalUnits}</span>
+            <span key={cartPulse} className={`laute-floating-cart-badge${cartPulse ? ' cart-quantity-pop' : ''}`}>{cartTotalUnits}</span>
           </span>
           <span className="laute-floating-cart-info">
             <span className="laute-floating-cart-title">{ct.openCartBtn || 'Корзина заявки'}</span>
@@ -197,7 +204,9 @@ const CartModal = () => {
   }
 
   return (
-    <div className="laute-cart-backdrop" onClick={handleClose} role="dialog" aria-modal="true">
+    <div className="laute-cart-backdrop" onClick={handleClose} role="dialog" aria-modal="true" aria-labelledby="laute-cart-title" onKeyDown={(event) => {
+      if (event.key === 'Escape' && !isSubmitting) handleClose();
+    }}>
       <div className="laute-cart-drawer" onClick={(e) => e.stopPropagation()}>
         {/* ВЕРХНЯЯ ШАПКА КОРЗИНЫ */}
         <div className="laute-cart-header">
@@ -206,7 +215,7 @@ const CartModal = () => {
               <ShoppingBag size={20} />
             </div>
             <div>
-              <h2 className="laute-cart-title">
+              <h2 className="laute-cart-title" id="laute-cart-title">
                 {step === 'form'
                   ? ct.inquiryFormTitle || 'Отправка заявки региональному менеджеру'
                   : step === 'success'

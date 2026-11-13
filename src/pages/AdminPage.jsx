@@ -5355,7 +5355,7 @@ export const AdminPage = () => {
                   </div>
                   <div className="param-item">
                     <span className="param-label">Хостинг и Backend API:</span>
-                    <span className="param-val" style={{ color: 'var(--admin-text, #1e293b)' }}>
+                    <span className="param-val">
                       {diagnosticsResult ? (diagnosticsResult.backend?.status === 'connected' ? `✓ ${diagnosticsResult.backend.details}` : 'GitHub Pages: серверный API недоступен') : 'Проверка выполняется...'}
                     </span>
                   </div>

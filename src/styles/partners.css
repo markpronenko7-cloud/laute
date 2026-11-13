@@ -215,11 +215,9 @@
   max-width: 530px;
 }
 .partner-cart {
-  width: min(900px, 95vw) !important;
-  max-width: 900px !important;
-  max-height: 90vh;
+  width: 100%;
+  min-height: 0;
   overflow: auto;
-  padding: 28px !important;
 }
 .portal-cart-items article {
   display: grid;
@@ -265,9 +263,6 @@
   }
   .portal-order summary span {
     margin-left: 0;
-  }
-  .partner-cart {
-    padding: 20px !important;
   }
   .portal-heading .btn {
     white-space: normal;

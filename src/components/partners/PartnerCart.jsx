@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { ShoppingBag, X } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import { portal, money } from "../../services/partnerApi";
 import "../../styles/partners.css";
@@ -39,7 +40,7 @@ export function PartnerCart() {
     return () => {
       active = false;
     };
-  }, [itemsKey, refresh, partnerAccount.mustChange]);
+  }, [itemsKey, refresh, partnerAccount.id, partnerAccount.mustChange]);
   const submit = async () => {
     if (busy || !quote || quote.itemsKey !== itemsKey) return;
     setBusy(true);
@@ -68,24 +69,35 @@ export function PartnerCart() {
     }
   };
   return (
-    <div className="modal-overlay" onClick={busy ? undefined : closeCartModal}>
+    <div className="laute-cart-backdrop" onClick={busy ? undefined : closeCartModal} onKeyDown={(event) => {
+      if (event.key === "Escape" && !busy) closeCartModal();
+    }}>
       <div
-        className="modal-content partner-cart"
+        className="laute-cart-drawer partner-cart-drawer"
         role="dialog"
         aria-modal="true"
         aria-label="Заказ партнёра"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="portal-heading">
-          <h2>{order ? `Заказ № ${order.number}` : "Твой заказ"}</h2>
+        <div className="laute-cart-header">
+          <div className="laute-cart-header-left">
+            <span className="laute-cart-header-icon"><ShoppingBag size={20} aria-hidden="true" /></span>
+            <div>
+              <h2 className="laute-cart-title">{order ? `Заказ № ${order.number}` : "Корзина"}</h2>
+              <p className="laute-cart-subtitle">Заказ по персональным ценам</p>
+            </div>
+          </div>
           <button
-            className="btn btn-outline btn-sm"
+            type="button"
+            className="laute-cart-close-btn"
+            aria-label="Закрыть"
             disabled={busy}
             onClick={closeCartModal}
           >
-            Закрыть
+            <X size={19} aria-hidden="true" />
           </button>
         </div>
+        <div className="laute-cart-body partner-cart">
         {order ? (
           <>
             <p role="status">
@@ -127,12 +139,15 @@ export function PartnerCart() {
               {cartItems.map((item) => {
                 const q = quote?.items.find((i) => i.article === item.article);
                 return (
-                  <article key={item.article}>
-                    <div>
-                      <strong>{item.title}</strong>
+                  <article key={item.article} className="laute-cart-item-card">
+                    <span className="partner-cart-item-image">
+                      {item.image && <img src={item.image} alt="" />}
+                    </span>
+                    <div className="partner-cart-item-main">
+                      <h3 className="laute-cart-item-name">{item.title}</h3>
                       <small>
                         {item.article} ·{" "}
-                        {q ? money(q.price, q.currency) : "Расчёт…"}
+                        {q ? money(q.price, q.currency) : error ? "Цена недоступна" : "Расчёт…"}
                       </small>
                     </div>
                     <label>
@@ -204,6 +219,7 @@ export function PartnerCart() {
             )}
           </>
         )}
+        </div>
       </div>
     </div>
   );
