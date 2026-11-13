@@ -205,3 +205,63 @@ body:has(.partnership) .header:not(.header-scrolled) { background: #222d37; }
   .partnership-three, .partnership-stages, .partnership-form-card fieldset { grid-template-columns: minmax(0, 1fr); }
   .partnership-role-details { padding-left: .75rem; }
 }
+/* Partnership editorial layout */
+.partnership {
+  --partner-paper: #f2f4f4;
+  --partner-ink: #172430;
+  --partner-muted: #455666;
+  --partner-line: #d2dbe0;
+}
+.partnership-hero { padding-bottom: clamp(28px, 5vw, 64px); }
+.partnership-hero::after { display: none; }
+.partnership-hero-layout {
+  grid-template-columns: 1fr;
+  gap: clamp(16px, 3vw, 36px);
+}
+.partnership-hero-copy {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 8px clamp(18px, 6vw, 92px);
+  align-items: start;
+}
+.partnership-hero-copy h1 {
+  grid-row: span 3;
+  font-size: clamp(2.2rem, 6vw, 5.6rem);
+  line-height: .98;
+  letter-spacing: -.055em;
+  margin: 0;
+}
+.partnership-hero-copy p { margin: 0; }
+.partnership-hero-copy .partnership-actions { margin-top: 6px; }
+.partnership-hero-copy .partnership-account { justify-self: start; margin: 0; }
+.partnership-hero-photo { border-radius: 4px; }
+.partnership-hero-photo img { aspect-ratio: 2.35; object-position: 62% 53%; }
+.partnership-jump { border-radius: 999px; padding-inline: 16px; }
+.partnership-role-wrap { background: #fff; }
+.partnership-role-list {
+  border: 1px solid var(--partner-line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.partnership-role:last-child { border-bottom: 0; }
+.partnership-role h3 button { padding: 16px; }
+.partnership-role-code { color: #43566c; }
+.partnership-story { border-bottom: 1px solid var(--partner-line); }
+.partnership-benefits { padding-top: clamp(2rem, 4vw, 4rem); }
+.partnership-benefits li {
+  min-height: 100px;
+  padding: 18px;
+  background: #edf2f6;
+  border: 0;
+  border-radius: 8px;
+}
+.partnership-banner { background: #20364b; color: #fff; }
+.partnership .partnership-banner p { color: #e0ebf4; }
+.partnership-banner .partnership-jump { border-color: #9db6cc; }
+.partnership-product { border-radius: 6px; }
+.partnership-form-wrap { background: #e8eef2; }
+@media (max-width: 720px) {
+  .partnership-hero-copy { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .partnership-hero-copy h1 { grid-row: auto; }
+  .partnership-hero-photo img { aspect-ratio: 1.4; object-position: 68% center; }
+}

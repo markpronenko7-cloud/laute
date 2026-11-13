@@ -112,9 +112,9 @@ export const PartnersPage = () => {
         </div>
         <figure className="partnership-hero-feature">
           <div className="partnership-hero-photo">
-            <img src={photo('ethereum-interior-v2')} alt={copy.heroAlt} width="1536" height="1024" fetchPriority="high" />
+            <img src={photo('laute-showroom')} alt={copy.heroAlt} width="1536" height="864" fetchPriority="high" />
           </div>
-          <figcaption><strong>LAUTE Ethereum</strong><span>ETH103D · {copy.finishes[0]}</span></figcaption>
+          <figcaption><strong>LAUTE Leo</strong><span>LEO101Q · {copy.finishes[1]}</span></figcaption>
         </figure>
       </div>
     </header>
@@ -161,8 +161,7 @@ export const PartnersPage = () => {
     <section className="container partnership-section partnership-benefits">
       <h2>{copy.benefitsTitle}</h2>
       <ol className="partnership-grid partnership-three">
-        {copy.benefits.map((benefit, index) => <li key={benefit}>
-          <span aria-hidden="true" className="partnership-eyebrow">{String(index + 1).padStart(2, '0')}</span>
+        {copy.benefits.map((benefit) => <li key={benefit}>
           <p>{benefit}</p>
         </li>)}
       </ol>

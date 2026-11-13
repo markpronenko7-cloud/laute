@@ -101,7 +101,7 @@ export const HomePage = ({ heroSlidesOverride } = {}) => {
               {(lang !== 'ru' && h.techBadge) ? h.techBadge : (siteContent?.homeBlocks?.materials?.badge || h.techBadge || 'ТЕХНОЛОГИИ & МАТЕРИАЛЫ')}
             </EditableNode>
             <EditableNode as="h2" editKey={"homepage-2"} kind="text" className="section-title visual-tech-title">
-              {withBrandWord((lang !== 'ru' && h.techTitle) ? h.techTitle : (siteContent?.homeBlocks?.materials?.title || h.techTitle || 'Инженерная надежность в каждой детали'))}
+              {(lang !== 'ru' && h.techTitle) ? h.techTitle : (siteContent?.homeBlocks?.materials?.title || h.techTitle || 'Инженерная надежность в каждой детали')}
             </EditableNode>
             <EditableNode as="p" editKey={"homepage-3"} kind="text" className="section-desc visual-tech-desc">
               {withBrandWord((lang !== 'ru' && h.techDesc) ? h.techDesc : (siteContent?.homeBlocks?.materials?.desc || h.techDesc || 'Никаких компромиссов: первичная конструкционная латунь, пищевая нержавеющая сталь SUS304, ЭКО алюминий, испанские картриджи Sedal и молекулярное вакуумное PVD-осаждение.'))}

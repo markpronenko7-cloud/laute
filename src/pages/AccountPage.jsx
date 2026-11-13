@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { ArrowRight, Package, Search, Tag, User } from "lucide-react";
+import { ArrowRight, Package, Search, Tag } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { portal, clearPartnerToken, money } from "../services/partnerApi";
 import { PartnerManagement } from "../components/partners/PartnerManagement";
@@ -10,7 +10,6 @@ import "../styles/partners.css";
 export function AccountPage() {
   const {
     partnerAccount,
-    partnerManager,
     partnerPrices,
     partnerLoading,
     partnerError,
@@ -31,10 +30,13 @@ export function AccountPage() {
     [repeatPending, setRepeatPending] = useState(null),
     [changePassword, setChangePassword] = useState(false);
   const [discountSearch, setDiscountSearch] = useState("");
+  const [discountOrder, setDiscountOrder] = useState("discount");
   const [discountsExpanded, setDiscountsExpanded] = useState(false);
   const discounts = Object.values(partnerPrices)
     .filter((item) => Number(item.discount) > 0)
-    .sort((a, b) => b.discount - a.discount || a.article.localeCompare(b.article));
+    .sort((a, b) => discountOrder === "article"
+      ? a.article.localeCompare(b.article, "ru", { numeric: true })
+      : b.discount - a.discount || a.article.localeCompare(b.article));
   const discountQuery = discountSearch.trim().toLocaleLowerCase("ru");
   const matchingDiscounts = discounts.filter((item) =>
     `${item.article} ${item.title}`.toLocaleLowerCase("ru").includes(discountQuery),
@@ -215,6 +217,7 @@ export function AccountPage() {
                   : partnerError ? <button type="button" className="btn btn-outline" onClick={() => refreshPartner().catch(() => {})}>Обновить цены</button>
                   : discounts.length === 0 ? <p>Персональные скидки пока не назначены.</p>
                   : <>
+                    <div className="partner-discount-controls">
                     <label className="partner-discount-search">
                       <Search size={18} aria-hidden="true" />
                       <input type="search" aria-label="Поиск по товарам со скидкой" placeholder="Название или артикул"
@@ -223,6 +226,14 @@ export function AccountPage() {
                           setDiscountsExpanded(false);
                         }} />
                     </label>
+                    <select aria-label="Порядок сортировки скидок" value={discountOrder} onChange={(event) => {
+                      setDiscountOrder(event.target.value);
+                      setDiscountsExpanded(false);
+                    }}>
+                      <option value="discount">Сначала большая скидка</option>
+                      <option value="article">По артикулу</option>
+                    </select>
+                    </div>
                     <ul className="partner-discount-list">
                       {(discountsExpanded ? matchingDiscounts : matchingDiscounts.slice(0, 8)).map((item) => {
                         const product = products.find((entry) => entry.article === item.article);
@@ -255,17 +266,6 @@ export function AccountPage() {
               <PartnerOrders orders={orders} reload={reload} repeat={repeat} />
             </div>
             <aside className="partner-dashboard-aside">
-              <section className="portal-section">
-                <h2><User size={20} aria-hidden="true" /> Менеджер</h2>
-                {partnerManager ? <address>
-                  <strong>{partnerManager.name}</strong>
-                  {partnerManager.email && <a href={`mailto:${partnerManager.email}`}>{partnerManager.email}</a>}
-                  {partnerManager.phone && <a href={`tel:${partnerManager.phone.replace(/[^+\d]/g, "")}`}>{partnerManager.phone}</a>}
-                </address> : <>
-                  <p>{partnerAccount.managerId ? "Менеджер временно недоступен." : "Назначь менеджера через отдел продаж, чтобы отправлять заказы."}</p>
-                  <button className="btn btn-outline btn-sm" onClick={() => navigateTo("contacts")}>Контакты</button>
-                </>}
-              </section>
               <section className="portal-section">
                 <h2><Package size={20} aria-hidden="true" /> Корзина</h2>
                 <button className="btn btn-outline btn-sm" onClick={openCartModal}>Открыть корзину</button>

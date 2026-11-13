@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
   X, 
@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { formatCatalogPrice } from '../../utils/catalogPrice';
 import { classifyProductImages, formatProductDisplay } from '../../utils/imageHelper';
-import { getStudioProductPhoto } from '../../data/studioProductPhotos';
+import { getInteriorProductPhoto, getStudioProductPhoto } from '../../data/studioProductPhotos';
 
 export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) => {
   const {
@@ -64,10 +64,10 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
           <div style={{ marginBottom: 16, display: 'inline-flex', padding: 16, borderRadius: '50%', background: 'rgba(234, 88, 12, 0.12)', color: '#EA580C' }}>
             <Package size={36} />
           </div>
-          <h3 style={{ color: '#FFFFFF', fontSize: '1.35rem', marginBottom: 10, fontWeight: 700 }}>
+          <h3 style={{ color: '#182331', fontSize: '1.35rem', marginBottom: 10, fontWeight: 700 }}>
             Товар не найден
           </h3>
-          <p style={{ color: '#94A3B8', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: 24 }}>
+          <p style={{ color: '#435369', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: 24 }}>
             Запрошенный артикул <strong>{selectedProduct.article}</strong> отсутствует в каталоге или был удалён.
           </p>
           <button
@@ -87,49 +87,27 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
   const imgInfo = classifyProductImages(selectedProduct, baseUrl);
 
   // Фотографии галереи (смеситель + дополнительные фото + упаковка)
-  const studioPhoto = getStudioProductPhoto(selectedProduct, baseUrl);
   const isCabin = selectedProduct.category === 'Бюджетные душевые кабины';
-  const galleryPhotos = studioPhoto
-    ? [...new Set(isCabin ? [studioPhoto, ...imgInfo.allPhotos.slice(1)] : [imgInfo.mainPhoto, studioPhoto, ...imgInfo.additionalPhotos])]
-    : imgInfo.allPhotos;
+  const studioPhoto = isCabin ? getStudioProductPhoto(selectedProduct, baseUrl) : '';
+  const interiorPhoto = getInteriorProductPhoto(selectedProduct, baseUrl);
+  const interiorLabel = lang === 'en' ? 'In context' : lang === 'kz' ? 'Интерьерде' : 'В интерьере';
+  const additionalPhotos = imgInfo.additionalPhotos.filter(url => !/\/images\/products\/interiors\//.test(url)
+    || url.split(/[?#]/, 1)[0].split('/').at(-1) !== interiorPhoto.split('/').at(-1));
+  const galleryPhotos = [...new Set([
+    studioPhoto || imgInfo.mainPhoto,
+    interiorPhoto,
+    ...additionalPhotos,
+  ].filter(Boolean))];
+  const photoLabel = (url, index) => url === interiorPhoto ? interiorLabel
+    : url === studioPhoto ? 'Студийное фото' : index === 0 ? 'Основное фото' : `Фото ${index + 1}`;
   const activePhotoSrc = galleryPhotos[selectedPhoto] || imgInfo?.mainPhoto || `${baseUrl}laute-logo.png`;
 
-  // Сбор всех медиа-файлов строго ЭТОГО товара (фотографии + чертежи)
-  const productMediaList = useMemo(() => {
-    if (!selectedProduct) return [];
-    const list = [];
-    const seen = new Set();
-
-    // 1. Фотографии изделия (главное фото, дополнительные фото, упаковка)
-    if (galleryPhotos.length > 0) {
-      galleryPhotos.forEach((url, i) => {
-        if (url && !seen.has(url)) {
-          seen.add(url);
-          list.push({
-            url,
-            type: 'photo',
-            title: url === studioPhoto ? 'Студийное фото' : i === 0 ? 'Основное фото' : `Фото ${i + 1}`
-          });
-        }
-      });
+  const productMediaList = galleryPhotos.map((url, index) => ({ url, type: 'photo', title: photoLabel(url, index) }));
+  for (const url of new Set(imgInfo.drawingPhotos)) {
+    if (!productMediaList.some(media => media.url === url)) {
+      productMediaList.push({ url, type: 'drawing', title: 'Чертёж и размеры' });
     }
-
-    // 2. Инженерные чертежи изделия
-    if (imgInfo.drawingPhotos && imgInfo.drawingPhotos.length > 0) {
-      imgInfo.drawingPhotos.forEach((url, i) => {
-        if (url && !seen.has(url)) {
-          seen.add(url);
-          list.push({
-            url,
-            type: 'drawing',
-            title: imgInfo.drawingPhotos.length > 1 ? `Чертёж #${i + 1}` : 'Чертёж и размеры'
-          });
-        }
-      });
-    }
-
-    return list;
-  }, [galleryPhotos, imgInfo.drawingPhotos, studioPhoto]);
+  }
 
   // Сброс индекса при смене товара
   useEffect(() => {
@@ -261,13 +239,17 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
                     type="button" 
                     className={`thumb-btn ${selectedPhoto === idx ? 'active' : ''}`}
                     onClick={() => setSelectedPhoto(idx)}
-                    title={ph === studioPhoto ? 'Студийное фото' : idx === 0 ? 'Основное фото' : `Фото ${idx + 1}`}
+                    title={photoLabel(ph, idx)}
+                    aria-label={photoLabel(ph, idx)}
+                    aria-pressed={selectedPhoto === idx}
+                    data-interior={ph === interiorPhoto ? '' : undefined}
                   >
                     <img 
                       src={ph} 
                       alt="" 
                       onError={(e) => { e.target.src = `${baseUrl}laute-logo.png`; }}
                     />
+                    {ph === interiorPhoto && <span>{interiorLabel}</span>}
                   </button>
                 ))}
               </div>
@@ -704,8 +686,8 @@ class ProductModalErrorBoundary extends React.Component {
             onClick={(e) => e.stopPropagation()}
             style={{ maxWidth: '480px', width: '92%', padding: '36px 24px', textAlign: 'center' }}
           >
-            <h3 style={{ color: '#FFFFFF', marginBottom: 12 }}>Не удалось открыть товар</h3>
-            <p style={{ color: '#94A3B8', fontSize: '0.9rem', marginBottom: 20 }}>
+            <h3 style={{ color: '#182331', marginBottom: 12 }}>Не удалось открыть товар</h3>
+            <p style={{ color: '#435369', fontSize: '0.9rem', marginBottom: 20 }}>
               Произошла непредвиденная ошибка при отображении карточки. Пожалуйста, попробуйте снова.
             </p>
             <button type="button" className="btn btn-primary" onClick={this.props.onClose}>

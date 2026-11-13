@@ -7,7 +7,7 @@ export const ROLE_EXPANSIONS = [
 
 export const partnership = {
   ru: {
-    title: 'Партнёрство с LAUTE', heroAlt: 'Хромированный смеситель Ethereum ETH103D на светлой каменной столешнице',
+    title: 'Партнёрство с LAUTE', heroAlt: 'Светлый шоурум со смесителем LAUTE Leo LEO101Q',
     subtitle: 'Развивайте бизнес с Заводом смесителей LAUTE. Выберите своё направление — от рекомендации продукции до собственной агентской структуры.',
     choose: 'Выбрать формат партнёрства', discuss: 'Обсудить мой регион', account: 'Кабинет партнёра',
     about: 'Как мы работаем с партнёрами',
@@ -50,7 +50,7 @@ export const partnership = {
     success: 'Почтовый сервис принял заявку. Команда LAUTE свяжется с вами.', error: 'Не удалось отправить заявку. Попробуйте ещё раз.'
   },
   en: {
-    title: 'Partner with LAUTE', heroAlt: 'Chrome Ethereum ETH103D faucet on a pale stone countertop', account: 'Partner account',
+    title: 'Partner with LAUTE', heroAlt: 'Daylit showroom with the LAUTE Leo LEO101Q faucet', account: 'Partner account',
     subtitle: 'Grow your business with the LAUTE faucet factory. Choose a direction, from recommending products to building your own dealer network.',
     choose: 'Choose a partnership format', discuss: 'Discuss my region',
     about: 'Partnership with the LAUTE faucet factory',
@@ -89,7 +89,7 @@ export const partnership = {
     success: 'The mail service accepted your enquiry. The LAUTE team will contact you.', error: 'Your enquiry could not be sent. Please try again.'
   },
   kz: {
-    title: 'LAUTE-пен серіктестік', heroAlt: 'Ашық түсті тас үстелдегі хромдалған Ethereum ETH103D араластырғышы', account: 'Серіктес кабинеті',
+    title: 'LAUTE-пен серіктестік', heroAlt: 'LAUTE Leo LEO101Q араластырғышы бар жарық көрме залы', account: 'Серіктес кабинеті',
     subtitle: 'LAUTE араластырғыштар зауытымен бизнесіңізді дамытыңыз. Өнімді ұсынудан жеке агенттік құрылым құруға дейінгі бағытты таңдаңыз.',
     choose: 'Серіктестік форматын таңдау', discuss: 'Өңірімді талқылау',
     about: 'Laute араластырғыштар зауытымен серіктестік туралы',

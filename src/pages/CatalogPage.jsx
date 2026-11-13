@@ -401,7 +401,7 @@ export const CatalogPage = () => {
     const subcategories = [...new Set(categoryProducts.map(p => normalizeCategory(p.subcategory)).filter(Boolean))];
     const sourceProduct = categoryProducts.find(p => p.article === featuredCategoryArticles[item?.id] && p.photo1)
       || categoryProducts.find(p => p.photo1);
-    const studioPhoto = sourceProduct ? getStudioProductPhoto(sourceProduct, baseUrl) : '';
+    const studioPhoto = item?.id === 'shower-cabins' && sourceProduct ? getStudioProductPhoto(sourceProduct, baseUrl) : '';
     const image = sourceProduct?.photo1 ? studioPhoto || classifyProductImages(sourceProduct, baseUrl).mainPhoto : null;
     if (!item) {
       return {
@@ -736,7 +736,9 @@ export const CatalogPage = () => {
                 const displayInfo = formatProductDisplay(p);
                 const imgInfo = classifyProductImages(p, baseUrl);
                 // Главной фотографией всегда должен быть сам смеситель (imgInfo.mainPhoto отфильтровывает чертежи и коробки)
-                const studioPhoto = getStudioProductPhoto(p, baseUrl);
+                const studioPhoto = normalizeCategory(p.category) === categoryTranslations['shower-cabins'].name.ru
+                  ? getStudioProductPhoto(p, baseUrl)
+                  : '';
                 const mainPhotoSrc = studioPhoto || imgInfo.mainPhoto || getImgUrl(p.photo1);
                 const qtyInCart = getCartItemQuantity(p.article);
                 const rawPrice = Number(getProductPrice(p));

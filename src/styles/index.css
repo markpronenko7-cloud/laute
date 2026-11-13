@@ -9347,6 +9347,52 @@ body:has(:is(.catalog-page, .partner-page)) .header .select-trigger :is(.select-
 .product-detail-modal .modal-tab-btn.active { color: #fff; }
 .product-detail-modal .main-image-container:has(.studio-product-img) { background: #f1efeb; }
 .product-detail-modal .tab-panel [style*="#94A3B8"] { color: #435369 !important; }
+.collections-section :is(h2, h3, p, .collection-pill-tag),
+.visual-technologies-section :is(h2, h3, p, .section-badge) {
+  font-family: var(--font-body);
+  letter-spacing: normal;
+}
+.collections-section .collection-glass-caption {
+  position: static;
+  max-height: none;
+  overflow: visible;
+  background: #fff;
+  color: #222d37;
+  border: 0;
+  border-radius: 0;
+}
+.collections-section .collection-gallery-item {
+  border-radius: 9px;
+  background: #fff;
+  border: 1px solid #d9e0e7;
+  box-shadow: none;
+}
+.collections-section .collection-gallery-item:hover { transform: none; box-shadow: none; }
+.collections-section .collection-media-vignette { display: none; }
+.collections-section .collection-caption-heading { color: #182331; font-weight: 650; }
+.collections-section :is(.collection-caption-desc, .collection-model-credit) { color: #435369; }
+.collections-section .collection-pill-tag { color: #435369; }
+.collections-section .collection-pill-filter { color: #435369 !important; margin-inline-start: 0; }
+.collections-section .collection-pill-tag:not(.collection-pill-filter) { display: none; }
+.collections-section .collection-caption-top:not(:has(.collection-pill-filter)) { display: none; }
+.collections-section :is(.collection-caption-heading, .collection-caption-desc) { text-shadow: none; }
+.visual-technologies-section .visual-tech-title { color: #fff; font-weight: 650; }
+.catalog-page :is(.card-media, .sku-card-media),
+.product-detail-modal .main-image-container { background: #fff; }
+.catalog-page :is(.card-product-img, .sku-product-img) { mix-blend-mode: normal; }
+.catalog-page .sku-card-media:has(.studio-product-img),
+.product-detail-modal .main-image-container:has(.studio-product-img) { background: #f1efeb; }
+.product-detail-modal .thumb-btn { position: relative; }
+.product-detail-modal .thumb-btn[data-interior] { width: 82px; }
+.product-detail-modal .thumb-btn[data-interior] span {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 2px;
+  color: #fff;
+  background: #243243;
+  font-size: .62rem;
+  line-height: 1.1;
+}
 /* Contrast across public page sections and shared footer */
 :is(#partners, .service-text-column, .cta-left-content, .form-info-col) .section-badge,
 .tier-audience-card .tier-index-num { color: #45566a; }
@@ -9360,7 +9406,8 @@ body:has(:is(.catalog-page, .partner-page)) .header .select-trigger :is(.select-
   color: #a7b3c4;
 }
 .footer .footer-admin-link { opacity: .84; }
-.partnership :is(.partnership-banner, .partnership-product, #partnership-form) p { color: #49586b; }
+.partnership :is(.partnership-product, #partnership-form, .partnership-role-details, .partnership-benefits) p { color: #425367; }
+.partnership .partnership-banner p { color: #e0ebf4; }
 :is(.custom-page-contacts, .contacts-page-wrap) {
   --color-text-secondary: #e2eaf4;
   --adm-text-muted: #d6e1ee;

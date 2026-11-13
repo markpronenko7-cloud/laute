@@ -334,14 +334,23 @@
 }
 .partner-dashboard-layout .portal-section { margin: 0 0 18px; }
 .partner-dashboard-layout h2 { display: flex; align-items: center; gap: 9px; color: #17283b; }
-.partner-dashboard-aside address {
-  display: grid;
-  gap: 6px;
-  font-style: normal;
-  overflow-wrap: anywhere;
+.partner-dashboard-aside button { margin-top: 10px; }
+.partner-discount-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
-.partner-dashboard-aside :is(address, p, button) { margin-top: 10px; }
-.partner-dashboard-aside a { color: #174b78; text-decoration: underline; }
+.partner-discount-controls .partner-discount-search { flex: 1 1 200px; }
+.partner-discount-controls select {
+  max-width: 100%;
+  min-height: 44px;
+  padding: 7px 12px;
+  border: 1px solid #bac6d3;
+  border-radius: 8px;
+  color: #182331;
+  background: #fff;
+  font: inherit;
+}
 .partner-discount-search {
   display: flex;
   align-items: center;

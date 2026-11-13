@@ -57,14 +57,13 @@ export const AppProvider = ({ children }) => {
   // Current logged in admin session
   const [adminSession, setAdminSession] = useState(null);
   const [partnerAccount, setPartnerAccount] = useState(null);
-  const [partnerManager, setPartnerManager] = useState(null);
   const [partnerPrices, setPartnerPrices] = useState({});
   const [partnerLoading, setPartnerLoading] = useState(!!getPartnerToken());
   const [partnerError, setPartnerError] = useState('');
   const partnerRequest = useRef(0);
   const logoutPartner = useCallback(() => {
     partnerRequest.current++;
-    clearPartnerToken(); setPartnerAccount(null); setPartnerManager(null); setPartnerPrices({}); setPartnerLoading(false);
+    clearPartnerToken(); setPartnerAccount(null); setPartnerPrices({}); setPartnerLoading(false);
   }, []);
   const refreshPartner = useCallback(async () => {
     if (!getPartnerToken()) return;
@@ -73,7 +72,7 @@ export const AppProvider = ({ children }) => {
     try {
       const result = await portal('me');
       if (request !== partnerRequest.current) return;
-      setPartnerAccount(result.account); setPartnerManager(result.manager);
+      setPartnerAccount(result.account);
       if (result.account.role === 'partner' && !result.account.mustChange) {
         const catalog = await portal('catalog');
         if (request !== partnerRequest.current) return;
@@ -663,7 +662,7 @@ export const AppProvider = ({ children }) => {
     reloadSiteContent,
     reloadProducts,
     products,
-    partnerAccount, partnerManager, partnerPrices, partnerLoading, partnerError, refreshPartner, logoutPartner, getProductPrice, getProductCurrency,
+    partnerAccount, partnerPrices, partnerLoading, partnerError, refreshPartner, logoutPartner, getProductPrice, getProductCurrency,
     updateProducts,
     selectedProduct,
     openProductModal,

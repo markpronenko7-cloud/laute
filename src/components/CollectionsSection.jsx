@@ -38,7 +38,7 @@ export const CollectionsSection = () => {
       title: t.home?.techBadge || 'Технологии & Материалы',
       subtitle: t.home?.spacesEngineeringSub || 'Нержавеющая сталь SUS304, ЭКО алюминий, испанские картриджи Sedal, латунь А+ и PVD-покрытие',
       categoryBadge: (t.home?.techBadge || 'ТЕХНОЛОГИИ & МАТЕРИАЛЫ').toUpperCase(),
-      image: `${baseUrl}images/collections/coll-engineering.jpg`,
+      image: `${baseUrl}images/collections/solana-materials.webp`,
       imageAlt: 'LAUTE Solana SOL101',
       layoutClass: 'collection-card-wide'
     }
