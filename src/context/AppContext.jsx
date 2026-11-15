@@ -270,7 +270,7 @@ export const AppProvider = ({ children }) => {
 
   const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
-  const [isAIModalOpen, setIsAIModalOpen] = useState(true); // Auto-open on initial load
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
 

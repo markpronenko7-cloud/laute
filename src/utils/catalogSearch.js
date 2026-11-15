@@ -21,62 +21,85 @@ export function catalogRoute(filters = {}) {
 }
 
 // Prefixes cover common Russian/Kazakh inflections and catalog terms used across languages.
-const concepts = [
-  ['kitchen', /\bkitchens?\b|кух(?:он|н)[а-я]*|асүй|ас\s+үй/gu],
+const categories = [
+  ['kitchen', /\bkitchens?\b|кухн[а-я]*|кухон[а-я]*|асүй|ас\s+үй/gu],
   ['basin', /\b(basin|washbasin|vanity)\b|раковин[а-я]*|умывальник[а-я]*|қолжуғыш/gu],
   ['bath', /\b(bathtub|bath)\b|ванн[а-я]*/gu],
-  ['shower system', /\b(shower\s+systems?|rain\s+shower)\b|душев[а-я]+\s+систем[а-я]*|тропическ[а-я]+\s+душ|душ\s+жүйес[іи]/gu],
+  ['shower system', /\b(shower\s+systems?|rain\s+shower)\b|душев[а-я]+\s+систем[а-я]*|тропическ[а-я]+\s+душ|душ\s+жүйес[іи]|душев[а-я]+\s+гарнитур[а-я]*/gu],
   ['shower cabin', /\b(shower\s+(cabin|enclosure)s?)\b|душев[а-я]+\s+кабин[а-я]*|душ\s+кабинасы/gu],
+];
+const finishes = [
   ['graphite', /\bgraphite\b|графит[а-я]*/gu],
   ['beige', /\bbeige\b|бежев[а-я]*|сарғыш/gu],
   ['gold', /\b(gold|golden)\b|золот[а-я]*|алтын/gu],
   ['black', /\bblack\b|черн[а-я]*|қара/gu],
   ['chrome', /\bchrome\b|хром[а-я]*/gu],
+  ['satin', /\bsatin\b|сатин[а-я]*/gu],
+  ['matte', /\b(matte|matt)\b|матов[а-я]*|күңгірт/gu],
+];
+const features = [
   ['filter', /\b(filter|filtered|purified)\b|фильтр[а-я]*|питьев[а-я]*|сүзгі/gu],
-  ['pullout', /\b(pull[\s-]?out|pull[\s-]?down)\b|выдвижн[а-я]*/gu],
+  ['pullout', /\b(pull[\s-]?out|pull[\s-]?down)\b|выдвиж(?:н|ен)[а-я]*|вытяжн[а-я]*/gu],
+  ['flexible', /\bflexible\s+(spout|neck)\b|гибк[а-я]+\s+(?:высок[а-я]+\s+)?излив[а-я]*/gu],
+  ['wall', /\bwall[\s-]?mount(?:ed)?\b|настенн[а-я]*|на\s+стен[ауеы]/gu],
   ['thermostat', /\bthermostat(?:ic)?\b|термостат[а-я]*/gu],
 ];
-const stopWords = new Set('a an the for with and please show me find want need mixer mixers tap taps faucet faucets мне нужен нужна нужны ищу покажи найди для со с под и смеситель смесителя смесители смесителей керек үшін араластырғыш'.split(' '));
-
-const fields = product => [
-  product.article, product.name, product.category, product.subcategory, product.collection,
-  collectionName(product.collection), product.description, product.specs, product.extraSpecs,
-  product.color, product.finish, product.material, product.purpose, product.installType
-].map(normalizeSearch).filter(Boolean);
+const stopWords = new Set('a an the for with and please show me find want need mixer mixers tap taps faucet faucets мне нужен нужна нужны ищу хочу покажи подбери предложи посоветуй пожалуйста найди вариант варианты модель модели кран краны для со с под в и или есть какой какие где смеситель смесителя смесители смесителей керек үшін араластырғыш'.split(' '));
 
 const words = value => value.match(/[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*/gu) || [];
-const compactSku = value => normalizeSearch(value).replace(/[\s-]+/g, '');
+export const compactSku = value => normalizeSearch(value).replace(/[\s-]+/g, '');
+const textOf = (...values) => values.map(normalizeSearch).filter(Boolean).join(' ');
+
+export function parseCatalogQuery(value) {
+  let remainder = normalizeSearch(value);
+  const groups = [categories, finishes, features].map(group => group.reduce((chosen, [id, pattern]) => {
+    if (!remainder.match(pattern)) return chosen;
+    remainder = remainder.replace(pattern, ' ');
+    return [...chosen, id];
+  }, []));
+  return {
+    categories: groups[0], finishes: groups[1], features: groups[2],
+    terms: words(remainder).filter(term => !stopWords.has(term))
+  };
+}
+
+export function matchCatalogCriteria(products, criteria) {
+  const matchesGroup = (definitions, requested, text) => requested.every(id =>
+    text.match(definitions.find(([key]) => key === id)[1]));
+
+  return products.filter(product => {
+    const department = textOf(product.category || product.name);
+    const finish = textOf(product.color, product.finish, product.name);
+    const technical = textOf(product.name, product.subcategory, product.specs, product.extraSpecs, product.installType);
+    if (!matchesGroup(categories, criteria.categories, department) ||
+        !matchesGroup(finishes, criteria.finishes, finish) ||
+        !matchesGroup(features, criteria.features, technical)) return false;
+
+    const text = textOf(product.article, product.name, product.category, product.subcategory, product.collection,
+      collectionName(product.collection), product.description, product.specs, product.extraSpecs,
+      product.color, product.finish, product.material, product.installType, product.dimensions);
+    return criteria.terms.every(term => text.includes(term));
+  });
+}
 
 export function searchCatalog(products, value, mode = 'standard') {
   const query = normalizeSearch(value);
   if (!query) return products;
 
-  const queryConcepts = [];
-  let remainder = query;
-  if (mode === 'smart') {
-    for (const [, pattern] of concepts) {
-      if (query.match(pattern)) {
-        queryConcepts.push(pattern);
-        remainder = remainder.replace(pattern, ' ');
-      }
-    }
-  }
-  const terms = words(remainder).filter(word => mode !== 'smart' || !stopWords.has(word));
+  const criteria = mode === 'smart' ? parseCatalogQuery(query) : null;
+  const semanticMatches = criteria && Object.values(criteria).some(group => group.length)
+    ? new Set(matchCatalogCriteria(products, criteria)) : new Set();
+  const literalTerms = words(query);
   const matches = [];
   for (const product of products) {
     const article = normalizeSearch(product.article);
-    if (article && compactSku(article) === compactSku(query)) {
-      matches.push({ product, score: 10 });
-      continue;
-    }
-    const productFields = fields(product);
-    const text = productFields.join(' ');
-    const exactField = productFields.some(field => field.includes(query));
-    const matchesTerms = terms.every(term => text.includes(term));
-    const matchesConcepts = queryConcepts.every(pattern => text.match(pattern));
-    if (exactField || ((terms.length || queryConcepts.length) && matchesTerms && matchesConcepts)) {
-      matches.push({ product, score: article.startsWith(query) ? 5 : exactField ? 3 : 1 });
-    }
+    const literal = [article, product.name, product.collection, collectionName(product.collection)]
+      .some(field => normalizeSearch(field).includes(query));
+    const names = textOf(article, product.name, product.collection, collectionName(product.collection));
+    const matchNames = literalTerms.length > 1 && literalTerms.every(term => names.includes(term));
+    const score = article && compactSku(article) === compactSku(query) ? 10
+      : article.startsWith(query) ? 5 : literal ? 3 : matchNames ? 2 : semanticMatches.has(product) ? 1 : 0;
+    if (score) matches.push({ product, score });
   }
   return matches.sort((a, b) => b.score - a.score).map(match => match.product);
 }

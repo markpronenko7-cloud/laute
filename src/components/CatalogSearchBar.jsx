@@ -3,22 +3,22 @@ import { ArrowRight, Search, Sparkles } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 const searchLabels = {
-  ru: ['Поиск товаров', 'Артикул, модель или коллекция', 'Обычный', 'Умный', 'Найти'],
-  kz: ['Өнім іздеу', 'Артикул, модель немесе топтама', 'Қалыпты', 'Ақылды', 'Іздеу'],
-  en: ['Product search', 'SKU, model or collection', 'Standard', 'Smart', 'Search'],
+  ru: ['Поиск товаров', 'Артикул, название или коллекция', 'Обычный', 'Умный', 'Найти', 'Например, графитовый смеситель для кухни под фильтр'],
+  kz: ['Өнім іздеу', 'Артикул, атауы немесе топтама', 'Қалыпты', 'Ақылды', 'Іздеу', 'Мысалы, сүзгісі бар графит түсті асүй араластырғышы'],
+  en: ['Product search', 'SKU, name or collection', 'Standard', 'Smart', 'Search', 'Try “graphite kitchen faucet with filter”'],
 };
 
 export function CatalogSearchBar({ query, mode, onQuery, onMode, onSearch }) {
   const { lang } = useApp();
-  const [label, placeholder, standard, smart, submit] = searchLabels[lang] || searchLabels.ru;
+  const [label, placeholder, standard, smart, submit, example] = searchLabels[lang] || searchLabels.ru;
   return (
-    <form className="catalog-search-bar" role="search" aria-label={label} onSubmit={e => {
+    <form className="catalog-search-bar" data-search-mode={mode} role="search" aria-label={label} onSubmit={e => {
       e.preventDefault();
       onSearch();
     }}>
       <div className="search-box">
         <Search size={18} className="search-icon" aria-hidden="true" />
-        <input className="search-input" type="search" aria-label={label} placeholder={placeholder}
+        <input className="search-input" type="search" aria-label={label} placeholder={mode === 'smart' ? example : placeholder}
           value={query} onChange={event => onQuery(event.target.value)} />
       </div>
       <div className="catalog-search-modes" role="group" aria-label={label}>

@@ -1,7 +1,7 @@
 import { EditableNode, NativeContentScope, NativeEditorScope } from './builder/NativeContent';
 import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import { useApp } from '../context/AppContext';
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import { isSafeActionLink } from './SiteAction';
 import { withBrandWord } from '../utils/brandFormatter';
 import { catalogRoute } from '../utils/catalogSearch';
@@ -27,6 +27,7 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
 
   const [activeSlide, setActiveSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [hasKeyboardFocus, setHasKeyboardFocus] = useState(false);
   const touchStart = useRef(null);
   const touchEnd = useRef(null);
   const sectionRef = useRef(null);
@@ -49,7 +50,11 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
     };
   }, []);
 
-  const autoplayPaused = !!editor || isPaused || !isInView || !isDocumentVisible || reducedMotion;
+  const autoplayPaused = !!editor || isPaused || hasKeyboardFocus || !isInView || !isDocumentVisible || reducedMotion;
+  const previousLabel = lang === 'en' ? 'Previous slide' : lang === 'kz' ? 'Алдыңғы слайд' : 'Предыдущий слайд';
+  const nextLabel = lang === 'en' ? 'Next slide' : lang === 'kz' ? 'Келесі слайд' : 'Следующий слайд';
+  const pauseLabel = lang === 'en' ? 'Pause slides' : lang === 'kz' ? 'Слайдтарды кідірту' : 'Приостановить слайды';
+  const playLabel = lang === 'en' ? 'Play slides' : lang === 'kz' ? 'Слайдтарды ойнату' : 'Возобновить слайды';
 
   const SLIDE_DURATION = 3000; // Exactly 3000ms per requirement
 
@@ -219,8 +224,8 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
       className="hero-carousel-section"
       ref={sectionRef}
       data-autoplay-paused={autoplayPaused}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+      onFocus={event => { if (event.target.matches(':focus-visible')) setHasKeyboardFocus(true); }}
+      onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setHasKeyboardFocus(false); }}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -352,7 +357,7 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
               type="button"
               className="hero-arrow-btn prev-btn"
               onClick={prevSlide}
-              aria-label="Предыдущий слайд"
+              aria-label={previousLabel}
             >
               <ChevronLeft size={20} />
             </button>
@@ -360,10 +365,18 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
               type="button"
               className="hero-arrow-btn next-btn"
               onClick={nextSlide}
-              aria-label="Следующий слайд"
+              aria-label={nextLabel}
             >
               <ChevronRight size={20} />
             </button>
+            {!reducedMotion && !editor && <button
+              type="button"
+              className="hero-arrow-btn"
+              onClick={() => { setHasKeyboardFocus(false); setIsPaused(!isPaused && !hasKeyboardFocus); }}
+              aria-label={isPaused || hasKeyboardFocus ? playLabel : pauseLabel}
+            >
+              {isPaused || hasKeyboardFocus ? <Play size={16} /> : <Pause size={16} />}
+            </button>}
           </div>
         </div>
       </div>
