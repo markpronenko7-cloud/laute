@@ -162,8 +162,8 @@
         "title": "Вода, наполняющая жизнь",
         "subtitle": "",
         "buttonText": "Смотреть каталог",
-        "buttonLink": "catalog",
-        "image": "images/hero/hero-slide-2.jpg",
+        "buttonLink": "catalog?category=shower-systems&product=LEO194H",
+        "image": "images/campaign/hero-shower.webp",
         "order": 2,
         "isVisible": true
       },
@@ -173,7 +173,7 @@
         "title": "Функциональность встречается с дизайном.",
         "subtitle": "",
         "buttonText": "Смотреть коллекцию",
-        "buttonLink": "catalog",
+        "buttonLink": "catalog?collection=bitcoin",
         "image": "images/hero/hero-slide-3.jpg",
         "order": 3,
         "isVisible": true
@@ -207,7 +207,7 @@
         "subtitle": "SUS304 · ЭКО алюминий · Латунь А+ · PVD-покрытие",
         "buttonText": "Смотреть технологии",
         "buttonLink": "anchor:technologies",
-        "image": "images/hero/hero-slide-6.jpg",
+        "image": "images/campaign/hero-six.webp",
         "order": 6,
         "isVisible": true
       }
@@ -1012,7 +1012,7 @@
         "heroSlides": [
           {
             "tagline": "LAUTE®",
-            "title": "Real German technology",
+            "title": "Manage water smartly",
             "buttonText": "Catalog"
           },
           {

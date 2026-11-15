@@ -2,7 +2,7 @@ import { SiteAction } from './SiteAction';
 import { getNavigation } from '../utils/contentSettings';
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { Globe, MapPin, Phone, Mail, ArrowUp } from 'lucide-react';
+import { Globe, MapPin, ArrowUp } from 'lucide-react';
 import { REGIONS_CONFIG } from '../data/regionsData';
 import { withBrandWord } from '../utils/brandFormatter';
 
@@ -43,6 +43,8 @@ export const Footer = () => {
             <p className="footer-desc">
               {withBrandWord(siteContent?.footer?.brandDescription || f.brandDesc || 'LAUTE — завод смесителей, душевых систем, кухонных моек и комплектующих. Продукция для жилых пространств и профессиональных проектов.')}
             </p>
+
+            <p className="footer-slogan">{lang === 'en' ? 'Our work is to take care of your profit' : lang === 'kz' ? 'Біздің жұмысымыз — сіздің табысыңызға қамқорлық' : 'Наша работа — это забота о вашей прибыли'}</p>
 
             {/* Official Verified Social Networks */}
             <div className="footer-socials">
@@ -141,52 +143,18 @@ export const Footer = () => {
           <div className="footer-col">
             <h4 className="footer-col-title">{f.navCol || 'Навигация'}</h4>
             <ul className="footer-links">
-              {getNavigation(siteContent, lang, t).map(item => <li key={item.route}>
+              {getNavigation(siteContent, lang, t).filter(item => item.route !== 'contacts' && item.route !== 'admin').map(item => <li key={item.route}>
                 <button type="button" className="footer-link-btn" onClick={() => navigateTo(item.route)}>{item.label}</button>
               </li>)}
             </ul>
           </div>
 
-          {/* Verified Contacts */}
           <div className="footer-col">
-            <h4 className="footer-col-title">{f.contactsCol || 'Контакты'}</h4>
-
-            <div className="footer-contact-block">
-              <span className="contact-role">{f.representativeOffice || 'Представительство:'}</span>
-              <p className="contact-address">
-                {siteContent?.footer?.officeAddress || 'Россия, 630073, Новосибирская область, г. Новосибирск, ул. Блюхера, 71'}
-              </p>
-            </div>
-
-            <div className="footer-contact-block">
-              <span className="contact-role">{f.salesDept || 'Отдел продаж:'}</span>
-              <ul className="contact-list">
-                <li>
-                  <a href={`tel:${siteContent?.footer?.phones?.[0]?.tel || (siteContent?.footer?.phones?.[0]?.number ? siteContent.footer.phones[0].number.replace(/[^0-9+]/g, '') : '+79833105626')}`} className="clickable-contact">
-                    <Phone size={13} />
-                    <span>{siteContent?.footer?.phones?.[0]?.number || '+7 (983) 310-56-26'}</span>
-                  </a>
-                </li>
-                <li>
-                  <a href={`tel:${siteContent?.footer?.phones?.[1]?.tel || (siteContent?.footer?.phones?.[1]?.number ? siteContent.footer.phones[1].number.replace(/[^0-9+]/g, '') : '+79132030737')}`} className="clickable-contact">
-                    <Phone size={13} />
-                    <span>{siteContent?.footer?.phones?.[1]?.number || '+7 (913) 203-07-37'}</span>
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <div className="footer-contact-block">
-              <span className="contact-role">{f.emailLabel || 'Электронная почта:'}</span>
-              <ul className="contact-list">
-                <li>
-                  <a href={`mailto:${siteContent?.footer?.emails?.[0]?.email || 'opt@laute.ltd'}`} className="clickable-contact">
-                    <Mail size={13} />
-                    <span>{siteContent?.footer?.emails?.[0]?.email || 'opt@laute.ltd'}</span>
-                  </a>
-                </li>
-              </ul>
-            </div>
+            <a className="footer-link-btn" href={import.meta.env.BASE_URL + 'contacts'} onClick={event => {
+              if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+              event.preventDefault();
+              navigateTo('contacts');
+            }}>{t.nav.contacts || f.contactsCol || 'Контакты'}</a>
           </div>
 
           {/* Wholesale Partner Action */}
@@ -209,7 +177,7 @@ export const Footer = () => {
         <div className="footer-bottom">
           <div className="footer-bottom-left">
             <p className="copyright">
-              © {new Date().getFullYear()} LAUTE LTD. {f.rights || 'Все права защищены.'}
+              © 1998 LAUTE LTD. {f.rights || 'Все права защищены.'}
             </p>
             <div className="footer-legal-links">
               <span>{siteContent?.footer?.legalText || f.legal || 'Политика конфиденциальности • Пользовательское соглашение'}</span>
@@ -229,20 +197,6 @@ export const Footer = () => {
           </div>
         </div>
 
-        {/* Subtle Staff Panel Link */}
-        <div className="footer-admin-link-row">
-          <a
-            href={`${import.meta.env.BASE_URL}admin`}
-            className="footer-admin-link"
-            onClick={(e) => {
-              e.preventDefault();
-              navigateTo('admin');
-            }}
-            title="Управление"
-          >
-            Управление
-          </a>
-        </div>
       </div>
     </footer>
   );

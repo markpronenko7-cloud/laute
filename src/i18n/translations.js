@@ -894,7 +894,7 @@ export const translations = {
       "heroSlides": [
         {
           "tagline": "LAUTE®",
-          "title": "Manage Water Smartly",
+          "title": "Manage water smartly",
           "buttonText": "Catalog"
         },
         {

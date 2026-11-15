@@ -13,6 +13,7 @@ import {
 import { withBrandWord } from '../utils/brandFormatter';
 import { processConsultantMessage } from '../utils/aiConsultantEngine';
 import { getLauteAIEngine } from '../ai/index.js';
+import { researchRegionalMarket } from '../ai/actions/marketResearch.js';
 
 export const AIConsultant = () => {
   const { 
@@ -20,6 +21,7 @@ export const AIConsultant = () => {
     openAIConsultant, 
     closeAIConsultant, 
     products, 
+    region,
     openProductModal, 
     startComparison, 
     lang 
@@ -39,7 +41,8 @@ export const AIConsultant = () => {
       'Мне нужен смеситель для кухни',
       'Как выбрать смеситель?',
       'Что такое картридж?',
-      'Расскажи о компании LAUTE'
+      'Расскажи о компании LAUTE',
+      currentLang === 'en' ? 'Regional market research' : currentLang === 'kz' ? 'Өңір нарығын талдау' : 'Исследовать рынок региона'
     ],
     recommendedProducts: []
   });
@@ -133,7 +136,7 @@ export const AIConsultant = () => {
 
     window.addEventListener('laute:ai:partner-analysis', handlePartnerAnalysisEvent);
     return () => window.removeEventListener('laute:ai:partner-analysis', handlePartnerAnalysisEvent);
-  }, [lang]);
+  }, [lang, products, region, dialogContext, messages, isTyping]);
 
   const getImgUrl = (path) => {
     if (!path) return `${baseUrl}laute-logo.png`;
@@ -164,8 +167,8 @@ export const AIConsultant = () => {
     setTimeout(() => {
       try {
         const historySnapshot = [...messages, userMsg];
-        let response;
-        try {
+        let response = researchRegionalMarket({ query: text, context: dialogContext, products, region, lang });
+        if (!response) try {
           const engine = getLauteAIEngine();
           response = engine.processMessage({
             rawQuery: text,
@@ -194,7 +197,9 @@ export const AIConsultant = () => {
           sender: 'ai',
           text: response.text,
           quickChips: response.quickChips || [],
-          recommendedProducts: response.recommendedProducts || []
+          recommendedProducts: response.recommendedProducts || [],
+          sources: response.sources,
+          marketPrices: response.marketPrices,
         };
 
         setMessages((prev) => [...prev, aiMsg]);
@@ -346,6 +351,8 @@ export const AIConsultant = () => {
           >
             <div className="ai-message-bubble">
               <div className="ai-message-text">{withBrandWord(msg.text)}</div>
+              {msg.sources?.map(source => <a className="ai-market-source" key={source.url} href={source.url}
+                target="_blank" rel="noopener noreferrer">{source.title}<ArrowUpRight size={13} aria-hidden="true" /></a>)}
 
               {/* Real Recommended Products Cards */}
               {msg.recommendedProducts && msg.recommendedProducts.length > 0 && (
@@ -362,21 +369,21 @@ export const AIConsultant = () => {
                         <div className="ai-prod-meta">
                           <span className="ai-prod-art">Арт. {prod.article}</span>
                           <div className="ai-prod-title">{prod.name}</div>
-                          <div className="ai-prod-price">
-                            {prod.price?.toLocaleString('ru-RU')} {prod.currency || '₸'}
-                          </div>
+                          {msg.marketPrices ? (msg.marketPrices[prod.article] && <div className="ai-prod-price">{msg.marketPrices[prod.article]}</div>) : (
+                            <div className="ai-prod-price">{prod.price?.toLocaleString('ru-RU')} {prod.currency || '₸'}</div>
+                          )}
                         </div>
                       </div>
 
                       {/* City stock info */}
-                      <div className="ai-prod-stock-info">
+                      {!msg.marketPrices && <div className="ai-prod-stock-info">
                         <MapPin size={11} color="#EA580C" />
                         <span>
                           {prod.cityStock?.['Алматы'] > 0 
                             ? `Алматы: ${prod.cityStock['Алматы']} шт. в наличии` 
                             : 'Алматы: склад LAUTE'}
                         </span>
-                      </div>
+                      </div>}
 
                       {/* Action buttons */}
                       <div className="ai-prod-actions">

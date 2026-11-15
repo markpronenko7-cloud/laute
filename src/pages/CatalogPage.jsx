@@ -1,11 +1,10 @@
 import { EditableNode, EditableSection, NativeSectionGate } from '../components/builder/NativeContent';
 import { PageText } from '../components/PageText';
 import { SiteAction } from '../components/SiteAction';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { fetchCategories } from '../services/adminApi';
 import { useApp } from '../context/AppContext';
 import { 
-  Search, 
   ArrowRight, 
   PackageCheck, 
   Info, 
@@ -24,14 +23,19 @@ import {
 import { classifyProductImages, formatProductDisplay } from '../utils/imageHelper';
 import { formatCatalogPrice } from '../utils/catalogPrice';
 import { getStudioProductPhoto } from '../data/studioProductPhotos';
+import { catalogRoute, collectionKey, collectionName, searchCatalog } from '../utils/catalogSearch';
+import { CatalogSearchBar } from '../components/CatalogSearchBar';
 
 const normalizeCategory = value => String(value || '').trim().replace(/\s+/g, ' ');
 
 const catalogShowcase = [
-  { id: 'kitchen-mixers', labels: { ru: 'Кухня', kz: 'Асүй', en: 'Kitchen' } },
-  { id: 'basin-mixers', labels: { ru: 'Раковина', kz: 'Қолжуғыш', en: 'Basin' } },
-  { id: 'bath-mixers', labels: { ru: 'Ванна', kz: 'Ванна', en: 'Bath' } },
-  { id: 'shower-systems', labels: { ru: 'Душ', kz: 'Душ', en: 'Shower' } }
+  { id: 'kitchen-mixers', labels: { ru: 'Смесители для кухни', kz: 'Асүй араластырғыштары', en: 'Kitchen mixers' } },
+  { id: 'basin-mixers', labels: { ru: 'Смесители для раковины', kz: 'Қолжуғыш араластырғыштары', en: 'Basin mixers' } },
+  { id: 'bath-mixers', labels: { ru: 'Смесители для ванны', kz: 'Ванна араластырғыштары', en: 'Bath mixers' } },
+  { id: 'shower-systems', labels: { ru: 'Душевые системы', kz: 'Душ жүйелері', en: 'Shower systems' } },
+  { id: 'shower-cabins', labels: { ru: 'Душевые кабины', kz: 'Душ кабиналары', en: 'Shower cabins' } },
+  { id: 'bidet-hygiene', labels: { ru: 'Гигиена', kz: 'Гигиена', en: 'Hygiene' } },
+  { id: 'sinks', labels: { ru: 'Кухонные мойки', kz: 'Асүй жуғыштары', en: 'Kitchen sinks' } }
 ];
 const featuredCategoryArticles = {
   'kitchen-mixers': 'BTC103SGQ',
@@ -49,6 +53,8 @@ export const CatalogPage = () => {
   const { 
     lang, 
     t, 
+    routeSearch,
+    navigateTo,
     openPartnerModal, 
     openAuthModal, 
     products, 
@@ -77,8 +83,22 @@ export const CatalogPage = () => {
   const [selectedCategory, setCategory] = useState('all');
   const [selectedSubcategory, setSelectedSubcategory] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchMode, setSearchMode] = useState('standard');
+  const [selectedCollection, setSelectedCollection] = useState('');
   const [selectedMounting, setSelectedMounting] = useState('all');
   const catalogToolbar = useRef(null);
+  const focusResults = () => {
+    catalogToolbar.current?.focus({ preventScroll: true });
+    catalogToolbar.current?.scrollIntoView({ block: 'start', behavior: 'instant' });
+  };
+  const updateSearchQuery = query => {
+    setSearchQuery(query);
+    if (query.trim()) setCatalogView('products');
+  };
+  const clearCollection = () => {
+    setSelectedCollection('');
+    if (routeSearch) navigateTo(catalogRoute({ view: catalogView === 'products' ? 'products' : '' }));
+  };
   const setSelectedCategory = (category, subcategory = '') => {
     setCategory(category);
     setSelectedSubcategory(subcategory);
@@ -87,8 +107,9 @@ export const CatalogPage = () => {
     setCatalogView('products');
     setSelectedCategory(category, subcategory);
     setSearchQuery('');
-    catalogToolbar.current?.focus({ preventScroll: true });
-    catalogToolbar.current?.scrollIntoView({ block: 'start' });
+    setSelectedCollection('');
+    navigateTo(catalogRoute({ category, subcategory, mode: searchMode === 'smart' ? 'smart' : '' }));
+    focusResults();
   };
 
   const [categorySettings, setCategorySettings] = useState([]);
@@ -375,7 +396,8 @@ export const CatalogPage = () => {
     }
   };
 
-  const activeProducts = products.filter(p => p.status !== 'СКРЫТ' && !categorySettings.some(c => c.name === p.category && c.isVisible === false));
+  const activeProducts = useMemo(() => products.filter(p => p.status !== 'СКРЫТ' &&
+    !categorySettings.some(c => c.name === p.category && c.isVisible === false)), [products, categorySettings]);
   const productCategories = Array.from(new Set(activeProducts.map(p => normalizeCategory(p.category)).filter(Boolean)));
 
   // Show only categories that actually contain products in the current catalog.
@@ -434,7 +456,33 @@ export const CatalogPage = () => {
     return saved ? { ...c, name: saved.name, desc: saved.description || c.desc, image: c.id === 'shower-cabins' && c.image ? c.image : saved.image || c.image, order: saved.order ?? 999 } : { ...c, order: 999 };
   }).sort((a,b) => a.order - b.order);
   const subcategoryOptions = orderedCategories.find(c => c.sourceCategory === selectedCategory)?.subcategories || [];
-  const featuredProduct = activeProducts.find(product => product.article === 'LEO101Q');
+  const collectionOptions = [...new Map(activeProducts.filter(p => collectionKey(p.collection))
+    .map(p => [collectionKey(p.collection), collectionName(p.collection)])).entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  const categoriesInCollection = selectedCollection
+    ? new Set(activeProducts.filter(p => collectionKey(p.collection) === selectedCollection).map(p => normalizeCategory(p.category)))
+    : null;
+  const availableProductCategories = categoriesInCollection
+    ? productCategories.filter(name => name === selectedCategory || categoriesInCollection.has(name))
+    : productCategories;
+  const collectionLabel = lang === 'en' ? 'Collection' : lang === 'kz' ? 'Топтама' : 'Коллекция';
+  const queryCategory = new URLSearchParams(routeSearch).get('category');
+  const linkedCategory = queryCategory ? categoryTranslations[queryCategory]?.name?.ru || queryCategory : 'all';
+  useEffect(() => {
+    const params = new URLSearchParams(routeSearch);
+    const collection = collectionKey(params.get('collection'));
+    const query = params.get('q') || '';
+    const hasFilter = collection || query || linkedCategory !== 'all' || params.get('view') === 'products';
+    setCatalogView(hasFilter ? 'products' : 'categories');
+    setCategory(linkedCategory);
+    setSelectedSubcategory(params.get('subcategory') || '');
+    setSelectedCollection(collection);
+    setSearchQuery(query);
+    setSearchMode(params.get('mode') === 'smart' ? 'smart' : 'standard');
+    if (hasFilter) {
+      const frame = requestAnimationFrame(() => catalogToolbar.current?.scrollIntoView({ block: 'start', behavior: 'instant' }));
+      return () => cancelAnimationFrame(frame);
+    }
+  }, [routeSearch, linkedCategory]);
 
   // Filter Categories
   const filteredCategories = orderedCategories.filter(c => {
@@ -447,17 +495,12 @@ export const CatalogPage = () => {
   });
 
   // Filter Live Products
-  const filteredProducts = activeProducts.filter(p => {
+  const searchResults = useMemo(() => searchCatalog(activeProducts, searchQuery, searchMode), [activeProducts, searchQuery, searchMode]);
+  const filteredProducts = searchResults.filter(p => {
     const matchesCat = selectedCategory === 'all' || normalizeCategory(p.category) === selectedCategory;
     const matchesSubcategory = !selectedSubcategory || normalizeCategory(p.subcategory) === selectedSubcategory;
-    const matchesSearch = searchQuery === '' ||
-      p.article.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      normalizeCategory(p.subcategory).toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (p.specs && p.specs.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesCat && matchesSubcategory && matchesSearch;
+    const matchesCollection = !selectedCollection || collectionKey(p.collection) === selectedCollection;
+    return matchesCat && matchesSubcategory && matchesCollection;
   });
 
   return (
@@ -496,17 +539,30 @@ export const CatalogPage = () => {
               )}
             </div>
           </div>
+          <CatalogSearchBar query={searchQuery} mode={searchMode} onQuery={updateSearchQuery} onMode={setSearchMode}
+            onSearch={() => {
+              setCatalogView('products');
+              navigateTo(catalogRoute({
+                q: searchQuery.trim(),
+                mode: searchMode === 'smart' ? 'smart' : '',
+                collection: selectedCollection,
+                category: selectedCategory === 'all' ? '' : selectedCategory,
+                subcategory: selectedSubcategory,
+                view: 'products',
+              }));
+              focusResults();
+            }} />
           <div className="catalog-entry">
             <figure className="catalog-feature">
-              <img src={`${baseUrl}images/hero/hero-slide-1.jpg`} alt="LAUTE Leo LEO101Q" width="1376" height="768" fetchPriority="high" />
-              {featuredProduct && (
-                <figcaption>
-                  <button type="button" className="catalog-feature-link" onClick={() => openProductModal(featuredProduct)}>
-                    <span>Leo <small>{featuredProduct.article}</small></span>
-                    <ArrowRight size={18} aria-hidden="true" />
-                  </button>
-                </figcaption>
-              )}
+              <a className="catalog-feature-banner" href={baseUrl + catalogRoute({ collection: 'sky' })} onClick={event => {
+                if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+                event.preventDefault();
+                navigateTo(catalogRoute({ collection: 'sky' }));
+                focusResults();
+              }}>
+                <img src={baseUrl + 'images/campaign/sky.webp'} alt="" width="1536" height="1024" fetchPriority="high" />
+                <span className="catalog-feature-link"><span>SKY <small>{collectionLabel}</small></span><ArrowRight size={18} aria-hidden="true" /></span>
+              </a>
             </figure>
             <nav className="catalog-showcase" aria-label={cat.allCategories || shortTitle}>
               {catalogShowcase.map(({ id, labels }) => {
@@ -590,6 +646,8 @@ export const CatalogPage = () => {
                   setSelectedCategory('all');
                   setSelectedMounting('all');
                   setSearchQuery('');
+                  setSelectedCollection('');
+                  navigateTo('catalog');
                 }}
               >
                 <Layers size={15} />
@@ -603,6 +661,8 @@ export const CatalogPage = () => {
                   setCatalogView('products');
                   setSelectedCategory('all');
                   setSearchQuery('');
+                  setSelectedCollection('');
+                  navigateTo(catalogRoute({ view: 'products' }));
                 }}
               >
                 <Sparkles size={15} />
@@ -633,23 +693,23 @@ export const CatalogPage = () => {
 
           {/* Controls Bar */}
           <div className="catalog-controls-bar">
-            <div className="search-box">
-              <Search size={18} className="search-icon" aria-hidden="true" />
-              <input
-                type="text"
-                aria-label={cat.searchPlaceholder || 'Поиск по названию или артикулу'}
-                placeholder={cat.searchPlaceholder || 'Поиск по номенклатуре или артикулу...'}
-                value={searchQuery}
-                onChange={(e) => {
-                  const query = e.target.value;
-                  setSearchQuery(query);
-                  if (catalogView === 'categories' && query.trim()) setCatalogView('products');
-                }}
-                className="search-input"
-              />
-            </div>
+            {collectionOptions.length > 0 && (
+              <label className="catalog-collection-select">
+                <span>{collectionLabel}</span>
+                <select value={selectedCollection} onChange={event => {
+                  const collection = event.target.value;
+                  setSelectedCollection(collection);
+                  setCatalogView('products');
+                  navigateTo(catalogRoute({ collection, category: selectedCategory !== 'all' ? selectedCategory : '', subcategory: selectedSubcategory, q: searchQuery.trim(), mode: searchMode === 'smart' ? searchMode : '', view: 'products' }));
+                  focusResults();
+                }}>
+                  <option value="">{lang === 'en' ? 'All collections' : lang === 'kz' ? 'Барлық топтама' : 'Все коллекции'}</option>
+                  {collectionOptions.map(([key, name]) => <option key={key} value={key}>{name}</option>)}
+                </select>
+              </label>
+            )}
 
-            {catalogView === 'products' && productCategories.length > 0 && (
+            {catalogView === 'products' && availableProductCategories.length > 0 && (
               <div className="mounting-filter-group">
                 <EditableNode as="span" editKey={"catalogpage-11"} kind="text" className="filter-label">
                   {lang === 'kz' ? 'Санат:' : lang === 'en' ? 'Category:' : 'Категория:'}
@@ -662,7 +722,7 @@ export const CatalogPage = () => {
                   >
                     {lang === 'kz' ? 'Барлығы' : lang === 'en' ? 'All' : 'Все'}
                   </EditableNode>
-                  {productCategories.map((cName) => (
+                  {availableProductCategories.map((cName) => (
                     <button
                       key={cName}
                       type="button"
@@ -927,13 +987,14 @@ export const CatalogPage = () => {
 
               {filteredProducts.length === 0 && (
                 <div className="empty-catalog-state" style={{ gridColumn: '1 / -1' }}>
-                  <EditableNode as="p" editKey={"catalogpage-18"} kind="text">По вашему поисковому запросу товаров не найдено.</EditableNode>
+                  <EditableNode as="p" editKey={"catalogpage-18"} kind="text">{lang === 'en' ? 'No products match your search.' : lang === 'kz' ? 'Сұраныс бойынша өнім табылмады.' : 'По вашему поисковому запросу товаров не найдено.'}</EditableNode>
                   <EditableNode as="button" editKey={"catalogpage-19"} kind="button"
                     type="button"
                     className="btn btn-outline btn-sm"
                     onClick={() => {
                       setSearchQuery('');
                       setSelectedCategory('all');
+                      clearCollection();
                     }}
                   >
                     {cat.resetFilters || 'Сбросить фильтры'}

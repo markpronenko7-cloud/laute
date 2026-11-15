@@ -23,7 +23,9 @@ const AppContext = createContext();
 
 // Helper to extract route from current URL
 const getRouteFromUrl = () => {
-  const path = window.location.pathname.replace(/\/laute\/?/, '').replace(/^\//, '');
+  const basePath = import.meta.env.BASE_URL;
+  const pathname = window.location.pathname;
+  const path = (pathname.startsWith(basePath) ? pathname.slice(basePath.length) : pathname).replace(/^\/+|\/+$/g, '');
   const hash = window.location.hash.replace(/^#\/?/, '');
   const search = window.location.search;
 
@@ -33,14 +35,11 @@ const getRouteFromUrl = () => {
     if (cleanSearch) return cleanSearch;
   }
 
-  if (hash) {
-    return hash;
-  }
-
   if (path) {
     return path;
   }
 
+  if (hash && !document.getElementById(hash)) return hash;
   return 'home';
 };
 
@@ -54,6 +53,7 @@ export const AppProvider = ({ children }) => {
   });
 
   const [currentRoute, setCurrentRoute] = useState(getRouteFromUrl);
+  const [routeSearch, setRouteSearch] = useState(() => window.location.search);
 
   // Current logged in admin session
   const [adminSession, setAdminSession] = useState(null);
@@ -351,6 +351,8 @@ export const AppProvider = ({ children }) => {
               notFound: true
             });
           }
+        } else if (!sku) {
+          setSelectedProduct(null);
         }
       } catch {
         // ignore
@@ -364,7 +366,7 @@ export const AppProvider = ({ children }) => {
       window.removeEventListener('popstate', syncProductFromUrl);
       window.removeEventListener('hashchange', syncProductFromUrl);
     };
-  }, [products]);
+  }, [products, routeSearch]);
 
   const startComparison = useCallback((...items) => {
     setComparisonItems(items.filter(Boolean));
@@ -513,12 +515,14 @@ export const AppProvider = ({ children }) => {
 
   // Navigate to route
   const navigateTo = useCallback((route, anchor) => {
-    setCurrentRoute(route);
-    const basePath = window.location.pathname.includes('/laute') ? '/laute/' : '/';
-    const targetUrl = route === 'home' ? `${basePath}${anchor ? '#' + anchor : ''}` : `${basePath}${route}${anchor ? '#' + anchor : ''}`;
-    
+    const basePath = import.meta.env.BASE_URL;
+    const destination = new URL(route === 'home' ? basePath : basePath + route, window.location.origin);
+    if (anchor) destination.hash = anchor;
+    const name = destination.pathname.slice(basePath.length).replace(/\/+$/, '') || 'home';
+    setCurrentRoute(name);
+    setRouteSearch(destination.search);
     try {
-      window.history.pushState({ route }, '', targetUrl);
+      if (destination.href !== window.location.href) window.history.pushState({ route: name }, '', destination);
     } catch {
       // fallback
     }
@@ -532,7 +536,7 @@ export const AppProvider = ({ children }) => {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       }, 50);
-    } else {
+    } else if (!destination.search || name !== 'catalog') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, []);
@@ -541,6 +545,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const handlePopState = () => {
       setCurrentRoute(getRouteFromUrl());
+      setRouteSearch(window.location.search);
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -655,6 +660,7 @@ export const AppProvider = ({ children }) => {
     region,
     setRegion,
     currentRoute,
+    routeSearch,
     navigateTo,
     t,
     adminSession,

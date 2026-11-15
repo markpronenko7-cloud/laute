@@ -9518,7 +9518,139 @@ body:has(:is(.catalog-page, .partner-page)) .header .select-trigger :is(.select-
   font-weight: 600;
 }
 @keyframes laute-product-details-in { from { opacity: 0; transform: translateY(8px); } }
+
+.catalog-search-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: #f8f7f4;
+  border: 1px solid #d8d4cb;
+  border-radius: 12px;
+  margin-bottom: 18px;
+}
+.catalog-search-bar .search-input {
+  min-height: 44px;
+  border: 1px solid #b9b9b6;
+  border-radius: 6px;
+  background: #fff;
+  color: #252522;
+  width: 100%;
+}
+.catalog-search-bar .search-icon { color: #514e47; pointer-events: none; }
+.catalog-search-bar .btn { min-height: 44px; white-space: nowrap; }
+.catalog-search-modes { display: flex; gap: 3px; padding: 2px; background: #e9e6de; border-radius: 7px; }
+.catalog-search-modes button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  padding-inline: 9px;
+  border: 0;
+  border-radius: 5px;
+  color: #34322e;
+  background: transparent;
+  font: inherit;
+  font-size: .85rem;
+  cursor: pointer;
+}
+.catalog-search-modes [aria-pressed="true"] { background: #263848; color: #fff; }
+.home-catalog-search { padding-top: clamp(16px, 3vw, 34px); }
+.home-catalog-search .catalog-search-bar { margin: 0; }
+.catalog-view-switcher-bar { scroll-margin-top: calc(var(--header-height) + 18px); }
+.catalog-collection-select { display: flex; align-items: center; gap: 10px; color: #34322e; font-weight: 650; }
+.catalog-collection-select select {
+  max-width: 55vw;
+  min-width: min(180px, 50vw);
+  min-height: 44px;
+  font: inherit;
+  border: 1px solid #b5ada1;
+  border-radius: 6px;
+  padding-inline: 10px;
+  color: #292620;
+  background: #fff;
+}
+.catalog-feature-banner { display: block; position: relative; width: 100%; height: 100%; }
+.catalog-feature-banner > .catalog-feature-link { position: absolute; bottom: 14px; left: 14px; }
+.catalog-showcase-link { min-height: clamp(44px, 4.4vw, 62px); font-size: clamp(.9rem, 1.6vw, 1.3rem); }
+a.collection-gallery-item { cursor: pointer; color: inherit; }
+.collection-gallery-item:focus-visible, .campaign-banner:focus-visible, .catalog-feature-banner:focus-visible {
+  outline: 3px solid #2379bd;
+  outline-offset: 3px;
+}
+.collection-card-featured .collection-media-img { object-position: center; }
+.campaign-banner {
+  display: block;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #232b32;
+  color: #fff;
+}
+.campaign-banner > img { display: block; width: 100%; height: auto; aspect-ratio: 2.01; object-fit: cover; }
+.campaign-caption {
+  position: absolute;
+  z-index: 2;
+  inset: auto auto clamp(12px, 3vw, 32px) clamp(12px, 3vw, 32px);
+  display: grid;
+  gap: 6px;
+  padding: clamp(10px, 2vw, 20px);
+  color: #fff;
+  background: #19252eef;
+  border-radius: 4px;
+}
+.campaign-caption strong { font-size: clamp(1.2rem, 3.2vw, 2.6rem); line-height: 1.08; }
+.campaign-caption small { color: #e3eaf0; }
+.campaign-caption > span { display: inline-flex; align-items: center; gap: 7px; font-size: .85rem; }
+.campaign-banner:hover .campaign-caption > span { text-decoration: underline; }
+.company-atlas-banner { margin-bottom: 22px; }
+.partnership-solana > img { aspect-ratio: 16 / 9; }
+.partnership-currencies { position: absolute; inset: 0; color: #ffe0a0; pointer-events: none; }
+.partnership-currencies > span {
+  position: absolute;
+  left: var(--coin-x);
+  top: var(--coin-y);
+  font: 700 clamp(12px, 2.4vw, 36px)/1 system-ui, sans-serif;
+  text-shadow: 0 1px 8px #000, 0 0 14px #efab5966;
+}
+.partnership-currencies > :nth-child(1) { --coin-x: 70%; --coin-y: 19%; --coin-delay: .1s; }
+.partnership-currencies > :nth-child(2) { --coin-x: 72.4%; --coin-y: 22%; --coin-delay: .26s; }
+.partnership-currencies > :nth-child(3) { --coin-x: 69.3%; --coin-y: 27%; --coin-delay: .4s; }
+.partnership-currencies > :nth-child(4) { --coin-x: 73.4%; --coin-y: 29%; --coin-delay: .55s; }
+.partnership-currencies > :nth-child(5) { --coin-x: 71.4%; --coin-y: 33%; --coin-delay: .72s; }
+.partnership-currencies > :nth-child(6) { --coin-x: 74.1%; --coin-y: 35%; --coin-delay: .88s; }
+.partnership-currencies > :nth-child(7) { --coin-x: 70%; --coin-y: 37%; --coin-delay: 1s; }
+.partnership-currencies > :nth-child(8) { --coin-x: 72.5%; --coin-y: 41%; --coin-delay: 1.12s; }
+@keyframes partnership-currency-fall {
+  from { transform: translate(7px, -28px) rotate(-12deg); opacity: 0; }
+  60% { opacity: .96; }
+  to { transform: translate(0, 0) rotate(0); opacity: 1; }
+}
+.service-demo { margin: 0; display: grid; justify-items: center; background: #111c26; overflow: hidden; border-radius: 8px; }
+.service-demo video { display: block; width: 100%; height: clamp(310px, 34vw, 520px); object-fit: contain; background: #101923; }
+.service-demo figcaption { padding: 12px; text-align: center; color: #f1f5f9; }
+.footer-slogan { color: #e7edf4; font-weight: 650; margin: 0 0 16px; }
+.ai-market-source { display: inline-flex; align-items: center; gap: 4px; margin-top: 10px; text-decoration: underline; }
+@media (max-width: 720px) {
+  .catalog-search-bar { grid-template-columns: minmax(0, 1fr) auto; }
+  .catalog-search-bar .search-box { grid-column: 1 / -1; }
+  .catalog-search-modes { justify-self: start; }
+  .catalog-view-switcher-bar { scroll-margin-top: calc(var(--header-height-mobile) + 16px); }
+  .catalog-feature-banner > img { aspect-ratio: 1.65; object-position: 77% center; }
+  .catalog-showcase-link { font-size: .84rem; }
+  .catalog-showcase-link svg { width: 14px; }
+  .collection-card-featured .collection-media-wrapper { aspect-ratio: 2; min-height: 0; }
+  .collection-card-featured .collection-glass-caption { position: static; width: 100%; max-width: none; border-radius: 0; }
+  .campaign-caption { position: relative; inset: auto; padding: 12px; }
+  .partnership-currencies { height: auto; bottom: auto; aspect-ratio: 16 / 9; }
+  .hero-slide-bg[data-campaign-slide="shower"] { background-position: 70% center; }
+  .hero-slide-bg[data-campaign-slide="six"] { background-position: 89% center; }
+}
 @media (prefers-reduced-motion: no-preference) {
+  .partnership-currencies.is-visible > span { animation: partnership-currency-fall 1.6s ease-out var(--coin-delay) both; }
   .laute-cart-drawer { animation: laute-cart-drawer-in 250ms ease-out both; }
   .cart-quantity-pop { animation: laute-cart-pop 420ms ease-out; }
   .cart-item-confirmation { animation: laute-cart-confirmation 440ms ease-out; }

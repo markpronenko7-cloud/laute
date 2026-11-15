@@ -2,35 +2,36 @@ import { EditableNode, EditableSection, NativeSectionGate } from './builder/Nati
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { withBrandWord } from '../utils/brandFormatter';
+import { catalogRoute } from '../utils/catalogSearch';
 
 export const CollectionsSection = () => {
-  const { t, siteContent } = useApp();
+  const { t, siteContent, navigateTo, lang } = useApp();
   const baseUrl = import.meta.env.BASE_URL;
+  const openLabel = lang === 'en' ? 'View in catalog' : lang === 'kz' ? 'Каталогтан көру' : 'Смотреть в каталоге';
 
   const collectionsData = [
     {
       id: 'bathroom',
-      title: t.home?.spacesBathroom || 'Пространства ванных комнат',
-      subtitle: t.home?.spacesBathroomSub || 'Смесители для раковин, накладных чаш и ванн с чистой архитектурной геометрией',
-      categoryBadge: (t.home?.spacesBathroom || 'ПРОСТРАНСТВА ВАННЫХ КОМНАТ').toUpperCase(),
-      image: `${baseUrl}images/collections/coll-bathroom.jpg`,
+      title: 'LAUTE Trump',
+      subtitle: 'TRUMP101GQ · TRUMP123GQ · TRUMP194 · TRUMP193B-6',
+      image: baseUrl + 'images/campaign/trump.webp',
+      route: catalogRoute({ collection: 'trump' }),
       layoutClass: 'collection-card-featured'
     },
     {
       id: 'kitchen',
-      title: t.home?.spacesKitchen || 'Кухонные смесители',
-      subtitle: t.home?.spacesKitchenSub || 'Функциональные смесители с поворотным и гибким изливом. Модели со встроенным каналом для подключения к системе фильтрации питьевой воды.',
-      categoryBadge: (t.home?.spacesKitchen || 'КУХОННЫЕ СМЕСИТЕЛИ').toUpperCase(),
-      filterFeatureBadge: t.home?.spacesKitchenFilter || 'С подключением к системе фильтрации чистой воды',
-      image: `${baseUrl}images/collections/coll-kitchen.jpg`,
+      title: 'LAUTE Link',
+      subtitle: 'LINK003BY-5',
+      image: baseUrl + 'images/campaign/link.webp',
+      route: catalogRoute({ collection: 'link' }),
       layoutClass: 'collection-card-standard'
     },
     {
       id: 'shower',
-      title: t.home?.spacesShower || 'Душевые зоны и кабины',
-      subtitle: t.home?.spacesShowerSub || 'Встраиваемые решения, термостатический контроль, тропический душ и надежные душевые кабины',
-      categoryBadge: (t.home?.spacesShower || 'ДУШЕВЫЕ ЗОНЫ И КАБИНЫ').toUpperCase(),
-      image: `${baseUrl}images/collections/coll-shower.jpg`,
+      title: 'LAUTE Model-1',
+      subtitle: lang === 'en' ? 'Shower cabins' : lang === 'kz' ? 'Душ кабиналары' : 'Душевые кабины',
+      image: baseUrl + 'images/products/interiors/model-1.webp',
+      route: catalogRoute({ category: 'shower-cabins' }),
       layoutClass: 'collection-card-standard'
     },
     {
@@ -61,12 +62,17 @@ export const CollectionsSection = () => {
 
         {/* Editorial Visual Gallery with Varied Scale */}
         <div className="collections-gallery-editorial">
-          {collectionsData.map((item, index) => (
-            <div
+          {collectionsData.map((item, index) => {
+            const Frame = item.route ? 'a' : 'div';
+            return <Frame
               key={item.id}
               className={`collection-gallery-item ${item.layoutClass} reveal-on-scroll reveal-delay-${(index % 4) + 1}`}
-              onClick={(e) => e.preventDefault()}
-              role="presentation"
+              href={item.route ? baseUrl + item.route : undefined}
+              onClick={item.route ? event => {
+                if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+                event.preventDefault();
+                navigateTo(item.route);
+              } : undefined}
             >
               <div className="collection-media-wrapper">
                 <EditableNode as="img" editKey={"collectionssection-4" + ':' + String(index)} kind="image"
@@ -81,19 +87,14 @@ export const CollectionsSection = () => {
               {/* Floating Translucent Glass Caption */}
               <div className="collection-glass-caption">
                 <div className="collection-caption-top">
-                  <EditableNode as="span" editKey={"collectionssection-5" + ':' + String(index)} kind="text" className="collection-pill-tag">{item.categoryBadge}</EditableNode>
-                  {item.filterFeatureBadge && (
-                    <EditableNode as="span" editKey={"collectionssection-6" + ':' + String(index)} kind="text" className="collection-pill-tag collection-pill-filter">
-                      {item.filterFeatureBadge}
-                    </EditableNode>
-                  )}
+                  <EditableNode as="span" editKey={"collectionssection-5" + ':' + String(index)} kind="text" className="collection-pill-tag">{item.route ? openLabel : item.categoryBadge}</EditableNode>
                 </div>
                 <EditableNode as="h3" editKey={"collectionssection-7" + ':' + String(index)} kind="text" className="collection-caption-heading">{item.title}</EditableNode>
                 <EditableNode as="p" editKey={"collectionssection-8" + ':' + String(index)} kind="text" className="collection-caption-desc">{item.subtitle}</EditableNode>
                 {item.imageAlt && <small className="collection-model-credit">{item.imageAlt}</small>}
               </div>
-            </div>
-          ))}
+            </Frame>;
+          })}
         </div>
       </div>
     </section>

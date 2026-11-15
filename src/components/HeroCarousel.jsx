@@ -4,6 +4,20 @@ import { useApp } from '../context/AppContext';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { isSafeActionLink } from './SiteAction';
 import { withBrandWord } from '../utils/brandFormatter';
+import { catalogRoute } from '../utils/catalogSearch';
+
+const showerRoute = catalogRoute({ category: 'shower-systems', product: 'LEO194H' });
+const bitcoinRoute = catalogRoute({ collection: 'bitcoin' });
+const campaignSlides = {
+  'slide-2': { stock: 'images/hero/hero-slide-2.jpg', image: 'images/campaign/hero-shower.webp', route: showerRoute },
+  'slide-3': { stock: 'images/hero/hero-slide-3.jpg', route: bitcoinRoute },
+  'slide-6': { stock: 'images/hero/hero-slide-6.jpg', image: 'images/campaign/hero-six.webp' },
+};
+
+function englishBrandTitle(lang, slideId, title) {
+  return lang === 'en' && slideId === 'slide-1' && (!title || title === 'Real German technology')
+    ? 'Manage water smartly' : title;
+}
 
 export const HeroCarousel = ({ slidesOverride } = {}) => {
   const { navigateTo, openPartnerModal, t, siteContent, lang } = useApp();
@@ -47,19 +61,19 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
       image: `${baseUrl}images/hero/hero-slide-1.jpg`,
       showLargeLogo: true,
       tagline: t.home?.heroSlides?.[0]?.tagline || 'LAUTE®',
-      title: t.home?.heroSlides?.[0]?.title || 'Управляй водой грамотно',
+      title: englishBrandTitle(lang, 'slide-1', t.home?.heroSlides?.[0]?.title) || 'Управляй водой грамотно',
       buttonText: t.home?.heroSlides?.[0]?.buttonText || 'Каталог',
       action: () => navigateTo('catalog'),
       buttonId: 'hero-slide1-btn'
     },
     {
       id: 'shower',
-      image: `${baseUrl}images/hero/hero-slide-2.jpg`,
+      image: baseUrl + campaignSlides['slide-2'].image,
       showLargeLogo: false,
       tagline: t.home?.heroSlides?.[1]?.tagline || 'ДУШЕВЫЕ СИСТЕМЫ LAUTE',
       title: t.home?.heroSlides?.[1]?.title || 'Вода, наполняющая жизнь',
       buttonText: t.home?.heroSlides?.[1]?.buttonText || 'Смотреть каталог',
-      action: () => navigateTo('catalog'),
+      action: () => navigateTo(showerRoute),
       buttonId: 'hero-slide2-btn'
     },
     {
@@ -69,7 +83,7 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
       tagline: t.home?.heroSlides?.[2]?.tagline || 'КУХОННЫЕ РЕШЕНИЯ',
       title: t.home?.heroSlides?.[2]?.title || 'Функциональность встречается с дизайном.',
       buttonText: t.home?.heroSlides?.[2]?.buttonText || 'Смотреть коллекцию',
-      action: () => navigateTo('catalog'),
+      action: () => navigateTo(bitcoinRoute),
       buttonId: 'hero-slide3-btn'
     },
     {
@@ -95,7 +109,7 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
     },
     {
       id: 'materials',
-      image: `${baseUrl}images/hero/hero-slide-6.jpg`,
+      image: baseUrl + campaignSlides['slide-6'].image,
       showLargeLogo: false,
       tagline: t.home?.heroSlides?.[5]?.tagline || 'ИНЖЕНЕРНАЯ ФИЛОСОФИЯ LAUTE',
       title: t.home?.heroSlides?.[5]?.title || 'Интеллект и экологичность в деталях.',
@@ -115,17 +129,21 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
 
   const slidesData = (configuredSlides && configuredSlides.length > 0)
     ? configuredSlides.map((s, idx) => {
+        const campaign = campaignSlides[s.id];
+        const usesStock = campaign?.stock === String(s.image || '').replace(/^\//, '');
+        const imagePath = (usesStock && campaign.image) || s.image || 'images/hero/hero-slide-1.jpg';
+        const buttonLink = (usesStock && (s.buttonLink === 'catalog' || !s.buttonLink) && campaign.route) || s.buttonLink;
         let action = () => navigateTo('catalog');
-        if (s.buttonLink === 'modal:partner') action = openPartnerModal;
-        else if (s.buttonLink === 'anchor:technologies') {
+        if (buttonLink === 'modal:partner') action = openPartnerModal;
+        else if (buttonLink === 'anchor:technologies') {
           action = () => {
             const el = document.getElementById('technologies');
             if (el) el.scrollIntoView({ behavior: 'smooth' });
             else navigateTo('catalog');
           };
-        } else if (s.buttonLink) {
+        } else if (buttonLink) {
           action = () => {
-            const link = s.buttonLink.trim();
+            const link = buttonLink.trim();
             if (/^https?:|^mailto:|^tel:/i.test(link) && isSafeActionLink(link)) window.location.assign(link);
             else if (link.startsWith('#')) document.getElementById(link.slice(1))?.scrollIntoView({ behavior: 'smooth' });
             else navigateTo(link.replace(/^\//, ''));
@@ -134,10 +152,10 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
         const slideT = t.home?.heroSlides?.[idx] || {};
         return {
           id: s.id || `slide-${idx}`,
-          image: s.image?.startsWith('http') ? s.image : `${baseUrl}${String(s.image || 'images/hero/hero-slide-1.jpg').replace(/^\//, '')}`,
+          image: imagePath.startsWith('http') ? imagePath : baseUrl + imagePath.replace(/^\//, ''),
           showLargeLogo: idx === 0 || idx === 4,
           tagline: (lang !== 'ru' && slideT.tagline) ? slideT.tagline : (s.tagline || slideT.tagline || 'LAUTE®'),
-          title: (lang !== 'ru' && slideT.title) ? slideT.title : (s.title || slideT.title || 'Управляй водой грамотно'),
+          title: (lang !== 'ru' && englishBrandTitle(lang, s.id, slideT.title)) || s.title || slideT.title || 'Управляй водой грамотно',
           subtitle: (lang !== 'ru' && slideT.subtitle) ? slideT.subtitle : (s.subtitle || slideT.subtitle),
           buttonText: (lang !== 'ru' && slideT.buttonText) ? slideT.buttonText : (s.buttonText || slideT.buttonText || 'Каталог'),
           action,
@@ -225,6 +243,7 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
               <EditableNode as="div" editKey={editKey} kind="background" src={slide.image}
                 className="hero-slide-bg"
                 data-stock-slide={stockSlide}
+                data-campaign-slide={image.match(/\/hero-(shower|six)\.webp$/)?.[1]}
                 style={{ backgroundImage: `url(${slide.image})` }}
               >
                 <div className="hero-slide-overlay"></div>

@@ -8,6 +8,7 @@ import { InquiryFeedback } from './InquiryFeedback';
 import { isSafeActionLink } from './SiteAction';
 import { CompanyMedia } from './CompanyMedia';
 import { CompanyMap } from './CompanyAtlas';
+import { CampaignBanner } from './CampaignBanner';
 import './company-page.css';
 
 const words = {
@@ -167,19 +168,18 @@ export function CompanySection({ block: source, isEditor = false }) {
   const actionHref = isSafeActionLink(block.buttonLink) ? block.buttonLink : null;
   return <div className={`company-section company-section--${section}`}>
     {section === 'hero' && <div className="company-hero"><div className="company-hero-top"><span className="company-kicker">{lang === 'ru' ? block.badge : lang === 'kz' ? 'LAUTE ТУРАЛЫ' : 'ABOUT LAUTE'}</span><span className="company-edition">1998 — {new Date().getFullYear()}</span></div><div className="company-hero-copy"><h1>{block.title}</h1><div><p>{block.subtitle}</p><div className="company-actions">{actionHref && link(actionHref, block.buttonText || w.partner, true)}<a className="company-text-link" href="#company-v2-production" onClick={e => { e.preventDefault(); if (!isEditor) document.getElementById('company-v2-production')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' }); }}>{w.production}<ArrowDown size={16}/></a></div></div></div>
-      <figure>
-        <img className="company-hero-image" src={resolveMediaUrl(block.imageUrl)} width="1376" height="768" fetchpriority="high" alt={lang === 'en' ? 'Faucet in a bathroom interior' : lang === 'kz' ? 'Ванна бөлмесіндегі араластырғыш' : 'Смеситель в интерьере ванной комнаты'} />
-        <figcaption>
-          <img className="company-wordmark" src={resolveMediaUrl('laute-logo.png')} width="859" height="278" alt="LAUTE" />
-          <span>{lang === 'en' ? 'Kitchen. Bathroom. Every day.' : lang === 'kz' ? 'Асүй. Ванна. Күн сайын.' : 'Кухня. Ванная. Каждый день.'}</span>
-        </figcaption>
-      </figure>
+      <CampaignBanner className="company-collection-banner" title="LAUTE Toncoin"
+        image={block.imageUrl && block.imageUrl !== 'images/hero/hero-slide-1.jpg' ? resolveMediaUrl(block.imageUrl) : 'images/campaign/toncoin.webp'}
+        filters={{ collection: 'toncoin' }} subtitle="TON101 · TON123" eager disabled={isEditor} />
     </div>}
     {section === 'scale' && <><div className="company-scale-intro">{heading('01', 'SCALE')}</div><div className="company-stats">{block.items?.map((x, i) => <article key={i}><strong>{x.title}</strong><p>{x.desc}</p></article>)}</div><p className="company-data-note">{lang === 'en' ? 'Figures from the LAUTE factory presentation.' : lang === 'kz' ? 'LAUTE зауыт таныстырылымындағы көрсеткіштер.' : 'Показатели из презентации завода LAUTE.'}</p></>}
     {section === 'history' && <>{heading('02', 'HISTORY')}<CompanyMilestones items={block.items} lang={lang} /><div className="company-history-details"><h3>{lang === 'en' ? 'The full story' : lang === 'kz' ? 'Толық тарих' : 'Вся история LAUTE'}</h3><ol className="company-timeline">{block.items?.map((x, i) => <li key={i}><span className="company-year">{x.year}</span><div><h3>{x.title}</h3><p>{x.desc}</p></div></li>)}</ol></div></>}
     {section === 'production' && <>{heading('03', 'PRODUCTION')}<CompanyProduction items={block.items} label={block.title} lang={lang}/></>}
     {section === 'range' && <><div className="company-range-layout"><CompanyMedia imageUrl="images/collections/coll-bathroom.jpg" title={lang === 'en' ? 'Bathroom interior' : lang === 'kz' ? 'Ванна бөлмесінің интерьері' : 'Интерьер ванной комнаты'} lang={lang}><img className="company-range-image" src={resolveMediaUrl('images/collections/coll-bathroom.jpg')} alt={lang === 'en' ? 'Bathroom interior' : lang === 'kz' ? 'Ванна бөлмесінің интерьері' : 'Интерьер ванной комнаты'} loading="lazy" decoding="async" width="1200" height="896"/></CompanyMedia><div>{heading('04', 'PRODUCTS & CARE')}<div className="company-actions">{actionHref && link(actionHref, block.buttonText || w.catalog, true)}</div></div></div><section className="company-warranty"><h3 className="company-warranty-heading">{lang === 'en' ? 'Warranty and care' : lang === 'kz' ? 'Кепілдік және күтім' : 'Гарантия и уход'}</h3><div className="company-guarantees">{block.items?.map((x, i) => <article key={i}><h3>{x.title}</h3><p>{x.desc}</p></article>)}</div><div className="company-care"><p>{lang === 'ru' ? block.content?.slice(block.content.indexOf('Гарантия конкретной')) || w.care : w.care}</p><div className="company-actions">{link('/service', w.service)}</div></div></section></>}
-    {section === 'geography' && <>{heading('05', 'GEOGRAPHY')}<CompanyMap items={block.items} label={w.map} lang={lang}/><details className="company-addresses"><summary>{w.more}</summary><div>{block.items?.map((x, i) => <article key={i}><h3>{x.title}</h3><p>{x.desc}</p></article>)}</div></details>{actionHref && link(actionHref, block.buttonText || w.contacts)}</>}
+    {section === 'geography' && <>{heading('05', 'GEOGRAPHY')}
+      <CampaignBanner className="company-collection-banner company-atlas-banner" title="LAUTE Arbitrum"
+        image="images/campaign/arbitrum.webp" filters={{ collection: 'arbitrum' }} subtitle="ARB101 · ARB194-1" disabled={isEditor} />
+      <CompanyMap items={block.items} label={w.map} lang={lang}/><details className="company-addresses"><summary>{w.more}</summary><div>{block.items?.map((x, i) => <article key={i}><h3>{x.title}</h3><p>{x.desc}</p></article>)}</div></details>{actionHref && link(actionHref, block.buttonText || w.contacts)}</>}
     {section === 'inquiry' && <><CompanyInquiry block={block} isEditor={isEditor} w={w}/><details className="company-sources"><summary>{w.source}</summary><a href="https://laute.ltd/company" target="_blank" rel="noopener noreferrer">LAUTE / COMPANY ↗</a><a href="https://laute.ltd/service" target="_blank" rel="noopener noreferrer">SERVICE ↗</a></details></>}
   </div>;
 }

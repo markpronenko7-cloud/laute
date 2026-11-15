@@ -1,10 +1,11 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowDown, ArrowUpRight, ChevronDown } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { BlockRenderer } from '../components/builder/BlockRenderer';
 import { InquiryFeedback } from '../components/InquiryFeedback';
+import { CampaignBanner } from '../components/CampaignBanner';
 import { partnership, ROLE_CODES, ROLE_EXPANSIONS } from '../data/partnership';
-import { getRegionConfig, PARTNER_REGIONS, REGIONS_CONFIG } from '../data/regionsData';
+import { PARTNER_REGIONS, REGIONS_CONFIG } from '../data/regionsData';
 import { submitLeadInquiry } from '../services/adminApi';
 import { getPublishedPage } from '../utils/pagePublication';
 import './partnership.css';
@@ -12,14 +13,33 @@ import './partnership.css';
 const base = import.meta.env.BASE_URL;
 const photo = name => base + 'images/partnership/' + name + '.webp';
 const models = [
-  { article: 'ETH103D', collection: 'Ethereum', finish: 0 },
-  { article: 'ETH163GQ', collection: 'Ethereum', finish: 1 },
-  { article: 'A0163', collection: 'A01', finish: 2 }
+  { article: 'ETH103DGQ', collection: 'Ethereum', finish: { ru: 'Матовое золото', kz: 'Күңгірт алтын', en: 'Matte gold' } },
+  { article: 'SOL102Y', collection: 'Solana', finish: { ru: 'Графит', kz: 'Графит', en: 'Graphite' } },
+  { article: 'TRUMP194', collection: 'Trump', finish: { ru: 'Сатин', kz: 'Сатин', en: 'Satin' } }
 ];
 const regions = [
   ...REGIONS_CONFIG,
   PARTNER_REGIONS.find(option => option.id === 'other')
 ];
+
+function ProfitFlow() {
+  const flow = useRef(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setVisible(true);
+        observer.disconnect();
+      }
+    }, { threshold: .25 });
+    observer.observe(flow.current);
+    return () => observer.disconnect();
+  }, []);
+  return <span ref={flow} className={'partnership-currencies' + (visible ? ' is-visible' : '')} aria-hidden="true">
+    {['$', '₸', '€', '₿', '₸', '$', '€', '₿'].map((symbol, index) => <span key={index}>{symbol}</span>)}
+  </span>;
+}
 
 function Jump({ target = 'partnership-form', children, secondary = false, onClick }) {
   return <a href={'#' + target} className={secondary ? 'partnership-jump partnership-jump-alt' : 'partnership-jump water-cta'} onClick={event => {
@@ -32,13 +52,11 @@ function Jump({ target = 'partnership-form', children, secondary = false, onClic
 }
 
 function PartnershipForm({ copy, lang, role, setRole }) {
-  const { region } = useApp();
+  const { region, navigateTo, t } = useApp();
   const [chosenRegion, setChosenRegion] = useState('');
   const [status, setStatus] = useState('idle');
   const pending = useRef(false);
   const currentRegion = chosenRegion || region || 'siberia';
-  const contact = getRegionConfig(currentRegion);
-  const email = currentRegion === 'other' ? 'opt@laute.ltd' : contact.primaryEmail;
 
   const submit = async event => {
     event.preventDefault();
@@ -61,10 +79,11 @@ function PartnershipForm({ copy, lang, role, setRole }) {
       <div>
         <h2>{copy.form}</h2>
         <p>{copy.formText}</p>
-        <div className="partnership-contacts">
-          <a href={'mailto:' + email}>{email}</a>
-          <a href={'tel:' + contact.primaryPhone.replace(/[^+\d]/g, '')}>{contact.primaryPhone}</a>
-        </div>
+        <a className="partnership-catalog-link" href={base + 'contacts'} onClick={event => {
+          if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+          event.preventDefault();
+          navigateTo('contacts');
+        }}>{t.nav.contacts} <ArrowUpRight size={16} aria-hidden="true" /></a>
       </div>
       <div className="partnership-form-card">
         {status === 'success' ? <p role="status">{copy.success}</p> : <form onSubmit={submit}>
@@ -110,12 +129,10 @@ export const PartnersPage = () => {
           </div>
           <button type="button" className="partnership-account" onClick={openAuthModal}>{copy.account} <ArrowUpRight size={15} aria-hidden="true" /></button>
         </div>
-        <figure className="partnership-hero-feature">
-          <div className="partnership-hero-photo">
-            <img src={photo('laute-showroom')} alt={copy.heroAlt} width="1536" height="864" fetchPriority="high" />
-          </div>
-          <figcaption><strong>LAUTE Leo</strong><span>LEO101Q · {copy.finishes[1]}</span></figcaption>
-        </figure>
+        <CampaignBanner className="partnership-solana" title="LAUTE Solana" image="images/campaign/partner-solana.webp"
+          filters={{ collection: 'solana' }} subtitle="SOL194" eager>
+          <ProfitFlow />
+        </CampaignBanner>
       </div>
     </header>
 
@@ -184,7 +201,7 @@ export const PartnersPage = () => {
             <div>
               <span className="partnership-eyebrow">{article}</span>
               <h3>LAUTE {collection}</h3>
-              <p>{copy.finishes[finish]}</p>
+              <p>{finish[lang] || finish.ru}</p>
               <a href={base + 'catalog?product=' + article} onClick={event => {
                 if (!product || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
                 event.preventDefault();

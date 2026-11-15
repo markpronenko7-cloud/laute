@@ -10,22 +10,23 @@ import {
   Store,
   HardHat,
   Wrench,
-  PhoneCall,
-  Mail,
   CheckCircle2,
   Clock,
   Headphones,
-  ShieldCheck,
   Sparkles
 } from 'lucide-react';
 
 import { HeroCarousel } from '../components/HeroCarousel';
 import { CollectionsSection } from '../components/CollectionsSection';
+import { CatalogSearchBar } from '../components/CatalogSearchBar';
+import { catalogRoute } from '../utils/catalogSearch';
 import { withBrandWord } from '../utils/brandFormatter';
 import { submitLeadInquiry } from '../services/adminApi';
 
 export const HomePage = ({ heroSlidesOverride } = {}) => {
-  const { navigateTo, openPartnerModal, openServiceModal, startAIPartnerAnalysis, t, siteContent, lang, region } = useApp();
+  const { navigateTo, openPartnerModal, startAIPartnerAnalysis, t, siteContent, lang, region } = useApp();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchMode, setSearchMode] = useState('standard');
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState('');
   const sendingRef = useRef(false);
@@ -90,6 +91,10 @@ export const HomePage = ({ heroSlidesOverride } = {}) => {
       {/* 1. FULL-SCREEN HERO CAROUSEL — 5 СЛАЙДОВ (3 СЕКУНДЫ АВТОМАТИЧЕСКАЯ СМЕНА) */}
       <NativeSectionGate sectionKey="home-hero"><HeroCarousel slidesOverride={heroSlidesOverride}/></NativeSectionGate>
 
+      <div className="container home-catalog-search">
+        <CatalogSearchBar query={searchQuery} mode={searchMode} onQuery={setSearchQuery} onMode={setSearchMode}
+          onSearch={() => navigateTo(catalogRoute({ q: searchQuery.trim(), mode: searchMode === 'smart' ? searchMode : '' }))} />
+      </div>
       {/* 2. ФОТОГРАФИЧЕСКАЯ ГАЛЕРЕЯ «КОЛЛЕКЦИИ LAUTE» */}
       <NativeSectionGate sectionKey="home-collections"><CollectionsSection /></NativeSectionGate>
 
@@ -459,7 +464,7 @@ export const HomePage = ({ heroSlidesOverride } = {}) => {
                   <EditableNode as={SiteAction} editKey={"homepage-56"} kind="button" controlId="home-3"
                     type="button"
                     className="btn btn-primary"
-                    onClick={openServiceModal}
+                    onClick={() => navigateTo('service')}
                     id="btn-service-center"
                   >
                     <span>{h.serviceBtn || 'Обратиться в сервис'}</span>
@@ -469,21 +474,14 @@ export const HomePage = ({ heroSlidesOverride } = {}) => {
                 </div>
               </div>
 
-              {/* Right Column: Factory Quality Testing Photo */}
               <div className="service-visual-column">
-                <div className="service-photo-frame">
-                  <EditableNode as="img" editKey={"homepage-58"} kind="image"
-                    src={`${baseUrl}images/prod_testing.png`}
-                    alt="Контроль качества и сервис LAUTE"
-                    className="service-photo-img"
-                    loading="lazy"
-                  />
-                  <div className="service-photo-overlay"></div>
-                  <div className="service-photo-caption-glass">
-                    <ShieldCheck size={18} className="shield-icon" />
-                    <EditableNode as="span" editKey={"homepage-59"} kind="text">Заводское гидро- и пневмотестирование 100% узлов</EditableNode>
-                  </div>
-                </div>
+                <figure className="service-demo">
+                  <video controls playsInline preload="none" poster={baseUrl + 'media/digital-mixer-poster.webp'}
+                    src={baseUrl + 'media/digital-mixer-demo.mp4'} aria-labelledby="digital-mixer-caption" />
+                  <EditableNode as="figcaption" id="digital-mixer-caption" editKey="homepage-59" kind="text">
+                    {lang === 'en' ? 'Digital mixer demonstration' : lang === 'kz' ? 'Цифрлық араластырғыштың жұмысын көрсету' : 'Демонстрация работы цифрового смесителя'}
+                  </EditableNode>
+                </figure>
               </div>
             </div>
           </div>
@@ -504,29 +502,6 @@ export const HomePage = ({ heroSlidesOverride } = {}) => {
               <EditableNode as="p" editKey={"homepage-62"} kind="text" className="cta-subheading light-subheading">
                 {withBrandWord(h.formSubheading || 'Расскажите о вашей компании и регионе работы. Представитель LAUTE свяжется с вами, поможет выбрать ассортимент и подготовит коммерческое предложение.')}
               </EditableNode>
-
-              {/* High-Contrast Architectural Contact Panel */}
-              <div className="cta-contact-summary-box">
-                <div className="cta-contact-line">
-                  <div className="cta-contact-icon-bubble">
-                    <PhoneCall size={18} />
-                  </div>
-                  <div>
-                    <EditableNode as="span" editKey={"homepage-63"} kind="text" className="cta-contact-label">{h.formDept || 'Отдел продаж и дистрибуции'}</EditableNode>
-                    <EditableNode as="a" editKey={"homepage-64"} kind="link" href="tel:+79833105626" className="cta-contact-value">+7 (983) 310-56-26</EditableNode>
-                  </div>
-                </div>
-
-                <div className="cta-contact-line">
-                  <div className="cta-contact-icon-bubble">
-                    <Mail size={18} />
-                  </div>
-                  <div>
-                    <EditableNode as="span" editKey={"homepage-65"} kind="text" className="cta-contact-label">{h.formEmailLabel || 'Официальная электронная почта'}</EditableNode>
-                    <EditableNode as="a" editKey={"homepage-66"} kind="link" href="mailto:opt@laute.ltd" className="cta-contact-value">opt@laute.ltd</EditableNode>
-                  </div>
-                </div>
-              </div>
 
               <div className="cta-secondary-link-wrap">
                 <EditableNode as={SiteAction} editKey={"homepage-67"} kind="button" controlId="home-5"
