@@ -16,7 +16,7 @@ const locations = [
 ];
 
 const compare = /сравн|разниц|отлича|чем отлич|compare|difference|салыстыр|айырмаш/u;
-const wholesale = /закуп|пробн[а-я]+\s+парти|перепрод|продавал|продаж|спрос|марж|оптом|рынок|рынка|сотрудничеств|market|wholesale|resell|sell[- ]through|assortment|partnership|trial order|ассортимент|көтерме|нарық|серіктестік/u;
+const wholesale = /закуп|пробн[а-я]+\s+парти|перепрод|продава[а-я]+|продаж|на реализац|спрос|марж|оптом|рынок|рынка|сотрудничеств|market|wholesale|resell|sell[- ]through|to sell|\bstock (a|my|the)\b|assortment|partnership|trial order|ассортимент|көтерме|нарық|серіктестік|сату үшін/u;
 const priceQuestion = /цен[ауые]|сто[ияи]|почем|дешев|дороже|бюджет|тенге|рублей|[₽₸]|price|cost|cheaper|budget|баға|арзан/u;
 const stockQuestion = /налич|остат|склад|stock|availability|қойма/u;
 const detailFields = [
