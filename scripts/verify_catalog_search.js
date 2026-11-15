@@ -32,7 +32,7 @@ test('Smart search recognizes features across the product fields and query langu
 
 test('Consultant compares catalog facts and remembers the ordered list for follow-up questions', () => {
   const searchable = products.map(product => product.article === 'LINK003BY-5'
-    ? { ...product, specs: 'Картридж: Sedal 35 мм', cityStock: { Алматы: 99 } }
+    ? { ...product, specs: 'Картридж: Sedal 35 мм\nГарантийный срок: 7 лет', cityStock: { Алматы: 99 } }
     : product);
   const publicCatalog = createConsultantCatalog({ products: searchable, region: 'kz', lang: 'ru' });
   const comparison = publicCatalog.respond('Сравни TRUMP193B-6 и LINK003BY-5');
@@ -40,6 +40,8 @@ test('Consultant compares catalog facts and remembers the ordered list for follo
   assert.match(comparison.text, /16000|16\s000/u);
   const second = publicCatalog.respond('А у второго какой картридж?', comparison.newContext);
   assert.match(second.text, /LINK003BY-5.*Sedal 35 мм/u);
+  assert.match(publicCatalog.respond('Какая гарантия у LINK003BY-5?').text, /Гарантийный срок: 7 лет/u);
+  assert.match(publicCatalog.respond('Какой картридж у TRUMP193B-6?').text, /значение не указано/u);
   const first = publicCatalog.respond('А первый есть в наличии?', second.newContext);
   assert.deepEqual(articles(first.recommendedProducts), ['TRUMP193B-6']);
   const privateStock = publicCatalog.respond('Есть в наличии LINK003BY-5?');

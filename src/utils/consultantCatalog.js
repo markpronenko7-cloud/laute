@@ -19,7 +19,15 @@ const compare = /сравн|разниц|отлича|чем отлич|compare|
 const wholesale = /закуп|пробн[а-я]+\s+парти|перепрод|продавал|продаж|спрос|марж|оптом|рынок|рынка|сотрудничеств|market|wholesale|resell|sell[- ]through|assortment|partnership|trial order|ассортимент|көтерме|нарық|серіктестік/u;
 const priceQuestion = /цен[ауые]|сто[ияи]|почем|дешев|дороже|бюджет|тенге|рублей|[₽₸]|price|cost|cheaper|budget|баға|арзан/u;
 const stockQuestion = /налич|остат|склад|stock|availability|қойма/u;
-const partQuestion = /картридж|аэратор|излив|размер|чертеж|гаранти|монтаж|материал|cartridge|aerator|warranty|spout|dimension|install|material|кепілдік/u;
+const detailFields = [
+  [/картридж|cartridge/u, /картридж|cartridge/u],
+  [/аэратор|aerator/u, /аэратор|aerator/u],
+  [/гарант|warranty|кепілдік/u, /гарант|warranty|кепілдік/u],
+  [/излив|spout|шүмек/u, /излив|spout|шүмек/u, 'dimensions'],
+  [/размер|габарит|высот|dimension|height|өлшем/u, /размер|габарит|высот|dimension|height|өлшем/u, 'dimensions'],
+  [/монтаж|установ|install|орнат/u, /монтаж|установ|install|орнат/u, 'installType'],
+  [/материал|корпус|material/u, /материал|корпус|material/u, 'material'],
+];
 const followUp = /^(?:а\s+|еще\b|еще |из них|перв[а-я]+|втор[а-я]+|трет[а-я]+|and\b|what about\b|the (first|second|third)|ал\s+)/u;
 const ordinal = [/перв[а-я]+|\bfirst\b/u, /втор[а-я]+|\bsecond\b/u, /трет[а-я]+|\bthird\b/u];
 const skuPattern = /(?<![\p{L}\p{N}])[a-z]+-?\s*\d+[a-z\d]*(?:-[a-z\d]+)*(?![\p{L}\p{N}])/gu;
@@ -42,6 +50,7 @@ const copy = {
     astana: 'По данным БНС РК, за январь–сентябрь 2026 года в Астане ввели 3,05 млн м² жилья (+3,4% год к году). Это контекст для рынка ремонта и строительства.',
     cheaper: 'Варианты с подтверждённой ценой, начиная с меньшей', priceScope: place => `Регион цен: ${place}.`,
     incompatibleBudget: 'Для проверки этого бюджета нужна цена в той же валюте. Выберите соответствующий регион каталога.',
+    noSpec: 'В карточке это значение не указано.',
   },
   en: {
     compare: 'Comparison from the LAUTE catalog', found: 'These LAUTE models match your request', single: 'From the LAUTE product card',
@@ -59,6 +68,7 @@ const copy = {
     astana: 'Kazakhstan’s Bureau of National Statistics reports 3.05 million m² of housing completed in Astana in Jan–Sep 2026 (+3.4% year over year). This gives context on construction activity.',
     cheaper: 'Options with confirmed prices, lowest first', priceScope: place => `Pricing region: ${place}.`,
     incompatibleBudget: 'To check that budget, choose a catalog region with prices in the same currency.',
+    noSpec: 'The product card does not list this specification.',
   },
   kz: {
     compare: 'LAUTE каталогы бойынша салыстыру', found: 'Сұрауыңызға сәйкес LAUTE үлгілері', single: 'LAUTE карточкасы бойынша',
@@ -76,6 +86,7 @@ const copy = {
     astana: 'ҰСБ дерегі бойынша, 2026 жылғы қаңтар–қыркүйекте Астанада 3,05 млн м² тұрғын үй пайдалануға берілді (бір жылда +3,4%).',
     cheaper: 'Бағасы расталған үлгілер, төмен бағадан бастап', priceScope: place => `Баға өңірі: ${place}.`,
     incompatibleBudget: 'Бюджетті тексеру үшін бағасы сол валютада көрсетілген өңірді таңдаңыз.',
+    noSpec: 'Бұл сипаттама карточкада көрсетілмеген.',
   }
 };
 
@@ -88,13 +99,17 @@ function parseBudget(query) {
   return Number.isFinite(limit) && limit > 0 ? { limit, currency, phrase: match[0] } : null;
 }
 
-function productFacts(product, question) {
-  const specs = String(product.specs || '').split(/\n|;\s+(?=[^;:]+:)/u);
-  const detail = partQuestion.test(question) && specs.find(line =>
-    line.includes(':') && normalizeSearch(line.split(':')[0]).match(partQuestion) &&
-    normalizeSearch(line.split(':')[0]).split(/\s+/u).some(word => question.includes(word.replace(/(?:ый|ия|ые|ая)$/u, ''))));
-  return [...new Set([detail, product.subcategory, product.color || product.finish, product.material,
-    product.installType, product.dimensions].filter(Boolean))].join(' · ');
+function productFacts(product, requested, labels) {
+  if (requested.length) {
+    const specs = String(product.specs || '').split(/\n|;\s+(?=[^;:]+:)/u);
+    const details = requested.flatMap(([, key, field]) => {
+      const matches = specs.filter(line => line.includes(':') && key.test(normalizeSearch(line.split(':')[0])));
+      return matches.length ? matches : [(field && product[field]) || labels.noSpec];
+    });
+    return [...new Set(details)].join(' · ');
+  }
+  return [product.subcategory, product.color || product.finish, product.material,
+    product.installType, product.dimensions].filter(Boolean).join(' · ');
 }
 
 export function createConsultantCatalog({ products, region, regionWarehouseMap, activeWarehouseId, canSeeStock, partnerPrices, getStockForSku, lang }) {
@@ -116,12 +131,11 @@ export function createConsultantCatalog({ products, region, regionWarehouseMap, 
       const previous = context.selection || {};
       const inherited = (previous.articles?.map(article => bySku.get(compactSku(article))) || []).filter(Boolean);
       const where = locations.find(([, pattern]) => pattern.test(query));
-      const business = wholesale.test(query) || (previous.business && (followUp.test(query) || !!where));
       const comparing = compare.test(query);
       const askingPrice = priceQuestion.test(query);
       const askingStock = stockQuestion.test(query);
       const definition = /что такое|что это такое|what (is|are)\b|деген не/u.test(query);
-      const askingPart = partQuestion.test(query) && !definition;
+      const details = definition ? [] : detailFields.filter(([pattern]) => pattern.test(query));
       const budget = parseBudget(query);
       const referenced = ordinal.map((pattern, i) => pattern.test(query) ? inherited[i] : null).filter(Boolean);
       const skuTokens = [...query.matchAll(skuPattern)].map(match => match[0])
@@ -138,10 +152,12 @@ export function createConsultantCatalog({ products, region, regionWarehouseMap, 
       const collectionTerms = criteria.terms.filter(term => active.some(p =>
         normalizeSearch(p.collection).replace(/^laute\s+/u, '') === term));
       const hasCriteria = criteria.categories.length || criteria.finishes.length || criteria.features.length || collectionTerms.length;
+      const business = wholesale.test(query) || (previous.business && (continuing || !!where) &&
+        !exact.length && !comparing && !askingPrice && !askingStock && (!details.length || hasCriteria));
       const searchRequest = /^(?:подбер|посовет|покаж|ищу|мне нуж|нуж|хочу|найди|какие|есть ли|find\b|show\b|i need|looking for|recommend|маған)/u.test(query);
       if (!(business || comparing || exact.length || missing.length || askingPrice || askingStock ||
         (hasCriteria && (followUp.test(query) || searchRequest || criteria.terms.length <= 1)) ||
-        (askingPart && inherited.length))) return null;
+        (details.length && inherited.length))) return null;
 
       const current = {
         categories: criteria.categories.length ? criteria.categories : (continuing || business && previous.business ? previous.criteria?.categories || [] : []),
@@ -195,7 +211,8 @@ export function createConsultantCatalog({ products, region, regionWarehouseMap, 
           ? `${partnerPrices ? labels.wholesalePrice : labels.price}: ${formatCatalogPrice(value, currency)}` : labels.noPrice;
         const stock = getStock(product, target);
         const quantity = stock?.quantity != null ? `${labels.stock} (${stock.warehouseName}): ${stock.quantity}` : '';
-        return [product.article, productFacts(product, query), price, quantity].filter(Boolean).join(' — ');
+        const specificDetails = (exact.length || !hasCriteria) && !comparing && !business ? details : [];
+        return [product.article, productFacts(product, specificDetails, labels), price, quantity].filter(Boolean).join(' — ');
       });
       const heading = comparing ? labels.compare : business ? labels.market(place)
         : cheapest ? labels.cheaper : models.length === 1 ? labels.single : labels.found;
