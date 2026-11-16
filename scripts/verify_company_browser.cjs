@@ -25,8 +25,9 @@ async function geometry(page, locations) {
   for (const item of result) assert(item.error < 2, `Marker ${item.i}, zoom ${item.z}: ${item.error}px from its geographic position`);
 }
 (async () => {
-  const { COMPANY_BLOCKS } = await import('../src/data/factoryStory.js');
+  const { COMPANY_BLOCKS, getVisibleCompanyProcesses } = await import('../src/data/factoryStory.js');
   const locations = COMPANY_BLOCKS.find(b => b.companySection === 'geography').items;
+  const processes = getVisibleCompanyProcesses(COMPANY_BLOCKS.find(b => b.companySection === 'production').items);
   const browser = await chromium.launch({ channel:'chrome' });
   fs.mkdirSync('.temp/company-qa-v5', { recursive:true });
   try {
@@ -38,20 +39,20 @@ async function geometry(page, locations) {
       await page.evaluate(() => { history.pushState({},'',location.pathname.replace(/\/$/,'')+'/company'); dispatchEvent(new PopStateEvent('popstate')); });
       const minimize = page.locator('.btn-ai-minimize'); if (await minimize.isVisible()) await minimize.click();
       const triggers = page.locator('.company-process-trigger'); await triggers.first().waitFor();
-      assert.equal(await triggers.count(), 7);
-      // All seven independently open and close; a prior panel stays open.
-      for (let i=0;i<7;i++) {
+      assert.equal(await triggers.count(), processes.length);
+      for (let i=0;i<processes.length;i++) {
         const trigger=triggers.nth(i); await trigger.scrollIntoViewIfNeeded();
         if(await trigger.getAttribute('aria-expanded')!=='true') await trigger.click();
         await page.waitForTimeout(460);
         const panel=page.locator(`[id="${await trigger.getAttribute('aria-controls')}"]`);
         assert.equal(await panel.getAttribute('aria-hidden'),'false');
         assert(await panel.locator('.company-process-body').isVisible());
-        assert.equal(await triggers.first().getAttribute('aria-expanded'),'true');
+        assert.equal(await page.locator('.company-process-trigger[aria-expanded="true"]').count(),1);
         await panel.locator('.company-media-film-trigger').click();
         const video=page.locator('dialog video'); await video.waitFor();
         await video.evaluate(v=>v.play());
-        await page.waitForFunction(()=>{const v=document.querySelector('dialog video');return v?.currentTime>.1 && v.videoWidth===720;},null,{timeout:10000});
+        await page.waitForFunction(()=>{const v=document.querySelector('dialog video');return v?.currentTime>.1 && v.videoWidth>0;},null,{timeout:10000});
+        assert.ok((await video.evaluate(v=>v.currentSrc)).includes(processes[i].videoUrl.split('?')[0]));
         await page.keyboard.press('Escape'); await page.waitForTimeout(240);
         assert.equal(await page.locator('dialog').count(),0);
         assert(await panel.locator('.company-media-film-trigger').evaluate(e=>e===document.activeElement));
@@ -59,6 +60,7 @@ async function geometry(page, locations) {
       await triggers.nth(3).focus(); await page.keyboard.press('End');
       assert(await triggers.last().evaluate(e=>e===document.activeElement));
       await page.keyboard.press('Home'); assert(await triggers.first().evaluate(e=>e===document.activeElement));
+      await triggers.nth(1).click();
       await triggers.nth(1).click(); await page.waitForTimeout(460);
       const closed=page.locator('.company-process-reveal').nth(1);
       assert.equal(await closed.getAttribute('inert'),'');
@@ -102,7 +104,7 @@ async function geometry(page, locations) {
       await page.emulateMedia({reducedMotion:'reduce'});
       assert.equal(await closed.evaluate(e=>getComputedStyle(e).transitionDuration),'0s');
       assert.deepEqual(errors,[]);
-      console.log(`${mobile?'Mobile + pinch':'Desktop'}: seven films, independent disclosure, focus, keyboard, geographic projection, zoom/pan/reset and reduced motion passed`);
+      console.log(`${mobile?'Mobile + pinch':'Desktop'}: ${processes.length} films, single-open disclosure, focus, keyboard, geographic projection, zoom/pan/reset and reduced motion passed`);
       await context.close();
     }
   } finally {await browser.close();}
