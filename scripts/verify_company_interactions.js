@@ -58,6 +58,14 @@ test('Advertising cache refresh preserves custom employee films, posters and tex
   const robot = getCompanyProcessMedia({ videoUrl: 'media/processes/robot-polishing.mp4?edit=6' });
   assert.equal(robot.videoUrl, 'media/processes/robot-polishing.mp4?brand=10');
   assert.equal(robot.durationLabel, '0:13');
+  for (const id of ['salt-spray', 'lux-bench-test']) {
+    const video = `media/processes/${id}.mp4`;
+    const poster = `images/factory/processes/${id}-poster.webp`;
+    const refreshed = getCompanyProcessMedia({ videoUrl: `${video}?edit=13`, posterUrl: `${poster}?edit=13` });
+    assert.equal(refreshed.videoUrl, `${video}?edit=14`);
+    assert.equal(refreshed.posterUrl, `${poster}?edit=14`);
+    assert.equal(refreshed.durationLabel, '0:13');
+  }
 });
 
 test('Employee films do not inherit the shipped soundtrack attribution', async () => {

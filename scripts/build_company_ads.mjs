@@ -17,8 +17,19 @@ const definitions = [
   ['robot-polishing', ['ДВИЖЕНИЕ.', 'РИТМ.'], 'РОБОТИЗИРОВАННАЯ ПОЛИРОВКА', ['Контакт с кругом', 'Движение манипулятора', 'Рабочий цикл'], [['IMG_3568.MOV',.8,.40,1],['IMG_3567.MOV',7.5,.30,1],['IMG_3567.MOV',9.68,.30,1.04],['IMG_3568.MOV',32,.38,1],['IMG_3566.MOV',8.5,.40,1]]],
   ['sink-finishing', ['ПОВЕРХНОСТЬ.', 'ХАРАКТЕР.'], 'РУЧНАЯ ОБРАБОТКА МОЕК', ['Работа инструментом', 'Доводка кромки', 'Внимание к поверхности'], [['IMG_8237.MOV',22,.38,1],['IMG_8237.MOV',2.4,.32,1],['IMG_8237.MOV',4.58,.32,1.04],['IMG_8237.MOV',50.3,.34,1],['IMG_8237.MOV',53.57,.34,1.03]]],
   ['sealing', ['ОДИН ШОВ.', 'ОДНО ДВИЖЕНИЕ.'], 'НАНЕСЕНИЕ ГЕРМЕТИКА', ['Вдоль стыка', 'Непрерывный рабочий жест', 'Шов крупным планом'], [['IMG_8238.MOV',.1,.45,1],['IMG_8238.MOV',1.19,.45,1],['IMG_8238.MOV',3.37,.47,1.03],['IMG_8238.MOV',5.55,.47,1.05],['IMG_8238.MOV',8.82,.48,1.03]]],
-  ['packing', ['КАЖДАЯ ДЕТАЛЬ.', 'НА СВОЁМ МЕСТЕ.'], 'КОМПЛЕКТАЦИЯ И УПАКОВКА', ['Комплектующие', 'Закрытие коробки', 'Финальный этап'], [['IMG_3570.MOV',.6,.40,1],['IMG_3570.MOV',13.6,.40,1],['IMG_3570.MOV',54.7,.46,1.02],['IMG_3570.MOV',59.7,.46,1],['IMG_3570.MOV',63,.46,1]]]
+  ['packing', ['КАЖДАЯ ДЕТАЛЬ.', 'НА СВОЁМ МЕСТЕ.'], 'КОМПЛЕКТАЦИЯ И УПАКОВКА', ['Комплектующие', 'Закрытие коробки', 'Финальный этап'], [['IMG_3570.MOV',.6,.40,1],['IMG_3570.MOV',13.6,.40,1],['IMG_3570.MOV',54.7,.46,1.02],['IMG_3570.MOV',59.7,.46,1],['IMG_3570.MOV',63,.46,1]]],
+  ['salt-spray', ['ИСПЫТАНИЕ', 'СОЛЕВЫМ ТУМАНОМ'], 'КОНТРОЛЬ ПОКРЫТИЯ', ['Образцы в камере', 'Панель управления', 'Журнал испытаний'], [
+    ['Солевое тестирование.mov',2.7,.32,1], ['Солевое тестирование.mov',7.8,.14,1.08],
+    ['Солевое тестирование.mov',10.7,.08,1.38], ['Солевое тестирование.mov',22.5,.41,1.05],
+    ['Солевое тестирование.mov',30,.46,1]
+  ]],
+  ['lux-bench-test', ['СМЕСИТЕЛЬ', 'НА СТЕНДЕ'], 'ПРОВЕРКА СЕРИИ «ЛЮКС»', ['Подключение к стенду', 'Проверка смесителя', 'Смеситель после проверки'], [
+    ['Проверка серий Люкс.mov',18.1,.27,1], ['Проверка серий Люкс.mov',20.2,.28,1.27,.72],
+    ['Проверка серий Люкс.mov',23.8,.37,1.32,.75], ['Проверка серий Люкс.mov',48.8,.43,1.29,.69],
+    ['Проверка серий Люкс.mov',57.2,.45,1]
+  ]]
 ];
+const sourceNames = new Map(fs.readdirSync(source).map(name => [name.normalize('NFC'), name]));
 const run = args => { const r = spawnSync(ffmpeg, ['-hide_banner','-loglevel','error','-y','-threads','2','-filter_threads','2',...args.map(String)], { encoding: 'utf8', maxBuffer: 8e6 }); if (r.status !== 0) throw Error(r.stderr); };
 const encode = ['-c:v','libx264','-preset','fast','-crf','18','-pix_fmt','yuv420p','-video_track_timescale','30000'];
 const textFile = (key, value) => { const p = `${work}/${key}.txt`; fs.writeFileSync(p, value); return p; };
@@ -39,15 +50,15 @@ for (let ordinal=0; ordinal<definitions.length; ordinal++) {
   let accumulated = 0;
   const beats = [2,4,4,6,4];
   for (let i=0;i<shots.length;i++) {
-    const [filename, start, anchor, detail] = shots[i];
+    const [filename, start, anchor, detail, horizontal = .5] = shots[i];
     const frames = Math.round((accumulated + beats[i]) * beat * fps) - Math.round(accumulated * beat * fps);
     accumulated += beats[i];
-    const p = path.join(source, filename), part = `${work}/${id}-${i}.mp4`;
+    const p = path.join(source, sourceNames.get(filename.normalize('NFC')) || filename), part = `${work}/${id}-${i}.mp4`;
     const probe = spawnSync(ffmpeg,['-hide_banner','-i',p],{encoding:'utf8'}).stderr;
     const hdr = /arib-std-b67|smpte2084/.test(probe);
     const tone = hdr ? 'zscale=t=linear:npl=100,format=gbrpf32le,tonemap=tonemap=hable:desat=1.3,zscale=p=bt709:t=bt709:m=bt709:r=tv,format=yuv420p,' : '';
     const cw = Math.round(1080/detail/2)*2, ch = Math.round(1440/detail/2)*2;
-    const vf = `${tone}scale=1080:1920:flags=lanczos,crop=${cw}:${ch}:(iw-ow)/2:(ih-oh)*${anchor},scale=720:960:flags=lanczos,setsar=1,eq=contrast=1.035:brightness=.002:saturation=.97,unsharp=5:5:.28:3:3:0,fps=30,setpts=N/(30*TB)`;
+    const vf = `${tone}scale=1080:1920:flags=lanczos,crop=${cw}:${ch}:(iw-ow)*${horizontal}:(ih-oh)*${anchor},scale=720:960:flags=lanczos,setsar=1,eq=contrast=1.035:brightness=.002:saturation=.97,unsharp=5:5:.28:3:3:0,fps=30,setpts=N/(30*TB)`;
     if (process.env.REUSE_AD_PARTS !== '1' || !fs.existsSync(part)) run(['-ss',start,'-i',p,'-an','-vf',vf,'-frames:v',frames,...encode,'-crf','16',part]);
     parts.push(part); cuts.push({ filename, in: start, frames, anchor, detail });
   }
@@ -73,7 +84,7 @@ for (let ordinal=0; ordinal<definitions.length; ordinal++) {
   run(['-f','lavfi','-i','color=c=0x102922:s=720x960:r=30','-loop','1','-i',`${work}/logo-large.png`,'-filter_complex_threads','2','-filter_complex',endFilter,'-map','[v]','-frames:v',endFrames,'-an',...encode,`${work}/${id}-end.mp4`]);
   const finalList = `${work}/${id}-final.txt`;
   fs.writeFileSync(finalList,[`${work}/${id}-main.mp4`,`${work}/${id}-end.mp4`].map(p=>`file '${path.resolve(p).replaceAll('\\','/')}'`).join('\n'));
-  const audio = `[1:a]atrim=start=${32}:duration=${total},asetpts=PTS-STARTPTS,loudnorm=I=-25:TP=-4:LRA=5,afade=t=in:d=0.35,afade=t=out:st=${total-.8}:d=0.8[a]`;
+  const audio = `[1:a]atrim=start=32:duration=${total},asetpts=PTS-STARTPTS,lowpass=f=7000,loudnorm=I=-25:TP=-4:LRA=5,afade=t=in:d=0.35,afade=t=out:st=${total-.8}:d=0.8[a]`;
   run(['-f','concat','-safe','0','-i',finalList,'-i',music,'-filter_complex',audio,'-map','0:v:0','-map','[a]','-c:v','copy','-c:a','aac','-b:a','192k','-ar','48000','-t',total,'-metadata','comment=Dream Culture - Kevin MacLeod (incompetech.com). CC BY 4.0. Edited excerpt and mix; see music-credits.txt.','-movflags','+faststart',`${output}/${id}.mp4`]);
   run(['-ss','0.9','-i',`${output}/${id}.mp4`,'-frames:v','1','-c:v','libwebp','-quality','90',`public/images/factory/processes/${id}-poster.webp`]);
   report.push({id,frames:mainFrames+endFrames,duration:total,musicStart:32,cuts,renderSeconds:Math.round((Date.now()-started)/1000)});
