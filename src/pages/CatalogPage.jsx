@@ -423,7 +423,7 @@ export const CatalogPage = () => {
     const subcategories = [...new Set(categoryProducts.map(p => normalizeCategory(p.subcategory)).filter(Boolean))];
     const sourceProduct = categoryProducts.find(p => p.article === featuredCategoryArticles[item?.id] && p.photo1)
       || categoryProducts.find(p => p.photo1);
-    const studioPhoto = item?.id === 'shower-cabins' && sourceProduct ? getStudioProductPhoto(sourceProduct, baseUrl) : '';
+    const studioPhoto = sourceProduct ? getStudioProductPhoto(sourceProduct, baseUrl) : '';
     const image = sourceProduct?.photo1 ? studioPhoto || classifyProductImages(sourceProduct, baseUrl).mainPhoto : null;
     if (!item) {
       return {
@@ -796,9 +796,7 @@ export const CatalogPage = () => {
                 const displayInfo = formatProductDisplay(p);
                 const imgInfo = classifyProductImages(p, baseUrl);
                 // Главной фотографией всегда должен быть сам смеситель (imgInfo.mainPhoto отфильтровывает чертежи и коробки)
-                const studioPhoto = normalizeCategory(p.category) === categoryTranslations['shower-cabins'].name.ru
-                  ? getStudioProductPhoto(p, baseUrl)
-                  : '';
+                const studioPhoto = getStudioProductPhoto(p, baseUrl);
                 const mainPhotoSrc = studioPhoto || imgInfo.mainPhoto || getImgUrl(p.photo1);
                 const qtyInCart = getCartItemQuantity(p.article);
                 const rawPrice = Number(getProductPrice(p));
@@ -1077,7 +1075,9 @@ export const CatalogPage = () => {
           {/* Нижний информационный блок каталога */}
           <div className="catalog-bottom-banner">
             <div className="banner-text">
-              <EditableNode as="span" editKey={"catalogpage-22"} kind="text" className="catalog-banner-overline">ПРЯМОЕ СОТРУДНИЧЕСТВО С ЗАВОДОМ LAUTE</EditableNode>
+              <EditableNode as="span" editKey={"catalogpage-22"} kind="text" className="catalog-banner-overline">
+                {lang === 'en' ? 'Direct cooperation with the LAUTE factory' : lang === 'kz' ? 'LAUTE зауытымен тікелей серіктестік' : 'Прямое сотрудничество с заводом LAUTE'}
+              </EditableNode>
               <EditableNode as="h3" editKey={"catalogpage-23"} kind="text">{cat.notFoundTitle || 'Не нашли нужную позицию?'}</EditableNode>
               <EditableNode as="p" editKey={"catalogpage-24"} kind="text">
                 {cat.notFoundDesc ||

@@ -148,6 +148,7 @@ body:has(.company-page-v2) .header .select-trigger :is(.select-icon,.arrow-icon)
 }
 .company-block--range { background:#e6e9ec!important; }
 .company-range-layout { display:grid; grid-template-columns:1fr 1fr; gap:clamp(32px,6vw,90px); align-items:center; }
+.company-range-layout .company-media-trigger { border-radius:clamp(16px,2vw,26px); overflow:hidden; }
 .company-range-image { display:block; width:100%; aspect-ratio:1; object-fit:cover; }
 .company-range-layout .company-section-heading { margin-bottom:30px; }
 .company-warranty { margin-top:40px; }

@@ -101,6 +101,21 @@ export const Header = () => {
     navigateTo(route);
   };
 
+  const renderNavItem = (item, className) => {
+    const active = currentRoute === item.route;
+    const label = item.route === 'service' ? <span>{item.label}</span> : item.label;
+    const classNames = `${className}${active ? ' active' : ''}`;
+    if (item.route === 'contacts') {
+      return <a className={classNames} href={`${import.meta.env.BASE_URL}contacts`} aria-current={active ? 'page' : undefined}
+        onClick={event => {
+          if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+          event.preventDefault();
+          handleNavClick(item.route);
+        }}>{label}</a>;
+    }
+    return <button type="button" className={classNames} onClick={() => handleNavClick(item.route)}>{label}</button>;
+  };
+
   useLayoutEffect(() => {
     let frame = 0;
     let disposed = false;
@@ -166,11 +181,7 @@ export const Header = () => {
 
           <nav className="nav-desktop" aria-label="Основная навигация">
             <ul className="nav-links">
-              {navigation.map(item => <li key={item.route}>
-                <button type="button" className={'nav-link ' + (currentRoute === item.route ? 'active' : '')} onClick={() => handleNavClick(item.route)}>
-                  {item.route === 'service' ? <span>{item.label}</span> : item.label}
-                </button>
-              </li>)}
+              {navigation.map(item => <li key={item.route}>{renderNavItem(item, 'nav-link')}</li>)}
             </ul>
           </nav>
         </div>
@@ -306,11 +317,7 @@ export const Header = () => {
       {isMobileMenuOpen && (
         <div id="mobile-navigation" className="mobile-nav-drawer" role="dialog" aria-label="Меню" aria-modal="true">
           <ul className="mobile-nav-links">
-            {navigation.map(item => <li key={item.route}>
-              <button type="button" className={'mobile-nav-link ' + (currentRoute === item.route ? 'active' : '')} onClick={() => handleNavClick(item.route)}>
-                {item.label}
-              </button>
-            </li>)}
+            {navigation.map(item => <li key={item.route}>{renderNavItem(item, 'mobile-nav-link')}</li>)}
           </ul>
 
           <div className="mobile-drawer-footer">

@@ -1,7 +1,7 @@
 import { EditableNode, NativeContentScope, NativeEditorScope } from './builder/NativeContent';
 import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import { useApp } from '../context/AppContext';
-import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play, Plus } from 'lucide-react';
 import { isSafeActionLink } from './SiteAction';
 import { withBrandWord } from '../utils/brandFormatter';
 import { catalogRoute } from '../utils/catalogSearch';
@@ -12,6 +12,14 @@ const campaignSlides = {
   'slide-2': { stock: 'images/hero/hero-slide-2.jpg', image: 'images/campaign/hero-shower.webp', route: showerRoute },
   'slide-3': { stock: 'images/hero/hero-slide-3.jpg', route: bitcoinRoute },
   'slide-6': { stock: 'images/hero/hero-slide-6.jpg', image: 'images/campaign/hero-six.webp' },
+};
+
+const productMarks = {
+  'images/hero/hero-slide-1.jpg': { article: 'LEO101Q', x: 78, y: 49 },
+  'images/campaign/hero-shower.webp': { article: 'LEO194H', x: 68, y: 32 },
+  'images/hero/hero-slide-3.jpg': { article: 'BTC103SGQ', x: 57.5, y: 27 },
+  'images/hero/hero-slide-5.jpg': { article: 'LEO101H', x: 34, y: 32 },
+  'images/campaign/hero-six.webp': { article: 'SKY101', x: 82, y: 26 },
 };
 
 function englishBrandTitle(lang, slideId, title) {
@@ -55,6 +63,7 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
   const nextLabel = lang === 'en' ? 'Next slide' : lang === 'kz' ? 'Келесі слайд' : 'Следующий слайд';
   const pauseLabel = lang === 'en' ? 'Pause slides' : lang === 'kz' ? 'Слайдтарды кідірту' : 'Приостановить слайды';
   const playLabel = lang === 'en' ? 'Play slides' : lang === 'kz' ? 'Слайдтарды ойнату' : 'Возобновить слайды';
+  const productLabel = lang === 'en' ? 'View product' : lang === 'kz' ? 'Өнімді көру' : 'Смотреть товар';
 
   const SLIDE_DURATION = 3000; // Exactly 3000ms per requirement
 
@@ -239,6 +248,8 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
           const editKey = `herocarousel-1:${index}`;
           const image = content?.edits?.[editKey]?.[lang]?.src ?? slide.image;
           const stockSlide = image.match(/(?:^|\/)images\/hero\/hero-slide-([1-6])\.jpg$/)?.[1];
+          const mark = image.startsWith(baseUrl) ? productMarks[image.slice(baseUrl.length)] : undefined;
+          const productRoute = mark && catalogRoute({ product: mark.article });
           return (
             <div
               key={slide.id}
@@ -249,9 +260,25 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
                 className="hero-slide-bg"
                 data-stock-slide={stockSlide}
                 data-campaign-slide={image.match(/\/hero-(shower|six)\.webp$/)?.[1]}
-                style={{ backgroundImage: `url(${slide.image})` }}
+                data-product-mark={mark ? '' : undefined}
+                style={{
+                  backgroundImage: `url(${slide.image})`,
+                  ...(mark && { '--product-x': `${mark.x}%`, '--product-y': `${mark.y}%` }),
+                }}
               >
                 <div className="hero-slide-overlay"></div>
+                {isActive && mark && !editor && <div className="hero-product-marks">
+                  <a className="hero-product-mark" data-label-side={mark.x > 58 ? 'left' : 'right'}
+                    href={baseUrl + productRoute} aria-label={`${productLabel} LAUTE ${mark.article}`}
+                    onClick={event => {
+                      if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+                      event.preventDefault();
+                      navigateTo(productRoute);
+                    }}>
+                    <span className="hero-product-mark-icon"><Plus size={15} aria-hidden="true" /></span>
+                    <span className="hero-product-mark-article">{mark.article}</span>
+                  </a>
+                </div>}
               </EditableNode>
             </div>
           );

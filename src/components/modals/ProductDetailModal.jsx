@@ -50,46 +50,11 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
   const pm = t?.productModal || {};
   const quantityInCart = getCartItemQuantity(selectedProduct.article);
 
-  // If product is flagged as not found
-  if (selectedProduct?.notFound) {
-    return (
-      <div className="modal-overlay" onClick={closeProductModal}>
-        <div
-          className="modal-content product-detail-modal"
-          onClick={(e) => e.stopPropagation()}
-          style={{ maxWidth: '480px', width: '92%', padding: '36px 28px', textAlign: 'center' }}
-        >
-          <button className="modal-close-btn" onClick={closeProductModal} aria-label="Закрыть">
-            <X size={20} />
-          </button>
-          <div style={{ marginBottom: 16, display: 'inline-flex', padding: 16, borderRadius: '50%', background: 'rgba(234, 88, 12, 0.12)', color: '#EA580C' }}>
-            <Package size={36} />
-          </div>
-          <h3 style={{ color: '#182331', fontSize: '1.35rem', marginBottom: 10, fontWeight: 700 }}>
-            Товар не найден
-          </h3>
-          <p style={{ color: '#435369', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: 24 }}>
-            Запрошенный артикул <strong>{selectedProduct.article}</strong> отсутствует в каталоге или был удалён.
-          </p>
-          <button
-            type="button"
-            className="btn btn-primary"
-            style={{ width: '100%', justifyContent: 'center' }}
-            onClick={closeProductModal}
-          >
-            Вернуться в каталог
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const displayInfo = formatProductDisplay(selectedProduct);
   const imgInfo = classifyProductImages(selectedProduct, baseUrl);
 
   // Фотографии галереи (смеситель + дополнительные фото + упаковка)
-  const isCabin = selectedProduct.category === 'Бюджетные душевые кабины';
-  const studioPhoto = isCabin ? getStudioProductPhoto(selectedProduct, baseUrl) : '';
+  const studioPhoto = getStudioProductPhoto(selectedProduct, baseUrl);
   const interiorPhoto = getInteriorProductPhoto(selectedProduct, baseUrl);
   const interiorLabel = lang === 'en' ? 'In context' : lang === 'kz' ? 'Интерьерде' : 'В интерьере';
   const additionalPhotos = imgInfo.additionalPhotos.filter(url => !/\/images\/products\/interiors\//.test(url)
@@ -154,6 +119,40 @@ export const ProductDetailModalInner = ({ selectedProduct, closeProductModal }) 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [lightboxIndex, productMediaList.length]);
+
+  // If product is flagged as not found
+  if (selectedProduct?.notFound) {
+    return (
+      <div className="modal-overlay" onClick={closeProductModal}>
+        <div
+          className="modal-content product-detail-modal"
+          onClick={(e) => e.stopPropagation()}
+          style={{ maxWidth: '480px', width: '92%', padding: '36px 28px', textAlign: 'center' }}
+        >
+          <button className="modal-close-btn" onClick={closeProductModal} aria-label="Закрыть">
+            <X size={20} />
+          </button>
+          <div style={{ marginBottom: 16, display: 'inline-flex', padding: 16, borderRadius: '50%', background: 'rgba(234, 88, 12, 0.12)', color: '#EA580C' }}>
+            <Package size={36} />
+          </div>
+          <h3 style={{ color: '#182331', fontSize: '1.35rem', marginBottom: 10, fontWeight: 700 }}>
+            Товар не найден
+          </h3>
+          <p style={{ color: '#435369', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: 24 }}>
+            Запрошенный артикул <strong>{selectedProduct.article}</strong> отсутствует в каталоге или был удалён.
+          </p>
+          <button
+            type="button"
+            className="btn btn-primary"
+            style={{ width: '100%', justifyContent: 'center' }}
+            onClick={closeProductModal}
+          >
+            Вернуться в каталог
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Поддержка свайпов на телефонах и планшетах
   const handleTouchStart = (e) => {

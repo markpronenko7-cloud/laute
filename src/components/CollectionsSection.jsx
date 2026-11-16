@@ -14,7 +14,7 @@ export const CollectionsSection = () => {
       id: 'bathroom',
       title: 'LAUTE Trump',
       subtitle: 'TRUMP101GQ · TRUMP194',
-      image: baseUrl + 'images/campaign/trump.webp',
+      image: baseUrl + 'images/campaign/trump.webp?v=2',
       route: catalogRoute({ collection: 'trump' }),
       layoutClass: 'collection-card-featured'
     },
@@ -22,9 +22,9 @@ export const CollectionsSection = () => {
       id: 'kitchen',
       title: 'LAUTE Link',
       subtitle: 'LINK003BY-5',
-      image: baseUrl + 'images/campaign/link.webp',
+      image: baseUrl + 'images/campaign/link.webp?v=2',
       route: catalogRoute({ collection: 'link' }),
-      layoutClass: 'collection-card-standard'
+      layoutClass: 'collection-card-standard collection-card-link'
     },
     {
       id: 'shower',

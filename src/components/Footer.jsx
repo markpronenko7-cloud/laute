@@ -20,13 +20,17 @@ export const Footer = () => {
     <footer className="footer">
       <div className="container">
         <div className="footer-top">
-          {/* Brand Info & Socials */}
+          {/* Brand */}
           <div className="footer-brand">
             <a
-              href={`${import.meta.env.BASE_URL}`}
-              className="brand-logo"
-              onClick={(e) => { e.preventDefault(); navigateTo('home'); }}
-              title="LAUTE"
+              href={`${import.meta.env.BASE_URL}admin`}
+              className="brand-logo footer-admin-link"
+              onClick={event => {
+                if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+                event.preventDefault();
+                navigateTo('admin');
+              }}
+              aria-label={lang === 'en' ? 'LAUTE administration' : lang === 'kz' ? 'LAUTE басқару панелі' : 'Панель управления LAUTE'}
             >
               <img
                 src={logoSrc}
@@ -45,7 +49,76 @@ export const Footer = () => {
             </p>
 
             <p className="footer-slogan">{lang === 'en' ? 'Our work is to take care of your profit' : lang === 'kz' ? 'Біздің жұмысымыз — сіздің табысыңызға қамқорлық' : 'Наша работа — это забота о вашей прибыли'}</p>
+          </div>
 
+          {/* Quick Links */}
+          <div className="footer-col">
+            <h4 className="footer-col-title">{f.navCol || 'Навигация'}</h4>
+            <ul className="footer-links">
+              {getNavigation(siteContent, lang, t).map(item => <li key={item.route}>
+                <a className="footer-link-btn" href={import.meta.env.BASE_URL + (item.route === 'home' ? '' : item.route)}
+                  onClick={event => {
+                    if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+                    event.preventDefault();
+                    navigateTo(item.route);
+                  }}>{item.label}</a>
+              </li>)}
+            </ul>
+            {/* Language & Region Controls */}
+            <div className="footer-controls">
+              <div className="footer-control-item">
+                <Globe size={14} className="control-icon" />
+                <span className="control-text">{t.nav.language || f.langLabel || 'Язык сайта'}:</span>
+                <div className="footer-pill-row">
+                  {[
+                    { code: 'ru', label: 'РУС' },
+                    { code: 'kz', label: 'КАЗ' },
+                    { code: 'en', label: 'ENG' }
+                  ].map((item) => (
+                    <button
+                      key={item.code}
+                      type="button"
+                      onClick={() => setLang(item.code)}
+                      className={`footer-pill-btn ${lang === item.code ? 'active' : ''}`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="footer-control-item">
+                <MapPin size={14} className="control-icon" />
+                <span className="control-text">{t.nav.region || t.regions?.currentRegion || 'Ваш регион'}:</span>
+                <select
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value)}
+                  className="footer-region-select"
+                  aria-label={t.regions?.selectRegion || t.nav.region || 'Ваш регион'}
+                >
+                  {REGIONS_CONFIG.map((reg) => (
+                    <option key={reg.id} value={reg.id}>
+                      {t.regions?.[reg.id] || reg.names[lang] || reg.names.ru}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Wholesale Partner Action */}
+          <div className="footer-col footer-action-col">
+            <h4 className="footer-col-title">{f.collabCol || 'Сотрудничество'}</h4>
+            <p className="footer-action-desc">
+              {withBrandWord(f.collabDesc || 'Обсуждайте ассортимент, условия сотрудничества и сервис с командой LAUTE.')}
+            </p>
+            <SiteAction controlId="footer-partner"
+              type="button"
+              className="btn btn-primary btn-full"
+              onClick={openPartnerModal}
+            >
+              <span>{f.partnerBtn || 'Стать партнёром'}</span>
+            </SiteAction>
             {/* Official Verified Social Networks */}
             <div className="footer-socials">
               <span className="footer-socials-label">{f.socialsLabel || 'Официальные страницы:'}</span>
@@ -96,80 +169,6 @@ export const Footer = () => {
                 </a>
               </div>
             </div>
-
-            {/* Language & Region Controls */}
-            <div className="footer-controls">
-              <div className="footer-control-item">
-                <Globe size={14} className="control-icon" />
-                <span className="control-text">{t.nav.language || f.langLabel || 'Язык сайта'}:</span>
-                <div className="footer-pill-row">
-                  {[
-                    { code: 'ru', label: 'РУС' },
-                    { code: 'kz', label: 'КАЗ' },
-                    { code: 'en', label: 'ENG' }
-                  ].map((item) => (
-                    <button
-                      key={item.code}
-                      type="button"
-                      onClick={() => setLang(item.code)}
-                      className={`footer-pill-btn ${lang === item.code ? 'active' : ''}`}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="footer-control-item">
-                <MapPin size={14} className="control-icon" />
-                <span className="control-text">{t.nav.region || t.regions?.currentRegion || 'Ваш регион'}:</span>
-                <select
-                  value={region}
-                  onChange={(e) => setRegion(e.target.value)}
-                  className="footer-region-select"
-                  aria-label={t.regions?.selectRegion || t.nav.region || 'Ваш регион'}
-                >
-                  {REGIONS_CONFIG.map((reg) => (
-                    <option key={reg.id} value={reg.id}>
-                      {t.regions?.[reg.id] || reg.names[lang] || reg.names.ru}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Links */}
-          <div className="footer-col">
-            <h4 className="footer-col-title">{f.navCol || 'Навигация'}</h4>
-            <ul className="footer-links">
-              {getNavigation(siteContent, lang, t).filter(item => item.route !== 'contacts' && item.route !== 'admin').map(item => <li key={item.route}>
-                <button type="button" className="footer-link-btn" onClick={() => navigateTo(item.route)}>{item.label}</button>
-              </li>)}
-            </ul>
-          </div>
-
-          <div className="footer-col">
-            <a className="footer-link-btn" href={import.meta.env.BASE_URL + 'contacts'} onClick={event => {
-              if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-              event.preventDefault();
-              navigateTo('contacts');
-            }}>{t.nav.contacts || f.contactsCol || 'Контакты'}</a>
-          </div>
-
-          {/* Wholesale Partner Action */}
-          <div className="footer-col footer-action-col">
-            <h4 className="footer-col-title">{f.collabCol || 'Сотрудничество'}</h4>
-            <p className="footer-action-desc">
-              {withBrandWord(f.collabDesc || 'Обсуждайте ассортимент, условия сотрудничества и сервис с командой LAUTE.')}
-            </p>
-            <SiteAction controlId="footer-partner"
-              type="button"
-              className="btn btn-primary btn-full"
-              onClick={openPartnerModal}
-            >
-              <span>{f.partnerBtn || 'Стать партнёром'}</span>
-            </SiteAction>
           </div>
         </div>
 

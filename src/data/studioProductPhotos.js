@@ -3,7 +3,11 @@ const studioSources = {
   "MODEL-1": "cd1c4703-ccd2-4c1b-bb5f-c37df4fe6931.jpg",
   "MODEL-2": "949e89c8-10ab-4b8a-87f2-ef1dc69a44bc.jpg",
   "MODEL-3": "2b6de4f0-d79b-4495-a3b4-6d33fad19eb8.jpg",
-  "MODEL-4": "0ea4994c-80c0-44d0-9040-cdce53b6b91e.jpg"
+  "MODEL-4": "0ea4994c-80c0-44d0-9040-cdce53b6b91e.jpg",
+  "POL44-15": "f440602e-1f26-47a3-93cf-d7ab21eca485.jpg",
+  "POL44-15H": "5bc36412-1089-414b-ac37-89dbeae78037.jpg",
+  "POL44-15L": "42d66350-d807-412c-87d1-533527b1df75.jpg",
+  "POL44-15Y": "f961a756-c498-41c2-9d06-786106e967fd.jpg"
 };
 const interiorSources = {
   "BTC103S-2": "23f159e8-eb81-4349-9094-1dde48f1e3fa.jpg",

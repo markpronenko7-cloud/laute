@@ -26,7 +26,6 @@ import { submitLeadInquiry } from '../services/adminApi';
 export const HomePage = ({ heroSlidesOverride } = {}) => {
   const { navigateTo, openPartnerModal, startAIPartnerAnalysis, t, siteContent, lang, region } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchMode, setSearchMode] = useState('standard');
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState('');
   const sendingRef = useRef(false);
@@ -92,8 +91,8 @@ export const HomePage = ({ heroSlidesOverride } = {}) => {
       <NativeSectionGate sectionKey="home-hero"><HeroCarousel slidesOverride={heroSlidesOverride}/></NativeSectionGate>
 
       <div className="container home-catalog-search">
-        <CatalogSearchBar query={searchQuery} mode={searchMode} onQuery={setSearchQuery} onMode={setSearchMode}
-          onSearch={() => navigateTo(catalogRoute({ q: searchQuery.trim(), mode: searchMode === 'smart' ? searchMode : '' }))} />
+        <CatalogSearchBar query={searchQuery} mode="smart" smartOnly onQuery={setSearchQuery}
+          onSearch={() => navigateTo(catalogRoute({ q: searchQuery.trim(), mode: 'smart' }))} />
       </div>
       {/* 2. ФОТОГРАФИЧЕСКАЯ ГАЛЕРЕЯ «КОЛЛЕКЦИИ LAUTE» */}
       <NativeSectionGate sectionKey="home-collections"><CollectionsSection /></NativeSectionGate>
@@ -475,13 +474,10 @@ export const HomePage = ({ heroSlidesOverride } = {}) => {
               </div>
 
               <div className="service-visual-column">
-                <figure className="service-demo">
-                  <video controls playsInline preload="none" poster={baseUrl + 'media/digital-mixer-poster.webp'}
-                    src={baseUrl + 'media/digital-mixer-demo.mp4'} aria-labelledby="digital-mixer-caption" />
-                  <EditableNode as="figcaption" id="digital-mixer-caption" editKey="homepage-59" kind="text">
-                    {lang === 'en' ? 'Digital mixer demonstration' : lang === 'kz' ? 'Цифрлық араластырғыштың жұмысын көрсету' : 'Демонстрация работы цифрового смесителя'}
-                  </EditableNode>
-                </figure>
+                <EditableNode as="img" className="service-support-photo" editKey="home-service-support-photo" kind="image"
+                  src={baseUrl + 'images/campaign/service-support.webp'}
+                  alt={lang === 'en' ? 'A LAUTE service specialist answering an enquiry' : lang === 'kz' ? 'LAUTE сервис маманы өтінішке жауап беруде' : 'Специалист сервиса LAUTE отвечает на обращение'}
+                  loading="lazy" decoding="async" />
               </div>
             </div>
           </div>

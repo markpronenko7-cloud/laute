@@ -134,6 +134,7 @@ export const AppProvider = ({ children }) => {
     }
     return DEFAULT_PRODUCTS;
   });
+  const [catalogLoaded, setCatalogLoaded] = useState(false);
 
   // Warehouses & Stock State
   const [warehousesList, setWarehousesList] = useState([]);
@@ -233,6 +234,8 @@ export const AppProvider = ({ children }) => {
       }
     } catch {
       // fallback
+    } finally {
+      setCatalogLoaded(true);
     }
   }, []);
 
@@ -339,19 +342,19 @@ export const AppProvider = ({ children }) => {
           if (seg) sku = decodeURIComponent(seg);
         }
 
-        if (sku && products && products.length > 0) {
+        if (sku) {
           const cleanSku = String(sku).trim().toLowerCase();
           const found = products.find(p => p.article && p.article.toLowerCase() === cleanSku);
           if (found) {
             setSelectedProduct(found);
-          } else {
+          } else if (catalogLoaded) {
             setSelectedProduct({
               article: sku,
               name: `Товар ${sku}`,
               notFound: true
             });
           }
-        } else if (!sku) {
+        } else {
           setSelectedProduct(null);
         }
       } catch {
@@ -366,7 +369,7 @@ export const AppProvider = ({ children }) => {
       window.removeEventListener('popstate', syncProductFromUrl);
       window.removeEventListener('hashchange', syncProductFromUrl);
     };
-  }, [products, routeSearch]);
+  }, [products, routeSearch, catalogLoaded]);
 
   const startComparison = useCallback((...items) => {
     setComparisonItems(items.filter(Boolean));
