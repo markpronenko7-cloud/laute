@@ -17,6 +17,7 @@ import {
 } from '../utils/excelManager.js';
 import { classifyProductImages } from '../utils/imageHelper.js';
 import { formatCatalogPrice } from '../utils/catalogPrice.js';
+import { withTrumpHero } from '../utils/contentSettings.js';
 
 // ==========================================
 // 0. SUPABASE CONFIGURATION
@@ -243,7 +244,7 @@ export const fetchSiteContent = async (isDraft = false) => {
   if (isDraft === true || isDraft === 'draft') {
     if (!token) throw new Error('Требуется авторизация администратора');
     const adminData = await callSupabaseRpc('laute_get_admin_data', { p_token: token });
-    if (adminData && adminData.draft) return adminData.draft;
+    if (adminData && adminData.draft) return withTrumpHero(adminData.draft);
     throw new Error('Не удалось загрузить сохранённый черновик');
   }
 
@@ -253,7 +254,7 @@ export const fetchSiteContent = async (isDraft = false) => {
     if (Array.isArray(records) && records.length > 0 && records[0].data) {
       const data = records[0].data;
       if (records[0].version) data.version = records[0].version;
-      return data;
+      return withTrumpHero(data);
     }
   } catch (err) {
     console.warn('Ошибка загрузки опубликованного контента из Supabase:', err);
@@ -263,7 +264,7 @@ export const fetchSiteContent = async (isDraft = false) => {
   try {
     const fallbackRes = await fetch(`${import.meta.env.BASE_URL}data/content.json?t=${Date.now()}`);
     if (fallbackRes.ok) {
-      return await fallbackRes.json();
+      return withTrumpHero(await fallbackRes.json());
     }
   } catch {
     // fallback
@@ -307,7 +308,7 @@ export const publishSiteContent = async () => {
   const records = await querySupabase('laute_site_content?id=eq.published&select=data,version');
   if (!records?.[0]?.data) throw new Error('Публикация выполнена, но не удалось перечитать контент. Обнови страницу.');
   if (result.content && !containsSavedFields(records[0].data, result.content)) throw new Error('Публичная версия не совпала с опубликованной. Обнови страницу и проверь результат.');
-  return { ...result, content: { ...records[0].data, version: records[0].version || result.version, hasUnpublishedChanges: false } };
+  return { ...result, content: withTrumpHero({ ...records[0].data, version: records[0].version || result.version, hasUnpublishedChanges: false }) };
 };
 
 export const discardSiteContentDraft = async () => {
@@ -321,7 +322,7 @@ export const discardSiteContentDraft = async () => {
   if (!result || !result.success) {
     throw new Error(result?.error || 'Ошибка отмены изменений черновика');
   }
-  return result.draft;
+  return withTrumpHero(result.draft);
 };
 
 export const rollbackSiteContent = async (backupId) => {
@@ -337,7 +338,7 @@ export const rollbackSiteContent = async (backupId) => {
     throw new Error(result?.error || 'Ошибка отката контента');
   }
   const records = await querySupabase('laute_site_content?id=eq.published&select=data,version');
-  return { ...result, content: records?.[0]?.data ? { ...records[0].data, version: records[0].version } : null };
+  return { ...result, content: records?.[0]?.data ? withTrumpHero({ ...records[0].data, version: records[0].version }) : null };
 };
 
 export const fetchContentBackups = async () => {

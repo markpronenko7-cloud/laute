@@ -5,11 +5,17 @@ import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react
 import { isSafeActionLink } from './SiteAction';
 import { withBrandWord } from '../utils/brandFormatter';
 import { catalogRoute } from '../utils/catalogSearch';
+import { TRUMP_HERO_SLIDE, withTrumpHero } from '../utils/contentSettings';
 
 const showerRoute = catalogRoute({ category: 'shower-systems', product: 'LEO194H' });
 const bitcoinRoute = catalogRoute({ collection: 'bitcoin' });
+const trumpCopy = {
+  ru: { tagline: TRUMP_HERO_SLIDE.tagline, buttonText: TRUMP_HERO_SLIDE.buttonText },
+  en: { tagline: 'LAUTE COLLECTION', buttonText: 'View the collection' },
+  kz: { tagline: 'LAUTE ТОПТАМАСЫ', buttonText: 'Топтаманы көру' },
+};
 const campaignSlides = {
-  'slide-2': { stock: 'images/hero/hero-slide-2.jpg', image: 'images/campaign/hero-shower.webp', route: showerRoute },
+  'slide-2': { stock: 'images/hero/hero-slide-2.jpg', image: 'images/campaign/hero-shower.webp?v=2', route: showerRoute },
   'slide-3': { stock: 'images/hero/hero-slide-3.jpg', route: bitcoinRoute },
   'slide-6': { stock: 'images/hero/hero-slide-6.jpg', image: 'images/campaign/hero-six.webp' },
 };
@@ -58,9 +64,20 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
 
   const SLIDE_DURATION = 3000; // Exactly 3000ms per requirement
 
-  const configuredSlides = (slidesOverride || siteContent?.homeBlocks?.heroSlider)?.filter(s => s.isVisible !== false);
+  const configuredSlides = (slidesOverride || withTrumpHero(siteContent)?.homeBlocks?.heroSlider)?.filter(s => s.isVisible !== false);
+  const configuredTrumpIndex = configuredSlides?.findIndex(slide => slide.id === TRUMP_HERO_SLIDE.id) ?? -1;
 
+  const trumpText = trumpCopy[lang] || trumpCopy.ru;
   const defaultSlides = [
+    {
+      id: TRUMP_HERO_SLIDE.id,
+      image: baseUrl + TRUMP_HERO_SLIDE.image,
+      ...trumpText,
+      title: TRUMP_HERO_SLIDE.title,
+      subtitle: TRUMP_HERO_SLIDE.subtitle,
+      action: () => navigateTo(TRUMP_HERO_SLIDE.buttonLink),
+      buttonId: 'hero-slide-trump-btn',
+    },
     {
       id: 'brand',
       image: `${baseUrl}images/hero/hero-slide-1.jpg`,
@@ -136,7 +153,9 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
     ? configuredSlides.map((s, idx) => {
         const campaign = campaignSlides[s.id];
         const usesStock = campaign?.stock === String(s.image || '').replace(/^\//, '');
-        const imagePath = (usesStock && campaign.image) || s.image || 'images/hero/hero-slide-1.jpg';
+        const imagePath = (usesStock && campaign.image)
+          || (s.image === 'images/campaign/hero-shower.webp' ? campaignSlides['slide-2'].image : s.image)
+          || 'images/hero/hero-slide-1.jpg';
         const buttonLink = (usesStock && (s.buttonLink === 'catalog' || !s.buttonLink) && campaign.route) || s.buttonLink;
         let action = () => navigateTo('catalog');
         if (buttonLink === 'modal:partner') action = openPartnerModal;
@@ -154,22 +173,27 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
             else navigateTo(link.replace(/^\//, ''));
           };
         }
-        const slideT = t.home?.heroSlides?.[idx] || {};
+        const isTrump = s.id === TRUMP_HERO_SLIDE.id;
+        const previousIndex = idx - Number(configuredTrumpIndex >= 0 && idx > configuredTrumpIndex);
+        const slideT = isTrump ? trumpText : t.home?.heroSlides?.[previousIndex] || {};
         return {
           id: s.id || `slide-${idx}`,
           image: imagePath.startsWith('http') ? imagePath : baseUrl + imagePath.replace(/^\//, ''),
-          showLargeLogo: idx === 0 || idx === 4,
+          showLargeLogo: !isTrump && (previousIndex === 0 || previousIndex === 4),
           tagline: (lang !== 'ru' && slideT.tagline) ? slideT.tagline : (s.tagline || slideT.tagline || 'LAUTE®'),
           title: (lang !== 'ru' && englishBrandTitle(lang, s.id, slideT.title)) || s.title || slideT.title || 'Управляй водой грамотно',
           subtitle: (lang !== 'ru' && slideT.subtitle) ? slideT.subtitle : (s.subtitle || slideT.subtitle),
           buttonText: (lang !== 'ru' && slideT.buttonText) ? slideT.buttonText : (s.buttonText || slideT.buttonText || 'Каталог'),
           action,
-          buttonId: `hero-slide${idx + 1}-btn`
+          buttonId: isTrump ? 'hero-slide-trump-btn' : `hero-slide${previousIndex + 1}-btn`
         };
       })
     : defaultSlides;
 
   const totalSlides = slidesData.length;
+  const trumpIndex = slidesData.findIndex(slide => slide.id === TRUMP_HERO_SLIDE.id);
+  // Keep the existing native CMS edit slots when the Trump campaign is inserted.
+  const editSlot = index => index === trumpIndex ? 'trump' : index - Number(trumpIndex >= 0 && index > trumpIndex);
 
   const nextSlide = useCallback(() => {
     setActiveSlide((prev) => (prev + 1) % totalSlides);
@@ -236,7 +260,7 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
       <div className="hero-slides-wrapper">
         {slidesData.map((slide, index) => {
           const isActive = index === activeSlide;
-          const editKey = `herocarousel-1:${index}`;
+          const editKey = `herocarousel-1:${editSlot(index)}`;
           const image = content?.edits?.[editKey]?.[lang]?.src ?? slide.image;
           const stockSlide = image.match(/(?:^|\/)images\/hero\/hero-slide-([1-6])\.jpg$/)?.[1];
           return (
@@ -248,7 +272,7 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
               <EditableNode as="div" editKey={editKey} kind="background" src={slide.image}
                 className="hero-slide-bg"
                 data-stock-slide={stockSlide}
-                data-campaign-slide={image.match(/\/hero-(shower|six)\.webp$/)?.[1]}
+                data-campaign-slide={image.match(/\/campaign\/(?:hero-)?(trump|shower|six)\.webp(?:\?|$)/)?.[1]}
                 style={{ backgroundImage: `url(${slide.image})` }}
               >
                 <div className="hero-slide-overlay"></div>
@@ -263,6 +287,8 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
         <div className="hero-captions-deck">
           {slidesData.map((slide, index) => {
             const isActive = index === activeSlide;
+            const slot = editSlot(index);
+            const titleKey = `herocarousel-${slot === 0 || slot === 'trump' ? '4' : '5'}:${slot}`;
 
             return (
               <div
@@ -274,7 +300,7 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
                 {/* Slide 1 & 5 prominent authentic LAUTE branding */}
                 {slide.showLargeLogo ? (
                   <div className="hero-prominent-logo-wrap">
-                    <EditableNode as="img" editKey={"herocarousel-2" + ':' + String(index)} kind="image"
+                    <EditableNode as="img" editKey={`herocarousel-2:${slot}`} kind="image"
                       src={`${baseUrl}laute-logo.png`}
                       alt="LAUTE"
                       className="hero-prominent-logo-img"
@@ -282,31 +308,25 @@ export const HeroCarousel = ({ slidesOverride } = {}) => {
                   </div>
                 ) : (
                   <div className="hero-slide-badge">
-                    <EditableNode as="span" editKey={"herocarousel-3" + ':' + String(index)} kind="text" className="hero-badge-pill">{withBrandWord(slide.tagline)}</EditableNode>
+                    <EditableNode as="span" editKey={`herocarousel-3:${slot}`} kind="text" className="hero-badge-pill">{withBrandWord(slide.tagline)}</EditableNode>
                   </div>
                 )}
 
                 {/* Main Headline: Single semantic H1 on page for slide 1 */}
-                {index === 0 ? (
-                  <EditableNode as="h1" editKey={"herocarousel-4" + ':' + String(index)} kind="text" className="hero-slide-title">
-                    {withBrandWord(slide.title)}
-                  </EditableNode>
-                ) : (
-                  <EditableNode as="h2" editKey={"herocarousel-5" + ':' + String(index)} kind="text" className="hero-slide-title">
-                    {withBrandWord(slide.title)}
-                  </EditableNode>
-                )}
+                <EditableNode as={index === 0 ? 'h1' : 'h2'} editKey={titleKey} kind="text" className="hero-slide-title">
+                  {withBrandWord(slide.title)}
+                </EditableNode>
 
                 {/* Subtitle / Strong explanation for slides 4 & 6 */}
                 {slide.subtitle && (
-                  <EditableNode as="p" editKey={"herocarousel-6" + ':' + String(index)} kind="text" className="hero-slide-subtitle">
+                  <EditableNode as="p" editKey={`herocarousel-6:${slot}`} kind="text" className="hero-slide-subtitle">
                     {withBrandWord(slide.subtitle)}
                   </EditableNode>
                 )}
 
                 {/* Action Button */}
                 <div className="hero-slide-action-wrap">
-                  <EditableNode as="button" editKey={"herocarousel-7" + ':' + String(index)} kind="button"
+                  <EditableNode as="button" editKey={`herocarousel-7:${slot}`} kind="button"
                     type="button"
                     id={slide.buttonId}
                     className="btn btn-hero-luxury"

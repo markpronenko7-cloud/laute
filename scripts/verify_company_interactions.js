@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import { test } from 'node:test';
 import { transform } from 'esbuild';
-import { getCompanyProcessMedia, isShippedProcessFilm } from '../src/data/factoryStory.js';
+import { COMPANY_BLOCKS, getCompanyBlocks, getCompanyProcessMedia, isShippedProcessFilm } from '../src/data/factoryStory.js';
 
 async function harness(file, props) {
   const slots = [], effects = [], timers = [];
@@ -46,7 +46,7 @@ test('Advertising cache refresh preserves custom employee films, posters and tex
   assert.equal(getCompanyProcessMedia(custom), custom);
   const shipped = getCompanyProcessMedia({ ...custom, videoUrl: 'media/processes/casting.mp4?cut=3' });
   assert.equal(shipped.title, custom.title); assert.equal(shipped.posterUrl, custom.posterUrl);
-  assert.equal(shipped.durationLabel, '0:13'); assert.equal(shipped.videoUrl, 'media/processes/casting.mp4?edit=6');
+  assert.equal(shipped.durationLabel, '0:20'); assert.equal(shipped.videoUrl, 'media/processes/casting.mp4?edit=15');
   const packing = getCompanyProcessMedia({ videoUrl: 'media/processes/packing.mp4?edit=6', posterUrl: 'images/factory/processes/packing-poster.webp?edit=6' });
   assert.equal(packing.videoUrl, 'media/processes/packing.mp4?edit=11');
   assert.equal(packing.durationLabel, '0:13');
@@ -56,16 +56,40 @@ test('Advertising cache refresh preserves custom employee films, posters and tex
   assert.equal(steel.durationLabel, '0:24');
   assert.equal(isShippedProcessFilm(steel.videoUrl), true);
   const robot = getCompanyProcessMedia({ videoUrl: 'media/processes/robot-polishing.mp4?edit=6' });
-  assert.equal(robot.videoUrl, 'media/processes/robot-polishing.mp4?brand=10');
-  assert.equal(robot.durationLabel, '0:13');
-  for (const id of ['salt-spray', 'lux-bench-test']) {
+  assert.equal(robot.videoUrl, 'media/processes/robot-polishing.mp4?edit=15');
+  assert.equal(robot.durationLabel, '0:25');
+  for (const [id, duration] of [['salt-spray', '0:30'], ['lux-bench-test', '0:44']]) {
     const video = `media/processes/${id}.mp4`;
     const poster = `images/factory/processes/${id}-poster.webp`;
     const refreshed = getCompanyProcessMedia({ videoUrl: `${video}?edit=13`, posterUrl: `${poster}?edit=13` });
-    assert.equal(refreshed.videoUrl, `${video}?edit=14`);
-    assert.equal(refreshed.posterUrl, `${poster}?edit=14`);
-    assert.equal(refreshed.durationLabel, '0:13');
+    assert.equal(refreshed.videoUrl, `${video}?edit=15`);
+    assert.equal(refreshed.posterUrl, `${poster}?edit=15`);
+    assert.equal(refreshed.durationLabel, duration);
   }
+});
+
+test('Shipped Lux copy migrates without replacing employee copy or media', () => {
+  const production = COMPANY_BLOCKS.find(block => block.companySection === 'production');
+  const lux = production.items.find(item => item.processId === 'lux-bench-test');
+  const savedLux = {
+    ...lux,
+    title: 'Стендовая проверка смесителей серии «Люкс»',
+    desc: 'Текст сотрудника',
+    translations: {
+      en: { title: 'Bench testing the Lux faucet range', desc: 'Employee text' },
+      kz: { title: '«Люкс» топтамасының араластырғыштарын стендте тексеру' }
+    }
+  };
+  const custom = { ...savedLux, videoUrl: 'media/employee.mp4' };
+  const [updated] = getCompanyBlocks([{ ...production, processMediaVersion: 6, items: [savedLux, custom] }]);
+  const [revised, unmodified] = updated.items;
+  assert.equal(revised.title, lux.title);
+  assert.equal(revised.translations.en.title, lux.translations.en.title);
+  assert.equal(revised.translations.kz.title, lux.translations.kz.title);
+  assert.equal(revised.desc, 'Текст сотрудника');
+  assert.equal(revised.translations.en.desc, 'Employee text');
+  assert.equal(unmodified, custom);
+  assert.equal(getCompanyBlocks([updated])[0], updated);
 });
 
 test('Employee films do not inherit the shipped soundtrack attribution', async () => {

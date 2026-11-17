@@ -1,3 +1,31 @@
+export const TRUMP_HERO_SLIDE = {
+  id: 'slide-trump',
+  tagline: 'КОЛЛЕКЦИЯ LAUTE',
+  title: 'LAUTE Trump',
+  subtitle: 'TRUMP101GQ · TRUMP194',
+  buttonText: 'Смотреть коллекцию',
+  buttonLink: 'catalog?collection=trump',
+  image: 'images/campaign/trump.webp?v=5',
+  order: 0,
+  isVisible: true
+};
+
+export function withTrumpHero(content) {
+  const homeBlocks = content?.homeBlocks;
+  const slides = homeBlocks?.heroSlider;
+  if (homeBlocks?.heroCampaignVersion || !Array.isArray(slides)) return content;
+  const alreadyAdded = slides.some(slide => slide.id === TRUMP_HERO_SLIDE.id);
+  if (!alreadyAdded && slides[0]?.id !== 'slide-1') return content;
+  return {
+    ...content,
+    homeBlocks: {
+      ...homeBlocks,
+      heroCampaignVersion: 1,
+      heroSlider: alreadyAdded ? slides : [{ ...TRUMP_HERO_SLIDE }, ...slides]
+    }
+  };
+}
+
 export const navigationKey = route => ({ company: 'about', 'where-to-buy': 'whereToBuy' }[route] || route);
 
 export const getNavTranslation = (content, lang, item) => {

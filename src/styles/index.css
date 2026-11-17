@@ -9223,17 +9223,30 @@ a.collection-gallery-item { cursor: pointer; color: inherit; }
 .campaign-caption > span { display: inline-flex; align-items: center; gap: 7px; font-size: .85rem; }
 .campaign-banner:hover .campaign-caption > span { text-decoration: underline; }
 .company-atlas-banner { margin-bottom: 22px; }
+.company-atlas-banner > img { aspect-ratio: 2; }
 .company-atlas-banner .campaign-caption { position: static; border-radius: 0; }
-.hero-slide .hero-slide-bg[data-campaign-slide="shower"] {
+.hero-slide .hero-slide-bg:is([data-campaign-slide="shower"], [data-campaign-slide="trump"]) {
   padding-top: calc(var(--header-height) + var(--sat, 0px));
   background-origin: content-box;
   background-clip: content-box;
-  background-position: center top;
+  background-position: right center;
   transform: none;
 }
+.hero-slide-bg[data-campaign-slide="trump"] {
+  background-color: #242b25;
+  background-size: 76% auto;
+}
+.hero-slide-bg[data-campaign-slide="trump"] .hero-slide-overlay {
+  background: linear-gradient(90deg, #171e19 18%, #171e19b0 33%, transparent 54%),
+    linear-gradient(0deg, #171e19df, transparent 33%);
+}
+.hero-slide-bg[data-campaign-slide="shower"] {
+  background-color: #2b231c;
+  background-size: auto 100%;
+}
 .hero-slide-bg[data-campaign-slide="shower"] .hero-slide-overlay {
-  background: linear-gradient(90deg, #21170fbe, #21170f7d 40%, transparent 72%),
-    linear-gradient(0deg, #21170fd1, transparent 46%);
+  background: linear-gradient(90deg, #21170f 42%, #21170f82 50%, transparent 65%),
+    linear-gradient(0deg, #21170f8c, transparent 24%);
 }
 .partnership-solana > img { aspect-ratio: 16 / 9; }
 .partnership-currencies { position: absolute; inset: 0; color: #ffe0a0; pointer-events: none; }
@@ -9272,14 +9285,24 @@ a.collection-gallery-item { cursor: pointer; color: inherit; }
   .collection-card-featured .collection-glass-caption { position: static; width: 100%; max-width: none; border-radius: 0; }
   .campaign-caption { position: relative; inset: auto; padding: 12px; }
   .partnership-currencies { height: auto; bottom: auto; aspect-ratio: 16 / 9; }
-  .hero-slide .hero-slide-bg[data-campaign-slide="shower"] {
+  .hero-slide .hero-slide-bg:is([data-campaign-slide="shower"], [data-campaign-slide="trump"]) {
     padding-top: calc(var(--header-height-mobile) + var(--sat, 0px));
-    background-position: 78% top;
+    background-position: center top;
+  }
+  .hero-slide .hero-slide-bg[data-campaign-slide="trump"] {
+    background-position: center 9%;
+    background-size: 132% auto;
+  }
+  .hero-slide-bg[data-campaign-slide="trump"] .hero-slide-overlay {
+    background: linear-gradient(0deg, #171e19 38%, #171e1900 59%);
+  }
+  .hero-slide-bg[data-campaign-slide="shower"] {
+    background-size: min(100%, 48svh) auto;
   }
   .hero-slide-bg[data-campaign-slide="shower"] .hero-slide-overlay {
-    background: linear-gradient(0deg, #21170ff5, #21170fc0 22%, transparent 75%);
+    background: linear-gradient(0deg, #21170f 39%, #21170f00 49%);
   }
-  .company-collection-banner > img { aspect-ratio: 1.5; object-position: 68% center; }
+  .company-collection-banner:not(.company-atlas-banner) > img { aspect-ratio: 1.5; object-position: 68% center; }
   .hero-slide-bg[data-campaign-slide="six"] { background-position: 89% center; }
 }
 

@@ -8,8 +8,7 @@ Retrieved: 2026-11-04
 Source SHA-256: F12CBB52BD4B92BD6CF8A343645567C119627E9CBF98108A3EB6AC2CC275EE46
 
 Used in the production process films under public/media/processes/.
-The shared excerpt starts at 32s and lasts 13.0667s (392 video frames).
-The stainless steel film uses a 24-second excerpt from the same starting point.
+Each excerpt starts at 32s and runs to the end of its film.
 Changes: excerpt, 7kHz low-pass, loudness normalization targeting -25 LUFS,
 true peak ceiling -4 dBTP, 0.35s fade in, 0.8s fade out, AAC encoding.
 Source conversations are omitted.

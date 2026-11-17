@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { translations } from '../src/i18n/translations.js';
+import { TRUMP_HERO_SLIDE } from '../src/utils/contentSettings.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -140,7 +141,9 @@ export function buildInitialContent() {
       copyrightNotice: '© 2026 LAUTE LTD. Все права защищены.'
     },
     homeBlocks: {
+      heroCampaignVersion: 1,
       heroSlider: [
+        { ...TRUMP_HERO_SLIDE },
         {
           id: 'slide-1',
           tagline: 'LAUTE®',

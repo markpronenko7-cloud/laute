@@ -12,7 +12,7 @@ import { validateCatalogArchive, uploadCatalogArchiveMedia } from '../src/utils/
 import { formatProductDisplay, classifyProductImages } from '../src/utils/imageHelper.js';
 import { formatCatalogPrice, getRegionalProductPrice } from '../src/utils/catalogPrice.js';
 import { getPublishedPage, getEditableBlocks } from '../src/utils/pagePublication.js';
-import { getNavigation, getNavTranslation, getPageSeo } from '../src/utils/contentSettings.js';
+import { getNavigation, getNavTranslation, getPageSeo, withTrumpHero } from '../src/utils/contentSettings.js';
 import { CATEGORY_NAMES } from '../src/data/catalogData.js';
 
 const workbook = rows => {
@@ -236,6 +236,21 @@ test('Складской Excel: отказ сервера сохраняет п�
       assert.deepEqual(loads, ['qa-wh']);
     }
   }
+});
+
+test('CMS: добавление Trump сохраняет существующие слайды и решения редактора', () => {
+  const brand = { id: 'slide-1', title: 'Заголовок сотрудника' };
+  const hidden = { id: 'slide-2', isVisible: false };
+  const legacy = { homeBlocks: { heroSlider: [brand, hidden], materials: { title: 'Материалы' } } };
+  const revised = withTrumpHero(legacy);
+  assert.equal(revised.homeBlocks.heroSlider[0].id, 'slide-trump');
+  assert.deepEqual(revised.homeBlocks.heroSlider.slice(1), [brand, hidden]);
+  assert.equal(revised.homeBlocks.materials, legacy.homeBlocks.materials);
+  assert.equal(withTrumpHero(revised), revised);
+  const removed = { homeBlocks: { ...revised.homeBlocks, heroSlider: [brand, hidden] } };
+  assert.equal(withTrumpHero(removed), removed);
+  const custom = { homeBlocks: { heroSlider: [{ id: 'editor-slide' }, brand] } };
+  assert.equal(withTrumpHero(custom), custom);
 });
 
 test('CMS: подписи, видимость, локализация меню и обе схемы SEO', () => {

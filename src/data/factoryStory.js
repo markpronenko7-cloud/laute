@@ -28,8 +28,18 @@ const newProcessImages = {
 };
 const newProcessRevision = 'edit=11';
 const steelProcessRevision = 'edit=12';
-const qualityProcessRevision = 'edit=14';
-const qualityProcessDurations = { 'salt-spray': '0:13', 'lux-bench-test': '0:13' };
+const qualityProcessIds = ['salt-spray', 'lux-bench-test'];
+const extendedProcessDurations = {
+  casting: '0:20',
+  trimming: '0:17',
+  machining: '0:20',
+  'robot-polishing': '0:25',
+  'sink-finishing': '0:25',
+  sealing: '0:11',
+  'salt-spray': '0:30',
+  'lux-bench-test': '0:44'
+};
+const previousLuxCopy = row('', 'Стендовая проверка смесителей серии «Люкс»', 'Мастер проверяет кухонный смеситель серии «Люкс» на испытательном стенде. В ролике видны установка, работа мастера на стенде и смеситель после проверки.', 'Bench testing the Lux faucet range', 'A technician tests a Lux kitchen faucet on a bench. The film shows the faucet being installed, tested and moved to the workbench afterward.', '«Люкс» топтамасының араластырғыштарын стендте тексеру', 'Шебер «Люкс» топтамасының асүй араластырғышын сынақ стендінде тексереді. Бейнеде араластырғышты орнату, стендте тексеру және тексеруден кейін жұмыс үстеліне қою көрсетіледі.');
 const previousSteelCopy = row('', 'Ручная обработка нержавеющей стали', 'Оператор в перчатках подводит корпус смесителя к вращающемуся кругу и вручную обрабатывает поверхность. Рядом в деревянных лотках лежат корпуса.', 'Hand finishing stainless steel', 'A gloved operator brings a faucet body up to a rotating wheel and finishes its surface by hand. More bodies sit in wooden trays nearby.', 'Тот баспайтын болатты қолмен өңдеу', 'Оператор қолғап киіп, араластырғыш корпусын айналмалы дөңгелекке жақындатып, бетін қолмен өңдейді. Жанындағы ағаш науаларда басқа корпустар жатыр.');
 
 export const COMPANY_BLOCKS = [
@@ -55,23 +65,23 @@ export const COMPANY_BLOCKS = [
     row('2025', 'Расширение коллекций LAUTE', 'Расширяем коллекции флагманского бренда LAUTE. Solana, Ethereum и Bitcoin отсылают к миру Web3 и интересу бренда к технологиям будущего, включая AI.', 'Expanding LAUTE collections', 'The flagship LAUTE collections expand. Solana, Ethereum and Bitcoin reference Web3 and the brand’s interest in future technologies, including AI.', 'LAUTE коллекцияларын кеңейту', 'LAUTE негізгі брендінің коллекциялары кеңейеді. Solana, Ethereum және Bitcoin Web3 әлеміне және брендтің AI қоса болашақ технологияларына қызығушылығына сілтейді.'),
     row('2026', 'Склад в Алматы', 'Открываем склад в Алматы — на историческом Шёлковом пути. Развиваем логистику в Центральной Азии, чтобы быть ближе к партнёрам.', 'A warehouse in Almaty', 'A warehouse opens in Almaty on the historic Silk Road, bringing Central Asian logistics closer to our partners.', 'Алматыдағы қойма', 'Тарихи Жібек жолындағы Алматыда қойма ашылады. Серіктестерге жақын болу үшін Орталық Азиядағы логистиканы дамытамыз.')
   ] }),
-  section('production', 'gallery', 'Прежде чем открыть воду', productionIntro.ru, 'Before the water flows', productionIntro.en, 'Суды ашқанға дейін', productionIntro.kz, { processMediaVersion: 6, items: [
-    { ...row('', 'Литьё заготовок', 'Расплавленный металл переносят из печи в форму. В кадре — заливка и работа с литейной оснасткой.', 'Casting the blanks', 'Molten metal is transferred from the furnace into a mould. The footage shows pouring and work at the casting station.', 'Дайындамаларды құю', 'Балқыған металл пештен қалыпқа құйылады. Кадрда құю және қалыппен жұмыс көрсетілген.'), processId: 'casting', durationLabel: '0:14' },
-    { ...row('', 'Работа с литейной формой', 'Мастер вручную работает с металлической формой на столе. Показываем оснастку, рабочий жест и собранные отливки — без подмены этой операции другим процессом.', 'Working with the casting mould', 'An operator works with a metal casting mould at the bench. The edit shows the fixture, the manual operation and collected castings.', 'Құю қалыбымен жұмыс', 'Шебер үстелдегі металл қалыппен қолмен жұмыс істейді. Бейнеде қалып, жұмыс қимылы және жиналған құймалар көрсетілген.'), processId: 'trimming', durationLabel: '0:11' },
-    { ...row('', 'Станочная обработка', 'Станочный участок, рабочая зона оборудования и партии заготовок. Крупные планы показывают видимую оснастку и детали.', 'The machine shop', 'The machine shop, the equipment working area and batches of blanks. Close views show the actual fixtures and parts.', 'Станокта өңдеу', 'Станок учаскесі, жабдықтың жұмыс аймағы және дайындамалар. Жақын планда нақты жабдық пен бөлшектер көрінеді.'), processId: 'machining', durationLabel: '0:11' },
-    { ...row('', 'Роботизированная полировка', 'Манипулятор подводит корпус к полировальному кругу и меняет положение детали. Общий и крупный планы показывают одну и ту же операцию с разных точек.', 'Robotic polishing', 'A robot brings the body to the polishing wheel and changes its position. Wide and close views show the same operation from different angles.', 'Роботпен жылтырату', 'Робот корпусты жылтырату дөңгелегіне жақындатып, оның қалпын өзгертеді. Үдеріс әртүрлі нүктеден көрсетілген.'), processId: 'robot-polishing', durationLabel: '0:15' },
-    { ...row('', 'Ручная обработка моек', 'Мастер последовательно обрабатывает поверхность и края мойки ручным инструментом. Здесь важны доступ к углам и контроль каждого движения.', 'Hand finishing the sinks', 'An operator works the sink surface and edges with a handheld tool, reaching the corners and controlling each pass.', 'Жуғыштарды қолмен өңдеу', 'Шебер жуғыштың беті мен жиектерін қол құралымен өңдейді, бұрыштарға жетіп, әр қозғалысты бақылайды.'), processId: 'sink-finishing', durationLabel: '0:13' },
-    { ...row('', 'Нанесение герметика', 'На обратной стороне мойки мастер наносит состав вдоль стыка. Крупный план сохраняет весь рабочий жест — от движения пистолета до готовой полосы.', 'Applying sealant', 'An operator applies sealant along a joint on the underside of the sink. The close view follows the application along the seam.', 'Герметик жағу', 'Шебер жуғыштың артқы жағындағы түйіспеге герметик жағады. Жақын план жағу қозғалысын көрсетеді.'), processId: 'sealing', durationLabel: '0:09' },
-    { ...row('', previousSteelCopy.title, 'На одном участке мастера руками устанавливают стальные детали в оснастку. На другом мастер в перчатках поворачивает корпус смесителя и шлифует его поверхность на вращающемся круге.', previousSteelCopy.translations.en.title, 'At one station, workers position the steel parts in fixtures by hand. At another, a gloved worker turns the faucet body against a rotating wheel to finish its surface.', previousSteelCopy.translations.kz.title, 'Бір учаскеде шеберлер болат бөлшектерді бекіткішке қолмен орнатады. Басқа учаскеде шебер қолғаппен араластырғыш корпусын бұрып, бетін айналмалы дөңгелекте тегістейді.'), processId: 'steel-finishing', durationLabel: '0:24' },
-    { ...row('', 'Солевое тестирование', 'Детали смесителей помещают в камеру солевого тумана для проверки стойкости покрытия к коррозии. В ролике показаны образцы в камере, панель управления и журнал испытаний.', 'Salt spray testing', 'Faucet components go into a salt spray chamber to test the finish for corrosion resistance. The film shows the samples, the chamber controls and the test log.', 'Тұзды тұманда сынау', 'Араластырғыш бөлшектерін жабынның коррозияға төзімділігін тексеру үшін тұзды тұман камерасына орналастырады. Бейнеде үлгілер, камераның басқару панелі және сынақ журналы көрсетіледі.'), processId: 'salt-spray', durationLabel: qualityProcessDurations['salt-spray'] },
-    { ...row('', 'Стендовая проверка смесителей серии «Люкс»', 'Мастер проверяет кухонный смеситель серии «Люкс» на испытательном стенде. В ролике видны установка, работа мастера на стенде и смеситель после проверки.', 'Bench testing the Lux faucet range', 'A technician tests a Lux kitchen faucet on a bench. The film shows the faucet being installed, tested and moved to the workbench afterward.', '«Люкс» топтамасының араластырғыштарын стендте тексеру', 'Шебер «Люкс» топтамасының асүй араластырғышын сынақ стендінде тексереді. Бейнеде араластырғышты орнату, стендте тексеру және тексеруден кейін жұмыс үстеліне қою көрсетіледі.'), processId: 'lux-bench-test', durationLabel: qualityProcessDurations['lux-bench-test'] },
-    { ...row('', 'Защитная упаковка', 'На упаковочном участке видны корпуса смесителей и тканевые чехлы на завязках. Крупные планы показывают детали и чехлы в транспортном ящике.', 'Protective packing', 'The packing area holds faucet bodies and fabric drawstring pouches. Close-ups show the parts and pouches in a transport crate.', 'Қорғаныш қаптама', 'Орау учаскесінде араластырғыш корпустары мен баулы мата қаптар көрінеді. Ірі планда тасымалдау жәшігіндегі бөлшектер мен қаптар көрсетілген.'), processId: 'packing', durationLabel: '0:13' }
+  section('production', 'gallery', 'Прежде чем открыть воду', productionIntro.ru, 'Before the water flows', productionIntro.en, 'Суды ашқанға дейін', productionIntro.kz, { processMediaVersion: 7, items: [
+    { ...row('', 'Литьё заготовок', 'Расплавленный металл переносят из печи в форму. В кадре — заливка и работа с литейной оснасткой.', 'Casting the blanks', 'Molten metal is transferred from the furnace into a mould. The footage shows pouring and work at the casting station.', 'Дайындамаларды құю', 'Балқыған металл пештен қалыпқа құйылады. Кадрда құю және қалыппен жұмыс көрсетілген.'), processId: 'casting' },
+    { ...row('', 'Работа с литейной формой', 'Мастер вручную работает с металлической формой на столе. Показываем оснастку, рабочий жест и собранные отливки — без подмены этой операции другим процессом.', 'Working with the casting mould', 'An operator works with a metal casting mould at the bench. The edit shows the fixture, the manual operation and collected castings.', 'Құю қалыбымен жұмыс', 'Шебер үстелдегі металл қалыппен қолмен жұмыс істейді. Бейнеде қалып, жұмыс қимылы және жиналған құймалар көрсетілген.'), processId: 'trimming' },
+    { ...row('', 'Станочная обработка', 'Станочный участок, рабочая зона оборудования и партии заготовок. Крупные планы показывают видимую оснастку и детали.', 'The machine shop', 'The machine shop, the equipment working area and batches of blanks. Close views show the actual fixtures and parts.', 'Станокта өңдеу', 'Станок учаскесі, жабдықтың жұмыс аймағы және дайындамалар. Жақын планда нақты жабдық пен бөлшектер көрінеді.'), processId: 'machining' },
+    { ...row('', 'Роботизированная полировка', 'Манипулятор подводит корпус к полировальному кругу и меняет положение детали. Общий и крупный планы показывают одну и ту же операцию с разных точек.', 'Robotic polishing', 'A robot brings the body to the polishing wheel and changes its position. Wide and close views show the same operation from different angles.', 'Роботпен жылтырату', 'Робот корпусты жылтырату дөңгелегіне жақындатып, оның қалпын өзгертеді. Үдеріс әртүрлі нүктеден көрсетілген.'), processId: 'robot-polishing' },
+    { ...row('', 'Ручная обработка моек', 'Мастер последовательно обрабатывает поверхность и края мойки ручным инструментом. Здесь важны доступ к углам и контроль каждого движения.', 'Hand finishing the sinks', 'An operator works the sink surface and edges with a handheld tool, reaching the corners and controlling each pass.', 'Жуғыштарды қолмен өңдеу', 'Шебер жуғыштың беті мен жиектерін қол құралымен өңдейді, бұрыштарға жетіп, әр қозғалысты бақылайды.'), processId: 'sink-finishing' },
+    { ...row('', 'Нанесение герметика', 'На обратной стороне мойки мастер наносит состав вдоль стыка. Крупный план сохраняет весь рабочий жест — от движения пистолета до готовой полосы.', 'Applying sealant', 'An operator applies sealant along a joint on the underside of the sink. The close view follows the application along the seam.', 'Герметик жағу', 'Шебер жуғыштың артқы жағындағы түйіспеге герметик жағады. Жақын план жағу қозғалысын көрсетеді.'), processId: 'sealing' },
+    { ...row('', previousSteelCopy.title, 'На одном участке мастера руками устанавливают стальные детали в оснастку. На другом мастер в перчатках поворачивает корпус смесителя и шлифует его поверхность на вращающемся круге.', previousSteelCopy.translations.en.title, 'At one station, workers position the steel parts in fixtures by hand. At another, a gloved worker turns the faucet body against a rotating wheel to finish its surface.', previousSteelCopy.translations.kz.title, 'Бір учаскеде шеберлер болат бөлшектерді бекіткішке қолмен орнатады. Басқа учаскеде шебер қолғаппен араластырғыш корпусын бұрып, бетін айналмалы дөңгелекте тегістейді.'), processId: 'steel-finishing' },
+    { ...row('', 'Солевое тестирование', 'Детали смесителей помещают в камеру солевого тумана для проверки стойкости покрытия к коррозии. В ролике показаны образцы в камере, панель управления и журнал испытаний.', 'Salt spray testing', 'Faucet components go into a salt spray chamber to test the finish for corrosion resistance. The film shows the samples, the chamber controls and the test log.', 'Тұзды тұманда сынау', 'Араластырғыш бөлшектерін жабынның коррозияға төзімділігін тексеру үшін тұзды тұман камерасына орналастырады. Бейнеде үлгілер, камераның басқару панелі және сынақ журналы көрсетіледі.'), processId: 'salt-spray' },
+    { ...row('', 'Контроль качества смесителей серии «Люкс»', 'Мастер устанавливает кухонный смеситель на испытательный стенд, проверяет его работу, затем снимает смеситель и кладёт его на рабочий стол. Видео показывает весь цикл проверки одним кадром.', 'Quality control for Lux faucets', 'A technician mounts a kitchen faucet on the test bench, checks its operation, then removes it and sets it on the worktop. The film follows the full test cycle in one shot.', '«Люкс» сериясындағы араластырғыштардың сапасын бақылау', 'Шебер асүй араластырғышын сынақ стендіне орнатады, жұмысын тексереді, содан кейін оны шешіп, жұмыс үстеліне қояды. Бейнеде сынақтың бүкіл циклі бір кадрда көрсетілген.'), processId: 'lux-bench-test' },
+    { ...row('', 'Защитная упаковка', 'На упаковочном участке видны корпуса смесителей и тканевые чехлы на завязках. Крупные планы показывают детали и чехлы в транспортном ящике.', 'Protective packing', 'The packing area holds faucet bodies and fabric drawstring pouches. Close-ups show the parts and pouches in a transport crate.', 'Қорғаныш қаптама', 'Орау учаскесінде араластырғыш корпустары мен баулы мата қаптар көрінеді. Ірі планда тасымалдау жәшігіндегі бөлшектер мен қаптар көрсетілген.'), processId: 'packing' }
   ].map(item => {
     const image = newProcessImages[item.processId];
-    const revision = Object.hasOwn(qualityProcessDurations, item.processId) ? qualityProcessRevision
-      : item.processId === 'steel-finishing' ? steelProcessRevision : image ? newProcessRevision : 'cut=3';
+    const { revision, durationLabel } = shippedProcessEdit(item.processId);
     return {
       ...item,
+      durationLabel,
       mediaKind: item.processId === 'packing' ? 'documentary' : 'illustration',
       videoKind: 'documentary',
       imageUrl: image || `images/factory/processes/illustrations-v3/${item.processId}.webp`,
@@ -144,10 +154,14 @@ export function getCompanyProcessMedia(item) {
   const match = item.videoUrl?.match(processFilmPattern);
   if (!match) return item;
   const id = match[1], shippedPoster = `images/factory/processes/${id}-poster.webp`;
-  const revision = Object.hasOwn(qualityProcessDurations, id) ? qualityProcessRevision
-    : id === 'steel-finishing' ? steelProcessRevision : newProcessImages[id] ? newProcessRevision : id === 'robot-polishing' ? 'brand=10' : 'edit=6';
-  const durationLabel = qualityProcessDurations[id] || (id === 'steel-finishing' ? '0:24' : '0:13');
+  const { revision, durationLabel } = shippedProcessEdit(id);
   return { ...item, videoUrl: `media/processes/${id}.mp4?${revision}`, durationLabel, posterUrl: item.posterUrl?.split('?')[0] === shippedPoster ? `${shippedPoster}?${revision}` : item.posterUrl };
+}
+
+function shippedProcessEdit(id) {
+  if (id === 'steel-finishing') return { revision: steelProcessRevision, durationLabel: '0:24' };
+  if (id === 'packing') return { revision: newProcessRevision, durationLabel: '0:13' };
+  return { revision: 'edit=15', durationLabel: extendedProcessDurations[id] };
 }
 
 function refreshStockCopy(saved, previous, current) {
@@ -176,9 +190,20 @@ function refreshProcessCopy(item, previous, current) {
 
 function appendQualityProcesses(block, latest) {
   const items = block.items || [];
-  const additions = latest.items.filter(current => Object.hasOwn(qualityProcessDurations, current.processId)
+  const additions = latest.items.filter(current => qualityProcessIds.includes(current.processId)
     && !items.some(item => item.processId === current.processId || item.videoUrl?.split('?')[0] === current.videoUrl.split('?')[0]));
-  return { ...block, items: [...items, ...additions], processMediaVersion: latest.processMediaVersion };
+  return refreshQualityProcess({ ...block, items: [...items, ...additions] }, latest);
+}
+
+function refreshQualityProcess(block, latest) {
+  const lux = latest.items.find(item => item.processId === 'lux-bench-test');
+  return {
+    ...block,
+    items: block.items?.map(item => item.videoUrl?.split('?')[0] === lux.videoUrl.split('?')[0]
+      ? refreshProcessCopy(item, previousLuxCopy, lux)
+      : item),
+    processMediaVersion: latest.processMediaVersion
+  };
 }
 
 function refreshSteelProcess(block, latest) {
@@ -225,6 +250,10 @@ export function getCompanyBlocks(blocks = []) {
     let migrated = false;
     const upgraded = blocks.map(block => {
       if (block.companySection !== 'production') return block;
+      if (block.processMediaVersion === 6) {
+        migrated = true;
+        return refreshQualityProcess(block, latest);
+      }
       if (block.processMediaVersion === 5) {
         migrated = true;
         return appendQualityProcesses(block, latest);
