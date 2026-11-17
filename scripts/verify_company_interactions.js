@@ -46,7 +46,7 @@ test('Advertising cache refresh preserves custom employee films, posters and tex
   assert.equal(getCompanyProcessMedia(custom), custom);
   const shipped = getCompanyProcessMedia({ ...custom, videoUrl: 'media/processes/casting.mp4?cut=3' });
   assert.equal(shipped.title, custom.title); assert.equal(shipped.posterUrl, custom.posterUrl);
-  assert.equal(shipped.durationLabel, '0:20'); assert.equal(shipped.videoUrl, 'media/processes/casting.mp4?edit=15');
+  assert.equal(shipped.durationLabel, '0:30'); assert.equal(shipped.videoUrl, 'media/processes/casting.mp4?edit=16');
   const packing = getCompanyProcessMedia({ videoUrl: 'media/processes/packing.mp4?edit=6', posterUrl: 'images/factory/processes/packing-poster.webp?edit=6' });
   assert.equal(packing.videoUrl, 'media/processes/packing.mp4?edit=11');
   assert.equal(packing.durationLabel, '0:13');
@@ -56,14 +56,14 @@ test('Advertising cache refresh preserves custom employee films, posters and tex
   assert.equal(steel.durationLabel, '0:24');
   assert.equal(isShippedProcessFilm(steel.videoUrl), true);
   const robot = getCompanyProcessMedia({ videoUrl: 'media/processes/robot-polishing.mp4?edit=6' });
-  assert.equal(robot.videoUrl, 'media/processes/robot-polishing.mp4?edit=15');
-  assert.equal(robot.durationLabel, '0:25');
-  for (const [id, duration] of [['salt-spray', '0:30'], ['lux-bench-test', '0:44']]) {
+  assert.equal(robot.videoUrl, 'media/processes/robot-polishing.mp4?edit=16');
+  assert.equal(robot.durationLabel, '0:30');
+  for (const [id, duration, revision] of [['salt-spray', '0:30', 15], ['lux-bench-test', '0:44', 16]]) {
     const video = `media/processes/${id}.mp4`;
     const poster = `images/factory/processes/${id}-poster.webp`;
     const refreshed = getCompanyProcessMedia({ videoUrl: `${video}?edit=13`, posterUrl: `${poster}?edit=13` });
-    assert.equal(refreshed.videoUrl, `${video}?edit=15`);
-    assert.equal(refreshed.posterUrl, `${poster}?edit=15`);
+    assert.equal(refreshed.videoUrl, `${video}?edit=${revision}`);
+    assert.equal(refreshed.posterUrl, `${poster}?edit=${revision}`);
     assert.equal(refreshed.durationLabel, duration);
   }
 });
@@ -90,6 +90,17 @@ test('Shipped Lux copy migrates without replacing employee copy or media', () =>
   assert.equal(revised.translations.en.desc, 'Employee text');
   assert.equal(unmodified, custom);
   assert.equal(getCompanyBlocks([updated])[0], updated);
+  const [savedVersion7] = getCompanyBlocks([{ ...production, processMediaVersion: 7, items: [{
+    ...savedLux,
+    title: 'Контроль качества смесителей серии «Люкс»',
+    translations: {
+      en: { title: 'Quality control for Lux faucets' },
+      kz: { title: '«Люкс» сериясындағы араластырғыштардың сапасын бақылау' }
+    }
+  }] }]);
+  assert.equal(savedVersion7.items[0].title, 'Контроль качества');
+  assert.equal(savedVersion7.items[0].translations.en.title, 'Quality control');
+  assert.equal(savedVersion7.items[0].translations.kz.title, 'Сапаны бақылау');
 });
 
 test('Employee films do not inherit the shipped soundtrack attribution', async () => {

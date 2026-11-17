@@ -14,7 +14,7 @@ export const CollectionsSection = () => {
       id: 'bathroom',
       title: 'LAUTE Trump',
       subtitle: 'TRUMP101GQ · TRUMP194',
-      image: baseUrl + 'images/campaign/trump.webp?v=5',
+      image: baseUrl + 'images/campaign/trump.webp?v=6',
       route: catalogRoute({ collection: 'trump' }),
       layoutClass: 'collection-card-featured'
     },

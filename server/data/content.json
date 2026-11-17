@@ -144,19 +144,7 @@
     "copyrightNotice": "© 2026 LAUTE LTD. Все права защищены."
   },
   "homeBlocks": {
-    "heroCampaignVersion": 1,
     "heroSlider": [
-      {
-        "id": "slide-trump",
-        "tagline": "КОЛЛЕКЦИЯ LAUTE",
-        "title": "LAUTE Trump",
-        "subtitle": "TRUMP101GQ · TRUMP194",
-        "buttonText": "Смотреть коллекцию",
-        "buttonLink": "catalog?collection=trump",
-        "image": "images/campaign/trump.webp?v=5",
-        "order": 0,
-        "isVisible": true
-      },
       {
         "id": "slide-1",
         "tagline": "LAUTE®",

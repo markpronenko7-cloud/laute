@@ -9225,20 +9225,12 @@ a.collection-gallery-item { cursor: pointer; color: inherit; }
 .company-atlas-banner { margin-bottom: 22px; }
 .company-atlas-banner > img { aspect-ratio: 2; }
 .company-atlas-banner .campaign-caption { position: static; border-radius: 0; }
-.hero-slide .hero-slide-bg:is([data-campaign-slide="shower"], [data-campaign-slide="trump"]) {
+.hero-slide .hero-slide-bg[data-campaign-slide="shower"] {
   padding-top: calc(var(--header-height) + var(--sat, 0px));
   background-origin: content-box;
   background-clip: content-box;
   background-position: right center;
   transform: none;
-}
-.hero-slide-bg[data-campaign-slide="trump"] {
-  background-color: #242b25;
-  background-size: 76% auto;
-}
-.hero-slide-bg[data-campaign-slide="trump"] .hero-slide-overlay {
-  background: linear-gradient(90deg, #171e19 18%, #171e19b0 33%, transparent 54%),
-    linear-gradient(0deg, #171e19df, transparent 33%);
 }
 .hero-slide-bg[data-campaign-slide="shower"] {
   background-color: #2b231c;
@@ -9281,20 +9273,14 @@ a.collection-gallery-item { cursor: pointer; color: inherit; }
   .catalog-feature-banner > img { aspect-ratio: 1.65; object-position: 77% center; }
   .catalog-showcase-link { font-size: .84rem; }
   .catalog-showcase-link svg { width: 14px; }
-  .collection-card-featured .collection-media-wrapper { aspect-ratio: 2; min-height: 0; }
+  .collection-card-featured .collection-media-wrapper { aspect-ratio: 1.6; min-height: 0; }
+  .company-atlas-banner > img { aspect-ratio: 1.6; }
   .collection-card-featured .collection-glass-caption { position: static; width: 100%; max-width: none; border-radius: 0; }
   .campaign-caption { position: relative; inset: auto; padding: 12px; }
   .partnership-currencies { height: auto; bottom: auto; aspect-ratio: 16 / 9; }
-  .hero-slide .hero-slide-bg:is([data-campaign-slide="shower"], [data-campaign-slide="trump"]) {
+  .hero-slide .hero-slide-bg[data-campaign-slide="shower"] {
     padding-top: calc(var(--header-height-mobile) + var(--sat, 0px));
     background-position: center top;
-  }
-  .hero-slide .hero-slide-bg[data-campaign-slide="trump"] {
-    background-position: center 9%;
-    background-size: 132% auto;
-  }
-  .hero-slide-bg[data-campaign-slide="trump"] .hero-slide-overlay {
-    background: linear-gradient(0deg, #171e19 38%, #171e1900 59%);
   }
   .hero-slide-bg[data-campaign-slide="shower"] {
     background-size: min(100%, 48svh) auto;
