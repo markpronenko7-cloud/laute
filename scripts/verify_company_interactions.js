@@ -58,7 +58,7 @@ test('Advertising cache refresh preserves custom employee films, posters and tex
   const robot = getCompanyProcessMedia({ videoUrl: 'media/processes/robot-polishing.mp4?edit=6' });
   assert.equal(robot.videoUrl, 'media/processes/robot-polishing.mp4?edit=16');
   assert.equal(robot.durationLabel, '0:30');
-  for (const [id, duration, revision] of [['salt-spray', '0:30', 15], ['lux-bench-test', '0:44', 16]]) {
+  for (const [id, duration, revision] of [['salt-spray', '0:30', 15], ['lux-bench-test', '0:44', 17]]) {
     const video = `media/processes/${id}.mp4`;
     const poster = `images/factory/processes/${id}-poster.webp`;
     const refreshed = getCompanyProcessMedia({ videoUrl: `${video}?edit=13`, posterUrl: `${poster}?edit=13` });
@@ -101,6 +101,13 @@ test('Shipped Lux copy migrates without replacing employee copy or media', () =>
   assert.equal(savedVersion7.items[0].title, 'Контроль качества');
   assert.equal(savedVersion7.items[0].translations.en.title, 'Quality control');
   assert.equal(savedVersion7.items[0].translations.kz.title, 'Сапаны бақылау');
+  const [savedVersion8] = getCompanyBlocks([{ ...production, processMediaVersion: 8, items: [{
+    ...lux,
+    desc: 'Мастер устанавливает кухонный смеситель на испытательный стенд, проверяет его работу, затем снимает смеситель и кладёт его на рабочий стол. В 2015 году к контролю качества на заводе подключились немецкие инженеры.',
+    translations: { en: { title: 'Editor title', desc: 'Editor description' } }
+  }] }]);
+  assert.match(savedVersion8.items[0].desc, /манометрами и маркировкой MMC/);
+  assert.deepEqual(savedVersion8.items[0].translations.en, { title: 'Editor title', desc: 'Editor description' });
 });
 
 test('Employee films do not inherit the shipped soundtrack attribution', async () => {
