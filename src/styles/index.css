@@ -9273,7 +9273,7 @@ a.collection-gallery-item { cursor: pointer; color: inherit; }
   .catalog-feature-banner > img { aspect-ratio: 1.65; object-position: 77% center; }
   .catalog-showcase-link { font-size: .84rem; }
   .catalog-showcase-link svg { width: 14px; }
-  .collection-card-featured .collection-media-wrapper { aspect-ratio: 1.6; min-height: 0; }
+  .collection-card-featured .collection-media-wrapper { aspect-ratio: 1.8; min-height: 0; }
   .company-atlas-banner > img { aspect-ratio: 1.6; }
   .collection-card-featured .collection-glass-caption { position: static; width: 100%; max-width: none; border-radius: 0; }
   .campaign-caption { position: relative; inset: auto; padding: 12px; }
